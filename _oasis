@@ -1,0 +1,45 @@
+OASISFormat: 0.3
+Name:        ocp-read
+Version:     1.0
+Synopsis:    Optimised functions to read and write int16/32/64 from strings and
+  bigarrays
+Authors:     Pierre Chambart
+License:     LGPL-2.1 with OCaml linking exception
+Plugins:     DevFiles (0.3), META (0.3)
+BuildTools:  ocamlbuild
+
+Library ocp_read
+  Path:       src
+  Modules:
+    Read_string
+  BuildDepends: optcomp
+
+Library bigstring
+  Path:       src
+  Modules:
+    Read_bigstring
+  FindlibName: bigstring
+  FindlibParent: ocp_read
+  BuildDepends: bigarray, optcomp
+
+Executable test
+  Path: tests
+  Build$: flag(tests)
+  Install: false
+  CompiledObject: best
+  MainIs: test.ml
+  BuildDepends: ocp_read, ocp_read.bigstring
+
+Test test
+  Command: $test
+  TestTools: test
+  Run$: flag(tests)
+
+# +-------------------------------------------------------------------+
+# | Misc                                                              |
+# +-------------------------------------------------------------------+
+
+SourceRepository head
+  Type: git
+  Location: https://github.com/chambart/readfromio.git
+  Browser: https://github.com/chambart/readfromio
