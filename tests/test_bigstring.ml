@@ -1,5 +1,8 @@
 open Bigarray
-open Read_bigstring
+open EndianBigstring
+
+module BE = BigEndian
+module LE = LittleEndian
 
 let bigstring_of_string s =
   let a = Array1.create char c_layout (String.length s) in

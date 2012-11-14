@@ -15,7 +15,7 @@
 (*                                                                      *)
 (************************************************************************)
 
-module BE : sig
+module type EndianStringSig = sig
   (** Functions reading according to Big Endian byte order *)
 
   val get_char : string -> int -> char
@@ -62,25 +62,39 @@ module BE : sig
 
 end
 
-module BE_unsafe : sig
-  (** Functions reading according to Big Endian byte order without
-  checking for overflow *)
+let get_char (s:string) off =
+  String.get s off
+let set_char (s:string) off v =
+  String.set s off v
+let unsafe_get_char (s:string) off =
+  String.unsafe_get s off
+let unsafe_set_char (s:string) off v =
+  String.unsafe_set s off v
 
-  include module type of BE
+#include "src/common.ml"
 
-end
+#if ocaml_version >= (4, 1)
 
-module LE : sig
-  (** Functions reading according to Little Endian byte order *)
+external unsafe_get_16 : string -> int -> int = "%caml_string_get16u"
+external unsafe_get_32 : string -> int -> int32 = "%caml_string_get32u"
+external unsafe_get_64 : string -> int -> int64 = "%caml_string_get64u"
 
-  include module type of BE
+external unsafe_set_16 : string -> int -> int -> unit = "%caml_string_set16u"
+external unsafe_set_32 : string -> int -> int32 -> unit = "%caml_string_set32u"
+external unsafe_set_64 : string -> int -> int64 -> unit = "%caml_string_set64u"
 
-end
+external get_16 : string -> int -> int = "%caml_string_get16"
+external get_32 : string -> int -> int32 = "%caml_string_get32"
+external get_64 : string -> int -> int64 = "%caml_string_get64"
 
-module LE_unsafe : sig
-  (** Functions reading according to Big Endian byte order without
-  checking for overflow *)
+external set_16 : string -> int -> int -> unit = "%caml_string_set16"
+external set_32 : string -> int -> int32 -> unit = "%caml_string_set32"
+external set_64 : string -> int -> int64 -> unit = "%caml_string_set64"
 
-  include module type of BE
+#include "src/common_401.ml"
 
-end
+#else
+
+#include "src/common_400.ml"
+
+#endif

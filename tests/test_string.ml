@@ -1,4 +1,7 @@
-open Read_string
+open EndianString
+
+module BE = BigEndian
+module LE = LittleEndian
 
 let s = String.make 10 '\x00'
 

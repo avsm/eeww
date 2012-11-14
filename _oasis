@@ -1,5 +1,5 @@
 OASISFormat: 0.3
-Name:        ocp-read
+Name:        ocplib-endian
 Version:     0.1
 Synopsis:    Optimised functions to read and write int16/32/64 from strings and
   bigarrays
@@ -8,19 +8,19 @@ License:     LGPL-2.1 with OCaml linking exception
 Plugins:     DevFiles (0.3), META (0.3)
 BuildTools:  ocamlbuild
 
-Library ocp_read
+Library ocplib_endian
   Path:       src
   Modules:
-    Read_string
-  FindlibName: ocp-read
+    EndianString
+  FindlibName: ocplib-endian
   BuildDepends: optcomp
 
 Library bigstring
   Path:       src
   Modules:
-    Read_bigstring
+    EndianBigstring
   FindlibName: bigstring
-  FindlibParent: ocp_read
+  FindlibParent: ocplib_endian
   BuildDepends: bigarray, optcomp
 
 Executable test
@@ -29,7 +29,7 @@ Executable test
   Install: false
   CompiledObject: best
   MainIs: test.ml
-  BuildDepends: ocp-read, ocp-read.bigstring
+  BuildDepends: ocplib-endian, ocplib-endian.bigstring
 
 Test test
   Command: $test
@@ -42,5 +42,5 @@ Test test
 
 SourceRepository head
   Type: git
-  Location: https://github.com/chambart/ocp-read.git
-  Browser: https://github.com/chambart/ocp-read
+  Location: https://github.com/OCamlPro/ocplib-endian.git
+  Browser: https://github.com/OCamlPro/ocplib-endian
