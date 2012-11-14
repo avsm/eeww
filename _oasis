@@ -41,5 +41,5 @@ Test test
 
 SourceRepository head
   Type: git
-  Location: https://github.com/chambart/readfromio.git
-  Browser: https://github.com/chambart/readfromio
+  Location: https://github.com/chambart/ocp_read.git
+  Browser: https://github.com/chambart/ocp_read
