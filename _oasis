@@ -12,6 +12,7 @@ Library ocp_read
   Path:       src
   Modules:
     Read_string
+  FindlibName: ocp-read
   BuildDepends: optcomp
 
 Library bigstring
@@ -28,7 +29,7 @@ Executable test
   Install: false
   CompiledObject: best
   MainIs: test.ml
-  BuildDepends: ocp_read, ocp_read.bigstring
+  BuildDepends: ocp-read, ocp-read.bigstring
 
 Test test
   Command: $test
@@ -41,5 +42,5 @@ Test test
 
 SourceRepository head
   Type: git
-  Location: https://github.com/chambart/ocp_read.git
-  Browser: https://github.com/chambart/ocp_read
+  Location: https://github.com/chambart/ocp-read.git
+  Browser: https://github.com/chambart/ocp-read
