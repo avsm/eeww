@@ -19,7 +19,7 @@ let assert_bound_check3 f v1 v2 v3 =
   with
      | Invalid_argument("index out of bounds") -> ()
 
-let test () =
+let test1 () =
   assert_bound_check2 BE.get_uint16 s (-1);
   assert_bound_check2 BE.get_uint16 s 9;
   assert_bound_check2 BE.get_int32 s (-1);
@@ -32,8 +32,9 @@ let test () =
   assert_bound_check3 BE.set_int32 s (-1) 0l;
   assert_bound_check3 BE.set_int32 s 7 0l;
   assert_bound_check3 BE.set_int64 s (-1) 0L;
-  assert_bound_check3 BE.set_int64 s 3 0L;
+  assert_bound_check3 BE.set_int64 s 3 0L
 
+let test2 () =
   BE.set_int16 s 0 0x1234;
   assert( BE.get_uint16 s 0 = 0x1234 );
   assert( BE.get_uint16 s 1 = 0x3400 );
