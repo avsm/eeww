@@ -3,6 +3,7 @@
 <src/*.ml>: inline(1000)
 
 <src/*.ml>: syntax_camlp4o, pkg_camlp4, pkg_optcomp
+<src/*.ml>: include_400, include_401
 
 # OASIS_START
 # DO NOT EDIT (digest: 37da2eef1e92fecaf7f37917ea3c342a)

@@ -489,4 +489,15 @@ let dispatch_default = MyOCamlbuildBase.dispatch_default package_default;;
 
 # 491 "myocamlbuild.ml"
 (* OASIS_STOP *)
-Ocamlbuild_plugin.dispatch dispatch_default;;
+let () =
+  dispatch
+    (fun hook ->
+       dispatch_default hook;
+       match hook with
+         | After_rules ->
+            dep ["include_401"]
+                ["src"/"be_ocaml_401.ml"; "src"/"le_ocaml_401.ml"];
+            dep ["include_400"]
+                ["src"/"be_ocaml_400.ml"; "src"/"le_ocaml_400.ml"];
+         | _ ->
+             ())

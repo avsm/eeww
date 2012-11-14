@@ -74,47 +74,8 @@ module BE = struct
   let set_char = set_char
   let set_int8 = set_int8
 
-  let get_uint16 s off =
-    let v = get_16 s off in
-    if Sys.big_endian
-    then v
-    else swap16 v
+#include "src/be_ocaml_401.ml"
 
-  let get_int16 s off =
-    sign16 (get_uint16 s off)
-
-  let get_int32 s off =
-    let v = get_32 s off in
-    if Sys.big_endian
-    then v
-    else swap32 v
-
-  let get_int64 s off =
-    let v = get_64 s off in
-    if Sys.big_endian
-    then v
-    else swap64 v
-
-  let set_int16 s off v =
-    let v =
-      if Sys.big_endian
-      then v
-      else swap16 v in
-    set_16 s off v
-
-  let set_int32 s off v =
-    let v =
-      if Sys.big_endian
-      then v
-      else swap32 v in
-    set_32 s off v
-
-  let set_int64 s off v =
-    let v =
-      if Sys.big_endian
-      then v
-      else swap64 v in
-    set_64 s off v
 end
 
 module BE_unsafe = struct
@@ -125,47 +86,8 @@ module BE_unsafe = struct
   let set_char = unsafe_set_char
   let set_int8 = unsafe_set_int8
 
-  let get_uint16 s off =
-    let v = unsafe_get_16 s off in
-    if Sys.big_endian
-    then v
-    else swap16 v
+#include "src/be_ocaml_401.ml"
 
-  let get_int16 s off =
-    sign16 (get_uint16 s off)
-
-  let get_int32 s off =
-    let v = unsafe_get_32 s off in
-    if Sys.big_endian
-    then v
-    else swap32 v
-
-  let get_int64 s off =
-    let v = unsafe_get_64 s off in
-    if Sys.big_endian
-    then v
-    else swap64 v
-
-  let set_int16 s off v =
-    let v =
-      if Sys.big_endian
-      then v
-      else swap16 v in
-    set_16 s off v
-
-  let set_int32 s off v =
-    let v =
-      if Sys.big_endian
-      then v
-      else swap32 v in
-    set_32 s off v
-
-  let set_int64 s off v =
-    let v =
-      if Sys.big_endian
-      then v
-      else swap64 v in
-    set_64 s off v
 end
 
 module LE = struct
@@ -176,47 +98,8 @@ module LE = struct
   let set_char = set_char
   let set_int8 = set_int8
 
-  let get_uint16 s off =
-    let v = get_16 s off in
-    if Sys.big_endian
-    then swap16 v
-    else v
+#include "src/le_ocaml_401.ml"
 
-  let get_int16 s off =
-    sign16 (get_uint16 s off)
-
-  let get_int32 s off =
-    let v = get_32 s off in
-    if Sys.big_endian
-    then swap32 v
-    else v
-
-  let get_int64 s off =
-    let v = get_64 s off in
-    if Sys.big_endian
-    then swap64 v
-    else v
-
-  let set_int16 s off v =
-    let v =
-      if Sys.big_endian
-      then swap16 v
-      else v in
-    set_16 s off v
-
-  let set_int32 s off v =
-    let v =
-      if Sys.big_endian
-      then swap32 v
-      else v in
-    set_32 s off v
-
-  let set_int64 s off v =
-    let v =
-      if Sys.big_endian
-      then swap64 v
-      else v in
-    set_64 s off v
 end
 
 module LE_unsafe = struct
@@ -227,47 +110,8 @@ module LE_unsafe = struct
   let set_char = unsafe_set_char
   let set_int8 = unsafe_set_int8
 
-  let get_uint16 s off =
-    let v = unsafe_get_16 s off in
-    if Sys.big_endian
-    then swap16 v
-    else v
+#include "src/le_ocaml_401.ml"
 
-  let get_int16 s off =
-    sign16 (get_uint16 s off)
-
-  let get_int32 s off =
-    let v = unsafe_get_32 s off in
-    if Sys.big_endian
-    then swap32 v
-    else v
-
-  let get_int64 s off =
-    let v = unsafe_get_64 s off in
-    if Sys.big_endian
-    then swap64 v
-    else v
-
-  let set_int16 s off v =
-    let v =
-      if Sys.big_endian
-      then swap16 v
-      else v in
-    set_16 s off v
-
-  let set_int32 s off v =
-    let v =
-      if Sys.big_endian
-      then swap32 v
-      else v in
-    set_32 s off v
-
-  let set_int64 s off v =
-    let v =
-      if Sys.big_endian
-      then swap64 v
-      else v in
-    set_64 s off v
 end
 
 #else
@@ -280,35 +124,7 @@ module BE = struct
   let set_char = set_char
   let set_int8 = set_int8
 
-  let get_uint16 s off =
-    let hi = get_uint8 s off in
-    let lo = get_uint8 s (off+1) in
-    (hi lsl 8) + lo
-
-  let get_int16 s off =
-    sign16 (get_uint16 s off)
-
-  let get_int32 s off =
-    let hi = get_uint16 s off in
-    let lo = get_uint16 s (off+2) in
-    Int32.(logor (shift_left (of_int hi) 16) (of_int lo))
-
-  let get_int64 s off =
-    let hi = get_int32 s off in
-    let lo = get_int32 s (off+4) in
-    Int64.(logor (shift_left (of_int32 hi) 32) (logand (of_int32 lo) 0xffffffff_L))
-
-  let set_int16 s off v =
-    set_int8 s off (v lsr 8);
-    set_int8 s (off+1) (v land 0xff)
-
-  let set_int32 s off v =
-    set_int16 s off (Int32.(to_int (shift_right_logical v 16)));
-    set_int16 s (off+2) (Int32.(to_int (logand v 0xffff_l)))
-
-  let set_int64 s off v =
-    set_int32 s off (Int64.(to_int32 (shift_right_logical v 32)));
-    set_int32 s (off+4) (Int64.(to_int32 (logand v 0xffffffff_L)))
+#include "src/be_ocaml_400.ml"
 
 end
 
@@ -320,35 +136,7 @@ module BE_unsafe = struct
   let set_char = unsafe_set_char
   let set_int8 = unsafe_set_int8
 
-  let get_uint16 s off =
-    let hi = get_uint8 s off in
-    let lo = get_uint8 s (off+1) in
-    (hi lsl 8) + lo
-
-  let get_int16 s off =
-    sign16 (get_uint16 s off)
-
-  let get_int32 s off =
-    let hi = get_uint16 s off in
-    let lo = get_uint16 s (off+2) in
-    Int32.(logor (shift_left (of_int hi) 16) (of_int lo))
-
-  let get_int64 s off =
-    let hi = get_int32 s off in
-    let lo = get_int32 s (off+4) in
-    Int64.(logor (shift_left (of_int32 hi) 32) (logand (of_int32 lo) 0xffffffff_L))
-
-  let set_int16 s off v =
-    set_int8 s off (v lsr 8);
-    set_int8 s (off+1) (v land 0xff)
-
-  let set_int32 s off v =
-    set_int16 s off (Int32.(to_int (shift_right_logical v 16)));
-    set_int16 s (off+2) (Int32.(to_int (logand v 0xffff_l)))
-
-  let set_int64 s off v =
-    set_int32 s off (Int64.(to_int32 (shift_right_logical v 32)));
-    set_int32 s (off+4) (Int64.(to_int32 (logand v 0xffffffff_L)))
+#include "src/be_ocaml_400.ml"
 
 end
 
@@ -360,35 +148,7 @@ module LE = struct
   let set_char = set_char
   let set_int8 = set_int8
 
-  let get_uint16 s off =
-    let hi = get_uint8 s (off+1) in
-    let lo = get_uint8 s off in
-    (hi lsl 8) + lo
-
-  let get_int16 s off =
-    sign16 (get_uint16 s off)
-
-  let get_int32 s off =
-    let hi = get_uint16 s (off+2) in
-    let lo = get_uint16 s off in
-    Int32.(logor (shift_left (of_int hi) 16) (of_int lo))
-
-  let get_int64 s off =
-    let hi = get_int32 s (off+4) in
-    let lo = get_int32 s off in
-    Int64.(logor (shift_left (of_int32 hi) 32) (logand (of_int32 lo) 0xffffffff_L))
-
-  let set_int16 s off v =
-    set_int8 s (off+1) (v lsr 8);
-    set_int8 s off (v land 0xff)
-
-  let set_int32 s off v =
-    set_int16 s (off+2) (Int32.(to_int (shift_right_logical v 16)));
-    set_int16 s off (Int32.(to_int (logand v 0xffff_l)))
-
-  let set_int64 s off v =
-    set_int32 s (off+4) (Int64.(to_int32 (shift_right_logical v 32)));
-    set_int32 s off (Int64.(to_int32 (logand v 0xffffffff_L)))
+#include "src/le_ocaml_400.ml"
 
 end
 
@@ -400,35 +160,7 @@ module LE_unsafe = struct
   let set_char = unsafe_set_char
   let set_int8 = unsafe_set_int8
 
-  let get_uint16 s off =
-    let hi = get_uint8 s (off+1) in
-    let lo = get_uint8 s off in
-    (hi lsl 8) + lo
-
-  let get_int16 s off =
-    sign16 (get_uint16 s off)
-
-  let get_int32 s off =
-    let hi = get_uint16 s (off+2) in
-    let lo = get_uint16 s off in
-    Int32.(logor (shift_left (of_int hi) 16) (of_int lo))
-
-  let get_int64 s off =
-    let hi = get_int32 s (off+4) in
-    let lo = get_int32 s off in
-    Int64.(logor (shift_left (of_int32 hi) 32) (logand (of_int32 lo) 0xffffffff_L))
-
-  let set_int16 s off v =
-    set_int8 s (off+1) (v lsr 8);
-    set_int8 s off (v land 0xff)
-
-  let set_int32 s off v =
-    set_int16 s (off+2) (Int32.(to_int (shift_right_logical v 16)));
-    set_int16 s off (Int32.(to_int (logand v 0xffff_l)))
-
-  let set_int64 s off v =
-    set_int32 s (off+4) (Int64.(to_int32 (shift_right_logical v 32)));
-    set_int32 s off (Int64.(to_int32 (logand v 0xffffffff_L)))
+#include "src/le_ocaml_400.ml"
 
 end
 
