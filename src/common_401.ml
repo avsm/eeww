@@ -3,7 +3,7 @@ external swap32 : int32 -> int32 = "%bswap_int32"
 external swap64 : int64 -> int64 = "%bswap_int64"
 external swapnative : nativeint -> nativeint = "%bswap_native"
 
-module BE = struct
+module BigEndian = struct
 
   let get_char = get_char
   let get_uint8 = get_uint8
@@ -15,7 +15,7 @@ module BE = struct
 
 end
 
-module BE_unsafe = struct
+module BigEndian_unsafe = struct
 
   let get_char = unsafe_get_char
   let get_uint8 = unsafe_get_uint8
@@ -33,7 +33,7 @@ module BE_unsafe = struct
 
 end
 
-module LE = struct
+module LittleEndian = struct
 
   let get_char = get_char
   let get_uint8 = get_uint8
@@ -45,7 +45,7 @@ module LE = struct
 
 end
 
-module LE_unsafe = struct
+module LittleEndian_unsafe = struct
 
   let get_char = unsafe_get_char
   let get_uint8 = unsafe_get_uint8

@@ -3,11 +3,11 @@
 <src/*.ml>: inline(1000)
 
 <src/*.ml>: syntax_camlp4o, pkg_camlp4, pkg_optcomp
-<src/read_*.ml>: include_common
+<src/endian*.ml>: include_common
 <src/*.ml>: include_400, include_401
 
 # OASIS_START
-# DO NOT EDIT (digest: 37da2eef1e92fecaf7f37917ea3c342a)
+# DO NOT EDIT (digest: 19529a038672d33bf2dfd41d46992a54)
 # Ignore VCS directories, you can use the same kind of rule outside 
 # OASIS_START/STOP if you want to exclude directories that contains 
 # useless stuff for the build process
@@ -21,18 +21,18 @@
 ".git": not_hygienic
 "_darcs": -traverse
 "_darcs": not_hygienic
-# Library ocp_read
-"src/ocp_read.cmxs": use_ocp_read
+# Library ocplib_endian
+"src/ocplib_endian.cmxs": use_ocplib_endian
 # Library bigstring
 "src/bigstring.cmxs": use_bigstring
 <src/*.ml{,i}>: pkg_bigarray
 <src/*.ml{,i}>: pkg_optcomp
 # Executable test
-<tests/test.{native,byte}>: use_ocp_read
+<tests/test.{native,byte}>: use_ocplib_endian
 <tests/test.{native,byte}>: use_bigstring
 <tests/test.{native,byte}>: pkg_bigarray
 <tests/test.{native,byte}>: pkg_optcomp
-<tests/*.ml{,i}>: use_ocp_read
+<tests/*.ml{,i}>: use_ocplib_endian
 <tests/*.ml{,i}>: use_bigstring
 <tests/*.ml{,i}>: pkg_bigarray
 <tests/*.ml{,i}>: pkg_optcomp
