@@ -495,6 +495,10 @@ let () =
        dispatch_default hook;
        match hook with
          | After_rules ->
+            dep ["include_common"]
+                ["src"/"common.ml";
+                 "src"/"common_401.ml";
+                 "src"/"common_400.ml"];
             dep ["include_401"]
                 ["src"/"be_ocaml_401.ml"; "src"/"le_ocaml_401.ml"];
             dep ["include_400"]
