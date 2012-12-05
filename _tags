@@ -7,7 +7,7 @@
 <src/*.ml>: include_400, include_401
 
 # OASIS_START
-# DO NOT EDIT (digest: 19529a038672d33bf2dfd41d46992a54)
+# DO NOT EDIT (digest: 5480c90817bae27a055998c0629a5d1c)
 # Ignore VCS directories, you can use the same kind of rule outside 
 # OASIS_START/STOP if you want to exclude directories that contains 
 # useless stuff for the build process
@@ -32,6 +32,11 @@
 <tests/test.{native,byte}>: use_bigstring
 <tests/test.{native,byte}>: pkg_bigarray
 <tests/test.{native,byte}>: pkg_optcomp
+# Executable benchmark
+<tests/bench.{native,byte}>: use_ocplib_endian
+<tests/bench.{native,byte}>: use_bigstring
+<tests/bench.{native,byte}>: pkg_bigarray
+<tests/bench.{native,byte}>: pkg_optcomp
 <tests/*.ml{,i}>: use_ocplib_endian
 <tests/*.ml{,i}>: use_bigstring
 <tests/*.ml{,i}>: pkg_bigarray

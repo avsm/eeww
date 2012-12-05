@@ -31,6 +31,14 @@ Executable test
   MainIs: test.ml
   BuildDepends: ocplib-endian, ocplib-endian.bigstring
 
+Executable benchmark
+  Path: tests
+  Build$: flag(tests)
+  Install: false
+  CompiledObject: best
+  MainIs: bench.ml
+  BuildDepends: ocplib-endian, ocplib-endian.bigstring
+
 Test test
   Command: $test
   TestTools: test
