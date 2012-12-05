@@ -12,9 +12,8 @@
     Int32.(logor (shift_left (of_int hi) 16) (of_int lo))
 
   let get_int64 s off =
-    let hi = get_int32 s off in
-    let lo = get_int32 s (off+4) in
-    Int64.(logor (shift_left (of_int32 hi) 32) (logand (of_int32 lo) 0xffffffff_L))
+    Int64.(logor (shift_left (of_int32 (get_int32 s off)) 32)
+                 (logand (of_int32 (get_int32 s (off+4))) 0xffffffff_L))
 
   let set_int16 s off v =
     set_int8 s off (v lsr 8);
