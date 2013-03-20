@@ -14,8 +14,11 @@ type kind = Tap | Tun
     (TUN) (defaults to no information). [persist] will set the device
     persistent with permissions set to [user] and [group] if supported
     by your OS (currently MacOSX does not support it). *)
-val tun_opendev : ?pi:bool -> ?persist:bool -> ?user:int
+val opentun : ?pi:bool -> ?persist:bool -> ?user:int
   -> ?group:int -> ?devname:string -> kind -> Unix.file_descr * string
+
+(** [closetun devname kind] will destroy [devname], if it exists. *)
+val closetun : string -> kind -> unit
 
 (** [get_hwaddr devname] returns the MAC address of interface
     [devname], as a raw string (not hexa). *)
