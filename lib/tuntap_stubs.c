@@ -21,6 +21,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <err.h>
+#include <arpa/inet.h>
+#include <sys/ioctl.h>
 
 #include <caml/mlvalues.h>
 #include <caml/memory.h>
@@ -42,8 +44,83 @@ setnonblock(int fd)
 #if defined(__linux__)
 
 #include <net/if.h>
-#include <sys/ioctl.h>
 #include <linux/if_tun.h>
+
+CAMLprim value
+set_ipv4(value dev, value ipv4, value netmask)
+{
+  CAMLparam3(dev, ipv4, netmask);
+
+  int fd;
+  struct ifreq ifr;
+  struct sockaddr_in* addr = (struct sockaddr_in*)&ifr.ifr_addr;
+
+  if((fd = socket(PF_INET, SOCK_DGRAM, 0)) == -1)
+    {
+      perror("socket");
+      caml_failwith("Impossible to open socket");
+    }
+
+  strncpy(ifr.ifr_name, String_val(dev), IFNAMSIZ);
+  ifr.ifr_addr.sa_family = AF_INET;
+  inet_pton(AF_INET, String_val(ipv4), &addr->sin_addr);
+
+  if (ioctl(fd, SIOCSIFADDR, &ifr) == -1)
+    {
+      perror("SIOCSIFADDR");
+      caml_failwith("SIOCSIFADDR");
+    }
+
+  if(caml_string_length(netmask) > 0)
+    {
+      inet_pton(AF_INET, String_val(netmask), &addr->sin_addr);
+
+      if (ioctl(fd, SIOCSIFADDR, &ifr) == -1)
+        {
+          perror("SIOCSIFNETMASK");
+          caml_failwith("SIOCSIFNETMASK");
+        }
+    }
+
+  CAMLreturn(Val_unit);
+}
+
+CAMLprim value
+set_up_and_running(value dev)
+{
+  CAMLparam1(dev);
+
+  int fd;
+  struct ifreq ifr;
+  struct sockaddr_in* addr = (struct sockaddr_in*)&ifr.ifr_addr;
+
+  if((fd = socket(PF_INET, SOCK_DGRAM, 0)) == -1)
+    {
+      perror("socket");
+      caml_failwith("Impossible to open socket");
+    }
+
+  strncpy(ifr.ifr_name, String_val(dev), IFNAMSIZ);
+  ifr.ifr_addr.sa_family = AF_INET;
+
+  if (ioctl(fd, SIOCGIFFLAGS, &ifr) == -1)
+    {
+      perror("SIOCGIFFLAGS");
+      caml_failwith("SIOCGIFFLAGS");
+    }
+
+  strncpy(ifr.ifr_name, String_val(dev), IFNAMSIZ);
+
+  ifr.ifr_flags |= (IFF_UP | IFF_RUNNING);
+
+  if (ioctl(fd, SIOCSIFFLAGS, &ifr) == -1)
+    {
+      perror("SIOCSIFFLAGS");
+      caml_failwith("SIOCSIFFLAGS");
+    }
+
+  CAMLreturn(Val_unit);
+}
 
 static int
 tun_alloc(char *dev, int flags, int persist, int user, int group)
@@ -91,7 +168,7 @@ tun_alloc(char *dev, int flags, int persist, int user, int group)
 }
 
 CAMLprim value
-opendev(value devname, value kind, value pi, value persist, value user, value group)
+tun_opendev(value devname, value kind, value pi, value persist, value user, value group)
 {
   CAMLparam5(devname, kind, pi, persist, user);
   CAMLxparam1(group);
@@ -119,9 +196,9 @@ opendev(value devname, value kind, value pi, value persist, value user, value gr
 }
 
 CAMLprim value
-opendev_byte(value *argv, int argn)
+tun_opendev_byte(value *argv, int argn)
 {
-  return opendev(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
+  return tun_opendev(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
 }
 
 CAMLprim value
@@ -147,12 +224,10 @@ get_hwaddr(value devname) {
 
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <sys/ioctl.h>
 #include <net/if.h>
 #include <net/if_dl.h>
 #include <net/ndrv.h>
 #include <net/bpf.h>
-#include <arpa/inet.h>
 #include <ifaddrs.h>
 #include <netdb.h>
 

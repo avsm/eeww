@@ -14,12 +14,20 @@ type kind = Tap | Tun
     (TUN) (defaults to no information). [persist] will set the device
     persistent with permissions set to [user] and [group] if supported
     by your OS (currently MacOSX does not support it). *)
-val opendev : ?pi:bool -> ?persist:bool -> ?user:int
+val tun_opendev : ?pi:bool -> ?persist:bool -> ?user:int
   -> ?group:int -> ?devname:string -> kind -> Unix.file_descr * string
 
 (** [get_hwaddr devname] returns the MAC address of interface
     [devname], as a raw string (not hexa). *)
 val get_hwaddr : string -> string
+
+(** [set_ipv4 devname ipv4addr netmask] assign an IPv4 to interface
+    [devname] *)
+val set_ipv4 : ?netmask:string -> string -> string -> unit
+
+(** [set_up_and_running devname] sets interface [devname] up and
+    running. *)
+val set_up_and_running : string -> unit
 
 (** [string_of_hwaddr hwaddr] returns the MAC address in the (usual)
     hex format *)

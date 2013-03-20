@@ -1,5 +1,5 @@
 OBUILDOPTS=--debug+
-CONFOPTS=--enable-library-bytecode --enable-executable-bytecode
+#CONFOPTS=--enable-library-bytecode --enable-executable-bytecode
 PKGNAME=tuntap
 
 .PHONY: configure build install clean uninstall
