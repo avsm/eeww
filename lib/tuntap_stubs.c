@@ -27,6 +27,18 @@
 #include <caml/alloc.h>
 #include <caml/fail.h>
 
+static void
+setnonblock(int fd)
+{
+  int flags;
+  flags = fcntl(fd, F_GETFL);
+  if (flags == -1)
+    perror("fcntl");
+  flags |= O_NONBLOCK;
+  if (fcntl(fd, F_SETFL, flags) == -1)
+    perror("fcntl");
+}
+
 #if defined(__linux__)
 
 #include <net/if.h>
@@ -34,40 +46,56 @@
 #include <linux/if_tun.h>
 
 static int
-tun_alloc(char *dev, int flags)
+tun_alloc(char *dev, int flags, int persist, int user, int group)
 {
   struct ifreq ifr;
-  int fd, err;
-  if ((fd = open("/dev/net/tun", O_RDWR)) < 0)
+  int fd;
+
+  if ((fd = open("/dev/net/tun", O_RDWR)) == -1) {
+    perror("open");
     caml_failwith("unable to open /dev/net/tun");
+  }
+
   memset(&ifr, 0, sizeof(ifr));
   ifr.ifr_flags = flags;
+
   if (*dev)
     strncpy(ifr.ifr_name, dev, IFNAMSIZ);
-  if ((err=ioctl(fd, TUNSETIFF, (void *)&ifr)) < 0) {
-    fprintf(stderr, "TUNSETIFF failed: %d\n", err);
+
+  if (ioctl(fd, TUNSETIFF, (void *)&ifr) < 0) {
+    perror("TUNSETIFF");
     caml_failwith("TUNSETIFF failed");
   }
+
+  if(ioctl(fd, TUNSETPERSIST, persist) < 0) {
+    perror("TUNSETPERSIST");
+    caml_failwith("TUNSETPERSIST failed");
+  }
+
+  if(user != -1) {
+    if(ioctl(fd, TUNSETOWNER, user) < 0) {
+      perror("TUNSETOWNER");
+      caml_failwith("TUNSETOWNER failed");
+    }
+  }
+
+  if(group != -1) {
+    if(ioctl(fd, TUNSETGROUP, group) < 0) {
+      perror("TUNSETGROUP");
+      caml_failwith("TUNSETGROUP failed");
+    }
+  }
+
   strcpy(dev, ifr.ifr_name);
   return fd;
 }
 
-static void
-setnonblock(int fd)
-{
-  int flags;
-  flags = fcntl(fd, F_GETFL);
-  if (flags < 0)
-    err(1, "setnonblock: fcntl");
-  flags |= O_NONBLOCK;
-  if (fcntl(fd, F_SETFL, flags) < 0)
-    err(1, "setnonblock, F_SETFL");
-}
-
 CAMLprim value
-opendev(value devname, value kind, value pi)
+opendev(value devname, value kind, value pi, value persist, value user, value group)
 {
-  CAMLparam3(devname, kind, pi);
+  CAMLparam5(devname, kind, pi, persist, user);
+  CAMLxparam1(group);
+  CAMLlocal2(res, dev_caml);
 
   char dev[IFNAMSIZ];
   int fd;
@@ -77,10 +105,23 @@ opendev(value devname, value kind, value pi)
 
   memset(dev, 0, sizeof dev);
   memcpy(dev, String_val(devname), caml_string_length(devname));
-  fd = tun_alloc(dev, flags);
+
+  fd = tun_alloc(dev, flags, Bool_val(persist), Int_val(user), Int_val(group));
   setnonblock(fd);
 
-  CAMLreturn(Val_int(fd));
+  res = caml_alloc_tuple(2);
+  dev_caml = caml_copy_string(dev);
+
+  Store_field(res, 0, Val_int(fd));
+  Store_field(res, 1, dev_caml);
+
+  CAMLreturn(res);
+}
+
+CAMLprim value
+opendev_byte(value *argv, int argn)
+{
+  return opendev(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
 }
 
 CAMLprim value
@@ -93,8 +134,8 @@ get_hwaddr(value devname) {
 
   fd = socket(PF_INET, SOCK_DGRAM, 0);
   strcpy(ifq.ifr_name, String_val(devname));
-  if (ioctl(fd, SIOCGIFHWADDR, &ifq) < 0)
-    err(1, "ioctl get_mac_addr");
+  if (ioctl(fd, SIOCGIFHWADDR, &ifq) == -1)
+    perror("SIOCIFHWADDR");
 
   hwaddr = caml_alloc_string(6);
   memcpy(String_val(hwaddr), ifq.ifr_hwaddr.sa_data, 6);
@@ -114,18 +155,6 @@ get_hwaddr(value devname) {
 #include <arpa/inet.h>
 #include <ifaddrs.h>
 #include <netdb.h>
-
-static void
-setnonblock(int fd)
-{
-  int flags;
-  flags = fcntl(fd, F_GETFL);
-  if (flags < 0)
-    err(1, "setnonblock: fcntl");
-  flags |= O_NONBLOCK;
-  if (fcntl(fd, F_SETFL, flags) < 0)
-    err(1, "setnonblock, F_SETFL");
-}
 
 CAMLprim value
 tap_opendev(value v_str)
@@ -152,87 +181,6 @@ tap_opendev(value v_str)
   fprintf(stderr, "%s\n", buf);
   system(buf);
   return Val_int(fd);
-}
-
-CAMLprim value
-eth_opendev(value v_str)
-{
-  char name[IFNAMSIZ];
-  snprintf(name, sizeof name, "%s", String_val(v_str));
-
-  // opening socket
-  int fd = socket(PF_NDRV, SOCK_RAW, 0);
-
-  // bind to interface
-  struct sockaddr_ndrv ndrv;
-  strlcpy((char*)ndrv.snd_name, name, IFNAMSIZ);
-  ndrv.snd_len = sizeof(ndrv);
-  ndrv.snd_family = AF_NDRV;
-  bind(fd, (struct sockaddr*)&ndrv, sizeof(ndrv));
-
-  if (fd < 0)
-    err(1, "eth_opendev");
-  setnonblock(fd);
-
-  // return the fd
-  return Val_int(fd);
-}
-
-CAMLprim value
-pcap_opendev(value v_name) {
-  CAMLparam1(v_name);
-
-  // opening socket
-  int fd, i, flag = 1;
-  char buf[ 11 ];
-  struct ifreq bound_if;
-  char name[IFNAMSIZ];
-
-  snprintf(name, sizeof name, "%s", String_val(v_name));
-
-  for( i = 0; i < 99; i++ ) {
-    sprintf( buf, "/dev/bpf%i", i );
-    fd = open( buf, O_RDWR );
-    if( fd != -1 )break;
-  }
-
-  if (fd < 0)
-    err(1, "pcap_opendev");
-  printf ("open dev '%s' with bpf '%s'\n", name, buf) ;
-
-  // bind to interface
-  strcpy(bound_if.ifr_name, name);
-  if(ioctl( fd, BIOCSETIF, &bound_if ) > 0)
-    err(1, "pcap_opendev");
-
-  // activate immediate mode (therefore, buf_len is initially set to "1")
-  if( ioctl(fd, BIOCIMMEDIATE, &flag) == -1)
-    err(1, "pcap_opendev");
-  if( ioctl(fd, BIOCPROMISC, &flag) == -1)
-    err(1, "pcap_opendev");
-  if( ioctl(fd, BIOCSHDRCMPLT, &flag) == -1)
-    err(1, "pcap_opendev");
-
-  flag = 0;
-  if( ioctl(fd, BIOCSSEESENT, &flag) == -1)
-    err(1, "pcap_opendev");
-
-  setnonblock(fd);
-
-  // return the fd
-  CAMLreturn(Val_int(fd));
-}
-
-CAMLprim value
-pcap_get_buf_len(value v_fd) {
-  CAMLparam1(v_fd);
-  int buf_len;
-
-  // request buffer length
-  if(ioctl( Int_val(v_fd), BIOCGBLEN, &buf_len ) == -1 )
-    err(1, "pcap_get_buf_len");
-
-  CAMLreturn(Val_int(buf_len));
 }
 
 CAMLprim value
