@@ -29,18 +29,6 @@
 #include <caml/alloc.h>
 #include <caml/fail.h>
 
-static void
-setnonblock(int fd)
-{
-  int flags;
-  flags = fcntl(fd, F_GETFL);
-  if (flags == -1)
-    perror("fcntl");
-  flags |= O_NONBLOCK;
-  if (fcntl(fd, F_SETFL, flags) == -1)
-    perror("fcntl");
-}
-
 #if defined(__linux__)
 
 #include <net/if.h>
@@ -184,7 +172,6 @@ tun_opendev(value devname, value kind, value pi, value persist, value user, valu
   memcpy(dev, String_val(devname), caml_string_length(devname));
 
   fd = tun_alloc(dev, flags, Bool_val(persist), Int_val(user), Int_val(group));
-  setnonblock(fd);
 
   res = caml_alloc_tuple(2);
   dev_caml = caml_copy_string(dev);
@@ -247,7 +234,6 @@ tap_opendev(value v_str)
   int fd = open(name, O_RDWR);
   if (fd < 0)
     err(1, "tap_opendev");
-  setnonblock(fd);
   /* Mark interface as up
      Since MacOS doesnt have ethernet bridging built in, the
      IP binding is temporary until someone writes a KPI filter for Darwin */
