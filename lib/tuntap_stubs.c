@@ -80,7 +80,6 @@ set_up_and_running(value dev)
 
   int fd;
   struct ifreq ifr;
-  struct sockaddr_in* addr = (struct sockaddr_in*)&ifr.ifr_addr;
 
   if((fd = socket(PF_INET, SOCK_DGRAM, 0)) == -1)
     {
