@@ -14,7 +14,7 @@ build: configure
 
 install: build
 	ocamlfind remove $(PKGNAME)
-	ocamlfind install $(PKGNAME) dist/build/lib-$(PKGNAME)/*.{a,so,cma,cmxa,cmi} lib/META
+	ocamlfind install $(PKGNAME) dist/build/lib-$(PKGNAME)/*.{a,so,cma,cmxa,cmi} lib/META lib/$(PKGNAME).mli
 
 clean:
 	obuild clean
