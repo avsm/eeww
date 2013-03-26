@@ -1,23 +1,38 @@
-OBUILDOPTS=--debug+
-#CONFOPTS=--enable-library-bytecode --enable-executable-bytecode
-PKGNAME=tuntap
+# OASIS_START
+# DO NOT EDIT (digest: bc1e05bfc8b39b664f29dae8dbd3ebbb)
 
-.PHONY: configure build install clean uninstall
+SETUP = ocaml setup.ml
 
-all: build
+build: setup.data
+	$(SETUP) -build $(BUILDFLAGS)
 
-configure:
-	obuild $(OBUILDOPTS) configure $(CONFOPTS)
+doc: setup.data build
+	$(SETUP) -doc $(DOCFLAGS)
 
-build: configure
-	obuild $(OBUILDOPTS) build
+test: setup.data build
+	$(SETUP) -test $(TESTFLAGS)
 
-install: build
-	ocamlfind remove $(PKGNAME)
-	ocamlfind install $(PKGNAME) dist/build/lib-$(PKGNAME)/*.{a,so,cma,cmxa,cmi} lib/META lib/$(PKGNAME).mli
+all: 
+	$(SETUP) -all $(ALLFLAGS)
 
-clean:
-	obuild clean
+install: setup.data
+	$(SETUP) -install $(INSTALLFLAGS)
 
-uninstall:
-	ocamlfind remove $(PKGNAME)
+uninstall: setup.data
+	$(SETUP) -uninstall $(UNINSTALLFLAGS)
+
+reinstall: setup.data
+	$(SETUP) -reinstall $(REINSTALLFLAGS)
+
+clean: 
+	$(SETUP) -clean $(CLEANFLAGS)
+
+distclean: 
+	$(SETUP) -distclean $(DISTCLEANFLAGS)
+
+setup.data:
+	$(SETUP) -configure $(CONFIGUREFLAGS)
+
+.PHONY: build doc test all install uninstall reinstall clean distclean configure
+
+# OASIS_STOP

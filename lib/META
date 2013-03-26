@@ -1,6 +1,11 @@
-name            = "tuntap"
-version         = "0.1"
-require         = "unix"
-description     = "Bindings to the TUN/TAP interface on Unix"
-archive(byte)   = "tuntap.cma"
+# OASIS_START
+# DO NOT EDIT (digest: 08fe33f54a8ad1664822706d6ec172b4)
+version = "0.1"
+description = "Bindings to the UNIX tuntap facility."
+archive(byte) = "tuntap.cma"
+archive(byte, plugin) = "tuntap.cma"
 archive(native) = "tuntap.cmxa"
+archive(native, plugin) = "tuntap.cmxs"
+exists_if = "tuntap.cma"
+# OASIS_STOP
+
