@@ -18,3 +18,4 @@ Executable tunctl
   MainIs: tunctl.ml
   BuildDepends: tuntap
   CompiledObject: native
+  Install: false
