@@ -17,7 +17,7 @@ let opentap = open_ Tap
 let closetun devname = ignore (opentun ~devname ())
 let closetap devname = ignore (opentap ~devname ())
 
-let set_ipv4 ?(netmask="") dev ipv4addr = set_ipv4 dev ipv4addr netmask
+let set_ipv4 ~dev ~ipv4 ?(netmask="") () = set_ipv4 dev ipv4 netmask
 
 let string_of_hwaddr mac =
   let ret = ref "" in

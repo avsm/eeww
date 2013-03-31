@@ -162,45 +162,6 @@ get_hwaddr(value devname) {
 // Code for all architectures
 
 CAMLprim value
-set_ipv4(value dev, value ipv4, value netmask)
-{
-  CAMLparam3(dev, ipv4, netmask);
-
-  int fd;
-  struct ifreq ifr;
-  struct sockaddr_in* addr = (struct sockaddr_in*)&ifr.ifr_addr;
-
-  if((fd = socket(PF_INET, SOCK_DGRAM, 0)) == -1)
-    {
-      perror("socket");
-      caml_failwith("Impossible to open socket");
-    }
-
-  strncpy(ifr.ifr_name, String_val(dev), IFNAMSIZ);
-  ifr.ifr_addr.sa_family = AF_INET;
-  inet_pton(AF_INET, String_val(ipv4), &addr->sin_addr);
-
-  if (ioctl(fd, SIOCSIFADDR, &ifr) == -1)
-    {
-      perror("SIOCSIFADDR");
-      caml_failwith("SIOCSIFADDR");
-    }
-
-  if(caml_string_length(netmask) > 0)
-    {
-      inet_pton(AF_INET, String_val(netmask), &addr->sin_addr);
-
-      if (ioctl(fd, SIOCSIFADDR, &ifr) == -1)
-        {
-          perror("SIOCSIFNETMASK");
-          caml_failwith("SIOCSIFNETMASK");
-        }
-    }
-
-  CAMLreturn(Val_unit);
-}
-
-CAMLprim value
 set_up_and_running(value dev)
 {
   CAMLparam1(dev);
@@ -225,13 +186,57 @@ set_up_and_running(value dev)
 
   strncpy(ifr.ifr_name, String_val(dev), IFNAMSIZ);
 
-  ifr.ifr_flags |= (IFF_UP | IFF_RUNNING);
+  ifr.ifr_flags |= (IFF_UP|IFF_RUNNING|IFF_BROADCAST|IFF_MULTICAST);
 
   if (ioctl(fd, SIOCSIFFLAGS, &ifr) == -1)
     {
       perror("SIOCSIFFLAGS");
       caml_failwith("SIOCSIFFLAGS");
     }
+
+  CAMLreturn(Val_unit);
+}
+
+CAMLprim value
+set_ipv4(value dev, value ipv4, value netmask)
+{
+  CAMLparam3(dev, ipv4, netmask);
+
+  int fd;
+  struct ifreq ifr;
+  struct sockaddr_in* addr = (struct sockaddr_in*)&ifr.ifr_addr;
+
+  memset(&ifr, 0, sizeof(struct ifreq));
+
+  if((fd = socket(PF_INET, SOCK_DGRAM, 0)) == -1)
+    {
+      perror("socket");
+      caml_failwith("Impossible to open socket");
+    }
+
+  strncpy(ifr.ifr_name, String_val(dev), IFNAMSIZ);
+  ifr.ifr_addr.sa_family = AF_INET;
+  inet_pton(AF_INET, String_val(ipv4), &(addr->sin_addr));
+
+  if (ioctl(fd, SIOCSIFADDR, &ifr) == -1)
+    {
+      perror("SIOCSIFADDR");
+      caml_failwith("SIOCSIFADDR");
+    }
+
+  if(caml_string_length(netmask) > 0)
+    {
+      inet_pton(AF_INET, String_val(netmask), &(addr->sin_addr));
+
+      if (ioctl(fd, SIOCSIFNETMASK, &ifr) == -1)
+        {
+          perror("SIOCSIFNETMASK");
+          caml_failwith("SIOCSIFNETMASK");
+        }
+    }
+
+  // Set interface up and running
+  set_up_and_running(dev);
 
   CAMLreturn(Val_unit);
 }

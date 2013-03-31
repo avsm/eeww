@@ -22,10 +22,11 @@ val get_hwaddr : string -> string
 
 (** [set_ipv4 devname ipv4addr netmask] assign an IPv4 to interface
     [devname] *)
-val set_ipv4 : ?netmask:string -> string -> string -> unit
+val set_ipv4 : dev:string -> ipv4:string -> ?netmask:string -> unit -> unit
 
 (** [set_up_and_running devname] sets interface [devname] up and
-    running. *)
+    running. Note that when using the [set_ipv4] function, the
+    interface will automatically be set up and running *)
 val set_up_and_running : string -> unit
 
 (** [string_of_hwaddr hwaddr] returns the MAC address in the (usual)
