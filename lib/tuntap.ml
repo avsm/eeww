@@ -29,3 +29,15 @@ let string_of_hwaddr mac =
         ret := Printf.sprintf "%s%02x:" !ret (int_of_char ch)
     ) mac  in
   String.sub !ret 0 (String.length !ret - 1)
+
+let make_local_hwaddr () =
+  let x = String.create 6 in
+  let i () = Char.chr (Random.int 256) in
+  (* set locally administered and unicast bits *)
+  x.[0] <- Char.chr ((((Random.int 256) lor 2) lsr 1) lsl 1);
+  x.[1] <- i ();
+  x.[2] <- i ();
+  x.[3] <- i ();
+  x.[4] <- i ();
+  x.[5] <- i ();
+  x

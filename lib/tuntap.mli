@@ -37,3 +37,6 @@ val set_up_and_running : string -> unit
 (** [string_of_hwaddr hwaddr] returns the MAC address in the (usual)
     hex format *)
 val string_of_hwaddr : string -> string
+
+(** Generate a locally administered unicast MAC address *)
+val make_local_hwaddr : unit -> string
