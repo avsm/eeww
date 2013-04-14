@@ -16,6 +16,11 @@ val opentap : ?pi:bool -> ?persist:bool -> ?user:int
 val closetun : string -> unit
 val closetap : string -> unit
 
+(** [get_ifnamsiz ()] returns the value of the constant IFNAMSIZ,
+		defined in <net/if.h>. Useful for allocating buffers that contain
+		interface names. *)
+val get_ifnamsiz : unit -> int
+
 (** [get_hwaddr devname] returns the MAC address of interface
     [devname], as a raw string (not hexa). *)
 val get_hwaddr : string -> string

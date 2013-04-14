@@ -277,3 +277,10 @@ tun_opendev_byte(value *argv, int argn)
 {
   return tun_opendev(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
 }
+
+CAMLprim value
+get_ifnamsiz()
+{
+  CAMLparam0();
+  CAMLreturn(Val_int(IFNAMSIZ));
+}

@@ -6,6 +6,8 @@ external get_hwaddr : string -> string = "get_hwaddr"
 external set_ipv4 : string -> string -> string -> unit = "set_ipv4"
 external set_up_and_running : string -> unit = "set_up_and_running"
 
+external get_ifnamsiz : unit -> int = "get_ifnamsiz"
+
 let open_ kind ?(pi=false) ?(persist=false) ?(user = -1) ?(group = -1) ?(devname="") () =
   opentun_stub devname kind pi persist user group
 
