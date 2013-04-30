@@ -1,19 +1,29 @@
-(** Creates or open a tun or tap device. tun refers to layer3 virtual
-    interfaces whereas tap refers to layer2 virtual interfaces. If no
-    [devname] is specified, or if [devname] specify an unexistant
-    device, a new device will be created. Otherwise, the interface
-    [devname] will be opened. [no_pi] is to indicate if you want
-    packet information associated with your frames (tap) or packets
-    (tun) (defaults to no information). [persist] will set the device
-    persistent with permissions set to [user] and [group] if supported
-    by your OS (currently MacOSX does not support it). *)
+(** Module for dealing with TUN/TAP devices. TUN refers to layer 3
+    virtual interfaces whereas TAP refers to layer 2 ones. *)
+
+
+(** [opentun ~pi ~persist ~user ~group ~devname ()] will create a TUN
+    interface. If [devname] is specified, or if [devname] specify an
+    unexistant device, a new device will be created, otherwise, the
+    interface [devname] will be opened. [no_pi] is to indicate if you
+    want packet information associated with your frames (tap) or
+    packets (tun) (defaults to no information). [persist] will set the
+    device persistent with permissions set to [user] and [group] if
+    supported by your OS (currently MacOSX does not support it). The
+    return value is a pair consisting of a fd opened on the freshly
+    created interface, and its name as will be displayed by command
+    [ifconfig] for example. *)
 val opentun : ?pi:bool -> ?persist:bool -> ?user:int
   -> ?group:int -> ?devname:string -> unit -> Unix.file_descr * string
+
+(** Like [opentun], but open TAP interfaces instead of TUN ones. *)
 val opentap : ?pi:bool -> ?persist:bool -> ?user:int
   -> ?group:int -> ?devname:string -> unit -> Unix.file_descr * string
 
 (** [closetun devname kind] will destroy [devname], if it exists. *)
 val closetun : string -> unit
+
+(** Like [closetun], but for TAP interfaces. *)
 val closetap : string -> unit
 
 (** [get_ifnamsiz ()] returns the value of the constant IFNAMSIZ,
