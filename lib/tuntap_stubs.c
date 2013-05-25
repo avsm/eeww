@@ -121,7 +121,7 @@ tun_alloc(char *dev, int kind, int pi, int persist, int user, int group)
       caml_failwith("Unable to open the TUN or TAP interface");
     }
 
-  return Val_int(fd);
+  return fd;
 }
 
 CAMLprim value
