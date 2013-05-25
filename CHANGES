@@ -1,2 +1,5 @@
+0.4 (25-May-2013):
+* Fixed MacOS X tuntap support.
+
 0.3 (22-May-2013):
 * First public release.
