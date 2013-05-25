@@ -27,3 +27,11 @@ Executable sendfd_test
   CompiledObject: native
   Install: false
   Build: false
+
+Executable nonblock_test
+  Path: test
+  MainIs: nonblock_test.ml
+  BuildDepends: tuntap, lwt.unix
+  CompiledObject: native
+  Install: false
+  Build: false
