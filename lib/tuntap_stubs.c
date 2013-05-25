@@ -41,7 +41,7 @@ tun_alloc(char *dev, int kind, int pi, int persist, int user, int group)
 
   if ((fd = open("/dev/net/tun", O_RDWR)) == -1) {
     perror("open");
-    caml_failwith("unable to open /dev/net/tun");
+    caml_failwith("Unable to open /dev/net/tun");
   }
 
   memset(&ifr, 0, sizeof(ifr));
@@ -53,26 +53,30 @@ tun_alloc(char *dev, int kind, int pi, int persist, int user, int group)
     strncpy(ifr.ifr_name, dev, IFNAMSIZ);
 
   if (ioctl(fd, TUNSETIFF, (void *)&ifr) < 0) {
+    close(fd);
     perror("TUNSETIFF");
-    caml_failwith("TUNSETIFF failed");
+    caml_failwith("TUNSETIFF");
   }
 
   if(ioctl(fd, TUNSETPERSIST, persist) < 0) {
+    close(fd);
     perror("TUNSETPERSIST");
-    caml_failwith("TUNSETPERSIST failed");
+    caml_failwith("TUNSETPERSIST");
   }
 
   if(user != -1) {
     if(ioctl(fd, TUNSETOWNER, user) < 0) {
+      close(fd);
       perror("TUNSETOWNER");
-      caml_failwith("TUNSETOWNER failed");
+      caml_failwith("TUNSETOWNER");
     }
   }
 
   if(group != -1) {
     if(ioctl(fd, TUNSETGROUP, group) < 0) {
+      close(fd);
       perror("TUNSETGROUP");
-      caml_failwith("TUNSETGROUP failed");
+      caml_failwith("TUNSETGROUP");
     }
   }
 
