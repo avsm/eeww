@@ -1,5 +1,5 @@
 dist
 setup.data
 setup.log
-tunctl.native
+*.native
 _build
