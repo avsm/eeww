@@ -8,7 +8,7 @@ let test () =
   printf "open %s: " devname;
   let fd, name = Tuntap.opentun ~devname () in
   printf "ok hwaddr: %s\n%!" (Tuntap.string_of_hwaddr (Tuntap.get_hwaddr devname));
-  let ipv4 = "10.11.12.1" in
+  let ipv4 = "172.168.1.1" in
   let netmask = "255.255.255.0" in
   printf "%s <- %s/%s: " devname ipv4 netmask;
   Tuntap.set_ipv4 ~dev:devname ~ipv4 ~netmask ();
