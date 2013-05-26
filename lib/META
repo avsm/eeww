@@ -1,6 +1,6 @@
 # OASIS_START
-# DO NOT EDIT (digest: fefacfe6f690fb028ef7a0ff6e0b0bc6)
-version = "0.4"
+# DO NOT EDIT (digest: cc1d2cade19426336a61e8b9c7b725f6)
+version = "0.5"
 description = "Bindings to the UNIX tuntap facility."
 archive(byte) = "tuntap.cma"
 archive(byte, plugin) = "tuntap.cma"

@@ -1,3 +1,6 @@
+0.5 (trunk):
+* Add a non-blocking packet dumper test.
+
 0.4 (25-May-2013):
 * Fixed MacOS X tuntap support.
 
