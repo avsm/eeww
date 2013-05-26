@@ -32,3 +32,4 @@
 <test/*.ml{,i}>: use_tuntap
 <test/*.ml{,i}>: pkg_lwt.unix
 # OASIS_STOP
+<lib>: include

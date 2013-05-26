@@ -44,3 +44,10 @@ Executable nonblock_read
   Install: false
   Build: false
 
+Document api
+  Title: Documentation and API reference
+  Type: ocamlbuild (0.3)
+  BuildTools+: ocamldoc
+  XOCamlbuildLibraries: tuntap
+  XOcamlbuildPath: doc
+  Install: false
