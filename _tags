@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: a869289b8bdaa3645b0ffb3a0faef069)
+# DO NOT EDIT (digest: 8e29f25034e42493e9dd067d98ee72be)
 # Ignore VCS directories, you can use the same kind of rule outside 
 # OASIS_START/STOP if you want to exclude directories that contains 
 # useless stuff for the build process
@@ -20,6 +20,8 @@
 <lib/tuntap.{cma,cmxa}>: use_libtuntap_stubs
 # Executable tunctl
 "test/tunctl.native": use_tuntap
+"test/tunctl.native": pkg_cmdliner
+<test/*.ml{,i}>: pkg_cmdliner
 # Executable sendfd_test
 "test/sendfd_test.native": use_tuntap
 "test/sendfd_test.native": pkg_lwt.unix

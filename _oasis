@@ -16,8 +16,9 @@ Library tuntap
 Executable tunctl
   Path: test
   MainIs: tunctl.ml
-  BuildDepends: tuntap
+  BuildDepends: tuntap, cmdliner
   CompiledObject: native
+  Build: false
   Install: false
 
 Executable sendfd_test
