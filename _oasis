@@ -52,7 +52,15 @@ Executable getifaddrs_test
   BuildDepends: tuntap, cstruct
   CompiledObject: native
   Install: false
-  Build: false
+  Build: true
+
+Executable set_ipv4_test
+  Path: test
+  MainIs: set_ipv4_test.ml
+  BuildDepends: tuntap, cstruct, oUnit
+  CompiledObject: native
+  Install: false
+  Build: true
 
 Document api
   Title: Documentation and API reference
