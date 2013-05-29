@@ -204,7 +204,7 @@ set_ipv4(value dev, value ipv4, value netmask)
 {
   CAMLparam3(dev, ipv4, netmask);
 
-  int fd;
+  int fd, ret;
   struct ifreq ifr;
   struct sockaddr_in* addr = (struct sockaddr_in*)&ifr.ifr_addr;
 
@@ -215,15 +215,24 @@ set_ipv4(value dev, value ipv4, value netmask)
 
   strncpy(ifr.ifr_name, String_val(dev), IFNAMSIZ);
   ifr.ifr_addr.sa_family = AF_INET;
-  inet_pton(AF_INET, String_val(ipv4), &(addr->sin_addr));
+
+  ret = inet_pton(AF_INET, String_val(ipv4), &(addr->sin_addr));
+  if (ret == 0)
+    caml_failwith("Invalid IPv4 address");
+  if (ret != 1)
+    caml_failwith(strerror(errno));
+
 
   if (ioctl(fd, SIOCSIFADDR, &ifr) == -1)
     caml_failwith(strerror(errno));
 
-
   if(caml_string_length(netmask) > 0)
     {
-      inet_pton(AF_INET, String_val(netmask), &(addr->sin_addr));
+      ret = inet_pton(AF_INET, String_val(netmask), &(addr->sin_addr));
+      if (ret == 0)
+        caml_failwith("Invalid IPv4 address");
+      if (ret != 1)
+        caml_failwith(strerror(errno));
 
       if (ioctl(fd, SIOCSIFNETMASK, &ifr) == -1)
         caml_failwith(strerror(errno));
