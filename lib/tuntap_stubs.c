@@ -331,7 +331,13 @@ iface_addr(value ifap)
 {
   CAMLparam0();
   CAMLlocal2(ret, opt);
-  uint16_t family = ((struct ifaddrs *)ifap)->ifa_addr->sa_family;
+
+  struct ifaddrs *c_ifap = (struct ifaddrs *)ifap;
+
+  if(c_ifap->ifa_addr == NULL)
+    CAMLreturn(Val_int(0));
+
+  uint16_t family = c_ifap->ifa_addr->sa_family;
 
   if (family != AF_INET)
     opt = Val_int(0);
@@ -339,9 +345,12 @@ iface_addr(value ifap)
     {
       opt = caml_alloc(1, 0);
       ret = caml_alloc(3, 0);
-      Store_field(ret, 0, caml_copy_int32(ipv4_of_sockaddr(((struct ifaddrs *)ifap)->ifa_addr)));
-      Store_field(ret, 1, caml_copy_int32(ipv4_of_sockaddr(((struct ifaddrs *)ifap)->ifa_netmask)));
-      Store_field(ret, 2, caml_copy_int32(ipv4_of_sockaddr(((struct ifaddrs *)ifap)->ifa_ifu.ifu_broadaddr)));
+      Store_field(ret, 0, caml_copy_int32(ipv4_of_sockaddr(c_ifap->ifa_addr)));
+      Store_field(ret, 1, caml_copy_int32(ipv4_of_sockaddr(c_ifap->ifa_netmask)));
+      Store_field(ret, 2, caml_copy_int32(ipv4_of_sockaddr(c_ifap->ifa_flags & IFF_BROADCAST ?
+                                                           c_ifap->ifa_ifu.ifu_broadaddr :
+                                                           c_ifap->ifa_ifu.ifu_dstaddr
+                                                           )));
       Store_field(opt, 0, ret);
     }
 
