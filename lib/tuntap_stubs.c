@@ -347,11 +347,16 @@ iface_addr(value ifap)
       ret = caml_alloc(3, 0);
       Store_field(ret, 0, caml_copy_int32(ipv4_of_sockaddr(c_ifap->ifa_addr)));
       Store_field(ret, 1, caml_copy_int32(ipv4_of_sockaddr(c_ifap->ifa_netmask)));
+#if defined (__linux__)
       Store_field(ret, 2, caml_copy_int32(ipv4_of_sockaddr(c_ifap->ifa_flags & IFF_BROADCAST ?
                                                            c_ifap->ifa_ifu.ifu_broadaddr :
                                                            c_ifap->ifa_ifu.ifu_dstaddr
                                                            )));
+#elif defined(__APPLE__) && defined (__MACH__)
+      Store_field(ret, 2, caml_copy_int32(ipv4_of_sockaddr(c_ifap->ifa_dstaddr)));
+#endif
       Store_field(opt, 0, ret);
+
     }
 
   CAMLreturn(opt);
