@@ -46,8 +46,7 @@ tun_alloc(char *dev, int kind, int pi, int persist, int user, int group)
   int fd;
 
   if ((fd = open("/dev/net/tun", O_RDWR)) == -1) {
-    perror("open");
-    caml_failwith("Unable to open /dev/net/tun");
+    caml_failwith(strerror(errno));
   }
 
   memset(&ifr, 0, sizeof(ifr));
@@ -60,29 +59,25 @@ tun_alloc(char *dev, int kind, int pi, int persist, int user, int group)
 
   if (ioctl(fd, TUNSETIFF, (void *)&ifr) < 0) {
     close(fd);
-    perror("TUNSETIFF");
-    caml_failwith("TUNSETIFF");
+    caml_failwith(strerror(errno));
   }
 
   if(ioctl(fd, TUNSETPERSIST, persist) < 0) {
     close(fd);
-    perror("TUNSETPERSIST");
-    caml_failwith("TUNSETPERSIST");
+    caml_failwith(strerror(errno));
   }
 
   if(user != -1) {
     if(ioctl(fd, TUNSETOWNER, user) < 0) {
       close(fd);
-      perror("TUNSETOWNER");
-      caml_failwith("TUNSETOWNER");
+      caml_failwith(strerror(errno));
     }
   }
 
   if(group != -1) {
     if(ioctl(fd, TUNSETGROUP, group) < 0) {
       close(fd);
-      perror("TUNSETGROUP");
-      caml_failwith("TUNSETGROUP");
+      caml_failwith(strerror(errno));
     }
   }
 
@@ -100,8 +95,9 @@ get_hwaddr(value devname) {
 
   fd = socket(PF_INET, SOCK_DGRAM, 0);
   strcpy(ifq.ifr_name, String_val(devname));
+
   if (ioctl(fd, SIOCGIFHWADDR, &ifq) == -1)
-    perror("SIOCIFHWADDR");
+    caml_failwith(strerror(errno));
 
   hwaddr = caml_alloc_string(6);
   memcpy(String_val(hwaddr), ifq.ifr_hwaddr.sa_data, 6);
@@ -127,8 +123,7 @@ tun_alloc(char *dev, int kind, int pi, int persist, int user, int group)
   if (fd == -1)
     {
       fprintf(stderr, "%s\n", name);
-      perror("open");
-      caml_failwith("Unable to open the TUN or TAP interface");
+      caml_failwith(strerror(errno));
     }
 
   return fd;
@@ -181,8 +176,7 @@ set_up_and_running(value dev)
 
   if((fd = socket(PF_INET, SOCK_DGRAM, 0)) == -1)
     {
-      perror("socket");
-      caml_failwith("Impossible to open socket");
+      caml_failwith(strerror(errno));
     }
 
   strncpy(ifr.ifr_name, String_val(dev), IFNAMSIZ);
@@ -190,8 +184,7 @@ set_up_and_running(value dev)
 
   if (ioctl(fd, SIOCGIFFLAGS, &ifr) == -1)
     {
-      perror("SIOCGIFFLAGS");
-      caml_failwith("SIOCGIFFLAGS");
+      caml_failwith(strerror(errno));
     }
 
   strncpy(ifr.ifr_name, String_val(dev), IFNAMSIZ);
@@ -200,8 +193,7 @@ set_up_and_running(value dev)
 
   if (ioctl(fd, SIOCSIFFLAGS, &ifr) == -1)
     {
-      perror("SIOCSIFFLAGS");
-      caml_failwith("SIOCSIFFLAGS");
+      caml_failwith(strerror(errno));
     }
 
   CAMLreturn(Val_unit);
@@ -219,30 +211,22 @@ set_ipv4(value dev, value ipv4, value netmask)
   memset(&ifr, 0, sizeof(struct ifreq));
 
   if((fd = socket(PF_INET, SOCK_DGRAM, 0)) == -1)
-    {
-      perror("socket");
-      caml_failwith("Impossible to open socket");
-    }
+    caml_failwith(strerror(errno));
 
   strncpy(ifr.ifr_name, String_val(dev), IFNAMSIZ);
   ifr.ifr_addr.sa_family = AF_INET;
   inet_pton(AF_INET, String_val(ipv4), &(addr->sin_addr));
 
   if (ioctl(fd, SIOCSIFADDR, &ifr) == -1)
-    {
-      perror("SIOCSIFADDR");
-      caml_failwith("SIOCSIFADDR");
-    }
+    caml_failwith(strerror(errno));
+
 
   if(caml_string_length(netmask) > 0)
     {
       inet_pton(AF_INET, String_val(netmask), &(addr->sin_addr));
 
       if (ioctl(fd, SIOCSIFNETMASK, &ifr) == -1)
-        {
-          perror("SIOCSIFNETMASK");
-          caml_failwith("SIOCSIFNETMASK");
-        }
+        caml_failwith(strerror(errno));
     }
 
   // Set interface up and running
