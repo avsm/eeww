@@ -34,7 +34,7 @@ val get_hwaddr : string -> string
 (** [get_hwaddr devname] is the MAC address of interface
     [devname], as a raw string (not hexa). *)
 
-val set_ipv4 : dev:string -> ipv4:string -> ?netmask:string -> unit -> unit
+val set_ipv4 : devname:string -> ipv4:string -> ?netmask:string -> unit -> unit
 (** [set_ipv4 devname ipv4addr netmask] assign an IPv4 to interface
     [devname]. *)
 

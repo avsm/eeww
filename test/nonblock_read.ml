@@ -11,7 +11,7 @@ let test () =
   let ipv4 = "172.168.1.1" in
   let netmask = "255.255.255.0" in
   printf "%s <- %s/%s: " devname ipv4 netmask;
-  Tuntap.set_ipv4 ~dev:devname ~ipv4 ~netmask ();
+  Tuntap.set_ipv4 ~devname ~ipv4 ~netmask ();
   Tuntap.set_up_and_running devname;
   printf "ok\n%!";
   let lfd = of_unix_file_descr fd ~blocking:false in
