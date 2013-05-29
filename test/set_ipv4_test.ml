@@ -5,8 +5,9 @@ let test_setipv4 ipv4 netmask () =
   let fd, devname = opentap ~devname:"tap0" () in
   set_ipv4 ~devname ~ipv4 ~netmask ();
   let iface_addr = List.assoc devname (getifaddrs ()) in
-  assert_equal ipv4 (Cstruct.ipv4_to_string iface_addr.addr);
-  assert_equal netmask (Cstruct.ipv4_to_string iface_addr.mask);
+  let printer = fun s -> s in
+  assert_equal ~printer ipv4 (Cstruct.ipv4_to_string iface_addr.addr);
+  assert_equal ~printer netmask (Cstruct.ipv4_to_string iface_addr.mask);
   Unix.close fd
 
 
