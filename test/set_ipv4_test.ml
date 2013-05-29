@@ -14,7 +14,10 @@ let test_setipv4 ipv4 netmask () =
 let suite = "Test IPv4" >::: ["test_classA" >:: test_setipv4 "10.0.0.1" "255.0.0.0";
                               "test_classB" >:: test_setipv4 "172.16.0.1" "255.255.0.0";
                               "test_classC" >:: test_setipv4 "192.168.0.1" "255.255.255.0";
-                              "test_anil_problem" >:: test_setipv4 "10.11.12.1" "255.255.255.0"
+                              "test_wrongclassA" >:: test_setipv4 "10.11.12.1" "255.255.255.0";
+                              "test_wrongclassB" >:: test_setipv4 "172.16.0.1" "255.255.255.0";
+                              "test_wrongclassC" >:: test_setipv4 "192.168.1.2" "255.0.0.0";
+                              "test_noclass" >:: test_setipv4 "192.168.1.2" "255.255.254.0"
                              ]
 
 
