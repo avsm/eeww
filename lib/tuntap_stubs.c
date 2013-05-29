@@ -18,17 +18,23 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <err.h>
 #include <arpa/inet.h>
 #include <sys/ioctl.h>
 #include <net/if.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <ifaddrs.h>
+#include <assert.h>
 
 #include <caml/mlvalues.h>
 #include <caml/memory.h>
 #include <caml/alloc.h>
 #include <caml/fail.h>
+#include <caml/bigarray.h>
 
 #if defined(__linux__)
 #include <linux/if_tun.h>
@@ -288,3 +294,79 @@ get_ifnamsiz()
   CAMLparam0();
   CAMLreturn(Val_int(IFNAMSIZ));
 }
+
+CAMLprim value
+getifaddrs_stub()
+{
+  int ret;
+  struct ifaddrs *ifap = NULL;
+  ret = getifaddrs(&ifap);
+  if (ret == -1)
+    caml_failwith(strerror(errno));
+
+  return (value)ifap;
+}
+
+CAMLprim value
+freeifaddrs_stub(value ifap)
+{
+  freeifaddrs((struct ifaddrs *)ifap);
+  return Val_unit;
+}
+
+CAMLprim value
+iface_name(value ifap)
+{
+  return caml_copy_string(((struct ifaddrs *)ifap)->ifa_name);
+}
+
+int32_t ipv4_of_sockaddr(struct sockaddr *sa)
+{
+  struct sockaddr_in *sa_in = (struct sockaddr_in *)sa;
+  return ntohl(sa_in->sin_addr.s_addr);
+}
+
+CAMLprim value
+iface_addr(value ifap)
+{
+  CAMLparam0();
+  CAMLlocal2(ret, opt);
+  uint16_t family = ((struct ifaddrs *)ifap)->ifa_addr->sa_family;
+
+  if (family != AF_INET)
+    opt = Val_int(0);
+  else
+    {
+      opt = caml_alloc(1, 0);
+      ret = caml_alloc(3, 0);
+      Store_field(ret, 0, caml_copy_int32(ipv4_of_sockaddr(((struct ifaddrs *)ifap)->ifa_addr)));
+      Store_field(ret, 1, caml_copy_int32(ipv4_of_sockaddr(((struct ifaddrs *)ifap)->ifa_netmask)));
+      Store_field(ret, 2, caml_copy_int32(ipv4_of_sockaddr(((struct ifaddrs *)ifap)->ifa_ifu.ifu_broadaddr)));
+      Store_field(opt, 0, ret);
+    }
+
+  CAMLreturn(opt);
+}
+
+CAMLprim value
+iface_next(value ifap)
+{
+  CAMLparam0();
+  CAMLlocal1(caml_next);
+  value ret;
+
+  struct ifaddrs *next = ((struct ifaddrs *)ifap)->ifa_next;
+
+  if (next == NULL)
+    ret = Val_int(0);
+  else
+    {
+      caml_next = caml_alloc(1, 0);
+      Store_field(caml_next, 0, (value)next);
+      ret = caml_next;
+    }
+
+  CAMLreturn(ret);
+}
+
+

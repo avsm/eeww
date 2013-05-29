@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 8e29f25034e42493e9dd067d98ee72be)
+# DO NOT EDIT (digest: 99e898620337454d6380ebfc76546013)
 # Ignore VCS directories, you can use the same kind of rule outside 
 # OASIS_START/STOP if you want to exclude directories that contains 
 # useless stuff for the build process
@@ -18,20 +18,30 @@
 <lib/*.ml{,i}>: oasis_library_tuntap_ccopt
 "lib/tuntap_stubs.c": oasis_library_tuntap_ccopt
 <lib/tuntap.{cma,cmxa}>: use_libtuntap_stubs
+<lib/*.ml{,i}>: pkg_cstruct
+"lib/tuntap_stubs.c": pkg_cstruct
 # Executable tunctl
 "test/tunctl.native": use_tuntap
+"test/tunctl.native": pkg_cstruct
 "test/tunctl.native": pkg_cmdliner
 <test/*.ml{,i}>: pkg_cmdliner
 # Executable sendfd_test
 "test/sendfd_test.native": use_tuntap
+"test/sendfd_test.native": pkg_cstruct
 "test/sendfd_test.native": pkg_lwt.unix
 # Executable nonblock_test
 "test/nonblock_test.native": use_tuntap
+"test/nonblock_test.native": pkg_cstruct
 "test/nonblock_test.native": pkg_lwt.unix
 # Executable nonblock_read
 "test/nonblock_read.native": use_tuntap
+"test/nonblock_read.native": pkg_cstruct
 "test/nonblock_read.native": pkg_lwt.unix
-<test/*.ml{,i}>: use_tuntap
 <test/*.ml{,i}>: pkg_lwt.unix
+# Executable getifaddrs_test
+"test/getifaddrs_test.native": use_tuntap
+"test/getifaddrs_test.native": pkg_cstruct
+<test/*.ml{,i}>: use_tuntap
+<test/*.ml{,i}>: pkg_cstruct
 # OASIS_STOP
 <lib>: include

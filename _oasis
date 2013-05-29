@@ -10,6 +10,7 @@ BuildTools: ocamlbuild
 Library tuntap
   Path: lib
   Modules: Tuntap
+  BuildDepends: cstruct
   CSources: tuntap_stubs.c
   CCOpt: -O3
 
@@ -41,6 +42,14 @@ Executable nonblock_read
   Path: test
   MainIs: nonblock_read.ml
   BuildDepends: tuntap, lwt.unix
+  CompiledObject: native
+  Install: false
+  Build: false
+
+Executable getifaddrs_test
+  Path: test
+  MainIs: getifaddrs_test.ml
+  BuildDepends: tuntap, cstruct
   CompiledObject: native
   Install: false
   Build: false

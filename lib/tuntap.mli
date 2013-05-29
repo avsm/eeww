@@ -50,3 +50,16 @@ val string_of_hwaddr : string -> string
 val make_local_hwaddr : unit -> string
 (** [make_local_hwaddr ()] is a freshly generated locally administered
     unicast MAC address. *)
+
+type iface_addr =
+    {
+      addr: Cstruct.ipv4;
+      mask: Cstruct.ipv4;
+      brd: Cstruct.ipv4
+    }
+(** Type of the interface addresses record. *)
+
+val getifaddrs : unit -> (string * iface_addr) list
+(** [getifaddrs ()] is a list of size equal to the number of network
+    interfaces that have an IPv4 address, each cell containing the
+    name of the network interface, and its iface_addr record. *)
