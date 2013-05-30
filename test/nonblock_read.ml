@@ -2,11 +2,12 @@ open Printf
 open Lwt
 open Lwt_unix
 
-let test () =
-  (* open tun *)
-  let devname = "tap0" in
+let test devname =
   printf "open %s: " devname;
-  let fd, name = Tuntap.opentun ~devname () in
+  let fd, name =
+    if String.sub devname 0 3 = "tun"
+    then Tuntap.opentun ~devname ()
+    else Tuntap.opentap ~devname () in
   printf "ok hwaddr: %s\n%!" (Tuntap.string_of_hwaddr (Tuntap.get_hwaddr devname));
   let ipv4 = "172.168.1.1" in
   let netmask = "255.255.255.0" in
@@ -25,4 +26,6 @@ let test () =
     >>= loop
   in loop ()
 
-let () = run (sleep 0.1 >>= test)
+let () = if Array.length Sys.argv < 2
+  then Printf.eprintf "Usage: %s <ifname>\n" Sys.argv.(0)
+  else run (sleep 0.1 >>= fun () -> test Sys.argv.(1))
