@@ -1,5 +1,8 @@
-0.5 (trunk):
+0.5 (30-May-2013):
 * Add a non-blocking packet dumper test.
+* New function getifaddrs, binding to getifaddrs(3).
+* New version of tunctl, using cmdliner.
+* Add a set_ipv4 test to check the behaviour of set_ipv4.
 
 0.4 (25-May-2013):
 * Fixed MacOS X tuntap support.
