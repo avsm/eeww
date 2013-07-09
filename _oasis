@@ -14,6 +14,7 @@ Library ocplib_endian
     EndianString
   FindlibName: ocplib-endian
   BuildDepends: optcomp
+  XMETARequires:
 
 Library bigstring
   Path:       src
@@ -22,6 +23,7 @@ Library bigstring
   FindlibName: bigstring
   FindlibParent: ocplib_endian
   BuildDepends: bigarray, optcomp
+  XMETARequires: bigarray
 
 Executable test
   Path: tests
