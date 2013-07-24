@@ -10,7 +10,7 @@ BuildTools: ocamlbuild
 Library tuntap
   Path: lib
   Modules: Tuntap
-  BuildDepends: cstruct
+  BuildDepends: ipaddr
   CSources: tuntap_stubs.c
   CCOpt: -O3
 

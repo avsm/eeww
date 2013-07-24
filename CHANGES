@@ -1,3 +1,7 @@
+0.6 (trunk):
+* Remove dependency on cstruct
+* Add dependency on ipaddr
+
 0.5 (30-May-2013):
 * Add a non-blocking packet dumper test.
 * New function getifaddrs, binding to getifaddrs(3).
