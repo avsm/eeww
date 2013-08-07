@@ -30,7 +30,7 @@ val get_ifnamsiz : unit -> int
 		defined in <net/if.h>. Useful for allocating buffers that contain
 		interface names. *)
 
-val get_hwaddr : string -> string
+val get_macaddr : string -> Macaddr.t
 (** [get_hwaddr devname] is the MAC address of interface
     [devname], as a raw string (not hexa). *)
 
@@ -42,14 +42,6 @@ val set_up_and_running : string -> unit
 (** [set_up_and_running devname] sets interface [devname] up and
     running. Note that when using the [set_ipv4] function, the
     interface will automatically be set up and running. *)
-
-val string_of_hwaddr : string -> string
-(** [string_of_hwaddr hwaddr] is the MAC address in the (usual)
-    hex format. *)
-
-val make_local_hwaddr : unit -> string
-(** [make_local_hwaddr ()] is a freshly generated locally administered
-    unicast MAC address. *)
 
 type iface_addr =
     {

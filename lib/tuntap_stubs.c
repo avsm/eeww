@@ -86,7 +86,7 @@ tun_alloc(char *dev, int kind, int pi, int persist, int user, int group)
 }
 
 CAMLprim value
-get_hwaddr(value devname) {
+get_macaddr(value devname) {
   CAMLparam1(devname);
   CAMLlocal1(hwaddr);
 
@@ -130,7 +130,7 @@ tun_alloc(char *dev, int kind, int pi, int persist, int user, int group)
 }
 
 CAMLprim value
-get_hwaddr(value devname) {
+get_macaddr(value devname) {
   CAMLparam1(devname);
   CAMLlocal1(v_mac);
 
