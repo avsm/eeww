@@ -1,6 +1,7 @@
-0.6 (trunk):
+0.6 (07-Aug-2013):
 * Remove dependency on cstruct
 * Add dependency on ipaddr
+* Removed redundant functions (now in ipaddr)
 
 0.5 (30-May-2013):
 * Add a non-blocking packet dumper test.
