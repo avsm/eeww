@@ -53,9 +53,9 @@ val make_local_hwaddr : unit -> string
 
 type iface_addr =
     {
-      addr: Cstruct.ipv4;
-      mask: Cstruct.ipv4;
-      brd: Cstruct.ipv4
+      addr: Ipaddr.V4.t;
+      mask: Ipaddr.V4.t;
+      brd:  Ipaddr.V4.t;
     }
 (** Type of the interface addresses record. *)
 

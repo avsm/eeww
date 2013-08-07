@@ -42,11 +42,20 @@ let make_local_hwaddr () =
   x.[5] <- i ();
   x
 
+type iface_addr_ =
+    {
+      addr_: int32;
+      mask_: int32;
+      brd_:  int32;
+    }
+
+module Ipv4 = Ipaddr.V4
+type ipv4 = Ipv4.t
 type iface_addr =
     {
-      addr: Cstruct.ipv4;
-      mask: Cstruct.ipv4;
-      brd: Cstruct.ipv4
+      addr: ipv4;
+      mask: ipv4;
+      brd:  ipv4;
     }
 
 type ifaddrs_ptr
@@ -54,7 +63,7 @@ type ifaddrs_ptr
 external getifaddrs_stub : unit -> ifaddrs_ptr = "getifaddrs_stub"
 external freeifaddrs_stub : ifaddrs_ptr -> unit = "freeifaddrs_stub"
 
-external iface_addr : ifaddrs_ptr -> iface_addr option = "iface_addr"
+external iface_addr : ifaddrs_ptr -> iface_addr_ option = "iface_addr"
 external iface_name : ifaddrs_ptr -> string = "iface_name"
 external iface_next : ifaddrs_ptr -> ifaddrs_ptr option = "iface_next"
 
@@ -63,6 +72,10 @@ let getifaddrs () =
   let rec loop acc ptr = match iface_next ptr with
     | None -> freeifaddrs_stub start; acc
     | Some p -> loop (match iface_addr p with
-        | Some addr -> (iface_name p, addr)::acc
+        | Some a -> (iface_name p,
+                     {addr = Ipv4.of_int32 a.addr_;
+                      mask = Ipv4.of_int32 a.mask_;
+                      brd  = Ipv4.of_int32 a.brd_;
+                     })::acc
         | None -> acc) p
   in loop [] start
