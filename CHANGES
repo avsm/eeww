@@ -1,3 +1,6 @@
+0.7 (trunk):
+* Add FreeBSD support.
+
 0.6 (07-Aug-2013):
 * Remove dependency on cstruct
 * Add dependency on ipaddr
