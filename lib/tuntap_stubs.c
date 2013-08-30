@@ -184,7 +184,9 @@ set_up_and_running(value dev)
 
   strncpy(ifr.ifr_name, String_val(dev), IFNAMSIZ);
   ifr.ifr_addr.sa_family = AF_INET;
+#ifdef __FreeBSD__
   ifr.ifr_addr.sa_len = IFNAMSIZ;
+#endif /* __FreeBSD__ */
 
   if (ioctl(fd, SIOCGIFFLAGS, &ifr) == -1)
     {
@@ -219,7 +221,9 @@ set_ipv4(value dev, value ipv4, value netmask)
 
   strncpy(ifr.ifr_name, String_val(dev), IFNAMSIZ);
   ifr.ifr_addr.sa_family = AF_INET;
+#ifdef __FreeBSD__
   ifr.ifr_addr.sa_len = IFNAMSIZ;
+#endif /* __FreeBSD */
 
   ret = inet_pton(AF_INET, String_val(ipv4), &(addr->sin_addr));
   if (ret == 0)
