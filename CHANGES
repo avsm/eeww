@@ -1,5 +1,6 @@
-0.7 (trunk):
+0.7.0 (28-Sep-2013):
 * Add FreeBSD support.
+* Add Travis continuous integration scripts.
 
 0.6 (07-Aug-2013):
 * Remove dependency on cstruct
