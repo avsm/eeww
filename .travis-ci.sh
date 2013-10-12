@@ -29,7 +29,7 @@ eval `opam config env`
 make
 ./_build/test/getifaddrs_test.native
 echo grep tun:
-grep tun /var/log/kern.log
+sudo grep tun /var/log/kern.log
 echo modprobe tun
 sudo modprobe tun
 ls -la /dev/net
