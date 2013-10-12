@@ -40,21 +40,19 @@ let set_ipv4 ~devname ~ipv4 ?(netmask="") () = set_ipv4 devname ipv4 netmask
 
 let get_macaddr iface = Macaddr.of_bytes_exn (get_macaddr iface)
 
-type iface_addr_ =
-    {
-      addr_: int32;
-      mask_: int32;
-      brd_:  int32;
-    }
+type iface_addr_ = {
+  addr_: int32;
+  mask_: int32;
+  brd_:  int32;
+}
 
 module Ipv4 = Ipaddr.V4
 type ipv4 = Ipv4.t
-type iface_addr =
-    {
-      addr: ipv4;
-      mask: ipv4;
-      brd:  ipv4;
-    }
+type iface_addr = {
+  addr: ipv4;
+  mask: ipv4;
+  brd:  ipv4;
+}
 
 type ifaddrs_ptr
 
