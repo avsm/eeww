@@ -14,13 +14,12 @@ Library tuntap
   CSources: tuntap_stubs.c
   CCOpt: -O3
 
-Executable tunctl
+Executable otunctl
   Path: test
   MainIs: tunctl.ml
   BuildDepends: tuntap, cmdliner
   CompiledObject: native
-  Build: false
-  Install: false
+  Build: true
 
 Executable sendfd_test
   Path: test
