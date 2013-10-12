@@ -28,3 +28,4 @@ opam install ${OPAM_DEPENDS}
 eval `opam config env`
 make
 sudo ./_build/test/getifaddrs_test.native
+sudo ./_build/test/sendfd_test.native
