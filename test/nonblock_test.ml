@@ -6,7 +6,7 @@ let test () =
   (* open tun *)
   let fd, name = Tuntap.opentun ~devname:"tap0" () in
   printf "parent open: %s\n" name;
-  let lfd = of_unix_file_descr fd ~blocking:false in
+  let _lfd = of_unix_file_descr fd ~blocking:false in
   sleep 0.1
 
 let () = run (sleep 0.1 >>= test)
