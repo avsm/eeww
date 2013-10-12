@@ -39,9 +39,6 @@
 #include <caml/fail.h>
 #include <caml/bigarray.h>
 
-#if defined(__linux__)
-#include <linux/if_tun.h>
-
 static void
 tun_raise_error(char *prefix, int fd)
 {
@@ -51,6 +48,9 @@ tun_raise_error(char *prefix, int fd)
   if (fd >= 0) close(fd);
   caml_failwith(buf);
 }
+
+#if defined(__linux__)
+#include <linux/if_tun.h>
 
 static int
 tun_alloc(char *dev, int kind, int pi, int persist, int user, int group)
