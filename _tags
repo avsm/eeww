@@ -52,3 +52,4 @@
 <test/*.ml{,i}>: pkg_oUnit
 # OASIS_STOP
 <lib>: include
+true: annot, bin_annot, debug

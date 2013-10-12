@@ -1,6 +1,7 @@
 1.0.0 (trunk):
 * Improve error messages to distinguish where they happen.
 * Install otunctl command-line tool to create persistent tun/taps.
+* Build debug symbols, annot and bin_annot files by default.
 
 0.7.0 (28-Sep-2013):
 * Add FreeBSD support.
