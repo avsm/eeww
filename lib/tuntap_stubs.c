@@ -42,15 +42,24 @@
 #if defined(__linux__)
 #include <linux/if_tun.h>
 
+static void
+tun_raise_error(char *prefix, int fd)
+{
+  char buf[1024];
+  snprintf(buf, sizeof(buf)-1, "tun[%s]: %s", prefix, strerror(errno));
+  buf[sizeof(buf)-1] = '\0';
+  if (fd >= 0) close(fd);
+  caml_failwith(buf);
+}
+
 static int
 tun_alloc(char *dev, int kind, int pi, int persist, int user, int group)
 {
   struct ifreq ifr;
   int fd;
 
-  if ((fd = open("/dev/net/tun", O_RDWR)) == -1) {
-    caml_failwith(strerror(errno));
-  }
+  if ((fd = open("/dev/net/tun", O_RDWR)) == -1)
+    tun_raise_error("open", -1);
 
   memset(&ifr, 0, sizeof(ifr));
   ifr.ifr_flags = 0;
@@ -60,28 +69,20 @@ tun_alloc(char *dev, int kind, int pi, int persist, int user, int group)
   if (*dev)
     strncpy(ifr.ifr_name, dev, IFNAMSIZ);
 
-  if (ioctl(fd, TUNSETIFF, (void *)&ifr) < 0) {
-    close(fd);
-    caml_failwith(strerror(errno));
+  if (ioctl(fd, TUNSETIFF, (void *)&ifr) < 0)
+    tun_raise_error("TUNSETIFF", fd);
+
+  if (ioctl(fd, TUNSETPERSIST, persist) < 0)
+    tun_raise_error("TUNSETPERSIST", fd);
+
+  if (user != -1) {
+    if(ioctl(fd, TUNSETOWNER, user) < 0)
+      tun_raise_error("TUNSETOWNER", fd);
   }
 
-  if(ioctl(fd, TUNSETPERSIST, persist) < 0) {
-    close(fd);
-    caml_failwith(strerror(errno));
-  }
-
-  if(user != -1) {
-    if(ioctl(fd, TUNSETOWNER, user) < 0) {
-      close(fd);
-      caml_failwith(strerror(errno));
-    }
-  }
-
-  if(group != -1) {
-    if(ioctl(fd, TUNSETGROUP, group) < 0) {
-      close(fd);
-      caml_failwith(strerror(errno));
-    }
+  if (group != -1) {
+    if(ioctl(fd, TUNSETGROUP, group) < 0)
+      tun_raise_error("TUNSETGROUP", fd);
   }
 
   strcpy(dev, ifr.ifr_name);
@@ -89,7 +90,8 @@ tun_alloc(char *dev, int kind, int pi, int persist, int user, int group)
 }
 
 CAMLprim value
-get_macaddr(value devname) {
+get_macaddr(value devname) 
+{
   CAMLparam1(devname);
   CAMLlocal1(hwaddr);
 
@@ -100,7 +102,7 @@ get_macaddr(value devname) {
   strcpy(ifq.ifr_name, String_val(devname));
 
   if (ioctl(fd, SIOCGIFHWADDR, &ifq) == -1)
-    caml_failwith(strerror(errno));
+    tun_raise_error("SIOCGIFHWADDR", -1);
 
   hwaddr = caml_alloc_string(6);
   memcpy(String_val(hwaddr), ifq.ifr_hwaddr.sa_data, 6);
@@ -124,16 +126,13 @@ tun_alloc(char *dev, int kind, int pi, int persist, int user, int group)
 
   fd = open(name, O_RDWR);
   if (fd == -1)
-    {
-      fprintf(stderr, "%s\n", name);
-      caml_failwith(strerror(errno));
-    }
-
+    tun_raise_error("open", -1);
   return fd;
 }
 
 CAMLprim value
-get_macaddr(value devname) {
+get_macaddr(value devname) 
+{
   CAMLparam1(devname);
   CAMLlocal1(v_mac);
 
@@ -178,9 +177,7 @@ set_up_and_running(value dev)
   struct ifreq ifr;
 
   if((fd = socket(PF_INET, SOCK_DGRAM, 0)) == -1)
-    {
-      caml_failwith(strerror(errno));
-    }
+    tun_raise_error("set_up_and_running socket", -1);
 
   strncpy(ifr.ifr_name, String_val(dev), IFNAMSIZ);
   ifr.ifr_addr.sa_family = AF_INET;
@@ -189,18 +186,14 @@ set_up_and_running(value dev)
 #endif /* __FreeBSD__ */
 
   if (ioctl(fd, SIOCGIFFLAGS, &ifr) == -1)
-    {
-      caml_failwith(strerror(errno));
-    }
+    tun_raise_error("set_up_and_running SIOCGIFFLAGS", -1);
 
   strncpy(ifr.ifr_name, String_val(dev), IFNAMSIZ);
 
   ifr.ifr_flags |= (IFF_UP|IFF_RUNNING|IFF_BROADCAST|IFF_MULTICAST);
 
   if (ioctl(fd, SIOCSIFFLAGS, &ifr) == -1)
-    {
-      caml_failwith(strerror(errno));
-    }
+    tun_raise_error("set_up_and_running SIOCSIFFLAGS", -1);
 
   CAMLreturn(Val_unit);
 }
@@ -217,7 +210,7 @@ set_ipv4(value dev, value ipv4, value netmask)
   memset(&ifr, 0, sizeof(struct ifreq));
 
   if((fd = socket(PF_INET, SOCK_DGRAM, 0)) == -1)
-    caml_failwith(strerror(errno));
+    tun_raise_error("set_ipv4 socket", -1);
 
   strncpy(ifr.ifr_name, String_val(dev), IFNAMSIZ);
   ifr.ifr_addr.sa_family = AF_INET;
@@ -229,11 +222,10 @@ set_ipv4(value dev, value ipv4, value netmask)
   if (ret == 0)
     caml_failwith("Invalid IPv4 address");
   if (ret != 1)
-    caml_failwith(strerror(errno));
-
+    tun_raise_error("inet_pton in set_ipv4", -1);
 
   if (ioctl(fd, SIOCSIFADDR, &ifr) == -1)
-    caml_failwith(strerror(errno));
+    tun_raise_error("SIOCSIFADDR", -1);
 
   if(caml_string_length(netmask) > 0)
     {
@@ -241,10 +233,9 @@ set_ipv4(value dev, value ipv4, value netmask)
       if (ret == 0)
         caml_failwith("Invalid IPv4 address");
       if (ret != 1)
-        caml_failwith(strerror(errno));
-
+        tun_raise_error("set_ipv4", -1);
       if (ioctl(fd, SIOCSIFNETMASK, &ifr) == -1)
-        caml_failwith(strerror(errno));
+        tun_raise_error("SIOCSIFNETMASK", -1);
     }
 
   // Set interface up and running
@@ -304,8 +295,7 @@ getifaddrs_stub()
   struct ifaddrs *ifap = NULL;
   ret = getifaddrs(&ifap);
   if (ret == -1)
-    caml_failwith(strerror(errno));
-
+    tun_raise_error("getifaddrs", -1);
   return (value)ifap;
 }
 

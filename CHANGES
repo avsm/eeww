@@ -1,3 +1,6 @@
+0.7.1 (trunk):
+* Improve error messages to distinguish where they happen.
+
 0.7.0 (28-Sep-2013):
 * Add FreeBSD support.
 * Add Travis continuous integration scripts.
