@@ -56,10 +56,10 @@ let tunctl optype devname mode user group one_queue pi vnet_hdr =
   match optype, mode with
     | `Add, `Tap -> let _, devname = Tuntap.opentap ~persist:true ~devname ?user ?group ~pi () in
                     Printf.printf "OK, %s, hwaddr %s\n%!" devname
-                      Tuntap.(string_of_hwaddr (get_hwaddr devname))
+                      Tuntap.(Macaddr.to_string (get_macaddr devname))
     | `Add, `Tun -> let _, devname = Tuntap.opentun ~persist:true ~devname ?user ?group ~pi () in
                     Printf.printf "OK, %s, hwaddr %s\n%!" devname
-                      Tuntap.(string_of_hwaddr (get_hwaddr devname))
+                      Tuntap.(Macaddr.to_string (get_macaddr devname))
     | `Del, `Tap -> Tuntap.closetap devname
     | `Del, `Tun -> Tuntap.closetun devname
 
