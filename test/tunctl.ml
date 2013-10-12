@@ -61,15 +61,12 @@ let user = Arg.(value & opt (some int) None & info ~docv:"USER"
 let group = Arg.(value & opt (some int) None & info ~docv:"GROUP"
                    ~doc:"Specify the gid that owns the device." ["group"; "g"])
 
-let one_queue = Arg.(value & flag
-                     & info ~docv:"one_queue" ~doc:"???" ["one_queue"])
-
 let pi = Arg.(value & flag & info ~docv:"pi" ~doc:"???" ["pi"])
 
 let vnet_hdr = Arg.(value & flag & info ~docv:"vnet_hdr"
                       ~doc:"???" ["vnet_hdr"])
 
-let tunctl optype devname mode user group one_queue pi vnet_hdr =
+let tunctl optype devname mode user group pi vnet_hdr =
   match optype, mode with
     | `Add, `Tap -> let _, devname = Tuntap.opentap ~persist:true ~devname ?user ?group ~pi () in
                     Printf.printf "OK, %s, hwaddr %s\n%!" devname
@@ -82,7 +79,7 @@ let tunctl optype devname mode user group one_queue pi vnet_hdr =
 
 let cmd =
   let doc = "Create and destroy virtual interfaces." in
-  Term.(pure tunctl $ optype $ dev $ mode $ user $ group $ one_queue $ pi $ vnet_hdr),
+  Term.(pure tunctl $ optype $ dev $ mode $ user $ group $ pi $ vnet_hdr),
   Term.info "tunctl" ~version:"0.5" ~doc
 
 let () = match Term.eval cmd with `Error _ -> exit 1 | _ -> exit 0
