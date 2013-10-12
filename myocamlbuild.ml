@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 52f98232e5c1b7c974da066e93005648) *)
+(* DO NOT EDIT (digest: e0c5cbb858bbc5305154f668e5449609) *)
 module OASISGettext = struct
 (* # 21 "src/oasis/OASISGettext.ml" *)
 
@@ -484,7 +484,7 @@ let package_default =
           (["oasis_library_tuntap_ccopt"; "compile"],
             [(OASISExpr.EBool true, S [A "-ccopt"; A "-O3"])])
        ];
-     includes = [("test", ["lib"])];
+     includes = [("test", ["lib"]); ("bin", ["lib"])];
      }
   ;;
 

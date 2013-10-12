@@ -79,6 +79,6 @@ let tunctl optype devname mode user group pi =
 let cmd =
   let doc = "Create and destroy virtual interfaces." in
   Term.(pure tunctl $ optype $ dev $ mode $ user $ group $ pi),
-  Term.info "tunctl" ~version:"0.5" ~doc
+  Term.info "otunctl" ~version:"1.0.0" ~doc
 
 let () = match Term.eval cmd with `Error _ -> exit 1 | _ -> exit 0
