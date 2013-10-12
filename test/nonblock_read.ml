@@ -8,7 +8,7 @@ let test devname =
     if String.sub devname 0 3 = "tun"
     then Tuntap.opentun ~devname ()
     else Tuntap.opentap ~devname () in
-  printf "ok hwaddr: %s\n%!" (Tuntap.string_of_hwaddr (Tuntap.get_hwaddr devname));
+  printf "ok hwaddr: %s\n%!" (Macaddr.to_string (Tuntap.get_macaddr devname));
   let ipv4 = "172.168.1.1" in
   let netmask = "255.255.255.0" in
   printf "%s <- %s/%s: " devname ipv4 netmask;
