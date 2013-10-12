@@ -28,6 +28,6 @@ opam install ${OPAM_DEPENDS}
 eval `opam config env`
 make
 ./_build/test/getifaddrs_test.native
-sudo ./_build/bin/otunctl add tun0 tun -u `id -u` -g `id -g` 
-sudo ./_build/bin/otunctl add tap0 tap -u `id -u` -g `id -g` 
+sudo ./_build/bin/otunctl.native add tun0 tun -u `id -u` -g `id -g` 
+sudo ./_build/bin/otunctl.native add tap0 tap -u `id -u` -g `id -g` 
 ./_build/test/sendfd_test.native
