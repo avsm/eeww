@@ -28,8 +28,7 @@ opam install ${OPAM_DEPENDS}
 eval `opam config env`
 make
 ./_build/test/getifaddrs_test.native
-echo grep tun:
-sudo grep tun /var/log/kern.log
+sudo lsmod
 echo modprobe tun
 sudo modprobe tun
 ls -la /dev/net
