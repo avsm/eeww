@@ -20,6 +20,8 @@ let assert_bound_check3 f v1 v2 v3 =
      | Invalid_argument("index out of bounds") -> ()
 
 let test1 () =
+  assert_bound_check2 BE.get_int8 s (-1);
+  assert_bound_check2 BE.get_int8 s 10;
   assert_bound_check2 BE.get_uint16 s (-1);
   assert_bound_check2 BE.get_uint16 s 9;
   assert_bound_check2 BE.get_int32 s (-1);
@@ -27,6 +29,8 @@ let test1 () =
   assert_bound_check2 BE.get_int64 s (-1);
   assert_bound_check2 BE.get_int64 s 3;
 
+  assert_bound_check3 BE.set_int8 s (-1) 0;
+  assert_bound_check3 BE.set_int8 s 10 0;
   assert_bound_check3 BE.set_int16 s (-1) 0;
   assert_bound_check3 BE.set_int16 s 9 0;
   assert_bound_check3 BE.set_int32 s (-1) 0l;
@@ -35,6 +39,24 @@ let test1 () =
   assert_bound_check3 BE.set_int64 s 3 0L
 
 let test2 () =
+  BE.set_int8 s 0 63; (* in [0; 127] *)
+  assert( BE.get_uint8 s 0 = 63 );
+  assert( BE.get_int8 s 0 = 63 );
+
+  BE.set_int8 s 0 155; (* in [128; 255] *)
+  assert( BE.get_uint8 s 0 = 155 );
+
+  BE.set_int8 s 0 (-103); (* in [-128; -1] *)
+  assert( BE.get_int8 s 0 = (-103) );
+
+  BE.set_int8 s 0 0x1234; (* outside of the [-127;255] range *)
+  assert( BE.get_uint8 s 0 = 0x34 );
+  assert( BE.get_int8 s 0 = 0x34 );
+
+  BE.set_int8 s 0 0xAACD; (* outside of the [-127;255] range, -0x33 land 0xFF = 0xCD*)
+  assert( BE.get_uint8 s 0 = 0xCD );
+  assert( BE.get_int8 s 0 = (-0x33) );
+
   BE.set_int16 s 0 0x1234;
   assert( BE.get_uint16 s 0 = 0x1234 );
   assert( BE.get_uint16 s 1 = 0x3400 );
