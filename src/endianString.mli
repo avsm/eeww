@@ -92,3 +92,18 @@ module LittleEndian_unsafe : sig
   include EndianStringSig
 
 end
+
+module NativeEndian : sig
+  (** Functions reading according to machine endianness *)
+
+  include EndianStringSig
+
+end
+
+module NativeEndian_unsafe : sig
+  (** Functions reading according to machine endianness without
+  checking for overflow *)
+
+  include EndianStringSig
+
+end

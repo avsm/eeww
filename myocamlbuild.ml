@@ -572,8 +572,12 @@ let () =
                  "src"/"common_401.ml";
                  "src"/"common_400.ml"];
             dep ["include_401"]
-                ["src"/"be_ocaml_401.ml"; "src"/"le_ocaml_401.ml"];
+                ["src"/"be_ocaml_401.ml";
+                 "src"/"le_ocaml_401.ml";
+                 "src"/"ne_ocaml_401.ml"];
             dep ["include_400"]
-                ["src"/"be_ocaml_400.ml"; "src"/"le_ocaml_400.ml"];
+                ["src"/"be_ocaml_400.ml";
+                 "src"/"le_ocaml_400.ml";
+                 "src"/"ne_ocaml_400.ml"];
          | _ ->
              ())
