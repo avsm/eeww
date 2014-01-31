@@ -3,6 +3,7 @@
 <src/*.ml>: inline(1000)
 
 <src/*.ml>: syntax_camlp4o, pkg_camlp4, pkg_optcomp
+<tests/*.ml>: syntax_camlp4o, pkg_camlp4, pkg_optcomp
 <src/endian*.ml>: include_common
 <src/*.ml>: include_400, include_401
 
