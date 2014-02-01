@@ -40,38 +40,71 @@ let set_ipv4 ~devname ~ipv4 ?(netmask="") () = set_ipv4 devname ipv4 netmask
 
 let get_macaddr iface = Macaddr.of_bytes_exn (get_macaddr iface)
 
-type iface_addr_ = {
-  addr_: int32;
-  mask_: int32;
-  brd_:  int32;
-}
+type sa_family = V4 | V6 | Unix | Other
 
-module Ipv4 = Ipaddr.V4
-type ipv4 = Ipv4.t
-type iface_addr = {
-  addr: ipv4;
-  mask: ipv4;
-  brd:  ipv4;
+type ifaddr_ = {
+  name_: string;
+  sa_family_: sa_family;
+  addr_: string option;
+  mask_: string option;
+  brd_:  string option;
 }
 
 type ifaddrs_ptr
 
+type ifaddr = {
+  name: string;
+  sa_family: sa_family;
+  addr: Ipaddr.t option;
+  mask: Ipaddr.t option;
+  brd:  Ipaddr.t option;
+}
+
 external getifaddrs_stub : unit -> ifaddrs_ptr = "getifaddrs_stub"
 external freeifaddrs_stub : ifaddrs_ptr -> unit = "freeifaddrs_stub"
 
-external iface_addr : ifaddrs_ptr -> iface_addr_ option = "iface_addr"
-external iface_name : ifaddrs_ptr -> string = "iface_name"
+external iface_get : ifaddrs_ptr -> ifaddr_ = "iface_get"
 external iface_next : ifaddrs_ptr -> ifaddrs_ptr option = "iface_next"
+
+module Opt = struct
+  type 'a t = 'a option
+  let (>>=) x f = match x with Some v -> f v | None -> None
+  let (>|=) x f = match x with Some v -> Some (f v) | None -> None
+end
+
+let ifaddr_of_ifaddr_ ifaddr_ =
+  match ifaddr_.sa_family_ with
+  | V4 ->
+    Some {
+      name = ifaddr_.name_;
+      sa_family = ifaddr_.sa_family_;
+      addr = Opt.(ifaddr_.addr_ >|= fun v -> Ipaddr.(V4 (V4.of_bytes_exn v)));
+      mask = Opt.(ifaddr_.mask_ >|= fun v -> Ipaddr.(V4 (V4.of_bytes_exn v)));
+      brd = Opt.(ifaddr_.brd_ >|= fun v -> Ipaddr.(V4 (V4.of_bytes_exn v)));
+    }
+
+  | V6 ->
+    Some {
+      name = ifaddr_.name_;
+      sa_family = ifaddr_.sa_family_;
+      addr = Opt.(ifaddr_.addr_ >|= fun v -> Ipaddr.(V6 (V6.of_bytes_exn v)));
+      mask = Opt.(ifaddr_.mask_ >|= fun v -> Ipaddr.(V6 (V6.of_bytes_exn v)));
+      brd = Opt.(ifaddr_.brd_ >|= fun v -> Ipaddr.(V6 (V6.of_bytes_exn v)));
+    }
+  | _ -> None
 
 let getifaddrs () =
   let start = getifaddrs_stub () in
-  let rec loop acc ptr = match iface_next ptr with
-    | None -> freeifaddrs_stub start; acc
-    | Some p -> loop (match iface_addr p with
-        | Some a -> (iface_name p,
-                     {addr = Ipv4.of_int32 a.addr_;
-                      mask = Ipv4.of_int32 a.mask_;
-                      brd  = Ipv4.of_int32 a.brd_;
-                     })::acc
-        | None -> acc) p
-  in loop [] start
+  let rec loop acc ptr =
+    let acc = match ifaddr_of_ifaddr_ (iface_get ptr) with
+      | Some a -> a::acc
+      | None -> acc
+    in
+    match iface_next ptr with
+    | None ->
+      freeifaddrs_stub start;
+      acc
+    | Some p ->
+      loop acc p
+  in
+  loop [] start

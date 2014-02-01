@@ -60,14 +60,16 @@ val set_up_and_running : string -> unit
     running. Note that when using the [set_ipv4] function, the
     interface will automatically be set up and running. *)
 
-type iface_addr = {
-  addr: Ipaddr.V4.t;
-  mask: Ipaddr.V4.t;
-  brd:  Ipaddr.V4.t;
+type sa_family = V4 | V6 | Unix | Other
+
+type ifaddr = {
+  name: string;
+  sa_family: sa_family;
+  addr: Ipaddr.t option;
+  mask: Ipaddr.t option;
+  brd:  Ipaddr.t option;
 }
 (** Type of the interface addresses record. *)
 
-val getifaddrs : unit -> (string * iface_addr) list
-(** [getifaddrs ()] is a list of size equal to the number of network
-    interfaces that have an IPv4 address, each cell containing the
-    name of the network interface, and its iface_addr record. *)
+val getifaddrs : unit -> ifaddr list
+(** [getifaddrs ()] is the list of IP addresses of this host. *)

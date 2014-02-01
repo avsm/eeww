@@ -1,11 +1,16 @@
 open Tuntap
-module Ipv4 = Ipaddr.V4
+
+let unopt = function
+  | Some v -> v
+  | None -> None
 
 let () =
   let addrs = getifaddrs () in
-  List.iter (fun (n, ifa) ->
-    Printf.printf "%s -> %s, %s, %s\n%!" n
-      (Ipv4.to_string ifa.addr)
-      (Ipv4.to_string ifa.mask)
-      (Ipv4.to_string ifa.brd)
-  ) addrs
+  List.iter (fun ifaddr ->
+      match ifaddr.addr with
+      | Some a ->
+        Printf.printf "%s -> %s\n%!"
+          ifaddr.name
+          (Ipaddr.to_string a)
+      | None -> ()
+    ) addrs

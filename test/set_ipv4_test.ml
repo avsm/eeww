@@ -1,14 +1,19 @@
 open Tuntap
 open OUnit
-module Ipv4 = Ipaddr.V4
+
+let unopt = function
+  | Some v -> v
+  | None -> raise Not_found
 
 let test_setipv4 ipv4 netmask () =
   let fd, devname = opentap ~devname:"tap0" () in
   set_ipv4 ~devname ~ipv4 ~netmask ();
-  let iface_addr = List.assoc devname (getifaddrs ()) in
+  let iface_addr = List.find
+      (fun ifaddr -> ifaddr.name = devname
+                     && match ifaddr.addr with Some (Ipaddr.V4 _) -> true | _ -> false) (getifaddrs ()) in
   let printer = fun s -> s in
-  assert_equal ~printer ipv4 (Ipv4.to_string iface_addr.addr);
-  assert_equal ~printer netmask (Ipv4.to_string iface_addr.mask);
+  assert_equal ~printer ipv4 (Ipaddr.to_string (unopt iface_addr.addr));
+  assert_equal ~printer netmask (Ipaddr.to_string (unopt iface_addr.mask));
   Unix.close fd
 
 

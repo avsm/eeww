@@ -306,52 +306,98 @@ freeifaddrs_stub(value ifap)
   return Val_unit;
 }
 
-CAMLprim value
-iface_name(value ifap)
-{
-  return caml_copy_string(((struct ifaddrs *)ifap)->ifa_name);
-}
-
-int32_t ipv4_of_sockaddr(struct sockaddr *sa)
-{
-  struct sockaddr_in *sa_in = (struct sockaddr_in *)sa;
-  return ntohl(sa_in->sin_addr.s_addr);
-}
-
-CAMLprim value
-iface_addr(value ifap)
+CAMLprim value caml_string_of_sa(struct sockaddr *sa)
 {
   CAMLparam0();
-  CAMLlocal2(ret, opt);
+  CAMLlocal1(ret);
+
+  struct sockaddr_in *sa_in;
+  struct sockaddr_in6 *sa_in6;
+
+  switch(sa->sa_family)
+    {
+    case AF_INET:
+      ret = caml_alloc_string(4);
+      sa_in = (struct sockaddr_in *)sa;
+      memcpy(String_val(ret), &sa_in->sin_addr.s_addr, 4);
+      break;
+
+    case AF_INET6:
+      ret = caml_alloc_string(16);
+      sa_in6 = (struct sockaddr_in6 *)sa;
+      memcpy(String_val(ret), sa_in6->sin6_addr.s6_addr, 16);
+      break;
+
+    default:
+      caml_invalid_argument("caml_string_of_sa: sa_family not supported");
+    }
+
+  CAMLreturn(ret);
+}
+
+CAMLprim value
+iface_get(value ifap)
+{
+  CAMLparam0();
+  CAMLlocal4(ret, opt1, opt2, opt3);
 
   struct ifaddrs *c_ifap = (struct ifaddrs *)ifap;
 
-  if(c_ifap->ifa_addr == NULL)
-    CAMLreturn(Val_int(0));
+  ret = caml_alloc(5, 0);
 
-  uint16_t family = c_ifap->ifa_addr->sa_family;
+  Store_field(ret, 0, caml_copy_string(c_ifap->ifa_name));
 
-  if (family != AF_INET)
-    opt = Val_int(0);
-  else
+  switch (c_ifap->ifa_addr->sa_family)
     {
-      opt = caml_alloc(1, 0);
-      ret = caml_alloc(3, 0);
-      Store_field(ret, 0, caml_copy_int32(ipv4_of_sockaddr(c_ifap->ifa_addr)));
-      Store_field(ret, 1, caml_copy_int32(ipv4_of_sockaddr(c_ifap->ifa_netmask)));
-#if defined (__linux__)
-      Store_field(ret, 2, caml_copy_int32(ipv4_of_sockaddr(c_ifap->ifa_flags & IFF_BROADCAST ?
-                                                           c_ifap->ifa_ifu.ifu_broadaddr :
-                                                           c_ifap->ifa_ifu.ifu_dstaddr
-                                                           )));
-#elif defined(__APPLE__) && defined (__MACH__)
-      Store_field(ret, 2, caml_copy_int32(ipv4_of_sockaddr(c_ifap->ifa_dstaddr)));
-#endif
-      Store_field(opt, 0, ret);
-
+    case AF_INET:
+      Store_field(ret, 1, Val_int(0));
+      break;
+    case AF_INET6:
+      Store_field(ret, 1, Val_int(1));
+      break;
+    case AF_UNIX:
+      Store_field(ret, 1, Val_int(2));
+      break;
+    default:
+      Store_field(ret, 1, Val_int(3));
     }
 
-  CAMLreturn(opt);
+  Store_field(ret, 2, Val_int(0));
+  Store_field(ret, 3, Val_int(0));
+  Store_field(ret, 4, Val_int(0));
+
+  if (c_ifap->ifa_addr->sa_family != AF_INET && c_ifap->ifa_addr->sa_family != AF_INET6)
+    CAMLreturn(ret);
+
+  if (c_ifap->ifa_addr != NULL)
+    {
+      opt1 = caml_alloc(1, 0);
+      Store_field(opt1, 0, caml_string_of_sa(c_ifap->ifa_addr));
+      Store_field(ret, 2, opt1);
+    }
+
+  if (c_ifap->ifa_netmask != NULL)
+    {
+      opt2 = caml_alloc(1, 0);
+      Store_field(opt2, 0, caml_string_of_sa(c_ifap->ifa_netmask));
+      Store_field(ret, 3, opt2);
+    }
+
+  // We want to extract the third sockaddr, be it broadcast or dst.
+#if defined (__linux__)
+  struct sockaddr *broadaddr = c_ifap->ifa_ifu.ifu_broadaddr;
+#else
+  struct sockaddr *broadaddr = c_ifap->ifa_dstaddr;
+#endif
+
+  if (broadaddr != NULL)
+    {
+      opt3 = caml_alloc(1, 0);
+      Store_field(opt3, 0, caml_string_of_sa(broadaddr));
+      Store_field(ret, 4, opt3);
+    }
+
+  CAMLreturn(ret);
 }
 
 CAMLprim value
