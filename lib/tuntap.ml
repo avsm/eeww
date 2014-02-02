@@ -60,7 +60,7 @@ type ifaddr = {
   brd:  Ipaddr.t option;
 }
 
-external getifaddrs_stub : unit -> ifaddrs_ptr = "getifaddrs_stub"
+external getifaddrs_stub : unit -> ifaddrs_ptr option = "getifaddrs_stub"
 external freeifaddrs_stub : ifaddrs_ptr -> unit = "freeifaddrs_stub"
 
 external iface_get : ifaddrs_ptr -> ifaddr_ = "iface_get"
@@ -94,17 +94,19 @@ let ifaddr_of_ifaddr_ ifaddr_ =
   | _ -> None
 
 let getifaddrs () =
-  let start = getifaddrs_stub () in
-  let rec loop acc ptr =
-    let acc = match ifaddr_of_ifaddr_ (iface_get ptr) with
-      | Some a -> a::acc
-      | None -> acc
+  match getifaddrs_stub () with
+  | None -> []
+  | Some start ->
+    let rec loop acc ptr =
+      let acc = match ifaddr_of_ifaddr_ (iface_get ptr) with
+        | Some a -> a::acc
+        | None -> acc
+      in
+      match iface_next ptr with
+      | None ->
+        freeifaddrs_stub start;
+        acc
+      | Some p ->
+        loop acc p
     in
-    match iface_next ptr with
-    | None ->
-      freeifaddrs_stub start;
-      acc
-    | Some p ->
-      loop acc p
-  in
-  loop [] start
+    loop [] start

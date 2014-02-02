@@ -291,12 +291,23 @@ get_ifnamsiz()
 CAMLprim value
 getifaddrs_stub()
 {
+  CAMLparam0();
+  CAMLlocal1(opt);
+
   int ret;
   struct ifaddrs *ifap = NULL;
   ret = getifaddrs(&ifap);
   if (ret == -1)
     tun_raise_error("getifaddrs", -1);
-  return (value)ifap;
+
+  if (ifap == NULL)
+    CAMLreturn(Val_int(0));
+  else
+    {
+      opt = caml_alloc(1, 0);
+      Store_field(opt, 0, (value)ifap);
+      CAMLreturn(opt);
+    }
 }
 
 CAMLprim value
