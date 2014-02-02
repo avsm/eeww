@@ -14,7 +14,7 @@ Library tuntap
   Modules: Tuntap
   BuildDepends: ipaddr
   CSources: tuntap_stubs.c
-  CCOpt: -g -ggdb
+  CCOpt: -O3
 
 Executable otunctl
   Path: bin
