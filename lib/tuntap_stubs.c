@@ -357,6 +357,13 @@ iface_get(value ifap)
   ret = caml_alloc(5, 0);
 
   Store_field(ret, 0, caml_copy_string(c_ifap->ifa_name));
+  Store_field(ret, 1, Val_int(3));
+  Store_field(ret, 2, Val_int(0));
+  Store_field(ret, 3, Val_int(0));
+  Store_field(ret, 4, Val_int(0));
+
+  if (c_ifap->ifa_addr == NULL)
+    CAMLreturn(ret);
 
   switch (c_ifap->ifa_addr->sa_family)
     {
@@ -369,23 +376,14 @@ iface_get(value ifap)
     case AF_UNIX:
       Store_field(ret, 1, Val_int(2));
       break;
-    default:
-      Store_field(ret, 1, Val_int(3));
     }
-
-  Store_field(ret, 2, Val_int(0));
-  Store_field(ret, 3, Val_int(0));
-  Store_field(ret, 4, Val_int(0));
 
   if (c_ifap->ifa_addr->sa_family != AF_INET && c_ifap->ifa_addr->sa_family != AF_INET6)
     CAMLreturn(ret);
 
-  if (c_ifap->ifa_addr != NULL)
-    {
-      opt1 = caml_alloc(1, 0);
-      Store_field(opt1, 0, caml_string_of_sa(c_ifap->ifa_addr));
-      Store_field(ret, 2, opt1);
-    }
+  opt1 = caml_alloc(1, 0);
+  Store_field(opt1, 0, caml_string_of_sa(c_ifap->ifa_addr));
+  Store_field(ret, 2, opt1);
 
   if (c_ifap->ifa_netmask != NULL)
     {
