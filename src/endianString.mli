@@ -93,6 +93,7 @@ module LittleEndian_unsafe : sig
 
 end
 
+#if ocaml_version >= (4, 0)
 module NativeEndian : sig
   (** Functions reading according to machine endianness *)
 
@@ -107,3 +108,4 @@ module NativeEndian_unsafe : sig
   include EndianStringSig
 
 end
+#endif

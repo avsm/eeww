@@ -46,6 +46,7 @@ module LittleEndian_unsafe = struct
 
 end
 
+#if ocaml_version >= (4, 0)
 module NativeEndian = struct
 
   let get_char = get_char
@@ -69,3 +70,4 @@ module NativeEndian_unsafe = struct
 #include "src/ne_ocaml_400.ml"
 
 end
+#endif

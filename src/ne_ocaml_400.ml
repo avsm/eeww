@@ -1,14 +1,5 @@
-#if ocaml_version >= (4, 0)
-  let big_endian = Sys.big_endian
-#else
-  (* Sys.big_endian is not available on ocaml <= 3.12 *)
-  let big_endian =
-    let v = (Obj.obj (Obj.field (Obj.repr "FFFFFFFFF23FF67F") 0):int) in
-    ((v land 0x7FFFFFFF) * 1) <> 589505315
-#endif
-
   let get_uint16 s off =
-    if big_endian
+    if Sys.big_endian
     then
       let hi = get_uint8 s off in
       let lo = get_uint8 s (off+1) in
@@ -22,7 +13,7 @@
     sign16 (get_uint16 s off)
 
   let get_int32 s off =
-    if big_endian
+    if Sys.big_endian
     then
       let hi = get_uint16 s off in
       let lo = get_uint16 s (off+2) in
@@ -33,7 +24,7 @@
       Int32.(logor (shift_left (of_int hi) 16) (of_int lo))
 
   let get_int64 s off =
-    if big_endian
+    if Sys.big_endian
     then
       Int64.(logor (shift_left (of_int32 (get_int32 s off)) 32)
                (logand (of_int32 (get_int32 s (off+4))) 0xffffffff_L))
@@ -42,7 +33,7 @@
                (logand (of_int32 (get_int32 s off)) 0xffffffff_L))
 
   let set_int16 s off v =
-    if big_endian
+    if Sys.big_endian
     then begin
       set_int8 s off (v lsr 8);
       set_int8 s (off+1) (v land 0xff)
@@ -53,7 +44,7 @@
     end
 
   let set_int32 s off v =
-    if big_endian
+    if Sys.big_endian
     then begin
       set_int16 s off (Int32.(to_int (shift_right_logical v 16)));
       set_int16 s (off+2) (Int32.(to_int (logand v 0xffff_l)))
@@ -64,7 +55,7 @@
     end
 
   let set_int64 s off v =
-    if big_endian
+    if Sys.big_endian
     then begin
       set_int32 s off (Int64.(to_int32 (shift_right_logical v 32)));
       set_int32 s (off+4) (Int64.(to_int32 (logand v 0xffffffff_L)))
