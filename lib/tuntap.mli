@@ -51,23 +51,19 @@ val get_macaddr : string -> Macaddr.t
 (** [get_hwaddr devname] is the MAC address of interface
     [devname], as a raw string (not hexa). *)
 
-val set_ipv4 : devname:string -> ipv4:string -> ?netmask:string -> unit -> unit
-(** [set_ipv4 devname ipv4addr netmask] assign an IPv4 to interface
-    [devname]. *)
+val set_ipaddr : ?netmask:int -> string -> Ipaddr.t -> unit
+(** [set_ipv4 ~netmask dev ipaddr] assign an [ipaddr] to interface
+    [dev], with the default netmask unless [netmask] is specified. *)
 
 val set_up_and_running : string -> unit
 (** [set_up_and_running devname] sets interface [devname] up and
     running. Note that when using the [set_ipv4] function, the
     interface will automatically be set up and running. *)
 
-type sa_family = V4 | V6 | Unix | Other
-
 type ifaddr = {
   name: string;
-  sa_family: sa_family;
-  addr: Ipaddr.t option;
-  mask: Ipaddr.t option;
-  brd:  Ipaddr.t option;
+  ipaddr: Ipaddr.t;
+  netmask: int;
 }
 (** Type of the interface addresses record. *)
 

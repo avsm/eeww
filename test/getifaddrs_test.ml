@@ -1,16 +1,11 @@
 open Tuntap
-
-let unopt = function
-  | Some v -> v
-  | None -> None
+open Ipaddr
 
 let () =
   let addrs = getifaddrs () in
   List.iter (fun ifaddr ->
-      match ifaddr.addr with
-      | Some a ->
-        Printf.printf "%s -> %s\n%!"
-          ifaddr.name
-          (Ipaddr.to_string a)
-      | None -> ()
+      Printf.printf "%s -> %s/%d\n%!"
+        ifaddr.name
+        (to_string ifaddr.ipaddr)
+        ifaddr.netmask
     ) addrs

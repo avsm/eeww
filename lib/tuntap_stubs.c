@@ -328,14 +328,14 @@ CAMLprim value caml_string_of_sa(struct sockaddr *sa)
   switch(sa->sa_family)
     {
     case AF_INET:
-      ret = caml_alloc_string(4);
       sa_in = (struct sockaddr_in *)sa;
+      ret = caml_alloc_string(4);
       memcpy(String_val(ret), &sa_in->sin_addr.s_addr, 4);
       break;
 
     case AF_INET6:
-      ret = caml_alloc_string(16);
       sa_in6 = (struct sockaddr_in6 *)sa;
+      ret = caml_alloc_string(16);
       memcpy(String_val(ret), sa_in6->sin6_addr.s6_addr, 16);
       break;
 
@@ -357,7 +357,7 @@ iface_get(value ifap)
   ret = caml_alloc(5, 0);
 
   Store_field(ret, 0, caml_copy_string(c_ifap->ifa_name));
-  Store_field(ret, 1, Val_int(3));
+  Store_field(ret, 1, Val_int(2));
   Store_field(ret, 2, Val_int(0));
   Store_field(ret, 3, Val_int(0));
   Store_field(ret, 4, Val_int(0));
@@ -373,12 +373,10 @@ iface_get(value ifap)
     case AF_INET6:
       Store_field(ret, 1, Val_int(1));
       break;
-    case AF_UNIX:
-      Store_field(ret, 1, Val_int(2));
-      break;
     }
 
-  if (c_ifap->ifa_addr->sa_family != AF_INET && c_ifap->ifa_addr->sa_family != AF_INET6)
+  if (c_ifap->ifa_addr->sa_family != AF_INET &&
+      c_ifap->ifa_addr->sa_family != AF_INET6)
     CAMLreturn(ret);
 
   opt1 = caml_alloc(1, 0);
