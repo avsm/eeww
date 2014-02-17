@@ -8,13 +8,14 @@ let test_setipv4 ipv4 netmask () =
   set_ipaddr ~netmask devname ipv4;
   let iface_addr = List.find
       (fun ifaddr -> ifaddr.name = devname
-                     && to_v4 ifaddr.ipaddr <> None)
+                     && match ifaddr.ipaddr with AF_INET _ -> true | _ -> false)
       (getifaddrs ())
   in
-  assert_equal ipv4 iface_addr.ipaddr;
-  assert_equal netmask iface_addr.netmask;
-  Unix.close fd
+  assert_equal (ipv4, netmask) (match iface_addr.ipaddr with
+      | AF_INET (a, p) -> V4 a, V4.Prefix.bits p
+      | _ -> assert false);
 
+  Unix.close fd
 
 let suite = "Test IPv4" >:::
             ["test_classA" >:: test_setipv4 "10.0.0.1" 8;

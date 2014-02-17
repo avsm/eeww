@@ -60,10 +60,13 @@ val set_up_and_running : string -> unit
     running. Note that when using the [set_ipv4] function, the
     interface will automatically be set up and running. *)
 
+type ipaddr =
+  | AF_INET of Ipaddr.V4.t * Ipaddr.V4.Prefix.t
+  | AF_INET6 of Ipaddr.V6.t * Ipaddr.V6.Prefix.t
+
 type ifaddr = {
   name: string;
-  ipaddr: Ipaddr.t;
-  netmask: int;
+  ipaddr: ipaddr
 }
 (** Type of the interface addresses record. *)
 
