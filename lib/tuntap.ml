@@ -41,7 +41,7 @@ let set_ipaddr ?(netmask=0) devname =
   let open Ipaddr in
   function
   | V4 a ->
-    set_ipv4 devname (V4.to_string a) V4.(Prefix.mask netmask |> to_string)
+    set_ipv4 devname (V4.to_string a) V4.(to_string (Prefix.mask netmask))
   | V6 a -> raise (Invalid_argument "Setting IPv6 addresses is currenctly unsupported")
 
 let get_macaddr iface = Macaddr.of_bytes_exn (get_macaddr iface)
