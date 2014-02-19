@@ -51,23 +51,24 @@ val get_macaddr : string -> Macaddr.t
 (** [get_hwaddr devname] is the MAC address of interface
     [devname], as a raw string (not hexa). *)
 
-val set_ipv4 : devname:string -> ipv4:string -> ?netmask:string -> unit -> unit
-(** [set_ipv4 devname ipv4addr netmask] assign an IPv4 to interface
-    [devname]. *)
+val set_ipaddr : ?netmask:int -> string -> Ipaddr.t -> unit
+(** [set_ipv4 ~netmask dev ipaddr] assign an [ipaddr] to interface
+    [dev], with the default netmask unless [netmask] is specified. *)
 
 val set_up_and_running : string -> unit
 (** [set_up_and_running devname] sets interface [devname] up and
     running. Note that when using the [set_ipv4] function, the
     interface will automatically be set up and running. *)
 
-type iface_addr = {
-  addr: Ipaddr.V4.t;
-  mask: Ipaddr.V4.t;
-  brd:  Ipaddr.V4.t;
+type ipaddr =
+  | AF_INET of Ipaddr.V4.t * Ipaddr.V4.Prefix.t
+  | AF_INET6 of Ipaddr.V6.t * Ipaddr.V6.Prefix.t
+
+type ifaddr = {
+  name: string;
+  ipaddr: ipaddr
 }
 (** Type of the interface addresses record. *)
 
-val getifaddrs : unit -> (string * iface_addr) list
-(** [getifaddrs ()] is a list of size equal to the number of network
-    interfaces that have an IPv4 address, each cell containing the
-    name of the network interface, and its iface_addr record. *)
+val getifaddrs : unit -> ifaddr list
+(** [getifaddrs ()] is the list of IP addresses of this host. *)

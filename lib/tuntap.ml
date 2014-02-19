@@ -25,7 +25,8 @@ external set_up_and_running : string -> unit = "set_up_and_running"
 
 external get_ifnamsiz : unit -> int = "get_ifnamsiz"
 
-let open_ kind ?(pi=false) ?(persist=false) ?(user = -1) ?(group = -1) ?(devname="") () =
+let open_ kind ?(pi=false) ?(persist=false)
+    ?(user = -1) ?(group = -1) ?(devname="") () =
   opentun_stub devname kind pi persist user group
 
 let opentun = open_ Tun
@@ -36,42 +37,84 @@ let opentap = open_ Tap
 let closetun devname = ignore (opentun ~devname ())
 let closetap devname = ignore (opentap ~devname ())
 
-let set_ipv4 ~devname ~ipv4 ?(netmask="") () = set_ipv4 devname ipv4 netmask
+let set_ipaddr ?(netmask=0) devname =
+  let open Ipaddr in
+  function
+  | V4 a ->
+    set_ipv4 devname (V4.to_string a) V4.(to_string (Prefix.mask netmask))
+  | V6 a -> raise (Invalid_argument "Setting IPv6 addresses is currenctly unsupported")
 
 let get_macaddr iface = Macaddr.of_bytes_exn (get_macaddr iface)
 
-type iface_addr_ = {
-  addr_: int32;
-  mask_: int32;
-  brd_:  int32;
-}
-
-module Ipv4 = Ipaddr.V4
-type ipv4 = Ipv4.t
-type iface_addr = {
-  addr: ipv4;
-  mask: ipv4;
-  brd:  ipv4;
+type ifaddr_ = {
+  name_: string;
+  sa_family_: int;
+  addr_: string option;
+  mask_: string option;
+  brd_:  string option;
 }
 
 type ifaddrs_ptr
 
-external getifaddrs_stub : unit -> ifaddrs_ptr = "getifaddrs_stub"
+type ipaddr =
+  | AF_INET of Ipaddr.V4.t * Ipaddr.V4.Prefix.t
+  | AF_INET6 of Ipaddr.V6.t * Ipaddr.V6.Prefix.t
+
+type ifaddr = {
+  name: string;
+  ipaddr: ipaddr
+}
+
+external getifaddrs_stub : unit -> ifaddrs_ptr option = "getifaddrs_stub"
 external freeifaddrs_stub : ifaddrs_ptr -> unit = "freeifaddrs_stub"
 
-external iface_addr : ifaddrs_ptr -> iface_addr_ option = "iface_addr"
-external iface_name : ifaddrs_ptr -> string = "iface_name"
+external iface_get : ifaddrs_ptr -> ifaddr_ = "iface_get"
 external iface_next : ifaddrs_ptr -> ifaddrs_ptr option = "iface_next"
 
+module Opt = struct
+  type 'a t = 'a option
+  let (>>=) x f = match x with Some v -> f v | None -> None
+  let (>|=) x f = match x with Some v -> Some (f v) | None -> None
+  let run = function
+    | Some x -> x
+    | None -> raise Not_found
+end
+
+let ifaddr_of_ifaddr_ ifaddr_ =
+  let open Ipaddr in
+  let open Opt in
+  match ifaddr_.sa_family_ with
+  | 0 ->
+    let addr = ifaddr_.addr_ >|= fun v -> (V4.of_bytes_exn v)
+    and nmask = ifaddr_.mask_ >|= fun v -> (V4.of_bytes_exn v)
+    in
+    Some {
+      name = ifaddr_.name_;
+      ipaddr = AF_INET ((run addr), V4.Prefix.(of_netmask (run nmask) (run addr)))
+    }
+  | 1 ->
+    let addr = ifaddr_.addr_ >|= fun v -> (V6.of_bytes_exn v)
+    and nmask = ifaddr_.mask_ >|= fun v -> (V6.of_bytes_exn v)
+    in
+    Some {
+      name = ifaddr_.name_;
+      ipaddr = AF_INET6 ((run addr), V6.Prefix.(of_netmask (run nmask) (run addr)))
+    }
+  | _ -> None
+
 let getifaddrs () =
-  let start = getifaddrs_stub () in
-  let rec loop acc ptr = match iface_next ptr with
-    | None -> freeifaddrs_stub start; acc
-    | Some p -> loop (match iface_addr p with
-        | Some a -> (iface_name p,
-                     {addr = Ipv4.of_int32 a.addr_;
-                      mask = Ipv4.of_int32 a.mask_;
-                      brd  = Ipv4.of_int32 a.brd_;
-                     })::acc
-        | None -> acc) p
-  in loop [] start
+  match getifaddrs_stub () with
+  | None -> []
+  | Some start ->
+    let rec loop acc ptr =
+      let acc = match ifaddr_of_ifaddr_ (iface_get ptr) with
+        | Some p -> p::acc
+        | None -> acc in
+      match iface_next ptr with
+      | None ->
+        freeifaddrs_stub start;
+        acc
+      | Some p ->
+        loop acc p
+    in
+    loop [] start

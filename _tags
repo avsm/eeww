@@ -1,7 +1,7 @@
 # OASIS_START
-# DO NOT EDIT (digest: 630dc25754a4d6b9aab6c48a9084a66b)
-# Ignore VCS directories, you can use the same kind of rule outside 
-# OASIS_START/STOP if you want to exclude directories that contains 
+# DO NOT EDIT (digest: 4eb9660da76b95afc0b592d5eaa4d231)
+# Ignore VCS directories, you can use the same kind of rule outside
+# OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
 <**/.svn>: -traverse
 <**/.svn>: not_hygienic
@@ -17,6 +17,12 @@
 "lib/tuntap.cmxs": use_tuntap
 <lib/*.ml{,i}>: oasis_library_tuntap_ccopt
 "lib/tuntap_stubs.c": oasis_library_tuntap_ccopt
+<lib/tuntap.{cma,cmxa}>: oasis_library_tuntap_byte
+<lib/*.ml{,i}>: oasis_library_tuntap_byte
+"lib/tuntap_stubs.c": oasis_library_tuntap_byte
+<lib/tuntap.{cma,cmxa}>: oasis_library_tuntap_native
+<lib/*.ml{,i}>: oasis_library_tuntap_native
+"lib/tuntap_stubs.c": oasis_library_tuntap_native
 <lib/tuntap.{cma,cmxa}>: use_libtuntap_stubs
 <lib/*.ml{,i}>: pkg_ipaddr
 "lib/tuntap_stubs.c": pkg_ipaddr
