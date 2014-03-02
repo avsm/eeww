@@ -1,11 +1,10 @@
-1.0.0 (trunk):
+1.0.0 (02-Mar-2014):
 * Improve error messages to distinguish where they happen.
 * Install otunctl command-line tool to create persistent tun/taps.
 * Build debug symbols, annot and bin_annot files by default.
 * getifaddrs now lists IPv6 as well, and return a new type.
 * set_ipv6 is now called set_ipaddr, and will support IPv6 in the
   future (currently unimplemented).
-
 
 0.7.0 (28-Sep-2013):
 * Add FreeBSD support.
