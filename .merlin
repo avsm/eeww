@@ -1,0 +1,5 @@
+B _build/lib
+B _build/lib_test
+S lib
+S lib_test
+PKG oUnit
