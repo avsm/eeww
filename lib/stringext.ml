@@ -59,17 +59,6 @@ let split ?max s ~on =
   | Some max ->                 (* assert (max < 100); *)
     split_char_bounded s ~on ~max
 
-let trim_left ?(start=0) ?stop s ~on =
-  let stop = match stop with
-    | None -> String.length s
-    | Some x -> x
-  in
-  let rec loop i =
-    if String.contains on s.[i]
-    then loop (i + 1)
-    else String.sub s i (stop - i)
-  in loop start
-
 let rindex_from_on s ~offset ~on =
   let rec loop i =
     if i < 0 then raise Not_found
@@ -90,7 +79,7 @@ let trim_left_sub s ~pos ~len ~chars =
   let new_len = len - (start_pos - pos) in
   String.sub s start_pos new_len
 
-let split_trim_right str ~on ~trim =
+let split_trim_left str ~on ~trim =
   if str = "" then []
   else
     let rec loop acc offset =
@@ -107,10 +96,10 @@ let split_trim_right str ~on ~trim =
     in loop [] (length str - 1)
 
 let split_cookie str =
-  split_trim_right str ~on:",;" ~trim:" \t"
+  split_trim_left str ~on:",;" ~trim:" \t"
 
 let split_cookie_1_0 str =
-  split_trim_right str ~on:";" ~trim:" \t"
+  split_trim_left str ~on:";" ~trim:" \t"
 
 exception Found_int of int
 
