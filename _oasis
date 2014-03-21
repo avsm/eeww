@@ -1,0 +1,25 @@
+OASISFormat: 0.4
+Name:        Stringext
+Version:     0.0.1
+Synopsis:    Extra string functions for OCaml
+Authors:     Rudi Grinberg
+License:     LGPL-2.0 with OCaml linking exception
+Plugins:     META (0.4)
+BuildTools:  ocamlbuild
+
+Library stringext
+  Path:       lib
+  BuildTools: ocamlbuild
+  Modules:    Stringext
+
+Test test_stringext
+  Run$: flag(tests)
+  Command: $test_stringext
+  WorkingDirectory: lib_test
+
+Executable test_stringext
+  Path:               lib_test
+  MainIs:             test_stringext.ml
+  Build$:             flag(tests)
+  CompiledObject:     best
+  BuildDepends: stringext, oUnit
