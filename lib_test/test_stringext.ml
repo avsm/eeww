@@ -19,6 +19,12 @@ let split_trim_left _ =
                   "testing, stuff;  \t again" ~on:",;" ~trim:" \t" in
   assert_equal ~printer strings ["testing";"stuff";"again"]
 
+let full_split _ =
+  let strings = Stringext.full_split
+                  "//var/test//ocaml/" ~on:'/' in
+  assert_equal ~printer:(String.concat "")
+    strings ["/";"/";"var";"/";"test";"/";"/";"ocaml";"/"]
+
 let test_fixtures =
   "test various string functions" >:::
   [
@@ -26,6 +32,7 @@ let test_fixtures =
     "test split bounded 1" >:: test_split_bounded_1;
     "test split none" >:: test_split_none;
     "split trim left" >:: split_trim_left;
+    "full split" >:: full_split;
   ]
 
 let _ = run_test_tt_main test_fixtures

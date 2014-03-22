@@ -51,6 +51,26 @@ let split_char_unbounded str ~on =
       with Not_found -> (sub str 0 (offset + 1))::acc
     in loop [] (length str - 1)
 
+let full_split str ~on =
+  if str = "" then []
+  else
+    let sep = create 1 in
+    sep.[0] <- on;
+    let rec loop acc offset =
+      try begin
+        let index = rindex_from str offset on in
+        if index = offset then
+          loop (sep::acc) (index - 1)
+        else
+          let token = sub str (index + 1) (offset - index) in
+          loop (sep::token::acc) (index - 1)
+      end
+      with Not_found ->
+        if offset > 0
+        then (sub str 0 offset)::acc
+        else acc
+    in loop [] (length str - 1)
+
 (* copying core's convention for String.split but with an optional max
    argument *)
 let split ?max s ~on =

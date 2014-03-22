@@ -13,6 +13,13 @@ val quote : string -> string
     be a small number if specified. To not cause stack overflows *)
 val split : ?max:int -> string -> on:char -> string list
 
+(** split_delim_unbounded [s] [~on] will split [s] on every occurence
+    of [on] but will add the separators between the tokens. Maintains
+    the invariant:
+
+    String.concat (split_delimc_unbounded s ~on) =s *)
+val full_split : string -> on:char -> string list
+
 (** Trims spaces on the left of the string *)
 val trim_left : string -> string
 
