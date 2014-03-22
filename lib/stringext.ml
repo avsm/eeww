@@ -113,8 +113,3 @@ let trim_left s =
       s
     with Found_int non_space ->
       sub s non_space (len - non_space)
-
-let split_header str =
-  match str |> split ~max:2 ~on:':' with
-  | x::y::[] -> [x; trim_left y]
-  | x -> x
