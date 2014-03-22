@@ -19,11 +19,28 @@ let split_trim_left _ =
                   "testing, stuff;  \t again" ~on:",;" ~trim:" \t" in
   assert_equal ~printer strings ["testing";"stuff";"again"]
 
-let full_split _ =
+let printer s = "'" ^ (String.concat ";" s) ^ "'"
+
+let full_split1 _ =
   let strings = Stringext.full_split
                   "//var/test//ocaml/" ~on:'/' in
-  assert_equal ~printer:(String.concat "")
+  assert_equal ~printer
     strings ["/";"/";"var";"/";"test";"/";"/";"ocaml";"/"]
+
+let full_split2 _ =
+  let strings = Stringext.full_split "//foobar.com/quux" ~on:'/' in
+  assert_equal ~printer
+    strings ["/";"/";"foobar.com";"/";"quux"]
+
+let full_split3 _ =
+  let strings = Stringext.full_split "foobar.com/quux" ~on:'/' in
+  assert_equal ~printer
+    strings ["foobar.com";"/";"quux"]
+
+let full_split4 _ =
+  let strings = Stringext.full_split "a/path/fragment" ~on:'/' in
+  assert_equal ~printer
+    strings ["a";"/";"path";"/";"fragment"]
 
 let test_fixtures =
   "test various string functions" >:::
@@ -32,7 +49,10 @@ let test_fixtures =
     "test split bounded 1" >:: test_split_bounded_1;
     "test split none" >:: test_split_none;
     "split trim left" >:: split_trim_left;
-    "full split" >:: full_split;
+    "full split1" >:: full_split1;
+    "full split2" >:: full_split2;
+    "full split3" >:: full_split3;
+    "full split4" >:: full_split4;
   ]
 
 let _ = run_test_tt_main test_fixtures
