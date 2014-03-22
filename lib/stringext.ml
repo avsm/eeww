@@ -66,8 +66,8 @@ let full_split str ~on =
           loop (sep::token::acc) (index - 1)
       end
       with Not_found ->
-        if offset > 0
-        then (sub str 0 offset)::acc
+        if offset >= 0
+        then (sub str 0 (offset + 1))::acc
         else acc
     in loop [] (length str - 1)
 
