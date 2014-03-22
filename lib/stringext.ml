@@ -95,12 +95,6 @@ let split_trim_left str ~on ~trim =
       with Not_found -> (sub str 0 (offset + 1))::acc
     in loop [] (length str - 1)
 
-let split_cookie str =
-  split_trim_left str ~on:",;" ~trim:" \t"
-
-let split_cookie_1_0 str =
-  split_trim_left str ~on:";" ~trim:" \t"
-
 exception Found_int of int
 
 let first_char_ne s c =
