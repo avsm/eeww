@@ -569,6 +569,7 @@ let () =
          | After_rules ->
             dep ["include_common"]
                 ["src"/"common.ml";
+                 "src"/"common_float.ml";
                  "src"/"common_401.ml";
                  "src"/"common_400.ml"];
             dep ["include_401"]

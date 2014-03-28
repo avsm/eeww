@@ -43,6 +43,14 @@ module type EndianStringSig = sig
   val get_int64 : string -> int -> int64
   (** [get_int64 buff i] reads 8 bytes at offset i as an int64. *)
 
+  val get_float : string -> int -> float
+  (** [get_float buff i] is equivalent to
+      [Int32.float_of_bits (get_int32 buff i)] *)
+
+  val get_double : string -> int -> float
+  (** [get_double buff i] is equivalent to
+      [Int64.float_of_bits (get_int64 buff i)] *)
+
   val set_char : string -> int -> char -> unit
   (** [set_char buff i v] writes [v] to [buff] at offset [i] *)
 
@@ -59,6 +67,14 @@ module type EndianStringSig = sig
 
   val set_int64 : string -> int -> int64 -> unit
   (** [set_int64 buff i v] writes [v] to [buff] at offset [i] *)
+
+  val set_float : string -> int -> float -> unit
+  (** [set_float buff i v] is equivalent to
+      [set_int32 buff i (Int32.bits_of_float v)] *)
+
+  val set_double : string -> int -> float -> unit
+  (** [set_double buff i v] is equivalent to
+      [set_int64 buff i (Int64.bits_of_float v)] *)
 
 end
 
