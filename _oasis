@@ -1,6 +1,6 @@
 OASISFormat: 0.3
 Name:        ocplib-endian
-Version:     0.5
+Version:     0.6
 Synopsis:    Optimised functions to read and write int16/32/64 from strings and
   bigarrays
 Authors:     Pierre Chambart

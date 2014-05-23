@@ -1,4 +1,4 @@
-Next version
+0.6
 ---------------
 
 * Port to OCaml 4.02 -safe-string: Add an EndianBytes module.

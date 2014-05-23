@@ -1,10 +1,11 @@
 ocplib-endian
 =============
 
-Optimised functions to read and write int16/32/64 from strings and
-bigarrays, based on new primitives added in version 4.01.
+Optimised functions to read and write int16/32/64 from strings, bytes
+and bigarrays, based on primitives added in version 4.01.
 
-The library implements two modules:
+The library implements three modules:
 - [EndianString](src/endianString.mli) works directly on strings, and provides submodules BigEndian and LittleEndian, with their unsafe counter-parts;
+- [EndianBytes](src/endianBytes.mli) works directly on bytes, and provides submodules BigEndian and LittleEndian, with their unsafe counter-parts;
 - [EndianBigstring](src/endianBigstring.mli) works on bigstrings (Bigarrays of chars), and provides submodules BigEndian and LittleEndian, with their unsafe counter-parts;
 
