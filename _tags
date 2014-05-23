@@ -8,7 +8,7 @@
 <src/*.ml>: include_400, include_401
 
 # OASIS_START
-# DO NOT EDIT (digest: 5480c90817bae27a055998c0629a5d1c)
+# DO NOT EDIT (digest: 7d7566de155e441d04b8fe9454b32499)
 # Ignore VCS directories, you can use the same kind of rule outside 
 # OASIS_START/STOP if you want to exclude directories that contains 
 # useless stuff for the build process
@@ -24,6 +24,7 @@
 "_darcs": not_hygienic
 # Library ocplib_endian
 "src/ocplib_endian.cmxs": use_ocplib_endian
+<src/*.ml{,i}>: pkg_bytes
 # Library bigstring
 "src/bigstring.cmxs": use_bigstring
 <src/*.ml{,i}>: pkg_bigarray
@@ -33,13 +34,16 @@
 <tests/test.{native,byte}>: use_bigstring
 <tests/test.{native,byte}>: pkg_bigarray
 <tests/test.{native,byte}>: pkg_optcomp
+<tests/test.{native,byte}>: pkg_bytes
 # Executable benchmark
 <tests/bench.{native,byte}>: use_ocplib_endian
 <tests/bench.{native,byte}>: use_bigstring
 <tests/bench.{native,byte}>: pkg_bigarray
 <tests/bench.{native,byte}>: pkg_optcomp
+<tests/bench.{native,byte}>: pkg_bytes
 <tests/*.ml{,i}>: use_ocplib_endian
 <tests/*.ml{,i}>: use_bigstring
 <tests/*.ml{,i}>: pkg_bigarray
 <tests/*.ml{,i}>: pkg_optcomp
+<tests/*.ml{,i}>: pkg_bytes
 # OASIS_STOP

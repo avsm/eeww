@@ -11,9 +11,10 @@ BuildTools:  ocamlbuild
 Library ocplib_endian
   Path:       src
   Modules:
-    EndianString
+    EndianString,
+    EndianBytes
   FindlibName: ocplib-endian
-  BuildDepends: optcomp
+  BuildDepends: optcomp, bytes
   XMETARequires:
 
 Library bigstring

@@ -1,6 +1,6 @@
-open EndianString
+open EndianBytes
 
-let to_t = Bytes.unsafe_to_string
+let to_t x = x
 (* do not allocate to avoid breaking tests *)
 
 module BE = BigEndian

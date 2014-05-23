@@ -1,6 +1,7 @@
 Next version
 ---------------
 
+* Port to OCaml 4.02 -safe-string: Add an EndianBytes module.
 * Add unoptimized get_float, get_double, set_float and set_double to every modules.
 * Add a native endian version of interfaces.
 
