@@ -561,19 +561,35 @@ let dispatch_default = MyOCamlbuildBase.dispatch_default package_default;;
 
 # 563 "myocamlbuild.ml"
 (* OASIS_STOP *)
+let has_safe_string =
+  try
+    let major = int_of_string (String.sub Sys.ocaml_version 0 1) in
+    let minor = int_of_string (String.sub Sys.ocaml_version 2 2) in
+    major >= 4 && minor >= 2
+  with e ->
+    false
+
 let () =
   dispatch
     (fun hook ->
        dispatch_default hook;
        match hook with
+         | After_options ->
+            if has_safe_string
+            then flag ["ocaml"; "compile"] & S[A"-safe-string"]
          | After_rules ->
             dep ["include_common"]
                 ["src"/"common.ml";
+                 "src"/"common_float.ml";
                  "src"/"common_401.ml";
                  "src"/"common_400.ml"];
             dep ["include_401"]
-                ["src"/"be_ocaml_401.ml"; "src"/"le_ocaml_401.ml"];
+                ["src"/"be_ocaml_401.ml";
+                 "src"/"le_ocaml_401.ml";
+                 "src"/"ne_ocaml_401.ml"];
             dep ["include_400"]
-                ["src"/"be_ocaml_400.ml"; "src"/"le_ocaml_400.ml"];
+                ["src"/"be_ocaml_400.ml";
+                 "src"/"le_ocaml_400.ml";
+                 "src"/"ne_ocaml_400.ml"];
          | _ ->
              ())

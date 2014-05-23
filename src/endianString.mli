@@ -43,22 +43,34 @@ module type EndianStringSig = sig
   val get_int64 : string -> int -> int64
   (** [get_int64 buff i] reads 8 bytes at offset i as an int64. *)
 
-  val set_char : string -> int -> char -> unit
-  (** [set_char buff i v] writes [v] to [buff] at offset [i] *)
+  val get_float : string -> int -> float
+  (** [get_float buff i] is equivalent to
+      [Int32.float_of_bits (get_int32 buff i)] *)
 
-  val set_int8 : string -> int -> int -> unit
-  (** [set_int8 buff i v] writes the least significant 8 bits of [v]
-  to [buff] at offset [i] *)
+  val get_double : string -> int -> float
+  (** [get_double buff i] is equivalent to
+      [Int64.float_of_bits (get_int64 buff i)] *)
 
-  val set_int16 : string -> int -> int -> unit
-  (** [set_int16 buff i v] writes the least significant 16 bits of [v]
-  to [buff] at offset [i] *)
+  val set_char : Bytes.t -> int -> char -> unit
+  (** @deprecated This is a deprecated alias of {!endianBytes.set_char}. *)
 
-  val set_int32 : string -> int -> int32 -> unit
-  (** [set_int32 buff i v] writes [v] to [buff] at offset [i] *)
+  val set_int8 : Bytes.t -> int -> int -> unit
+  (** @deprecated This is a deprecated alias of {!endianBytes.set_int8}. *)
 
-  val set_int64 : string -> int -> int64 -> unit
-  (** [set_int64 buff i v] writes [v] to [buff] at offset [i] *)
+  val set_int16 : Bytes.t -> int -> int -> unit
+  (** @deprecated This is a deprecated alias of {!endianBytes.set_int16}. *)
+
+  val set_int32 : Bytes.t -> int -> int32 -> unit
+  (** @deprecated This is a deprecated alias of {!endianBytes.set_int32}. *)
+
+  val set_int64 : Bytes.t -> int -> int64 -> unit
+  (** @deprecated This is a deprecated alias of {!endianBytes.set_int64}. *)
+
+  val set_float : Bytes.t -> int -> float -> unit
+  (** @deprecated This is a deprecated alias of {!endianBytes.set_float}. *)
+
+  val set_double : Bytes.t -> int -> float -> unit
+  (** @deprecated This is a deprecated alias of {!endianBytes.set_double}. *)
 
 end
 
@@ -92,3 +104,20 @@ module LittleEndian_unsafe : sig
   include EndianStringSig
 
 end
+
+#if ocaml_version >= (4, 0)
+module NativeEndian : sig
+  (** Functions reading according to machine endianness *)
+
+  include EndianStringSig
+
+end
+
+module NativeEndian_unsafe : sig
+  (** Functions reading according to machine endianness without
+  checking for overflow *)
+
+  include EndianStringSig
+
+end
+#endif
