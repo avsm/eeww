@@ -1,8 +1,9 @@
 # OASIS_START
-# DO NOT EDIT (digest: ac6c6460d4c4a8231adc4c5de9d83deb)
+# DO NOT EDIT (digest: 64ee97e1fa8ab999930b993426897380)
 version = "0.6"
 description =
 "Optimised functions to read and write int16/32/64 from strings and bigarrays"
+requires = "bytes"
 archive(byte) = "ocplib_endian.cma"
 archive(byte, plugin) = "ocplib_endian.cma"
 archive(native) = "ocplib_endian.cmxa"
@@ -12,7 +13,7 @@ package "bigstring" (
  version = "0.6"
  description =
  "Optimised functions to read and write int16/32/64 from strings and bigarrays"
- requires = "bigarray"
+ requires = "bigarray bytes"
  archive(byte) = "bigstring.cma"
  archive(byte, plugin) = "bigstring.cma"
  archive(native) = "bigstring.cmxa"
