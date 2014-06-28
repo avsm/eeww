@@ -1,0 +1,8 @@
+version = "%%VERSION%%"
+description = "Unicode character properties"
+archive(byte) = "uucp.cma"
+archive(byte, plugin) = "uucp.cma"
+archive(native) = "uucp.cmxa"
+archive(native, plugin) = "uucp.cmxs"
+exists_if = "uucp.cma"
+
