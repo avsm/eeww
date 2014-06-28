@@ -43,4 +43,4 @@ distribution. They can be built with:
 The resulting binaries are in `_build/test` :
 
 - `test.native` tests the library. Nothing should fail.
-- `pref.native` tests the performance of the library.
+- `perf.native` tests the performance of the library.

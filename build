@@ -44,7 +44,7 @@ action ()
 check_db () 
 {
     if [ ! -f "support/ucd.xml" ]; then 
-        echo "Missing unicode character database support/ucd.ml, see DEVEL.md"
+        echo "Missing unicode character database support/ucd.xml, see DEVEL.md"
         exit 1
     fi
 }
