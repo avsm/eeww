@@ -147,20 +147,20 @@ let main () =
   let pos p = raise (Arg.Bad ("don't know what to to with " ^ p)) in
   let options = [
     "-count", Arg.Set_int count, 
-    "number of full character set traversals (defaults 10)";
-    "-age",    add `Age, "test the Age module";
-    "-alpha",  add `Alpha, "test the Alpha module";
-    "-block",  add `Block, "test the Block module";
-    "-case",   add `Case, "test the Case module";
-    "-cjk",    add `Cjk, "test the CJK module";
-    "-func",   add `Func, "test the Func module";
-    "-gc",     add `Gc, "test the Gc module";
-    "-gen",    add `Gen, "test the Gen module";
-    "-id",     add `Id, "test the Id module";
-    "-name",   add `Name, "test the Name module";
-    "-num",    add `Num, "test the Num module";
-    "-script", add `Script, "test the Script module";
-    "-white",  add `White, "test the White module"; ]
+    "N number of full character set traversals (default 10)";
+    "-age",    add `Age, " test the Age module";
+    "-alpha",  add `Alpha, " test the Alpha module";
+    "-block",  add `Block, " test the Block module";
+    "-case",   add `Case, " test the Case module";
+    "-cjk",    add `Cjk, " test the CJK module";
+    "-func",   add `Func, " test the Func module";
+    "-gc",     add `Gc, " test the Gc module";
+    "-gen",    add `Gen, " test the Gen module";
+    "-id",     add `Id, " test the Id module";
+    "-name",   add `Name, " test the Name module";
+    "-num",    add `Num, " test the Num module";
+    "-script", add `Script, " test the Script module";
+    "-white",  add `White, " test the White module"; ]
   in
   Arg.parse (Arg.align options) pos usage;
   lookup !count !mods
