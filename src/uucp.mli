@@ -1137,7 +1137,7 @@ end
 
     First there are the {e reserved} or {e unassigned} code points,
     those are the integers to which the standard doesn't assign any
-    meaning {e yet}. They are reserved for future assignement and may
+    meaning {e yet}. They are reserved for future assignment and may
     become meaningful in newer versions of the standard. Be aware that
     once a code point has been assigned (aka as {e encoded}) by the
     standard most of its properties may never change again, see the
@@ -1287,8 +1287,8 @@ end
     canonically equivalent sequences are also compatibility
     equivalent, but the converse may not be true.
 
-    A normal form is a function mapping sequences of scalar values to
-    sequences of scalar values. The Unicode standard defines four
+    A normal form is a function mapping a sequence of scalar values to
+    a sequence of scalar values. The Unicode standard defines four
     different normal forms, the one to use depends on the equivalence
     you want and your processing context:
     {ul
@@ -1362,20 +1362,20 @@ end
     values of your UTF-8 encoded strings, or build new UTF-8 strings 
     from scalar values.
 
-    {b UTF-8 and ASCII.} As mentioned above, in UTF-8, the 128 US-ASCII
-    characters are represented by their own byte representation. So if
-    you want to look for an US-ASCII character in an UTF-8 encoded
-    string, you can just scan the bytes. But beware on the nature of
-    your data and the algorithm you need to implement. For example to
-    detect spaces in the string, looking for the US-ASCII space U+0020
-    may not be sufficient, there are a lot of other space characters like
-    the no break space U+00A0 that are beyond the US-ASCII
-    repertoire. Folding over the scalar values with {!Uutf} and 
-    checking them with {!White.is_white_space} is a better idea. Same holds for 
-    line breaks, see for example
+    {b UTF-8 and ASCII.} As mentioned above, each of the 128 US-ASCII
+    characters is represented by its own US-ASCII byte representation
+    in UTF-8. So if you want to look for an US-ASCII character in an
+    UTF-8 encoded string, you can just scan the bytes.  But beware on
+    the nature of your data and the algorithm you need to
+    implement. For example to detect spaces in the string, looking for
+    the US-ASCII space U+0020 may not be sufficient, there are a lot
+    of other space characters like the no break space U+00A0 that are
+    beyond the US-ASCII repertoire. Folding over the scalar values
+    with {!Uutf} and checking them with {!White.is_white_space} is a
+    better idea. Same holds for line breaks, see for example
     {!Uutf.nln} and {!Uutf.readlines} for more information about these
     issues.
-    
+
     {b Equating and comparing UTF-8 encoded OCaml strings.}  If you
     understood well the above section about {{!equivalence}equivalence
     and normalization} you should realise that blindly comparing UTF-8
