@@ -1340,27 +1340,30 @@ end
     Many libraries will already return you character data under this
     representation. Besides latin1 identifiers having been deprecated
     in OCaml 4.01, UTF-8 encoding your sources allows you to write
-    UTF-8 encoded string literals directly in your programs.
-    
+    UTF-8 encoded string literals directly in your programs. Be aware
+    though that as far as OCaml's compiler is concerned these are just
+    sequences of bytes and you can't trust these strings to be valid
+    UTF-8 as they depend on how correctly your editor encodes them. 
+    That is unless you escape their valid UTF-8 bytes explicitely (e.g. 
+    ["\xF0\x9F\x90\xAB"] is the correct encoding of U+1F42B), you {b will
+    need} to validate them and most likely normalize them.
+
     Checking the validity of UTF-8 strings should only be performed at
-    the boundaries of your program on data input or on the results of
-    untrusted libraries (be careful, some libraries like Yojson will
-    happily return you invalid UTF-8 strings). This allows you to only
-    deal with valid UTF-8 throughout your program and avoid redundant
-    validity checks, internally or on output. The following properties
-    of UTF-8 are useful to remember:
-    {ul 
-    {- UTF-8 validity is closed under string concatenation: concatenating
-       two valid UTF-8 strings results in a valid UTF-8 string.}
-    {- Splitting a valid UTF-8 encoded string at 
-       UTF-8 encoded US-ASCII scalar values (i.e. at any byte < 128) 
-       will result in valid UTF-8 encoded substrings.}}
-    
-    For checking validity or recode the other UTF encoding schemes
-    into UTF-8 encoded OCaml [strings], the {!Uutf} module can be
-    used. It will also be useful if you need to fold over the scalar
-    values of your UTF-8 encoded strings, or build new UTF-8 strings 
-    from scalar values.
+    the boundaries of your program: on your string literals, on data
+    input or on the results of untrusted libraries (be careful, some
+    libraries like Yojson will happily return you invalid UTF-8
+    strings). This allows you to only deal with valid UTF-8 throughout
+    your program and avoid redundant validity checks, internally or on
+    output. The following properties of UTF-8 are useful to remember:
+    {ul {- UTF-8 validity is closed under string concatenation:
+    concatenating two valid UTF-8 strings results in a valid UTF-8
+    string.}  {- Splitting a valid UTF-8 encoded string at UTF-8
+    encoded US-ASCII scalar values (i.e. at any byte < 128) will
+    result in valid UTF-8 encoded substrings.}}  For checking validity
+    or recode the other UTF encoding schemes into UTF-8 encoded OCaml
+    [strings], the {!Uutf} module can be used. It will also be useful
+    if you need to fold over the scalar values of your UTF-8 encoded
+    strings, or build new UTF-8 strings from scalar values.
 
     {b UTF-8 and ASCII.} As mentioned above, each of the 128 US-ASCII
     characters is represented by its own US-ASCII byte representation
