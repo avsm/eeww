@@ -1,6 +1,6 @@
 OASISFormat: 0.4
 Name:        Stringext
-Version:     0.0.2
+Version:     1.0.0
 Synopsis:    Extra string functions for OCaml
 Authors:     Rudi Grinberg
 License:     LGPL-2.0 with OCaml linking exception
