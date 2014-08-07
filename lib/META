@@ -1,6 +1,6 @@
 # OASIS_START
-# DO NOT EDIT (digest: c9a7d4b744b847f8a94033cc1b143076)
-version = "0.0.2"
+# DO NOT EDIT (digest: 5c67997e08e284d2e1720f4dd33d14e0)
+version = "1.0.0"
 description = "Extra string functions for OCaml"
 archive(byte) = "stringext.cma"
 archive(byte, plugin) = "stringext.cma"
