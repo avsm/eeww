@@ -27,3 +27,27 @@ val trim_left : string -> string
     in [on]. Characters in [trim] are trimmed from the left of every
     result element *)
 val split_trim_left : string -> on:string -> trim:string -> string list
+
+val of_list : char list -> string
+
+val to_list : string -> char list
+
+val to_array : string -> char array
+
+val of_array : char array -> string
+
+val cut : string -> on:string -> (string * string) option
+(** [String.cut on s] is either the pair [Some (l,r)] of the two
+    (possibly empty) substrings of [s] that are delimited by the first
+    match of the non empty onarator string [on] or [None] if [on]
+    can't be matched in [s]. Matching starts from the beginning of [s].
+
+    The invariant [l ^ on ^ r = s] holds. 
+
+    @raise Invalid_argument if [on] is the empty string. *)
+
+val rcut : string -> on:string -> (string * string) option
+(** [String.rcut on s] is like {!cut} but the matching is done backwards
+    starting from the end of [s].
+
+    @raise Invalid_argument if [on] is the empty string. *)

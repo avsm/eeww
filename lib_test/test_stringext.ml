@@ -42,6 +42,16 @@ let full_split4 _ =
   assert_equal ~printer
     strings ["a";"/";"path";"/";"fragment"]
 
+let (to_list, of_list) = Stringext.(to_list, of_list)
+
+let to_list1 _ = assert_equal (to_list "ocaml") ['o';'c';'a';'m';'l']
+
+let to_list2 _ = assert_equal (to_list "") []
+
+let of_list1 _ = assert_equal (of_list []) ""
+
+let of_list2 _ = assert_equal (of_list ['o';'c';'a';'m';'l']) "ocaml"
+
 let test_fixtures =
   "test various string functions" >:::
   [
@@ -53,6 +63,10 @@ let test_fixtures =
     "full split2" >:: full_split2;
     "full split3" >:: full_split3;
     "full split4" >:: full_split4;
+    "to_list1" >:: to_list1;
+    "to_list2" >:: to_list2;
+    "of_list1" >:: of_list1;
+    "of_list2" >:: of_list2;
   ]
 
 let _ = run_test_tt_main test_fixtures
