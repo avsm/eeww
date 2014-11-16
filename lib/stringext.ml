@@ -134,6 +134,25 @@ let trim_left s =
     with Found_int non_space ->
       sub s non_space (len - non_space)
 
+let substr_eq ?(start=0) s ~pattern =
+  try
+    for i = 0 to String.length pattern - 1 do
+      if s.[i + start] <> pattern.[i] then raise Exit
+    done;
+    true
+  with _ -> false
+
+let find_from ?(start=0) str ~pattern =
+  try
+    for i = start to (String.length str) - (String.length pattern) do
+      if substr_eq ~start:i str ~pattern then
+        raise (Found_int i)
+    done;
+    None
+  with 
+  | Found_int i -> Some i
+  |  _ -> None
+
 let of_list xs =
   let l = List.length xs in
   let s = String.create l in

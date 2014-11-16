@@ -36,6 +36,8 @@ val to_array : string -> char array
 
 val of_array : char array -> string
 
+val find_from : ?start:int -> string -> pattern:string -> int option
+
 val cut : string -> on:string -> (string * string) option
 (** [String.cut on s] is either the pair [Some (l,r)] of the two
     (possibly empty) substrings of [s] that are delimited by the first

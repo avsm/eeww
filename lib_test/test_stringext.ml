@@ -52,21 +52,53 @@ let of_list1 _ = assert_equal (of_list []) ""
 
 let of_list2 _ = assert_equal (of_list ['o';'c';'a';'m';'l']) "ocaml"
 
+let s = "testing one two three"
+
+let opt_int = function
+  | None -> "none"
+  | Some x -> string_of_int x
+
+let find_from1 _ =
+  let r = Stringext.find_from s ~pattern:"ocaml" in
+  assert_equal r None
+
+let find_from2 _ =
+  let r = Stringext.find_from s ~pattern:"testing" in
+  assert_equal r (Some 0)
+
+let find_from3 _ =
+  let r = Stringext.find_from s ~pattern:"one" in
+  assert_equal r (Some 8)
+
+let find_from4 _ =
+  let r = Stringext.find_from s ~pattern:"threee" in
+  assert_equal r None
+
+let find_from5 _ =
+  let pattern = "three" in
+  let r = Stringext.find_from s ~pattern in
+  assert_equal ~printer:opt_int
+    (Some (String.length s - String.length pattern)) r 
+
 let test_fixtures =
   "test various string functions" >:::
-  [
-    "test split char 1" >:: test_split_1;
-    "test split bounded 1" >:: test_split_bounded_1;
-    "test split none" >:: test_split_none;
-    "split trim left" >:: split_trim_left;
-    "full split1" >:: full_split1;
-    "full split2" >:: full_split2;
-    "full split3" >:: full_split3;
-    "full split4" >:: full_split4;
-    "to_list1" >:: to_list1;
-    "to_list2" >:: to_list2;
-    "of_list1" >:: of_list1;
-    "of_list2" >:: of_list2;
+  [ "test split char 1"    >:: test_split_1
+  ; "test split bounded 1" >:: test_split_bounded_1
+  ; "test split none"      >:: test_split_none
+  ; "split trim left"      >:: split_trim_left
+  ; "full split1"          >:: full_split1
+  ; "full split2"          >:: full_split2
+  ; "full split3"          >:: full_split3
+  ; "full split4"          >:: full_split4
+  ; "to_list1"             >:: to_list1
+  ; "to_list2"             >:: to_list2
+  ; "of_list1"             >:: of_list1
+  ; "of_list2"             >:: of_list2
+  ; "find_from1"           >:: find_from1
+  ; "find_from2"           >:: find_from2
+  ; "find_from3"           >:: find_from3
+  ; "find_from4"           >:: find_from4
+  ; "find_from5"           >:: find_from5
   ]
 
 let _ = run_test_tt_main test_fixtures
