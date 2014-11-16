@@ -1,8 +1,9 @@
 # OASIS_START
-# DO NOT EDIT (digest: 5575ef8090335a14158e6ddb62b8f428)
+# DO NOT EDIT (digest: 8840c0490d2a4389ed2950aecf422c74)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
+true: annot, bin_annot
 <**/.svn>: -traverse
 <**/.svn>: not_hygienic
 ".bzr": -traverse
@@ -18,6 +19,6 @@
 # Executable test_stringext
 <lib_test/test_stringext.{native,byte}>: pkg_oUnit
 <lib_test/test_stringext.{native,byte}>: use_stringext
-<lib_test/*.ml{,i}>: pkg_oUnit
-<lib_test/*.ml{,i}>: use_stringext
+<lib_test/*.ml{,i,y}>: pkg_oUnit
+<lib_test/*.ml{,i,y}>: use_stringext
 # OASIS_STOP
