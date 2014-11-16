@@ -13,8 +13,8 @@ Library stringext
   Modules:    Stringext
 
 Test test_stringext
-  Run$: flag(tests)
-  Command: $test_stringext
+  Run$:             flag(tests)
+  Command:          $test_stringext
   WorkingDirectory: lib_test
 
 Executable test_stringext
@@ -22,4 +22,4 @@ Executable test_stringext
   MainIs:             test_stringext.ml
   Build$:             flag(tests)
   CompiledObject:     best
-  BuildDepends: stringext, oUnit
+  BuildDepends:       stringext, oUnit
