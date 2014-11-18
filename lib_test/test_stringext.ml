@@ -80,6 +80,23 @@ let find_from5 _ =
   assert_equal ~printer:opt_int
     (Some (String.length s - String.length pattern)) r 
 
+let replace_all1 _ =
+  let s = "the quick brown fox brown." in
+  let s' = Stringext.replace_all s "brown" "blue" in
+  assert_equal ~printer:(fun x -> x) "the quick blue fox blue." s'
+
+let replace_all_assoc1 _ =
+  let s = "hello from ocaml" in
+  let tbl = [("hello", "goodbye"); ("ocaml", "haskell")] in
+  let s' = Stringext.replace_all_assoc s tbl in
+  assert_equal ~printer:(fun x -> x) "goodbye from haskell" s'
+
+let replace_all_assoc2 _ =
+  let s = "one two three" in
+  let t = [("one", "four"); ("two", "five"); ("three", "six"); (" ", "_")] in
+  let s' = Stringext.replace_all_assoc s t in
+  assert_equal ~printer:(fun x -> x) "four_five_six" s'
+
 let test_fixtures =
   "test various string functions" >:::
   [ "test split char 1"    >:: test_split_1
@@ -99,7 +116,9 @@ let test_fixtures =
   ; "find_from3"           >:: find_from3
   ; "find_from4"           >:: find_from4
   ; "find_from5"           >:: find_from5
-  ]
+  ; "replace_all1"         >:: replace_all1
+  ; "replace_all_assoc1"   >:: replace_all_assoc1
+  ; "replace_all_assoc1"   >:: replace_all_assoc2 ]
 
 let _ = run_test_tt_main test_fixtures
 

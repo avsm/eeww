@@ -153,6 +153,49 @@ let find_from ?(start=0) str ~pattern =
   | Found_int i -> Some i
   |  _ -> None
 
+let rec find_map f = function
+  | [] -> None
+  | x::xs ->
+    match f x with
+    | None -> find_map f xs
+    | y -> y
+
+let replace_all str ~pattern ~with_ =
+  let (slen, plen) = String.(length str, length pattern) in
+  let buf = Buffer.create slen in
+  let rec loop i =
+    match find_from ~start:i str ~pattern with
+    | None ->
+     Buffer.add_substring buf str i (slen - i);
+      Buffer.contents buf
+    | Some j ->
+      Buffer.add_substring buf str i (j - i);
+      Buffer.add_string buf with_;
+      loop (j + plen)
+  in loop 0
+
+let replace_all_assoc str tbl =
+  let slen = String.length str in
+  let buf = Buffer.create slen in
+  let rec loop i =
+    if i >= slen then Buffer.contents buf
+    else
+      let r =
+        tbl |> find_map (fun (pattern, with_) ->
+          match find_from ~start:i str ~pattern with
+          | None   -> None
+          | Some j -> Some (j, pattern, with_)
+        ) in
+      match r with
+      | None ->
+        Buffer.add_substring buf str i (slen - i);
+        Buffer.contents buf
+      | Some (j, pattern, with_) ->
+        Buffer.add_substring buf str i (j - i);
+        Buffer.add_string buf with_;
+        loop (j + String.length pattern)
+  in loop 0
+
 let of_list xs =
   let l = List.length xs in
   let s = String.create l in
