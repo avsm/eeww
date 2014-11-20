@@ -17,7 +17,7 @@
 
 type kind = Tap | Tun
 
-external opentun_stub : string -> kind -> bool -> bool
+external opentun_stub : string -> kind -> bool -> int
   -> int -> int -> Unix.file_descr * string = "tun_opendev_byte" "tun_opendev"
 external get_macaddr : string -> string = "get_macaddr"
 external set_ipv4 : string -> string -> string -> unit = "set_ipv4"
@@ -25,9 +25,13 @@ external set_up_and_running : string -> unit = "set_up_and_running"
 
 external get_ifnamsiz : unit -> int = "get_ifnamsiz"
 
-let open_ kind ?(pi=false) ?(persist=false)
+let open_ kind ?(pi=false) ?persist
     ?(user = -1) ?(group = -1) ?(devname="") () =
-  opentun_stub devname kind pi persist user group
+  let persist_int = match persist with
+    | None -> -1
+    | Some false -> 0
+    | Some true -> 1 in
+  opentun_stub devname kind pi persist_int user group
 
 let opentun = open_ Tun
 let opentap = open_ Tap
