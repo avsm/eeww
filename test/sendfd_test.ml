@@ -4,7 +4,7 @@ open Lwt_unix
 
 let mk_iovs () =
   let length = 4096 in
-  let buffer = String.create length in
+  let buffer = Bytes.create length in
   [io_vector ~buffer ~offset:0 ~length]
 
 let child socket =
