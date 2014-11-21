@@ -3,11 +3,11 @@ open EndianBigstring
 
 module BE = BigEndian
 module LE = LittleEndian
-#if ocaml_version >= (4, 0)
+#if OCAML_VERSION >= (4, 00, 0)
 module NE = NativeEndian
 #endif
 
-#if ocaml_version >= (4, 0)
+#if OCAML_VERSION >= (4, 00, 0)
 let big_endian = Sys.big_endian
 #else
 (* Sys.big_endian is not available on ocaml <= 3.12 *)
@@ -83,7 +83,7 @@ let test2 () =
   assert( LE.get_uint16 s 1 = 0x0034 );
   assert( LE.get_uint16 s 2 = 0 );
 
-#if ocaml_version >= (4, 0)
+#if OCAML_VERSION >= (4, 00, 0)
   if big_endian then begin
     assert( BE.get_uint16 s 0 = NE.get_uint16 s 0 );
     assert( BE.get_uint16 s 1 = NE.get_uint16 s 1 );
@@ -109,7 +109,7 @@ let test2 () =
   assert( LE.get_uint16 s 1 = 0x00DC );
   assert( LE.get_uint16 s 2 = 0 );
 
-#if ocaml_version >= (4, 0)
+#if OCAML_VERSION >= (4, 00, 0)
   if big_endian then begin
     assert( BE.get_uint16 s 0 = NE.get_uint16 s 0 );
     assert( BE.get_uint16 s 1 = NE.get_uint16 s 1 );
@@ -126,7 +126,7 @@ let test2 () =
   assert( BE.get_int16 s 1 = -9216 );
   assert( BE.get_int16 s 2 = 0 );
 
-#if ocaml_version >= (4, 0)
+#if OCAML_VERSION >= (4, 00, 0)
   if big_endian
   then begin
     NE.set_int16 s 0 0x1234;
@@ -141,7 +141,7 @@ let test2 () =
   assert( BE.get_uint16 s 1 = 0x1200 );
   assert( BE.get_uint16 s 2 = 0 );
 
-#if ocaml_version >= (4, 0)
+#if OCAML_VERSION >= (4, 00, 0)
   if not big_endian
   then begin
     NE.set_int16 s 0 0x1234;
@@ -159,7 +159,7 @@ let test2 () =
   BE.set_int32 s 0 0x12345678l;
   assert( BE.get_int32 s 0 = 0x12345678l );
   assert( LE.get_int32 s 0 = 0x78563412l );
-#if ocaml_version >= (4, 0)
+#if OCAML_VERSION >= (4, 00, 0)
   if big_endian
   then assert( BE.get_int32 s 0 = NE.get_int32 s 0 )
   else assert( LE.get_int32 s 0 = NE.get_int32 s 0 );
@@ -169,7 +169,7 @@ let test2 () =
   assert( LE.get_int32 s 0 = 0x12345678l );
   assert( BE.get_int32 s 0 = 0x78563412l );
 
-#if ocaml_version >= (4, 0)
+#if OCAML_VERSION >= (4, 00, 0)
   if big_endian
   then assert( BE.get_int32 s 0 = NE.get_int32 s 0 )
   else assert( LE.get_int32 s 0 = NE.get_int32 s 0 );
@@ -187,7 +187,7 @@ let test_64 () =
   assert( BE.get_int64 s 0 = 0x1234567890ABCDEFL );
   assert( LE.get_int64 s 0 = 0xEFCDAB9078563412L );
 
-#if ocaml_version >= (4, 0)
+#if OCAML_VERSION >= (4, 00, 0)
   if big_endian
   then assert( BE.get_int64 s 0 = NE.get_int64 s 0 )
   else assert( LE.get_int64 s 0 = NE.get_int64 s 0 );
@@ -197,7 +197,7 @@ let test_64 () =
   assert( LE.get_int64 s 0 = 0x1234567890ABCDEFL );
   assert( BE.get_int64 s 0 = 0xEFCDAB9078563412L );
 
-#if ocaml_version >= (4, 0)
+#if OCAML_VERSION >= (4, 00, 0)
   if big_endian
   then assert( BE.get_int64 s 0 = NE.get_int64 s 0 )
   else assert( LE.get_int64 s 0 = NE.get_int64 s 0 );

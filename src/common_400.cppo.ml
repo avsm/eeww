@@ -6,8 +6,8 @@ module BigEndian = struct
   let set_char = set_char
   let set_int8 = set_int8
 
-#include "src/be_ocaml_400.ml"
-#include "src/common_float.ml"
+#include "be_ocaml_400.ml"
+#include "common_float.ml"
 
 end
 
@@ -19,8 +19,8 @@ module BigEndian_unsafe = struct
   let set_char = unsafe_set_char
   let set_int8 = unsafe_set_int8
 
-#include "src/be_ocaml_400.ml"
-#include "src/common_float.ml"
+#include "be_ocaml_400.ml"
+#include "common_float.ml"
 
 end
 
@@ -32,8 +32,8 @@ module LittleEndian = struct
   let set_char = set_char
   let set_int8 = set_int8
 
-#include "src/le_ocaml_400.ml"
-#include "src/common_float.ml"
+#include "le_ocaml_400.ml"
+#include "common_float.ml"
 
 end
 
@@ -45,12 +45,12 @@ module LittleEndian_unsafe = struct
   let set_char = unsafe_set_char
   let set_int8 = unsafe_set_int8
 
-#include "src/le_ocaml_400.ml"
-#include "src/common_float.ml"
+#include "le_ocaml_400.ml"
+#include "common_float.ml"
 
 end
 
-#if ocaml_version >= (4, 0)
+#if OCAML_VERSION >= (4, 01, 0)
 module NativeEndian = struct
 
   let get_char = get_char
@@ -59,8 +59,8 @@ module NativeEndian = struct
   let set_char = set_char
   let set_int8 = set_int8
 
-#include "src/ne_ocaml_400.ml"
-#include "src/common_float.ml"
+#include "ne_ocaml_400.ml"
+#include "common_float.ml"
 
 end
 
@@ -72,8 +72,8 @@ module NativeEndian_unsafe = struct
   let set_char = unsafe_set_char
   let set_int8 = unsafe_set_int8
 
-#include "src/ne_ocaml_400.ml"
-#include "src/common_float.ml"
+#include "ne_ocaml_400.ml"
+#include "common_float.ml"
 
 end
 #endif
