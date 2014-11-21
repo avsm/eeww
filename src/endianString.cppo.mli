@@ -105,7 +105,7 @@ module LittleEndian_unsafe : sig
 
 end
 
-#if OCAML_VERSION >= (4, 01, 0)
+#if OCAML_VERSION >= (4, 00, 0)
 module NativeEndian : sig
   (** Functions reading according to machine endianness *)
 

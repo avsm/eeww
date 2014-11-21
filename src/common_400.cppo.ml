@@ -50,7 +50,7 @@ module LittleEndian_unsafe = struct
 
 end
 
-#if OCAML_VERSION >= (4, 01, 0)
+#if OCAML_VERSION >= (4, 00, 0)
 module NativeEndian = struct
 
   let get_char = get_char
