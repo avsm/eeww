@@ -1,8 +1,9 @@
 # OASIS_START
-# DO NOT EDIT (digest: 1b961a1bef27d0cc9073e0b776337e16)
+# DO NOT EDIT (digest: a29bf8bb2481e92de84bddc6f4d15bdf)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
+true: annot, bin_annot
 <**/.svn>: -traverse
 <**/.svn>: not_hygienic
 ".bzr": -traverse
@@ -15,47 +16,57 @@
 "_darcs": not_hygienic
 # Library tuntap
 "lib/tuntap.cmxs": use_tuntap
-<lib/*.ml{,i}>: oasis_library_tuntap_ccopt
+<lib/*.ml{,i,y}>: oasis_library_tuntap_ccopt
 "lib/tuntap_stubs.c": oasis_library_tuntap_ccopt
 <lib/tuntap.{cma,cmxa}>: oasis_library_tuntap_byte
-<lib/*.ml{,i}>: oasis_library_tuntap_byte
+<lib/*.ml{,i,y}>: oasis_library_tuntap_byte
 "lib/tuntap_stubs.c": oasis_library_tuntap_byte
 <lib/tuntap.{cma,cmxa}>: oasis_library_tuntap_native
-<lib/*.ml{,i}>: oasis_library_tuntap_native
+<lib/*.ml{,i,y}>: oasis_library_tuntap_native
 "lib/tuntap_stubs.c": oasis_library_tuntap_native
 <lib/tuntap.{cma,cmxa}>: use_libtuntap_stubs
-<lib/*.ml{,i}>: pkg_ipaddr
+<lib/*.ml{,i,y}>: pkg_bytes
+<lib/*.ml{,i,y}>: pkg_ipaddr
+"lib/tuntap_stubs.c": pkg_bytes
 "lib/tuntap_stubs.c": pkg_ipaddr
 # Executable otunctl
+"bin/otunctl.native": pkg_bytes
 "bin/otunctl.native": pkg_cmdliner
 "bin/otunctl.native": pkg_ipaddr
 "bin/otunctl.native": use_tuntap
-<bin/*.ml{,i}>: pkg_cmdliner
-<bin/*.ml{,i}>: pkg_ipaddr
-<bin/*.ml{,i}>: use_tuntap
+<bin/*.ml{,i,y}>: pkg_bytes
+<bin/*.ml{,i,y}>: pkg_cmdliner
+<bin/*.ml{,i,y}>: pkg_ipaddr
+<bin/*.ml{,i,y}>: use_tuntap
 # Executable sendfd_test
+"test/sendfd_test.native": pkg_bytes
 "test/sendfd_test.native": pkg_ipaddr
 "test/sendfd_test.native": pkg_lwt.unix
 "test/sendfd_test.native": use_tuntap
 # Executable nonblock_test
+"test/nonblock_test.native": pkg_bytes
 "test/nonblock_test.native": pkg_ipaddr
 "test/nonblock_test.native": pkg_lwt.unix
 "test/nonblock_test.native": use_tuntap
 # Executable nonblock_read
+"test/nonblock_read.native": pkg_bytes
 "test/nonblock_read.native": pkg_ipaddr
 "test/nonblock_read.native": pkg_lwt.unix
 "test/nonblock_read.native": use_tuntap
-<test/*.ml{,i}>: pkg_lwt.unix
+<test/*.ml{,i,y}>: pkg_lwt.unix
 # Executable getifaddrs_test
+"test/getifaddrs_test.native": pkg_bytes
 "test/getifaddrs_test.native": pkg_ipaddr
 "test/getifaddrs_test.native": use_tuntap
 # Executable set_ipv4_test
+"test/set_ipv4_test.native": pkg_bytes
 "test/set_ipv4_test.native": pkg_ipaddr
 "test/set_ipv4_test.native": pkg_oUnit
 "test/set_ipv4_test.native": use_tuntap
-<test/*.ml{,i}>: pkg_ipaddr
-<test/*.ml{,i}>: pkg_oUnit
-<test/*.ml{,i}>: use_tuntap
+<test/*.ml{,i,y}>: pkg_bytes
+<test/*.ml{,i,y}>: pkg_ipaddr
+<test/*.ml{,i,y}>: pkg_oUnit
+<test/*.ml{,i,y}>: use_tuntap
 # OASIS_STOP
 <lib>: include
 true: annot, bin_annot, debug

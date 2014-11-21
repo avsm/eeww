@@ -1,4 +1,4 @@
-OASISFormat: 0.3
+OASISFormat: 0.4
 Name: tuntap
 Version: 1.0.0
 Synopsis: Bindings to the UNIX tuntap facility.
@@ -6,13 +6,13 @@ Authors: [
   "Vincent Bernardoff <vb@luminar.eu.org>"
   "Anil Madhavapeddy <anil@recoil.org" ]
 License: ISC
-Plugins: META (0.3), DevFiles (0.3)
+Plugins: META (0.4), DevFiles (0.4)
 BuildTools: ocamlbuild
 
 Library tuntap
   Path: lib
   Modules: Tuntap
-  BuildDepends: ipaddr
+  BuildDepends: ipaddr, bytes
   CSources: tuntap_stubs.c
   CCOpt: -O3
   NativeOpt: -bin-annot
