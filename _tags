@@ -1,3 +1,4 @@
+true: safe_string
 
 # We ask ocamlopt to inline brutally to avoir heap allocations when possible
 <src/*.ml>: inline(1000)

@@ -574,9 +574,6 @@ let () =
     (fun hook ->
        dispatch_default hook;
        match hook with
-         | After_options ->
-            if has_safe_string
-            then flag ["ocaml"; "compile"] & S[A"-safe-string"]
          | After_rules ->
             dep ["include_common"]
                 ["src"/"common.ml";
