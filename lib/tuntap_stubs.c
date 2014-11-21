@@ -72,8 +72,10 @@ tun_alloc(char *dev, int kind, int pi, int persist, int user, int group)
   if (ioctl(fd, TUNSETIFF, (void *)&ifr) < 0)
     tun_raise_error("TUNSETIFF", fd);
 
-  if (ioctl(fd, TUNSETPERSIST, persist) < 0)
-    tun_raise_error("TUNSETPERSIST", fd);
+  if (persist != -1) {
+    if (ioctl(fd, TUNSETPERSIST, persist) < 0)
+      tun_raise_error("TUNSETPERSIST", fd);
+  }
 
   if (user != -1) {
     if(ioctl(fd, TUNSETOWNER, user) < 0)
@@ -264,7 +266,7 @@ tun_opendev(value devname, value kind, value pi, value persist, value user, valu
 
   // All errors are already checked by tun_alloc, returned fd is valid
   // otherwise it would have crashed before
-  fd = tun_alloc(dev, Int_val(kind), Bool_val(pi), Bool_val(persist), Int_val(user), Int_val(group));
+  fd = tun_alloc(dev, Int_val(kind), Bool_val(pi), Int_val(persist), Int_val(user), Int_val(group));
 
   res = caml_alloc_tuple(2);
   dev_caml = caml_copy_string(dev);
