@@ -1,3 +1,8 @@
+0.7
+---
+
+* Replace optcomp with cppo, removing hard dependency on camlp4.
+
 0.6
 ---------------
 
