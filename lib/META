@@ -1,6 +1,6 @@
 # OASIS_START
-# DO NOT EDIT (digest: 7f99eb1fc080982c3df27e5bb5b15d73)
-version = "1.0.0"
+# DO NOT EDIT (digest: 04296d134bcbda18d78b826cb2ff1e71)
+version = "1.1.0"
 description = "Bindings to the UNIX tuntap facility."
 requires = "ipaddr bytes"
 archive(byte) = "tuntap.cma"
