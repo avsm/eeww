@@ -1,3 +1,7 @@
+1.1.0 (25-Nov-2014):
+* Do not change the `persist` setting if unspecified when
+  opening a new tun interface (#9 from Luke Dunstan).
+
 1.0.0 (02-Mar-2014):
 * Improve error messages to distinguish where they happen.
 * Install otunctl command-line tool to create persistent tun/taps.
