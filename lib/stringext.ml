@@ -233,7 +233,13 @@ let to_list s =
       loop (s.[i] :: acc) (pred i)
   in loop [] (String.length s - 1)
 
-let of_array a = String.init (Array.length a) (Array.get a)
+let of_array a =
+  let len = Array.length a in
+  let s = String.create len in
+  for i = 0 to len - 1 do
+    s.[i] <- a.(i)
+  done;
+  s
 
 let to_array s = Array.init (String.length s) (String.get s)
 
