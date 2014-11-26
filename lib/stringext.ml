@@ -160,6 +160,18 @@ let rec find_map f = function
     | None -> find_map f xs
     | y -> y
 
+let find_min l ~f =
+  let rec loop x fx = function
+    | [] -> Some (x, fx)
+    | x'::xs ->
+      let fx' = f x' in
+      if fx' < fx then loop x' fx' xs
+      else loop x fx xs
+  in
+  match l with
+  | [] -> None
+  | x::xs -> loop x (f x) xs
+
 let replace_all str ~pattern ~with_ =
   let (slen, plen) = String.(length str, length pattern) in
   let buf = Buffer.create slen in
@@ -174,6 +186,8 @@ let replace_all str ~pattern ~with_ =
       loop (j + plen)
   in loop 0
 
+exception Found_replace of int * string * string
+
 let replace_all_assoc str tbl =
   let slen = String.length str in
   let buf = Buffer.create slen in
@@ -181,11 +195,21 @@ let replace_all_assoc str tbl =
     if i >= slen then Buffer.contents buf
     else
       let r =
-        tbl |> find_map (fun (pattern, with_) ->
-          match find_from ~start:i str ~pattern with
-          | None   -> None
-          | Some j -> Some (j, pattern, with_)
-        ) in
+        try
+          let found = ref false in
+          let e =
+            tbl |> find_min ~f:(fun (pattern, with_) ->
+              match find_from ~start:i str ~pattern with
+              | None   -> max_int
+              | Some j when j = i -> raise (Found_replace (j, pattern, with_))
+              | Some j -> found := true; j)
+          in
+          match e with
+          | None -> None
+          | Some ((pattern, with_), j) when !found -> Some (j, pattern, with_)
+          | Some _ -> None
+        with Found_replace (j, pattern, with_) -> Some (j, pattern, with_)
+      in
       match r with
       | None ->
         Buffer.add_substring buf str i (slen - i);

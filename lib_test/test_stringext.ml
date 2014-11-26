@@ -75,6 +75,10 @@ let find_from4 _ =
   assert_equal r None
 
 let find_from5 _ =
+  let r = Stringext.find_from s ~pattern:" " in
+  assert_equal r (Some 7)
+
+let find_from6 _ =
   let pattern = "three" in
   let r = Stringext.find_from s ~pattern in
   assert_equal ~printer:opt_int
@@ -84,6 +88,11 @@ let replace_all1 _ =
   let s = "the quick brown fox brown." in
   let s' = Stringext.replace_all s "brown" "blue" in
   assert_equal ~printer:(fun x -> x) "the quick blue fox blue." s'
+
+let replace_all2 _ =
+  let s = "one two three" in
+  let s' = Stringext.replace_all s " " "_" in
+  assert_equal ~printer:(fun x -> x) "one_two_three" s'
 
 let replace_all_assoc1 _ =
   let s = "hello from ocaml" in
@@ -96,6 +105,18 @@ let replace_all_assoc2 _ =
   let t = [("one", "four"); ("two", "five"); ("three", "six"); (" ", "_")] in
   let s' = Stringext.replace_all_assoc s t in
   assert_equal ~printer:(fun x -> x) "four_five_six" s'
+
+let replace_all_assoc3 _ =
+  let s = "one two three" in
+  let t = [(" ", "_")] in
+  let s' = Stringext.replace_all_assoc s t in
+  assert_equal ~printer:(fun x -> x) "one_two_three" s'
+
+let replace_all_assoc4 _ =
+  let s = "onetwo" in
+  let t = [("one", "xxxx"); ("two", "yyy")] in
+  let s' = Stringext.replace_all_assoc s t in
+  assert_equal ~printer:(fun x -> x) "xxxxyyy" s'
 
 let test_fixtures =
   "test various string functions" >:::
@@ -116,9 +137,13 @@ let test_fixtures =
   ; "find_from3"           >:: find_from3
   ; "find_from4"           >:: find_from4
   ; "find_from5"           >:: find_from5
+  ; "find_from6"           >:: find_from6
   ; "replace_all1"         >:: replace_all1
+  ; "replace_all2"         >:: replace_all2
   ; "replace_all_assoc1"   >:: replace_all_assoc1
-  ; "replace_all_assoc1"   >:: replace_all_assoc2 ]
+  ; "replace_all_assoc2"   >:: replace_all_assoc2
+  ; "replace_all_assoc3"   >:: replace_all_assoc3
+  ; "replace_all_assoc4"   >:: replace_all_assoc4 ]
 
 let _ = run_test_tt_main test_fixtures
 
