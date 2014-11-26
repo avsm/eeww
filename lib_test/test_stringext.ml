@@ -118,6 +118,10 @@ let replace_all_assoc4 _ =
   let s' = Stringext.replace_all_assoc s t in
   assert_equal ~printer:(fun x -> x) "xxxxyyy" s'
 
+let of_array1 _ =
+  let s = [| 'a'; 'b'; 'c' |] in
+  assert_equal (Stringext.of_array s) "abc"
+
 let test_fixtures =
   "test various string functions" >:::
   [ "test split char 1"    >:: test_split_1
@@ -143,7 +147,8 @@ let test_fixtures =
   ; "replace_all_assoc1"   >:: replace_all_assoc1
   ; "replace_all_assoc2"   >:: replace_all_assoc2
   ; "replace_all_assoc3"   >:: replace_all_assoc3
-  ; "replace_all_assoc4"   >:: replace_all_assoc4 ]
+  ; "replace_all_assoc4"   >:: replace_all_assoc4
+  ; "of_array"   >:: of_array1 ]
 
 let _ = run_test_tt_main test_fixtures
 
