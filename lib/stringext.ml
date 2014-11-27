@@ -220,10 +220,16 @@ let replace_all_assoc str tbl =
         loop (j + String.length pattern)
   in loop 0
 
+let iteri f l =
+  let rec loop i = function
+    | [] -> ()
+    | x::xs -> (f i x); loop (succ i) xs
+  in loop 0 l
+
 let of_list xs =
   let l = List.length xs in
   let s = String.create l in
-  List.iteri (fun i c -> s.[i] <- c) xs;
+  iteri (fun i c -> s.[i] <- c) xs;
   s
 
 let to_list s =
