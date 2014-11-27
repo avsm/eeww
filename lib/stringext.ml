@@ -198,7 +198,7 @@ let replace_all_assoc str tbl =
         try
           let found = ref false in
           let e =
-            tbl |> find_min ~f:(fun (pattern, with_) ->
+            find_min tbl ~f:(fun (pattern, with_) ->
               match find_from ~start:i str ~pattern with
               | None   -> max_int
               | Some j when j = i -> raise (Found_replace (j, pattern, with_))
@@ -223,7 +223,7 @@ let replace_all_assoc str tbl =
 let of_list xs =
   let l = List.length xs in
   let s = String.create l in
-  xs |> List.iteri (fun i c -> s.[i] <- c);
+  List.iteri (fun i c -> s.[i] <- c) xs;
   s
 
 let to_list s =
