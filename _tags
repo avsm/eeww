@@ -7,11 +7,10 @@ true: safe_string, cppo_V_OCAML, cppo_I(src/)
 <src/*.ml>: include_400, include_401
 
 # OASIS_START
-# DO NOT EDIT (digest: 7916603433723a4a8c213dd4495693fc)
-# Ignore VCS directories, you can use the same kind of rule outside
-# OASIS_START/STOP if you want to exclude directories that contains
+# DO NOT EDIT (digest: 4e8ee7dd0ade0070f81e1e12476875ba)
+# Ignore VCS directories, you can use the same kind of rule outside 
+# OASIS_START/STOP if you want to exclude directories that contains 
 # useless stuff for the build process
-true: annot, bin_annot
 <**/.svn>: -traverse
 <**/.svn>: not_hygienic
 ".bzr": -traverse
@@ -26,20 +25,20 @@ true: annot, bin_annot
 "src/ocplib_endian.cmxs": use_ocplib_endian
 # Library bigstring
 "src/bigstring.cmxs": use_bigstring
-<src/*.ml{,i,y}>: pkg_bigarray
-<src/*.ml{,i,y}>: pkg_bytes
+<src/*.ml{,i}>: pkg_bigarray
+<src/*.ml{,i}>: pkg_bytes
 # Executable test
+<tests/test.{native,byte}>: use_ocplib_endian
+<tests/test.{native,byte}>: use_bigstring
 <tests/test.{native,byte}>: pkg_bigarray
 <tests/test.{native,byte}>: pkg_bytes
-<tests/test.{native,byte}>: use_bigstring
-<tests/test.{native,byte}>: use_ocplib_endian
 # Executable benchmark
+<tests/bench.{native,byte}>: use_ocplib_endian
+<tests/bench.{native,byte}>: use_bigstring
 <tests/bench.{native,byte}>: pkg_bigarray
 <tests/bench.{native,byte}>: pkg_bytes
-<tests/bench.{native,byte}>: use_bigstring
-<tests/bench.{native,byte}>: use_ocplib_endian
-<tests/*.ml{,i,y}>: pkg_bigarray
-<tests/*.ml{,i,y}>: pkg_bytes
-<tests/*.ml{,i,y}>: use_bigstring
-<tests/*.ml{,i,y}>: use_ocplib_endian
+<tests/*.ml{,i}>: use_ocplib_endian
+<tests/*.ml{,i}>: use_bigstring
+<tests/*.ml{,i}>: pkg_bigarray
+<tests/*.ml{,i}>: pkg_bytes
 # OASIS_STOP
