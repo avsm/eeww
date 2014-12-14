@@ -175,11 +175,11 @@ let prop_tmapbyte prop default =
     Uucp_tmapbyte.get
     prop default
 
-let pp_prop_tmapbyte ppf prop pname ~default =
+let pp_prop_tmapbyte ppf prop pname ~default default_str =
   log "* %s property, trie byte map@\n" pname;
   let m, get = prop_tmapbyte prop default in
   let size = Uucp_tmapbyte.word_size m in
-  log " size (default %d): %a@\n" default pp_size size;
+  log " size (default %s): %a@\n" default_str pp_size size;
   log " asserting"; assert_prop_map prop get;
   log ", generating@\n";
   pp ppf "open Uucp_tmapbyte@\n";
@@ -188,7 +188,12 @@ let pp_prop_tmapbyte ppf prop pname ~default =
 
 let pp_prop_tmapbyte_ucd ppf ucd prop pname ~default =
   let prop u = ucd_get ucd u prop in
-  pp_prop_tmapbyte ppf prop pname ~default
+  pp_prop_tmapbyte ppf prop pname ~default (str "%d" default)
+
+let pp_code_prop_tmapbyte_ucd ppf ucd code prop pname ~default pp_prop =
+  let prop u = code (ucd_get ucd u prop) in
+  pp_prop_tmapbyte ppf prop pname ~default:(code default)
+    (str "`%a" pp_prop default)
 
 (* Generate Uucp_tmap4bytes.t values. *)
 

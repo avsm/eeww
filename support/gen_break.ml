@@ -5,37 +5,24 @@
   ---------------------------------------------------------------------------*)
 
 let pp_line_break ppf ucd =
-  let size v = 0 in
-  let pp_line_break ppf v = Gen.pp ppf "`%a" Uucp_break_base.pp_line v in
-  Gen.pp_prop_rmap_ucd ppf ucd
-    Uucd.line_break "line_break" "Uucp_break_base.line"
-    pp_line_break ~default:`XX  size
+  Gen.pp_code_prop_tmapbyte_ucd ppf ucd
+    Uucp_break_base.line_to_byte Uucd.line_break "line_break" ~default:`XX
+    Uucp_break_base.pp_line
 
 let pp_grapheme_cluster_break ppf ucd =
-  let size v = 0 in
-  let pp_grapheme_cluster_break ppf v =
-    Gen.pp ppf "`%a" Uucp_break_base.pp_grapheme_cluster v
-  in
-  Gen.pp_prop_rmap_ucd ppf ucd
-    Uucd.grapheme_cluster_break "grapheme_cluster_break"
-    "Uucp_break_base.grapheme_cluster"
-    pp_grapheme_cluster_break ~default:`XX  size
+  Gen.pp_code_prop_tmapbyte_ucd ppf ucd
+    Uucp_break_base.grapheme_cluster_to_byte Uucd.grapheme_cluster_break
+    "grapheme_cluster_break" ~default:`XX Uucp_break_base.pp_grapheme_cluster
 
 let pp_word_break ppf ucd =
-  let size v = 0 in
-  let pp_word_break ppf v = Gen.pp ppf "`%a" Uucp_break_base.pp_word v in
-  Gen.pp_prop_rmap_ucd ppf ucd
-    Uucd.word_break "word_break" "Uucp_break_base.word"
-    pp_word_break ~default:`XX size
+  Gen.pp_code_prop_tmapbyte_ucd ppf ucd
+    Uucp_break_base.word_to_byte Uucd.word_break
+    "word_break" ~default:`XX Uucp_break_base.pp_word
 
 let pp_sentence_break ppf ucd =
-  let size v = 0 in
-  let pp_sentence_break ppf v =
-    Gen.pp ppf "`%a" Uucp_break_base.pp_sentence v
-  in
-  Gen.pp_prop_rmap_ucd ppf ucd
-    Uucd.sentence_break "sentence_break" "Uucp_break_base.sentence"
-    pp_sentence_break ~default:`XX size
+  Gen.pp_code_prop_tmapbyte_ucd ppf ucd
+    Uucp_break_base.sentence_to_byte Uucd.sentence_break
+    "sentence_break" ~default:`XX Uucp_break_base.pp_sentence
 
 let pp_props ppf ucd =
   pp_line_break ppf ucd;

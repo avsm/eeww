@@ -7,16 +7,24 @@
 include Uucp_break_base
 
 let line u =
-  Uucp_rmap.get Uucp_break_data.line_break_map u
+  Array.unsafe_get
+    line_of_byte
+    (Uucp_tmapbyte.get Uucp_break_data.line_break_map u)
 
 let grapheme_cluster u =
-  Uucp_rmap.get Uucp_break_data.grapheme_cluster_break_map u
+  Array.unsafe_get
+    grapheme_cluster_of_byte
+    (Uucp_tmapbyte.get Uucp_break_data.grapheme_cluster_break_map u)
 
 let word u =
-  Uucp_rmap.get Uucp_break_data.word_break_map u
+  Array.unsafe_get
+    word_of_byte
+    (Uucp_tmapbyte.get Uucp_break_data.word_break_map u)
 
 let sentence u =
-  Uucp_rmap.get Uucp_break_data.sentence_break_map u
+  Array.unsafe_get
+    sentence_of_byte
+    (Uucp_tmapbyte.get Uucp_break_data.sentence_break_map u)
 
 (*---------------------------------------------------------------------------
    Copyright (c) 2014 Daniel C. Bünzli.
