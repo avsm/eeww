@@ -507,6 +507,51 @@ module Break : sig
     (** [sentence u] is [u]'s
         {{:http://www.unicode.org/reports/tr44/#Sentence_Break}sentence break}
         property. *)
+
+  (** {1:break_low Low level interface} *)
+
+  (** Low level interface.
+
+      This interface may be useful for table based implementers of
+      segmenters. For each kind of break, property values are
+      assigned integer values starting from [0]. An array
+      allows to recover the high-level representation of the
+      corresponding property value. *)
+module Low : sig
+
+    (** {1 Low level access to break properties}
+
+        {b Warning.} Do not mutate these array. *)
+
+    val line : uchar -> int
+    (** [line u] is an integer that can be used with {!line_of_int}. *)
+
+    val line_of_int : line array
+    (** [line_of_int.(i)] is the line break property value corresponding
+        to [i]. *)
+
+    val grapheme_cluster : uchar -> int
+    (** [grapheme_cluster u] is an integer that can be used with
+        {!grapheme_cluster_of_int}. *)
+
+    val grapheme_cluster_of_int : grapheme_cluster array
+    (** [line_of_int.(i)] is the grapheme cluster break property value
+        corresponding to [i]. *)
+
+    val word : uchar -> int
+    (** [word u] is an integer that can be used with {!word_of_int}. *)
+
+    val word_of_int : word array
+    (** [word_of_int.(i)] is the word break property value
+        corresponding to [i]. *)
+
+    val sentence : uchar -> int
+    (** [sentence u] is an integer that can be used with {!sentence_of_int}. *)
+
+    val sentence_of_int : sentence array
+    (** [sentence_of_int.(i)] is the sentence break property value
+        corresponding to [i]. *)
+  end
 end
 
 (** Case properties, mappings and foldings.

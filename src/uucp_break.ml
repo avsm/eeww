@@ -6,25 +6,28 @@
 
 include Uucp_break_base
 
-let line u =
-  Array.unsafe_get
-    line_of_byte
-    (Uucp_tmapbyte.get Uucp_break_data.line_break_map u)
+module Low = struct
+  let line u = Uucp_tmapbyte.get Uucp_break_data.line_break_map u
+  let line_of_int = line_of_byte
 
-let grapheme_cluster u =
-  Array.unsafe_get
-    grapheme_cluster_of_byte
-    (Uucp_tmapbyte.get Uucp_break_data.grapheme_cluster_break_map u)
+  let grapheme_cluster u =
+    Uucp_tmapbyte.get Uucp_break_data.grapheme_cluster_break_map u
 
-let word u =
-  Array.unsafe_get
-    word_of_byte
-    (Uucp_tmapbyte.get Uucp_break_data.word_break_map u)
+  let grapheme_cluster_of_int = grapheme_cluster_of_byte
 
-let sentence u =
-  Array.unsafe_get
-    sentence_of_byte
-    (Uucp_tmapbyte.get Uucp_break_data.sentence_break_map u)
+  let word u = Uucp_tmapbyte.get Uucp_break_data.word_break_map u
+  let word_of_int = word_of_byte
+
+  let sentence u = Uucp_tmapbyte.get Uucp_break_data.sentence_break_map u
+  let sentence_of_int = sentence_of_byte
+end
+
+let line u = Array.unsafe_get Low.line_of_int (Low.line u)
+let grapheme_cluster u = Array.unsafe_get Low.grapheme_cluster_of_int
+    (Low.grapheme_cluster u)
+
+let word u = Array.unsafe_get Low.word_of_int (Low.word u)
+let sentence u = Array.unsafe_get Low.sentence_of_int (Low.sentence u)
 
 (*---------------------------------------------------------------------------
    Copyright (c) 2014 Daniel C. Bünzli.
