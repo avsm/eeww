@@ -4,7 +4,7 @@
    %%NAME%% release %%VERSION%%
   ---------------------------------------------------------------------------*)
 
-let is_white_space u = 
+let is_white_space u =
   Uucp_tmapbool.get Uucp_white_data.white_space_map u
 
 (*---------------------------------------------------------------------------
@@ -14,7 +14,7 @@ let is_white_space u =
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
-     
+
    1. Redistributions of source code must retain the above copyright
       notice, this list of conditions and the following disclaimer.
 

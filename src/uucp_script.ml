@@ -8,8 +8,8 @@ include Uucp_script_base
 
 let compare = Pervasives.compare
 let script u = Uucp_rmap.get Uucp_script_data.script_map u
-let script_extensions u = 
-  match Uucp_rmap.get Uucp_script_data.script_extensions_map u with 
+let script_extensions u =
+  match Uucp_rmap.get Uucp_script_data.script_extensions_map u with
   | [] -> [ script u ]
   | scripts -> scripts
 
@@ -20,7 +20,7 @@ let script_extensions u =
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
-     
+
    1. Redistributions of source code must retain the above copyright
       notice, this list of conditions and the following disclaimer.
 

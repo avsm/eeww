@@ -6,13 +6,13 @@
 
 type t = [ `Unassigned | `Version of int * int ]
 
-let compare = Pervasives.compare 
-let pp ppf = function 
+let compare = Pervasives.compare
+let pp ppf = function
 | `Version (maj,min) -> Format.fprintf ppf "%d.%d" maj min
 | `Unassigned -> Format.fprintf ppf "unassigned"
 
-let age u = Uucp_rmap.get Uucp_age_data.age_map u 
-    
+let age u = Uucp_rmap.get Uucp_age_data.age_map u
+
 (*---------------------------------------------------------------------------
    Copyright (c) 2014 Daniel C. Bünzli.
    All rights reserved.
@@ -20,7 +20,7 @@ let age u = Uucp_rmap.get Uucp_age_data.age_map u
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
-     
+
    1. Redistributions of source code must retain the above copyright
       notice, this list of conditions and the following disclaimer.
 

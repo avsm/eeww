@@ -6,19 +6,19 @@
 
 (* General properties *)
 
-let is_default_ignorable u = 
+let is_default_ignorable u =
   Uucp_tmapbool.get Uucp_gen_data.default_ignorable_map u
-    
-let is_deprecated u = 
+
+let is_deprecated u =
   Uucp_tmapbool.get Uucp_gen_data.deprecated_map u
-    
-let is_logical_order_exception u = 
+
+let is_logical_order_exception u =
   Uucp_tmapbool.get Uucp_gen_data.logical_order_exception_map u
 
-let is_non_character u = 
+let is_non_character u =
   Uucp_tmapbool.get Uucp_gen_data.non_character_map u
 
-let is_variation_selector u = 
+let is_variation_selector u =
   Uucp_tmapbool.get Uucp_gen_data.variation_selector_map u
 
 (*---------------------------------------------------------------------------
@@ -28,7 +28,7 @@ let is_variation_selector u =
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
-     
+
    1. Redistributions of source code must retain the above copyright
       notice, this list of conditions and the following disclaimer.
 

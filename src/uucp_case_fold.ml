@@ -4,10 +4,10 @@
    %%NAME%% release %%VERSION%%
   ---------------------------------------------------------------------------*)
 
-let untagged_get m u = match Uucp_tmap.get m u with 
+let untagged_get m u = match Uucp_tmap.get m u with
 | [] -> `Self | us -> `Uchars us
 
-let fold u = untagged_get Uucp_case_fold_data.fold_map_map u 
+let fold u = untagged_get Uucp_case_fold_data.fold_map_map u
 
 (*---------------------------------------------------------------------------
    Copyright 2013 Daniel C. Bünzli.
@@ -16,7 +16,7 @@ let fold u = untagged_get Uucp_case_fold_data.fold_map_map u
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
-     
+
    1. Redistributions of source code must retain the above copyright
       notice, this list of conditions and the following disclaimer.
 

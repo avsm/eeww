@@ -3,7 +3,7 @@
    Distributed under the BSD3 license, see license at the end of the file.
    %%NAME%% release %%VERSION%%
   ---------------------------------------------------------------------------*)
-  
+
 let pp_props ppf ucd =
   Gen.pp_prop_tmapbool_ucd ppf ucd Uucd.alphabetic "alphabetic";
   ()
@@ -17,7 +17,7 @@ let pp_mod ppf ucd = Gen.pp_mod pp_props ppf ucd
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
-     
+
    1. Redistributions of source code must retain the above copyright
       notice, this list of conditions and the following disclaimer.
 

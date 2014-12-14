@@ -4,21 +4,21 @@
    %%NAME%% release %%VERSION%%
   ---------------------------------------------------------------------------*)
 
-let is_id_start u = 
+let is_id_start u =
   Uucp_tmapbool.get Uucp_id_data.id_start_map u
 
-let is_id_continue u = 
+let is_id_continue u =
   Uucp_tmapbool.get Uucp_id_data.id_continue_map u
 
-let is_xid_start u = 
+let is_xid_start u =
   Uucp_tmapbool.get Uucp_id_data.xid_start_map u
 
-let is_xid_continue u = 
+let is_xid_continue u =
   Uucp_tmapbool.get Uucp_id_data.xid_continue_map u
 
-let is_pattern_syntax u = 
+let is_pattern_syntax u =
   Uucp_tmapbool.get Uucp_id_data.pattern_syntax_map u
-    
+
 let is_pattern_white_space u =
   Uucp_tmapbool.get Uucp_id_data.pattern_white_space_map u
 
@@ -29,7 +29,7 @@ let is_pattern_white_space u =
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
-     
+
    1. Redistributions of source code must retain the above copyright
       notice, this list of conditions and the following disclaimer.
 

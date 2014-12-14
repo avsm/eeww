@@ -8,27 +8,27 @@
 
 let str = Format.sprintf
 let exec = Filename.basename Sys.executable_name
-    
-let ucd_or_die inf = try 
+
+let ucd_or_die inf = try
   let ic = if inf = "-" then stdin else open_in inf in
-  let d = Uucd.decoder (`Channel ic) in 
+  let d = Uucd.decoder (`Channel ic) in
   match Uucd.decode d with
-  | `Ok db -> db 
-  | `Error e -> 
+  | `Ok db -> db
+  | `Error e ->
       let (l0, c0), (l1, c1) = Uucd.decoded_range d in
-      Printf.eprintf "%s:%d.%d-%d.%d: %s\n%!" inf l0 c0 l1 c1 e; 
+      Printf.eprintf "%s:%d.%d-%d.%d: %s\n%!" inf l0 c0 l1 c1 e;
       exit 1
 with Sys_error e -> Printf.eprintf "%s\n%!" e; exit 1
 
 let process inf age alpha block break case case_map case_fold case_nfkc cjk
     func gc gen id name num script white =
-  let inf = match inf with None -> "support/ucd.xml" | Some inf -> inf in 
+  let inf = match inf with None -> "support/ucd.xml" | Some inf -> inf in
   let ucd = (Gen.log "Loading Unicode character database.\n"; ucd_or_die inf) in
-  let generate pp f ucd = match f with 
-  | None -> () 
-  | Some fn -> 
-      try 
-        let oc = if fn = "-" then stdout else Pervasives.open_out fn in 
+  let generate pp f ucd = match f with
+  | None -> ()
+  | Some fn ->
+      try
+        let oc = if fn = "-" then stdout else Pervasives.open_out fn in
         try
           let ppf = Format.formatter_of_out_channel oc in
           pp ppf ucd;
@@ -51,32 +51,32 @@ let process inf age alpha block break case case_map case_fold case_nfkc cjk
   generate Gen_gc.pp_mod gc ucd;
   generate Gen_gen.pp_mod gen ucd;
   generate Gen_id.pp_mod id ucd;
-  generate Gen_name.pp_mod name ucd; 
-  generate Gen_num.pp_mod num ucd; 
+  generate Gen_name.pp_mod name ucd;
+  generate Gen_num.pp_mod num ucd;
   generate Gen_script.pp_mod script ucd;
   generate Gen_white.pp_mod white ucd;
   ()
 
 let main () =
-  let usage = str 
+  let usage = str
     "Usage: %s [OPTION]... [DBFILE]\n\
      \ Generates data modules from an Unicode character database XML file.\n\
      \ DBFILE defaults to support/ucd.xml\n\
-     Options:" exec 
+     Options:" exec
   in
-  let inf = ref None in 
-  let set_inf f = 
-    if !inf = None then inf := Some f else 
+  let inf = ref None in
+  let set_inf f =
+    if !inf = None then inf := Some f else
     raise (Arg.Bad "only one Unicode character database file can be specified")
   in
   let age = ref None in
   let alpha = ref None in
-  let block = ref None in 
+  let block = ref None in
   let break = ref None in
-  let case = ref None in   
-  let case_map = ref None in 
-  let case_fold = ref None in 
-  let case_nfkc = ref None in 
+  let case = ref None in
+  let case_map = ref None in
+  let case_fold = ref None in
+  let case_nfkc = ref None in
   let cjk = ref None in
   let func = ref None in
   let gc = ref None in
@@ -110,7 +110,7 @@ let main () =
   process !inf !age !alpha !block !break !case !case_map !case_fold
     !case_nfkc !cjk !func !gc !gen !id !name !num !script !white
 
-let () = main () 
+let () = main ()
 
 (*---------------------------------------------------------------------------
    Copyright 2014 Daniel C. Bünzli
@@ -119,7 +119,7 @@ let () = main ()
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
-     
+
    1. Redistributions of source code must retain the above copyright
       notice, this list of conditions and the following disclaimer.
 

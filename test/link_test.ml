@@ -1,4 +1,4 @@
-(* 
+(*
   Compile with:
   ocamlfind ocamlopt -package uucp -linkpkg -o link_test.native link_test.ml
 *)

@@ -4,16 +4,16 @@
    %%NAME%% release %%VERSION%%
   ---------------------------------------------------------------------------*)
 
-let pp_map_untagged_prop prop pname ppf ucd = 
+let pp_map_untagged_prop prop pname ppf ucd =
   let size us = 3 * (List.length us) in
   let pp_uchars = Gen.pp_list Format.pp_print_int in
-  let prop cp = match Gen.ucd_get ucd cp prop with 
+  let prop cp = match Gen.ucd_get ucd cp prop with
   | `Self -> []
-  | `Cps [] -> assert false 
+  | `Cps [] -> assert false
   | `Cps us -> us
-  in  
+  in
   Gen.pp_prop_tmap ppf prop pname "int list" pp_uchars ~default:[] size
-    
+
 let pp_props ppf ucd =
   let map prop pname = pp_map_untagged_prop prop pname ppf ucd in
   map Uucd.uppercase_mapping "upper_map";
@@ -30,7 +30,7 @@ let pp_mod ppf ucd = Gen.pp_mod pp_props ppf ucd
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
-     
+
    1. Redistributions of source code must retain the above copyright
       notice, this list of conditions and the following disclaimer.
 

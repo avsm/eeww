@@ -7,8 +7,8 @@
 type numeric_type = [ `De | `Di | `None | `Nu ]
 type numeric_value = [ `Frac of int * int | `NaN | `Num of int64 ]
 
-let pp_numeric_type ppf v = Format.fprintf ppf "%s" begin match v with 
-  | `De -> "De" 
+let pp_numeric_type ppf v = Format.fprintf ppf "%s" begin match v with
+  | `De -> "De"
   | `Di -> "Di"
   | `None -> "None"
   | `Nu -> "Nu"
@@ -27,7 +27,7 @@ let pp_numeric_value ppf = function
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
-     
+
    1. Redistributions of source code must retain the above copyright
       notice, this list of conditions and the following disclaimer.
 

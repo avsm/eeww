@@ -4,31 +4,31 @@
    %%NAME%% release %%VERSION%%
   ---------------------------------------------------------------------------*)
 
-(* Binary tree uchar and uchar ranges maps. *) 
+(* Binary tree uchar and uchar ranges maps. *)
 
 type 'a tree =
   | Empty
   | C of int * 'a
-  | R of int * int * 'a 
+  | R of int * int * 'a
   | Cn of 'a tree * 'a tree * int * 'a
   | Rn of 'a tree * 'a tree * int * int * 'a
-          
+
 type 'a t = { default : 'a; tree : 'a tree }
-            
+
 let get m cp =
   let rec loop cp = function
-  | Rn (l, r, is, ie, v) -> 
+  | Rn (l, r, is, ie, v) ->
       if cp < is then loop cp l else
       if cp > ie then loop cp r else
       v
-  | R (is, ie, v) -> 
+  | R (is, ie, v) ->
       if is <= cp && cp <= ie then v else m.default
-  | Cn (l, r, i, v) -> 
+  | Cn (l, r, i, v) ->
       if cp < i then loop cp l else
       if cp > i then loop cp r else
       v
-  | C (i, v) -> 
-      if cp = i then v else m.default 
+  | C (i, v) ->
+      if cp = i then v else m.default
   | Empty -> m.default
   in
   loop cp m.tree
@@ -40,7 +40,7 @@ let get m cp =
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
-     
+
    1. Redistributions of source code must retain the above copyright
       notice, this list of conditions and the following disclaimer.
 
@@ -65,4 +65,3 @@ let get m cp =
    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   ---------------------------------------------------------------------------*)
-

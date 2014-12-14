@@ -6,16 +6,16 @@
 
 include Uucp_num_base
 
-let is_ascii_hex_digit u = 
+let is_ascii_hex_digit u =
   Uucp_tmapbool.get Uucp_num_data.ascii_hex_digit_map u
-    
-let is_hex_digit u = 
+
+let is_hex_digit u =
   Uucp_tmapbool.get Uucp_num_data.hex_digit_map u
-    
-let numeric_type u = 
+
+let numeric_type u =
   Uucp_rmap.get Uucp_num_data.numeric_type_map u
-    
-let numeric_value u = 
+
+let numeric_value u =
   Uucp_cmap.get Uucp_num_data.numeric_value_map u
 
 (*---------------------------------------------------------------------------
@@ -25,7 +25,7 @@ let numeric_value u =
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
-     
+
    1. Redistributions of source code must retain the above copyright
       notice, this list of conditions and the following disclaimer.
 

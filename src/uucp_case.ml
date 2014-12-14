@@ -4,17 +4,17 @@
    %%NAME%% release %%VERSION%%
   ---------------------------------------------------------------------------*)
 
-(* Case properties *) 
+(* Case properties *)
 
 let is_upper u = Uucp_tmapbool.get Uucp_case_data.upper_map u
 let is_lower u = Uucp_tmapbool.get Uucp_case_data.lower_map u
 let is_cased u = Uucp_tmapbool.get Uucp_case_data.cased_map u
 let is_case_ignorable u = Uucp_tmapbool.get Uucp_case_data.case_ignorable_map u
 
-(* Case mappings *) 
+(* Case mappings *)
 
-module Map = Uucp_case_map 
-module Fold = Uucp_case_fold 
+module Map = Uucp_case_map
+module Fold = Uucp_case_fold
 module Nfkc_fold = Uucp_case_nfkc
 
 (*---------------------------------------------------------------------------
@@ -24,7 +24,7 @@ module Nfkc_fold = Uucp_case_nfkc
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
-     
+
    1. Redistributions of source code must retain the above copyright
       notice, this list of conditions and the following disclaimer.
 

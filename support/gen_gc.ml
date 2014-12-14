@@ -4,11 +4,11 @@
    %%NAME%% release %%VERSION%%
   ---------------------------------------------------------------------------*)
 
-let pp_general_category ppf ucd = 
-  let size v = 0 in 
+let pp_general_category ppf ucd =
+  let size v = 0 in
   let pp_gc ppf v = Gen.pp ppf "`%a" Uucp_gc_base.pp v in
-  Gen.pp_prop_rmap_ucd ppf ucd 
-    Uucd.general_category "general_category" "Uucp_gc_base.t" 
+  Gen.pp_prop_rmap_ucd ppf ucd
+    Uucd.general_category "general_category" "Uucp_gc_base.t"
     pp_gc ~default:`Cn size
 
 let pp_props ppf ucd =
@@ -24,7 +24,7 @@ let pp_mod ppf ucd = Gen.pp_mod pp_props ppf ucd
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
-     
+
    1. Redistributions of source code must retain the above copyright
       notice, this list of conditions and the following disclaimer.
 

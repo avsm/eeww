@@ -4,16 +4,16 @@
    %%NAME%% release %%VERSION%%
   ---------------------------------------------------------------------------*)
 
-let pp_age ppf ucd = 
-  let size = function 
-  | `Unassigned -> 0 
-  | `Version _ -> 3 
+let pp_age ppf ucd =
+  let size = function
+  | `Unassigned -> 0
+  | `Version _ -> 3
   in
-  let pp_age ppf = function 
+  let pp_age ppf = function
   | `Unassigned -> Gen.pp ppf "`Unassigned"
   | `Version (maj, min) -> Gen.pp ppf "(`Version (%d,%d))" maj min
   in
-  Gen.pp_prop_rmap_ucd ppf ucd 
+  Gen.pp_prop_rmap_ucd ppf ucd
     Uucd.age "age" "[ `Unassigned | `Version of int * int ]" pp_age
     ~default:`Unassigned size
 
@@ -30,7 +30,7 @@ let pp_mod ppf ucd = Gen.pp_mod pp_props ppf ucd
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
-     
+
    1. Redistributions of source code must retain the above copyright
       notice, this list of conditions and the following disclaimer.
 

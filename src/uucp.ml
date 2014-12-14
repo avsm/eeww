@@ -4,16 +4,16 @@
    %%NAME%% release %%VERSION%%
   ---------------------------------------------------------------------------*)
 
-(* Unicode version *) 
+(* Unicode version *)
 
 let unicode_version = "%%UNICODE_VERSION%%"
 
-(* Characters *) 
+(* Characters *)
 
 type uchar = int
-module Uchar = Uucp_uchar 
+module Uchar = Uucp_uchar
 
-(* Properties *) 
+(* Properties *)
 
 module Age = Uucp_age
 module Break = Uucp_break
@@ -30,7 +30,7 @@ module Num = Uucp_num
 module Script = Uucp_script
 module White = Uucp_white
 
-(* Maps. Not part of the public API. *) 
+(* Maps. Not part of the public API. *)
 
 module Cmap = Uucp_cmap
 module Rmap = Uucp_rmap
@@ -46,7 +46,7 @@ module Tmap4bytes = Uucp_tmap4bytes
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
-     
+
    1. Redistributions of source code must retain the above copyright
       notice, this list of conditions and the following disclaimer.
 

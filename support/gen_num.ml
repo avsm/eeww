@@ -4,20 +4,20 @@
    %%NAME%% release %%VERSION%%
   ---------------------------------------------------------------------------*)
 
-let pp_numeric_type ppf ucd = 
+let pp_numeric_type ppf ucd =
   let size v = 0 in
   let pp_ntype ppf t = Gen.pp ppf "`%a" Uucp_num_base.pp_numeric_type t in
-  Gen.pp_prop_rmap_ucd ppf ucd Uucd.numeric_type 
+  Gen.pp_prop_rmap_ucd ppf ucd Uucd.numeric_type
     "numeric_type" "Uucp_num_base.numeric_type" pp_ntype
     ~default:`None size
 
-let pp_numeric_value ppf ucd = 
-  let size = function 
-  | `NaN -> 0 
-  | `Frac _ -> 1 + 2 
+let pp_numeric_value ppf ucd =
+  let size = function
+  | `NaN -> 0
+  | `Frac _ -> 1 + 2
   | `Num _ -> 1 + (64 / Sys.word_size)
   in
-  let pp_nvalue ppf v = Gen.pp ppf "(`%a)" Uucp_num_base.pp_numeric_value v in 
+  let pp_nvalue ppf v = Gen.pp ppf "(`%a)" Uucp_num_base.pp_numeric_value v in
   Gen.pp_prop_cmap_ucd ppf ucd Uucd.numeric_value
     "numeric_value" "Uucp_num_base.numeric_value" pp_nvalue
     ~default:`NaN size
@@ -26,7 +26,7 @@ let pp_props ppf ucd =
   let prop = Gen.pp_prop_tmapbool_ucd ppf ucd in
   prop Uucd.ascii_hex_digit "ascii_hex_digit";
   prop Uucd.hex_digit "hex_digit";
-  pp_numeric_type ppf ucd; 
+  pp_numeric_type ppf ucd;
   pp_numeric_value ppf ucd;
   ()
 
@@ -39,7 +39,7 @@ let pp_mod ppf ucd = Gen.pp_mod pp_props ppf ucd
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
-     
+
    1. Redistributions of source code must retain the above copyright
       notice, this list of conditions and the following disclaimer.
 

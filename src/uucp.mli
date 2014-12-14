@@ -4,7 +4,7 @@
    %%NAME%% release %%VERSION%%
   ---------------------------------------------------------------------------*)
 
-(** Unicode character properties. 
+(** Unicode character properties.
 
     [Uucp] provides efficient access to a selection of character
     {{!props}properties} of the Unicode character database.
@@ -16,17 +16,17 @@
     {e Release %%VERSION%% — Unicode version %%UNICODE_VERSION%% —
     %%MAINTAINER%% }
 
-    {3 References} 
+    {3 References}
     {ul
     {- {{:http://www.unicode.org/faq/}The Unicode FAQ.}}
-    {- The Unicode Consortium. 
+    {- The Unicode Consortium.
     {e {{:http://www.unicode.org/versions/latest}The Unicode Standard}}.
     (latest version)}
-    {- Mark Davis, Ken Whistler. 
+    {- Mark Davis, Ken Whistler.
     {e {{:http://www.unicode.org/reports/tr44/}UAX #44 Unicode Character
     Database}}. (latest version)}} *)
-    
-(** {1:version Unicode version} *) 
+
+(** {1:version Unicode version} *)
 
 val unicode_version : string
 (** [unicode_version] is the Unicode version supported by the library. *)
@@ -37,42 +37,42 @@ type uchar = int
 (** The type for Unicode characters. A value of this type {b must}
     be an Unicode
       {{:http://unicode.org/glossary/#unicode_scalar_value} scalar
-      value} which is an integer in the ranges [0x0000]…[0xD7FF] 
-      and [0xE000]…[0x10FFFF]. This can be asserted 
+      value} which is an integer in the ranges [0x0000]…[0xD7FF]
+      and [0xE000]…[0x10FFFF]. This can be asserted
     with {!Uchar.is_uchar}. *)
 
-(** Characters. *) 
-module Uchar : sig 
+(** Characters. *)
+module Uchar : sig
 
-  (** {1:uchars Characters} *) 
+  (** {1:uchars Characters} *)
 
-  type t = uchar 
-  (** The type for characters. See {!uchar}. *) 
+  type t = uchar
+  (** The type for characters. See {!uchar}. *)
 
   val min : uchar
-  (** [min] is U+0000. *) 
+  (** [min] is U+0000. *)
 
-  val max : uchar 
+  val max : uchar
   (** [max] is U+10FFFF. *)
 
-  val is_uchar : int -> bool 
-  (** [is_uchar n] is [true] iff [n] is an Unicode 
+  val is_uchar : int -> bool
+  (** [is_uchar n] is [true] iff [n] is an Unicode
       {{:http://www.unicode.org/glossary/#Unicode_scalar_value}scalar value}. *)
 
-  val succ : uchar -> uchar 
-  (** [succ u] is the scalar value after [u] in the set of Unicode scalar 
+  val succ : uchar -> uchar
+  (** [succ u] is the scalar value after [u] in the set of Unicode scalar
       values.
 
       @raise Invalid_argument if [u] is {!max}. *)
 
-  val pred : uchar -> uchar 
-  (** [pred u] is the scalar value before [u] in the set of Unicode scalar 
-      values. 
+  val pred : uchar -> uchar
+  (** [pred u] is the scalar value before [u] in the set of Unicode scalar
+      values.
 
-      @raise Invalid_argument if [u] is {!min}. *) 
+      @raise Invalid_argument if [u] is {!min}. *)
 
-  val of_int : int -> uchar 
-  (** [of_int i] is [i] as an uchar. 
+  val of_int : int -> uchar
+  (** [of_int i] is [i] as an uchar.
 
       @raise Invalid_argument if [i] does not satisfy {!is_uchar}. *)
 
@@ -80,81 +80,81 @@ module Uchar : sig
   val unsafe_of_int : int -> t
 (**/**)
 
-  val to_int : uchar -> int 
+  val to_int : uchar -> int
   (** [to_int u] is the scalar value of [u] as an integer. *)
 
-  val equal : uchar -> uchar -> bool 
+  val equal : uchar -> uchar -> bool
   (** [equal u u'] is [u = u')]. *)
-  
-  val compare : uchar -> uchar -> int 
+
+  val compare : uchar -> uchar -> int
   (** [compare u u'] is [Pervasives.compare u u']. *)
 
-  (** {1:traversal Full Unicode character set traversal} *) 
+  (** {1:traversal Full Unicode character set traversal} *)
 
-  val fold : ('a -> uchar -> 'a) -> 'a -> 'a 
-  (** [fold f acc] is 
+  val fold : ('a -> uchar -> 'a) -> 'a -> 'a
+  (** [fold f acc] is
       [(f (…(f (f (…(f (f acc 0x0000) 0x0001…) 0xD7FF) 0xE000)…) 0x10FFFF)]
    *)
 
-  val iter : (uchar -> unit) -> unit 
+  val iter : (uchar -> unit) -> unit
   (** [iter f] is [f 0x0000; f0x0001; …; f 0xD7FF; f 0xE000; …; f 0x10FFFF]*)
 
   (** {1:printers Printers} *)
 
   val pp : Format.formatter -> uchar -> unit
-  (** [pp ppf u] prints [u] on [ppf] using only US-ASCII encoded 
+  (** [pp ppf u] prints [u] on [ppf] using only US-ASCII encoded
       characters according to the Unicode notational convention. *)
 end
-    
+
 (** {1:props Properties}
 
-    Consult information about the {{!distrib_omit}property distribution 
+    Consult information about the {{!distrib_omit}property distribution
     in modules and omissions}.
-    
+
     {b Warning.} The result of functions is undefined if their [uchar]
     arguments do not satisfy the {!Uchar.is_uchar} predicate. *)
 
-(** Age property. *) 
+(** Age property. *)
 module Age : sig
 
   (** {1:ageprop Age property} *)
-  
+
   type t = [ `Unassigned | `Version of int * int ]
   (** The type for character age. *)
 
   val compare : t -> t -> int
-  (** [compare a a'] is [Pervasives.compare a a'] *) 
-    
-  val pp : Format.formatter -> t -> unit 
+  (** [compare a a'] is [Pervasives.compare a a'] *)
+
+  val pp : Format.formatter -> t -> unit
   (** [pp ppf a] prints an unspecified representation of [a] on [ppf]. *)
 
   val age : uchar -> t
-  (** [age u] is [u]'s       
+  (** [age u] is [u]'s
       {{:http://www.unicode.org/reports/tr44/#Age}Age} property. *)
 end
 
 (** Alphabetic property. *)
-module Alpha : sig  
+module Alpha : sig
 
-  (** {1:alphaprop Alphabetic property} *) 
+  (** {1:alphaprop Alphabetic property} *)
 
-  val is_alphabetic : uchar -> bool 
+  val is_alphabetic : uchar -> bool
   (** [is_alphabetic u] is [true] if [u] has the
-      {{:http://www.unicode.org/reports/tr44/#Alphabetic}Alphabetic} 
+      {{:http://www.unicode.org/reports/tr44/#Alphabetic}Alphabetic}
       property. *)
 end
 
 (** Block property and block ranges.
-  
-    {3 References} 
+
+    {3 References}
     {ul
     {- {{:http://www.unicode.org/faq/blocks_ranges.html}The Unicode
     blocks and ranges FAQ}.}} *)
 module Block : sig
 
-(** {1:blockprop Blocks} *) 
+(** {1:blockprop Blocks} *)
 
-  type t =   
+  type t =
     [ `ASCII
     | `Aegean_Numbers
     | `Alchemical
@@ -405,16 +405,16 @@ module Block : sig
     | `Yi_Radicals
     | `Yi_Syllables
     | `Yijing ]
-  (** The type for blocks. The value [`NB] is for characters that are not 
-      yassigned to a block. *) 
+  (** The type for blocks. The value [`NB] is for characters that are not
+      yassigned to a block. *)
 
-  val compare : t -> t -> int 
-  (** [compare b b'] is [Pervasives.compare b b']. *) 
+  val compare : t -> t -> int
+  (** [compare b b'] is [Pervasives.compare b b']. *)
 
-  val pp : Format.formatter -> t -> unit 
-  (** [pp ppf b] prints an unspecified representation of [b] on [ppf]. *) 
-                                         
-  val blocks : (t * (uchar * uchar)) list 
+  val pp : Format.formatter -> t -> unit
+  (** [pp ppf b] prints an unspecified representation of [b] on [ppf]. *)
+
+  val blocks : (t * (uchar * uchar)) list
   (** [blocks] is the list of blocks sorted by increasing range order.
       Each block appears exactly once in the list except
       [`NB] which is not part of this list as it is not a block. *)
@@ -515,38 +515,38 @@ end
     case conversion and caseless equality over Unicode text, see the
     {{!caseexamples}examples}.
 
-    {3 References} 
-    {ul 
+    {3 References}
+    {ul
     {- {{:http://unicode.org/faq/casemap_charprop.html#casemap}
         The Unicode case mapping FAQ.}}
-    {- {{:http://www.unicode.org/charts/case/}The Unicode case mapping 
+    {- {{:http://www.unicode.org/charts/case/}The Unicode case mapping
        charts.}}} *)
 module Case : sig
-  
+
   (** {1:caseprops Case properties} *)
-    
+
   val is_lower : uchar -> bool
-  (** [is_lower u] is [true] iff [u] has the 
-      {{:http://www.unicode.org/reports/tr44/#Lowercase}Lowercase} derived 
+  (** [is_lower u] is [true] iff [u] has the
+      {{:http://www.unicode.org/reports/tr44/#Lowercase}Lowercase} derived
       property. *)
 
   val is_upper : uchar -> bool
-  (** [is_upper u] is [true] iff [u] has the 
-      {{:http://www.unicode.org/reports/tr44/#Uppercase}Uppercase} derived 
+  (** [is_upper u] is [true] iff [u] has the
+      {{:http://www.unicode.org/reports/tr44/#Uppercase}Uppercase} derived
       property. *)
-    
+
   val is_cased : uchar -> bool
-  (** [is_cased u] is [true] iff [u] has the 
+  (** [is_cased u] is [true] iff [u] has the
       {{:http://www.unicode.org/reports/tr44/#Cased}Cased} derived property. *)
-    
+
   val is_case_ignorable : uchar -> bool
   (** [is_case_ignorable] is [true] iff [u] has the
       {{:http://www.unicode.org/reports/tr44/#Case_Ignorable}Case_Ignorable}
       derived property. *)
-    
-  (** {1:casemapfold Case mappings and foldings} 
 
-      These character mapping functions return [`Self] 
+  (** {1:casemapfold Case mappings and foldings}
+
+      These character mapping functions return [`Self]
       whenever a character maps to itself. *)
 
   (** Case mappings.  *)
@@ -557,13 +557,13 @@ module Case : sig
     val to_lower : uchar -> [ `Self | `Uchars of uchar list ]
     (** [to_lower u] is [u]'s
         {{:http://www.unicode.org/reports/tr44/#Lowercase_Mapping}
-        Lowercase_Mapping} property. *) 
+        Lowercase_Mapping} property. *)
 
     val to_upper : uchar -> [ `Self | `Uchars of uchar list ]
     (** [to_upper u] is [u]'s
         {{:http://www.unicode.org/reports/tr44/#Uppercase_Mapping}
         Uppercase_Mapping} property. *)
-                            
+
     val to_title : uchar -> [ `Self | `Uchars of uchar list ]
     (** [to_title u] is [u]'s
         {{:http://www.unicode.org/reports/tr44/#Titlecase_Mapping}
@@ -571,7 +571,7 @@ module Case : sig
   end
 
   (** Case folding. *)
-  module Fold : sig 
+  module Fold : sig
 
     (** {1:casefolding Case folding} *)
 
@@ -580,9 +580,9 @@ module Case : sig
         {{:http://www.unicode.org/reports/tr44/#Case_Folding}Case_Folding}
         property. *)
   end
-  
-  (** NFKC case folding. *) 
-  module Nfkc_fold : sig       
+
+  (** NFKC case folding. *)
+  module Nfkc_fold : sig
 
     (** {1:nfkcfold NFKC Case folding} *)
 
@@ -592,24 +592,24 @@ module Case : sig
         property. *)
   end
 
-         
-  (** {1:caseexamples Examples} 
-      
+
+  (** {1:caseexamples Examples}
+
       These examples use {!Uutf} to fold over the characters of UTF-8
       encoded OCaml strings and to UTF-8 encode mapped characters in
       an OCaml {!Buffer.t} value.
-      
+
       {2:caseconversion Default case conversion on UTF-8 strings}
-      
+
       The value [casemap_utf_8 cmap s] is the UTF-8 encoded string
       resulting from applying the character map [cmap] to every character
       of the UTF-8 encoded string [s].
 {[
 let cmap_utf_8 cmap s =
   let b = Buffer.create (String.length s * 2) in
-  let rec add_map _ _ u = 
+  let rec add_map _ _ u =
     let u = match u with `Malformed _ -> Uutf.u_rep | `Uchar u -> u in
-    match cmap u with 
+    match cmap u with
     | `Self -> Uutf.Buffer.add_utf_8 b u
     | `Uchars us -> List.iter (Uutf.Buffer.add_utf_8 b) us
   in
@@ -628,7 +628,7 @@ let uppercase_utf_8 s = cmap_utf_8 Uucp.Case.Map.to_upper s
       Note that applying Unicode's default case algorithms to a normalized
       string does not preserve its normalization form.
 
-      {2:caselesseq Default caseless matching (equality) on UTF-8 strings} 
+      {2:caselesseq Default caseless matching (equality) on UTF-8 strings}
 
       These examples use {!Uunf} to normalize character sequences
 
@@ -637,50 +637,50 @@ let uppercase_utf_8 s = cmap_utf_8 Uucp.Case.Map.to_upper s
       again to NFD and test the result for binary equality:
 
 {[
-let canonical_caseless_key s = 
-  let b = Buffer.create (String.length s * 2) in 
-  let to_nfd_and_utf_8 =               
+let canonical_caseless_key s =
+  let b = Buffer.create (String.length s * 2) in
+  let to_nfd_and_utf_8 =
     let n = Uunf.create `NFD in
-    let rec add v = match Uunf.add n v with 
-    | `Await -> () 
+    let rec add v = match Uunf.add n v with
+    | `Await -> ()
     | `Uchar u -> Uutf.Buffer.add_utf_8 b u; add `Await
     in
     add
   in
-  let add = 
+  let add =
     let n = Uunf.create `NFD in
-    let rec add v = match Uunf.add n v with 
-    | `Await -> () 
-    | `Uchar u -> 
+    let rec add v = match Uunf.add n v with
+    | `Await -> ()
+    | `Uchar u ->
         begin match Uucp.Case.Fold.fold u with
         | `Self -> to_nfd_and_utf_8 (`Uchar u)
-        | `Uchars us -> List.iter (fun u -> to_nfd_and_utf_8 (`Uchar u)) us 
-        end; 
+        | `Uchars us -> List.iter (fun u -> to_nfd_and_utf_8 (`Uchar u)) us
+        end;
         add `Await
     in
     add
   in
-  let add_uchar _ _ = function 
+  let add_uchar _ _ = function
   | `Malformed  _ -> add (`Uchar Uutf.u_rep)
   | `Uchar _ as u -> add u
   in
-  Uutf.String.fold_utf_8 add_uchar () s; 
-  add `End; 
+  Uutf.String.fold_utf_8 add_uchar () s;
+  add `End;
   to_nfd_and_utf_8 `End;
   Buffer.contents b
-  
-let canonical_caseless_eq s0 s1 = 
-  canonical_caseless_key s0 = canonical_caseless_key s1 
+
+let canonical_caseless_eq s0 s1 =
+  canonical_caseless_key s0 = canonical_caseless_key s1
 ]}
       Unicode's caseless matching for identifiers (D147, see also
       {{:http://www.unicode.org/reports/tr31/}UAX 31}) is defined
-      by normalizing to NFD, applying the NFKC_Casefold mapping and test 
+      by normalizing to NFD, applying the NFKC_Casefold mapping and test
       the result for binary equality:
 {[
-let id_caseless_key s = 
-  let b = Buffer.create (String.length s * 3) in 
-  let n = Uunf.create `NFD in 
-  let rec add v = match Uunf.add n v with 
+let id_caseless_key s =
+  let b = Buffer.create (String.length s * 3) in
+  let n = Uunf.create `NFD in
+  let rec add v = match Uunf.add n v with
   | `Await -> ()
   | `Uchar u ->
       begin match Uucp.Case.Nfkc_fold.fold u with
@@ -688,22 +688,22 @@ let id_caseless_key s =
       | `Uchars us -> List.iter (Uutf.Buffer.add_utf_8 b) us; add `Await
       end
   in
-  let add_uchar _ _ = function 
-  | `Malformed  _ -> add (`Uchar Uutf.u_rep) 
-  | `Uchar _ as u -> add u 
+  let add_uchar _ _ = function
+  | `Malformed  _ -> add (`Uchar Uutf.u_rep)
+  | `Uchar _ as u -> add u
   in
-  Uutf.String.fold_utf_8 add_uchar () s; 
+  Uutf.String.fold_utf_8 add_uchar () s;
   add `End;
   Buffer.contents b
 
 let id_caseless_eq s0 s1 = id_caseless_key s0 = id_caseless_key s1
 ]}
-*) 
+*)
 end
 
-(** CJK properties. 
+(** CJK properties.
 
-    {3 References} 
+    {3 References}
     {ul
     {- {{:http://www.unicode.org/faq/han_cjk.html}
     The Unicode Chinese and Japanese FAQ.}}
@@ -713,27 +713,27 @@ module Cjk : sig
 
   (**  {1:cjkprops CJK properties} *)
 
-  val is_ideographic : uchar -> bool 
+  val is_ideographic : uchar -> bool
   (** [is_ideographic u] is [true] if [u] has the
-      {{:http://www.unicode.org/reports/tr44/#Ideographic}Ideographic} 
+      {{:http://www.unicode.org/reports/tr44/#Ideographic}Ideographic}
       property. *)
 
-  val is_ids_bin_op : uchar -> bool 
+  val is_ids_bin_op : uchar -> bool
   (** [is_ids_bin_op u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#IDS_Binary_Operator}
       IDS_Binary_Operator} property. *)
 
-  val is_ids_tri_op : uchar -> bool 
+  val is_ids_tri_op : uchar -> bool
   (** [is_ids_tri_op u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#IDS_Trinary_Operator}
       IDS_Trinary_Operator} property. *)
 
-  val is_radical : uchar -> bool 
+  val is_radical : uchar -> bool
   (** [is_radical u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#Radical}Radical}
       property. *)
-    
-  val is_unified_ideograph : uchar -> bool 
+
+  val is_unified_ideograph : uchar -> bool
   (** [is_unified_ideograph u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#Unified_Ideograph}
       Unified_Ideograph} property. *)
@@ -745,177 +745,177 @@ module Func : sig
   (** {1:funcprops Function and graphics properties} *)
 
   val is_dash : uchar -> bool
-  (** [is_dash u] is [true] if [u] has the 
-      {{:http://www.unicode.org/reports/tr44/#Dash}Dash} 
+  (** [is_dash u] is [true] if [u] has the
+      {{:http://www.unicode.org/reports/tr44/#Dash}Dash}
       property. *)
 
   val is_diacritic : uchar -> bool
-  (** [is_diacritic u] is [true] if [u] has the 
-      {{:http://www.unicode.org/reports/tr44/#Diacritic}Diacritic} 
+  (** [is_diacritic u] is [true] if [u] has the
+      {{:http://www.unicode.org/reports/tr44/#Diacritic}Diacritic}
       property. *)
 
-  val is_extender : uchar -> bool 
-  (** [is_extender u] is [true] if [u] has the 
-      {{:http://www.unicode.org/reports/tr44/#Extender}Extender} 
+  val is_extender : uchar -> bool
+  (** [is_extender u] is [true] if [u] has the
+      {{:http://www.unicode.org/reports/tr44/#Extender}Extender}
       property. *)
 
-  val is_grapheme_base : uchar -> bool 
-  (** [is_grapheme_base u] is [true] if [u] has the 
-      {{:http://www.unicode.org/reports/tr44/#Grapheme_Base}Grapheme_Base} 
+  val is_grapheme_base : uchar -> bool
+  (** [is_grapheme_base u] is [true] if [u] has the
+      {{:http://www.unicode.org/reports/tr44/#Grapheme_Base}Grapheme_Base}
       property. *)
 
-  val is_grapheme_extend : uchar -> bool 
-  (** [is_grapheme_extend u] is [true] if [u] has the 
-      {{:http://www.unicode.org/reports/tr44/#Grapheme_Extend}Grapheme_Extend} 
+  val is_grapheme_extend : uchar -> bool
+  (** [is_grapheme_extend u] is [true] if [u] has the
+      {{:http://www.unicode.org/reports/tr44/#Grapheme_Extend}Grapheme_Extend}
       property. *)
 
-  val is_math : uchar -> bool 
+  val is_math : uchar -> bool
   (** [is_math u] is [true] if [u] has the
-      {{:http://www.unicode.org/reports/tr44/#Math}Math} 
+      {{:http://www.unicode.org/reports/tr44/#Math}Math}
       property. *)
 
   val is_quotation_mark : uchar -> bool
-  (** [is_quotation_mark u] is [true] if [u] has the 
-      {{:http://www.unicode.org/reports/tr44/#Quotation_Mark}Quotation_Mark} 
+  (** [is_quotation_mark u] is [true] if [u] has the
+      {{:http://www.unicode.org/reports/tr44/#Quotation_Mark}Quotation_Mark}
       property. *)
 
-  val is_soft_dotted : uchar -> bool 
-  (** [is_soft_dotted u] is [true] if [u] has the 
-      {{:http://www.unicode.org/reports/tr44/#Soft_Dotted}Soft_Dotted} 
+  val is_soft_dotted : uchar -> bool
+  (** [is_soft_dotted u] is [true] if [u] has the
+      {{:http://www.unicode.org/reports/tr44/#Soft_Dotted}Soft_Dotted}
       property. *)
 
-  val is_terminal_punctuation : uchar -> bool 
+  val is_terminal_punctuation : uchar -> bool
   (** [is_terminal_punct u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#Terminal_Punctuation}
       Terminal_Punctuation} property. *)
 end
 
-(** General category property. *) 
+(** General category property. *)
 module Gc : sig
 
   (** {1:gcprop General category property} *)
 
-  type t =     
-    [ `Cc | `Cf | `Cn | `Co | `Cs | `Ll | `Lm | `Lo | `Lt | `Lu | `Mc 
-    | `Me | `Mn | `Nd | `Nl | `No | `Pc | `Pd | `Pe | `Pf | `Pi | `Po 
+  type t =
+    [ `Cc | `Cf | `Cn | `Co | `Cs | `Ll | `Lm | `Lo | `Lt | `Lu | `Mc
+    | `Me | `Mn | `Nd | `Nl | `No | `Pc | `Pd | `Pe | `Pf | `Pi | `Po
     | `Ps | `Sc | `Sk | `Sm | `So | `Zl | `Zp | `Zs ]
   (** The type for general categories. *)
 
-  val compare : t -> t -> int 
-  (** [compare c c'] is [Pervasives.compare s s']. *) 
+  val compare : t -> t -> int
+  (** [compare c c'] is [Pervasives.compare s s']. *)
 
-  val pp : Format.formatter -> t -> unit 
+  val pp : Format.formatter -> t -> unit
   (** [pp ppf c] prints an unspecified representation of [c] on [ppf]. *)
-    
+
   val general_category : uchar -> t
   (** [general_category u] is [u]'s
       {{:http://www.unicode.org/reports/tr44/#General_Category}
       General_Category} property. *)
 end
 
-(** General properties. *) 
+(** General properties. *)
 module Gen : sig
 
   (** {1:genprops General properties} *)
 
-  val is_default_ignorable : uchar -> bool 
-  (** [is_default_ignorable u] is [true] if [u] has the 
+  val is_default_ignorable : uchar -> bool
+  (** [is_default_ignorable u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#Default_Ignorable_Code_Point}
        Default_Ignorable_Code_Point} property. *)
 
-  val is_deprecated : uchar -> bool 
-  (** [is_deprecated u] is [true] if [u] has the 
+  val is_deprecated : uchar -> bool
+  (** [is_deprecated u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#Deprecated}
        Deprecated} property. *)
 
-  val is_logical_order_exception : uchar -> bool 
-  (** [is_logical_order_exception u] is [true] if [u] has the 
+  val is_logical_order_exception : uchar -> bool
+  (** [is_logical_order_exception u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#Logical_Order_Exception}
       Logical_Order_Exception} property. *)
 
-  val is_non_character : uchar -> bool 
-  (** [is_non_character u] is [true] if [u] has the 
+  val is_non_character : uchar -> bool
+  (** [is_non_character u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#Noncharacter_Code_Point}
-      Noncharacter_Code_Point} property. *) 
-    
-  val is_variation_selector : uchar -> bool 
-  (** [is_variation_selector u] is [true] if [u] has the 
+      Noncharacter_Code_Point} property. *)
+
+  val is_variation_selector : uchar -> bool
+  (** [is_variation_selector u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#Variation_Selector}
-      Variation_Selector} property. See the 
+      Variation_Selector} property. See the
       {{:http://www.unicode.org/faq/vs.html}Variation Sequences FAQ}. *)
 end
 
 (** Identifier properties.
 
-    {3 References} 
+    {3 References}
     {ul
-    {- Mark Davis. 
-    {e {{:http://www.unicode.org/reports/tr31/}UAX #31 
+    {- Mark Davis.
+    {e {{:http://www.unicode.org/reports/tr31/}UAX #31
        Unicode Identifier and Pattern Syntax}}. (latest version)}} *)
 module Id : sig
 
   (** {1:idprops Identifier properties} *)
 
   val is_id_start : uchar -> bool
-  (** [is_id_start u] is [true] if [u] has the 
-      {{:http://www.unicode.org/reports/tr44/#ID_Start}ID_Start} 
+  (** [is_id_start u] is [true] if [u] has the
+      {{:http://www.unicode.org/reports/tr44/#ID_Start}ID_Start}
       property. *)
 
   val is_id_continue : uchar -> bool
-  (** [is_id_continue u] is [true] if [u] has the 
-      {{:http://www.unicode.org/reports/tr44/#ID_Continue}ID_Continue} 
+  (** [is_id_continue u] is [true] if [u] has the
+      {{:http://www.unicode.org/reports/tr44/#ID_Continue}ID_Continue}
       property. *)
 
   val is_xid_start : uchar -> bool
-  (** [is_xid_start u] is [true] if [u] has the 
-      {{:http://www.unicode.org/reports/tr44/#XID_Start}XID_Start} 
+  (** [is_xid_start u] is [true] if [u] has the
+      {{:http://www.unicode.org/reports/tr44/#XID_Start}XID_Start}
       property. *)
-    
+
   val is_xid_continue : uchar -> bool
-  (** [is_xid_continue u] is [true] if [u] has the 
-      {{:http://www.unicode.org/reports/tr44/#XID_Continue}XID_Continue} 
+  (** [is_xid_continue u] is [true] if [u] has the
+      {{:http://www.unicode.org/reports/tr44/#XID_Continue}XID_Continue}
       property. *)
-    
-  (** {1:patprops Pattern syntax properties} *) 
-    
+
+  (** {1:patprops Pattern syntax properties} *)
+
   val is_pattern_syntax : uchar -> bool
-  (** [is_pattern_syntax u] is [true] if [u] has the 
-      {{:http://www.unicode.org/reports/tr44/#Pattern_Syntax}Pattern_Syntax} 
+  (** [is_pattern_syntax u] is [true] if [u] has the
+      {{:http://www.unicode.org/reports/tr44/#Pattern_Syntax}Pattern_Syntax}
       property. *)
-    
-  
+
+
   val is_pattern_white_space : uchar -> bool
-  (** [is_pattern_white_space u] is [true] if [u] has the 
+  (** [is_pattern_white_space u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#Pattern_White_Space}
       Pattern_White_Space} property. *)
 end
 
 (** Name and name alias properties.
 
-    {3 References} 
+    {3 References}
     {ul
     {- {{:http://unicode.org/faq/casemap_charprop.html#nameprop}
     The Unicode names FAQ.}}} *)
-module Name : sig 
+module Name : sig
 
-  (** {1:nameprop Names} *) 
+  (** {1:nameprop Names} *)
 
   val name : uchar -> string
-  (** [name u] is [u]'s 
+  (** [name u] is [u]'s
       {{:http://www.unicode.org/reports/tr44/#Name}Name} property. *)
 
-  (** {1:namealiasprop Name aliases} *) 
+  (** {1:namealiasprop Name aliases} *)
 
-  type alias_tag = 
+  type alias_tag =
     [ `Abbreviation | `Alternate | `Control | `Correction | `Figment ]
 
-  val pp_alias_tag : Format.formatter -> alias_tag -> unit 
+  val pp_alias_tag : Format.formatter -> alias_tag -> unit
   (** [pp_alias_tag t] prints an unspecified representation of [t]
-      on [ppf]. *) 
+      on [ppf]. *)
 
   val name_alias : uchar -> (alias_tag * string) list
-  (** [name_alias u] is [u]'s 
-      {{:http://www.unicode.org/reports/tr44/#Name_Alias}Name_Alias} 
+  (** [name_alias u] is [u]'s
+      {{:http://www.unicode.org/reports/tr44/#Name_Alias}Name_Alias}
       property. *)
 end
 
@@ -923,40 +923,40 @@ end
 module Num : sig
 
   (** {1:hexprop Hex digits} *)
-  
-  val is_ascii_hex_digit : uchar -> bool 
+
+  val is_ascii_hex_digit : uchar -> bool
   (** [is_ascii_hex_digit u] is [true] if [u] has the
-      {{:http://www.unicode.org/reports/tr44/#ASCII_Hex_Digit}ASCII_Hex_Digit} 
-      property. *)
-  
-  val is_hex_digit : uchar -> bool 
-  (** [is_ascii_hex_digit u] is [true] if [u] has the
-      {{:http://www.unicode.org/reports/tr44/#Hex_Digit}Hex_Digit} 
+      {{:http://www.unicode.org/reports/tr44/#ASCII_Hex_Digit}ASCII_Hex_Digit}
       property. *)
 
-  (** {1:numtypeprop Numeric type} *) 
+  val is_hex_digit : uchar -> bool
+  (** [is_ascii_hex_digit u] is [true] if [u] has the
+      {{:http://www.unicode.org/reports/tr44/#Hex_Digit}Hex_Digit}
+      property. *)
+
+  (** {1:numtypeprop Numeric type} *)
 
   type numeric_type = [ `De | `Di | `None | `Nu ]
-  (** The type for numeric types. *) 
+  (** The type for numeric types. *)
 
-  val pp_numeric_type : Format.formatter -> numeric_type -> unit 
-  (** [pp_numeric_type ppf n] prints an unspecified representation of 
-      [n] on [ppf]. *) 
+  val pp_numeric_type : Format.formatter -> numeric_type -> unit
+  (** [pp_numeric_type ppf n] prints an unspecified representation of
+      [n] on [ppf]. *)
 
   val numeric_type : uchar -> numeric_type
-  (** [numeric_type u] is [u]'s 
+  (** [numeric_type u] is [u]'s
       {{:http://www.unicode.org/reports/tr44/#Numeric_Type}
       Numeric_Type} property. *)
 
-  (** {1:numvalueprop Numeric value} *) 
+  (** {1:numvalueprop Numeric value} *)
 
   type numeric_value = [ `Frac of int * int | `NaN | `Num of int64 ]
-  (** The type for numeric values. *) 
-                       
-  val pp_numeric_value : Format.formatter -> numeric_value -> unit 
-  (** [pp_numeric_value ppf n] prints an unspecified representation of 
-      [n] on [ppf]. *) 
-  
+  (** The type for numeric values. *)
+
+  val pp_numeric_value : Format.formatter -> numeric_value -> unit
+  (** [pp_numeric_value ppf n] prints an unspecified representation of
+      [n] on [ppf]. *)
+
   val numeric_value : uchar -> [ `Frac of int * int | `NaN | `Num of int64 ]
   (** [numeric_type u] is [u]'s
       {{:http://www.unicode.org/reports/tr44/#Numeric_Value}
@@ -965,18 +965,18 @@ end
 
 (** Script and script extensions properties.
 
-    {3 References} 
-    {ul 
-    {- Mark Davis, Ken Whistler. 
-    {{:http://www.unicode.org/reports/tr24/}{e Unicode script property}}. 
+    {3 References}
+    {ul
+    {- Mark Davis, Ken Whistler.
+    {{:http://www.unicode.org/reports/tr24/}{e Unicode script property}}.
     (latest version)}
-    {- {{:http://www.unicode.org/charts/script/index.html}The Unicode Script 
-    charts}.}} *) 
+    {- {{:http://www.unicode.org/charts/script/index.html}The Unicode Script
+    charts}.}} *)
 module Script : sig
 
   (** {1:scriptprop Script} *)
-  
-  type t = 
+
+  type t =
   [ `Aghb
   | `Arab
   | `Armi
@@ -1105,20 +1105,20 @@ module Script : sig
   | `Zinh
   | `Zyyy
   | `Zzzz ]
-  (** The type for scripts. *) 
+  (** The type for scripts. *)
 
-  val compare : t -> t -> int 
-  (** [compare s s'] is [Pervasives.compare s s']. *) 
+  val compare : t -> t -> int
+  (** [compare s s'] is [Pervasives.compare s s']. *)
 
-  val pp : Format.formatter -> t -> unit 
-  (** [pp ppf s] prints an unspecified representation of [s] on [ppf]. *) 
+  val pp : Format.formatter -> t -> unit
+  (** [pp ppf s] prints an unspecified representation of [s] on [ppf]. *)
 
   val script : uchar -> t
-  (** [script u] is [u]'s 
+  (** [script u] is [u]'s
       {{:http://www.unicode.org/reports/tr44/#Script}Script} property. *)
 
   val script_extensions : uchar -> t list
-  (** [script_extension u] is [u]'s 
+  (** [script_extension u] is [u]'s
       {{:http://www.unicode.org/reports/tr44/#Script_Extensions}
       Script_Extensions} property. The list is never empty. *)
 end
@@ -1128,32 +1128,32 @@ module White : sig
 
   (**  {1:whiteprop White space property} *)
 
-  val is_white_space : uchar -> bool 
-  (** [is_white_space u] is [true] if [u] has the 
-      {{:http://www.unicode.org/reports/tr44/#White_Space}White_Space} 
+  val is_white_space : uchar -> bool
+  (** [is_white_space u] is [true] if [u] has the
+      {{:http://www.unicode.org/reports/tr44/#White_Space}White_Space}
       property. *)
 end
 
-(** {1:distrib_omit Property module distribution and omissions} 
+(** {1:distrib_omit Property module distribution and omissions}
 
     Properties are approximatively distributed in modules by scope of use
     like in this
     {{:http://www.unicode.org/reports/tr44/#Property_Index_Table}property
     index table}. However some subset of properties
     live in their own modules.
-    
-    Obsolete and 
+
+    Obsolete and
     {{:http://www.unicode.org/reports/tr44/#Deprecated_Property_Table}
     deprecated} properties are
     omitted.  So are those related to normalization, shaping and
-    bidirectionality. Here is the full list of omitted properties, 
-    if you think one of these property should be added get in touch 
+    bidirectionality. Here is the full list of omitted properties,
+    if you think one of these property should be added get in touch
     with a rationale.
     {ul
-    {- General properties. 
+    {- General properties.
        {{:http://www.unicode.org/reports/tr44/#Hangul_Syllable_Type}
        Hangul_Syllable_Type}.}
-    {- Case. 
+    {- Case.
        {{:http://www.unicode.org/reports/tr44/#Simple_Lowercase_Mapping}
        Simple_Lowercase_Mapping},
        {{:http://www.unicode.org/reports/tr44/#Simple_Uppercase_Mapping}
@@ -1161,7 +1161,7 @@ end
        {{:http://www.unicode.org/reports/tr44/#Simple_Titlecase_Mapping}
        Simple_Titlecase_Mapping},
        {{:http://www.unicode.org/reports/tr44/#Simple_Case_Folding}
-       Simple_Case_folding}, 
+       Simple_Case_folding},
        {{:http://www.unicode.org/reports/tr44/#CWL}
        Changes_When_Lowercased},
        {{:http://www.unicode.org/reports/tr44/#CWU}
@@ -1172,7 +1172,7 @@ end
        Changes_When_Casefolded},
        {{:http://www.unicode.org/reports/tr44/#CWCM}
        Changes_When_Casemapped}.}
-    {- Normalization. All properties under that section name in 
+    {- Normalization. All properties under that section name in
        {{:http://www.unicode.org/reports/tr44/#Property_Index_Table}
        this table}.}
     {- Shaping and rendering.
@@ -1183,31 +1183,31 @@ end
        Indic_Matra_Category},
        {{:http://www.unicode.org/reports/tr44/#Indic_Syllabic_Category}
        Indic_Syllabic_Category}.}
-    {- Bidirectional. All properties under that section name in 
+    {- Bidirectional. All properties under that section name in
        {{:http://www.unicode.org/reports/tr44/#Property_Index_Table}
        this table}.}
-    {- CJK. 
+    {- CJK.
       {{:http://www.unicode.org/reports/tr44/#Unicode_Radical_Stroke}
-      Unicode_Radical_Stroke} and all the properties of the 
+      Unicode_Radical_Stroke} and all the properties of the
       {{:http://www.unicode.org/reports/tr38/}Unicode HAN Database}.}
     {- Miscellaneous.
        {{:http://www.unicode.org/reports/tr44/#STerm}STerm}}.
-    {- Contributory properties. All properties under that section in 
+    {- Contributory properties. All properties under that section in
        {{:http://www.unicode.org/reports/tr44/#Property_Index_Table}this
        table.}}} *)
 
 
-(** {1:uminimal Minimal Unicode introduction} 
-    
-    {2:characters Characters — if they exist} 
+(** {1:uminimal Minimal Unicode introduction}
+
+    {2:characters Characters — if they exist}
 
     The purpose of Unicode is to have a universal way of representing
     characters of writing systems known to the world in computer
     systems. Defining the notion of character is a very complicated
     question with both philosophical and political implications. To
     side step these issues, we only talk about characters from a
-    programmer's point of view and simply say that the purpose of 
-    Unicode is to assign meaning to the integers of a well-defined 
+    programmer's point of view and simply say that the purpose of
+    Unicode is to assign meaning to the integers of a well-defined
     integer range.
 
     This range is called the Unicode {e codespace}, it spans from
@@ -1284,7 +1284,7 @@ end
     {{:http://www.unicode.org/faq/security.html}Unicode Security FAQ}
     has more information and pointers about these issues.
 
-    {2:serializing Serializing integers — UTF-X} 
+    {2:serializing Serializing integers — UTF-X}
 
     There is more than one way of representing a large integer as a
     sequence of bytes. The Unicode standard defines seven {e encoding
@@ -1292,17 +1292,17 @@ end
     precisely define how to encode and decode {e scalar values} — take
     note, scalar values, {b not code points} — as byte sequences.
 
-    {ul 
-    {- UTF-8, a scalar value is represented by a sequence of one 
-       to 4 bytes. One of the valuable property of UTF-8 is that 
+    {ul
+    {- UTF-8, a scalar value is represented by a sequence of one
+       to 4 bytes. One of the valuable property of UTF-8 is that
        it is compatible with the encoding of US-ASCII: the one byte
        sequences are solely used for encoding the 128 scalar
-       value U+0000 to U+007F which correspond exactly to the US-ASCII code 
-       values. Any scalar value stricly greater than U+007F will use more than 
+       value U+0000 to U+007F which correspond exactly to the US-ASCII code
+       values. Any scalar value stricly greater than U+007F will use more than
        one byte.}
-    {- UTF-16BE, a scalar value is either represented by one 
-       16 bit big-endian integer if its scalar value fits or by 
-       two surrogate code points encoded as 16 bit big-endian integers (how 
+    {- UTF-16BE, a scalar value is either represented by one
+       16 bit big-endian integer if its scalar value fits or by
+       two surrogate code points encoded as 16 bit big-endian integers (how
        exactly is beyond the scope of this introduction).}
     {- UTF-16LE is like UTF-16BE but uses little-endian encoded integers.}
     {- UTF-16 is either UTF-16BE or UTF-16LE. The endianness is
@@ -1313,37 +1313,37 @@ end
        U+FEFF) they will be either [(0xFF,0xFE)], indicating
        UTF-16LE, or [(0xFE,0xFF)] indicating UTF-16BE.}
        {- Otherwise UTF-16BE is assumed.}}}
-    {- UTF-32BE, a scalar value is represented by one 32 bit big-endian 
+    {- UTF-32BE, a scalar value is represented by one 32 bit big-endian
        integer.}
     {- UTF-32LE is like UTF-32BE but uses little-endian encoded integers.}
     {- UTF-32 is either UTF-32BE or UTF-32LE, using the same
-       byte order mark mechanism as UTF-16, looking at the four initial 
+       byte order mark mechanism as UTF-16, looking at the four initial
        bytes of the data stream.}}
-    
-    The cost of using one representation over the other depends on the 
-    character usage. For example UTF-8 is fine for latin scripts but 
-    wasteful for east-asian scripts, while the converse is true for UTF-16.  
+
+    The cost of using one representation over the other depends on the
+    character usage. For example UTF-8 is fine for latin scripts but
+    wasteful for east-asian scripts, while the converse is true for UTF-16.
     I never saw any usage of UTF-32 on disk or wires, it is very wasteful.
-    However, in memory, UTF-32 has the advantage that characters become 
+    However, in memory, UTF-32 has the advantage that characters become
     directly indexable.
-    
-    For more information see the 
+
+    For more information see the
     {{:http://www.unicode.org/faq/utf_bom.html}Unicode UTF-8, UTF-16,
     UTF-32 and BOM FAQ}.
-    
-    {2 Interlude — Useful scalar values} 
-    
+
+    {2 Interlude — Useful scalar values}
+
     The following scalar values are useful to know:
     {ul
-    {- U+FEFF, the byte order mark (BOM) character used to 
+    {- U+FEFF, the byte order mark (BOM) character used to
      detect endiannes on byte order sensitive UTFs.}
     {- U+FFFD, the replacement character. Can be used to: stand
-      for unrepresentable characters when transcoding from 
-      another representation, indicate that something 
+      for unrepresentable characters when transcoding from
+      another representation, indicate that something
       was lost in best-effort UTF decoders, etc.}
     {- U+1F42B, the emoji bactrian camel (🐫, since Unicode 6.0.0).}}
-    
-    {2:equivalence Equivalence and normalization} 
+
+    {2:equivalence Equivalence and normalization}
 
     We mentioned above that concrete textual data may be represented by
     more than one sequence of scalar values. Latin letters with
@@ -1356,17 +1356,17 @@ end
     However first we need to define a notion of equality between
     sequences. Unicode defines two of them, which one to use depends
     on your processing context.
-    {ul 
+    {ul
     {- {e Canonical} equivalence. Equivalent
-       sequences should display and and be interpreted the 
-       same way when printed. For example the sequence 
-       "B", "Ä" (<U+0042, U+00C4>) is 
+       sequences should display and and be interpreted the
+       same way when printed. For example the sequence
+       "B", "Ä" (<U+0042, U+00C4>) is
        canonically equivalent to "B", "A", "¨" (<U+0042, U+0041, U+0308>).}
     {- {e Compatibility} equivalence. Equivalent sequences
        may have format differences in display and may be interpreted
        differently in some contexts. For example the sequence made
        of the latin small ligature fi "ﬁ" (<U+FB01>) is compatibility
-       equivalent to the sequence "f", "i" (<U+0066, U+0069>). These 
+       equivalent to the sequence "f", "i" (<U+0066, U+0069>). These
        two sequences are however not canonically equivalent.}}
 
     Canonical equivalence is included in compatiblity equivalence: two
@@ -1388,22 +1388,22 @@ end
        (<U+00E9>)}
     {- Normalization form KD (NFKD). Removes canonical and compatibility
        differences and decomposes characters.}
-    {- Normalization form KC (NFKC). Removes canonical and compatibility 
+    {- Normalization form KC (NFKC). Removes canonical and compatibility
        differences and composes characters.}}
-    
+
     Once you have two sequences in a known normal form you can compare
     them using binary equality. If the normal form is NFD or NFC,
     binary equality will entail canonical equivalence of the
     sequences. If the normal form is NFKC or NFKD equality will entail
     compatibility equivalence of the sequences. Note that normal forms
-    are {b not} closed under concatenation: if you concatenate two 
+    are {b not} closed under concatenation: if you concatenate two
     sequence of scalar values you have to renormalize the result.
 
     For more information about normalization, see the
     {{:http://www.unicode.org/faq/normalization.html}Normalization FAQ}.
 
     {2:collation Collation — sorting in alphabetical order}
-    
+
     Normalisation forms allow to define a total order between
     sequences of scalar values using binary comparison. However this
     order is purely arbitrary. It has no meaning because the magnitude
@@ -1417,20 +1417,20 @@ end
     FAQ}.
 
     {2:tips Biased tips for OCaml programs and libraries}
-    
+
     {b Character data as UTF-8 encoded OCaml strings.} For most OCaml
     programs it will be entirely sufficient to deal with Unicode by
     just treating the byte sequence of regular OCaml [string]s as {b
     valid} UTF-8 encoded data.
-    
+
     Many libraries will already return you character data under this
     representation. Besides latin1 identifiers having been deprecated
     in OCaml 4.01, UTF-8 encoding your sources allows you to write
     UTF-8 encoded string literals directly in your programs. Be aware
     though that as far as OCaml's compiler is concerned these are just
     sequences of bytes and you can't trust these strings to be valid
-    UTF-8 as they depend on how correctly your editor encodes them. 
-    That is unless you escape their valid UTF-8 bytes explicitely (e.g. 
+    UTF-8 as they depend on how correctly your editor encodes them.
+    That is unless you escape their valid UTF-8 bytes explicitely (e.g.
     ["\xF0\x9F\x90\xAB"] is the correct encoding of U+1F42B), you {b will
     need} to validate them and most likely normalize them.
 
@@ -1441,7 +1441,7 @@ end
     strings). This allows you to only deal with valid UTF-8 throughout
     your program and avoid redundant validity checks, internally or on
     output. The following properties of UTF-8 are useful to remember:
-    {ul 
+    {ul
     {- UTF-8 validity is closed under string concatenation:
        concatenating two valid UTF-8 strings results in a valid UTF-8
        string.}
@@ -1473,18 +1473,18 @@ end
     and normalization} you should realise that blindly comparing UTF-8
     encoded OCaml strings using {!Pervasives.compare} won't bring you
     anywhere if you don't normalize them before. The {!Uunf} module
-    can be used for that. Don't forget that normalization is not 
+    can be used for that. Don't forget that normalization is not
     closed under string concatenation.
 
     Using {!Pervasives.compare} on {e normalized} UTF-8 encoded OCaml
-    strings defines a total order on them that you can use with the 
+    strings defines a total order on them that you can use with the
     {!Map} or {!Set} modules as long as you are not interested in the actual
     {e meaning} of the order.
-    
+
     If you are looking for case insensitive equality have a look at
     the {{!Case.caselesseq}sample code} of the {!Case} module.
 
-    {b Sort strings alphabetically.}  
+    {b Sort strings alphabetically.}
     The only solution at the moment for collating strings is to use
     {{:https://github.com/yoriyuki/Camomile}Camomile} but be aware
     that it supports only Unicode 3.2 character data so don't be
@@ -1501,19 +1501,19 @@ end
     properties. Using {!White.is_white_space} will be future proof should
     a new character deemed white be added to the standard (both [Uucp]
     and your progam will need a recompile though).
-    
+
     {b Transcoding.} Transcoding from legacy encodings to
     Unicode may be quite involved, use
     {{:https://github.com/yoriyuki/Camomile}Camomile} if you need to do
     that.  There is however one translation that is very easy and
-    direct: it is the one from ISO 8859-1 also known as latin1, 
-    the default encoding of OCaml [char]s. latin1 having been encoded in 
+    direct: it is the one from ISO 8859-1 also known as latin1,
+    the default encoding of OCaml [char]s. latin1 having been encoded in
     Unicode in the range of scalar values U+0000 to U+00FF which corresponds
     to latin1 code value, the translation is trivial, it is the identity:
 {[
 let char_to_scalar_value c = Char.code c
-let char_of_scalar_value s = 
-    if s > 255 then invalid_arg "" (* can't represent *) else 
+let char_of_scalar_value s =
+    if s > 255 then invalid_arg "" (* can't represent *) else
     Char.chr s
 ]}
 
@@ -1537,12 +1537,12 @@ let char_of_scalar_value s =
     performance reasons, it allows the client to trust the string and
     avoid performing redundant checks and the library to trust the
     strings it was given without having to perform further
-    checks. Remember that concatenating to UTF-8 valid strings results 
+    checks. Remember that concatenating to UTF-8 valid strings results
     in an UTF-8 valid string. *)
 
 (**/**)
 
-(* Warning this is not part of the public API and subject 
+(* Warning this is not part of the public API and subject
    to change without notice. *)
 
 module Cmap : sig
@@ -1556,7 +1556,7 @@ module Cmap : sig
     (Format.formatter -> 'a -> unit) -> Format.formatter -> 'a t -> unit
 end
 
-module Rmap : sig 
+module Rmap : sig
   type 'a tree =
     | Empty
     | R of int * int * 'a
@@ -1612,7 +1612,7 @@ module Tmap4bytes : sig
   val dump : Format.formatter -> t -> unit
   val create_uint16_pair : int * int -> t
   val get_uint16_pair : t -> int -> int * int
-  val set_uint16_pair : t -> int -> int * int -> unit  
+  val set_uint16_pair : t -> int -> int * int -> unit
 end
 
 (**/**)
@@ -1624,7 +1624,7 @@ end
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
-     
+
    1. Redistributions of source code must retain the above copyright
       notice, this list of conditions and the following disclaimer.
 

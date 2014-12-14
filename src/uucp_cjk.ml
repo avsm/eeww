@@ -4,19 +4,19 @@
    %%NAME%% release %%VERSION%%
   ---------------------------------------------------------------------------*)
 
-let is_ideographic u = 
+let is_ideographic u =
   Uucp_tmapbool.get Uucp_cjk_data.ideographic_map u
 
-let is_ids_bin_op u = 
+let is_ids_bin_op u =
   Uucp_tmapbool.get Uucp_cjk_data.ids_bin_op_map u
 
-let is_ids_tri_op u = 
+let is_ids_tri_op u =
   Uucp_tmapbool.get Uucp_cjk_data.ids_tri_op_map u
 
-let is_radical u = 
+let is_radical u =
   Uucp_tmapbool.get Uucp_cjk_data.radical_map u
 
-let is_unified_ideograph u = 
+let is_unified_ideograph u =
   Uucp_tmapbool.get Uucp_cjk_data.unified_ideograph_map u
 
 (*---------------------------------------------------------------------------
@@ -26,7 +26,7 @@ let is_unified_ideograph u =
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
-     
+
    1. Redistributions of source code must retain the above copyright
       notice, this list of conditions and the following disclaimer.
 

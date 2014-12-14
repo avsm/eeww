@@ -1,13 +1,13 @@
 #!/bin/sh
-# This script is only used for developement. It is removed by the 
-# distribution process. 
+# This script is only used for developement. It is removed by the
+# distribution process.
 
 set -e
 
 OCAMLBUILD=${OCAMLBUILD:="ocamlbuild -tag debug -classic-display \
                           -use-ocamlfind"}
 
-action () 
+action ()
 {
     case $1 in
         default)   $OCAMLBUILD uucp.cma uucp.cmxa ;;
@@ -42,14 +42,14 @@ action ()
     esac
 }
 
-check_db () 
+check_db ()
 {
-    if [ ! -f "support/ucd.xml" ]; then 
+    if [ ! -f "support/ucd.xml" ]; then
         echo "Missing unicode character database support/ucd.xml, see DEVEL.md"
         exit 1
     fi
 }
 
-if [ $# -eq 0 ]; 
-then action default ; 
+if [ $# -eq 0 ];
+then action default ;
 else action $*; fi

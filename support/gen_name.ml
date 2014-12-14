@@ -18,7 +18,7 @@
    a trie that maps scalar values to 4 bytes in string chunks (see
    uucp_tmap4bytes.ml) and encode the two token codes as unsigned
    16-bit integers in these 4 bytes thereby avoiding having too many
-   pointers.  
+   pointers.
 
    The lookup procedure simply gets the two 16-bit integers from the
    trie map, looks up the corresponding tokens in a table and
@@ -32,31 +32,31 @@
    cost of a significant increase in the complexity of the
    encoding. *)
 
-let rcut c s =                                                  (* Again ... *) 
+let rcut c s =                                                  (* Again ... *)
   try
     let n = String.length s in
     let i = String.rindex s c in
     let left = String.sub s 0 i in
-    let right = 
-      if i = n - 1 then "" else 
+    let right =
+      if i = n - 1 then "" else
       String.sub s (i + 1) (n - i - 1)
     in
     left, right
   with Not_found -> ("", s)
 
-let name_prop ucd = 
+let name_prop ucd =
   let tok_index = Hashtbl.create 30_000 in
   let tok_code = ref (-1) in
-  let get_tok_code tok = try Hashtbl.find tok_index tok with 
+  let get_tok_code tok = try Hashtbl.find tok_index tok with
   | Not_found -> incr tok_code; Hashtbl.add tok_index tok !tok_code; !tok_code
   in
-  let prop u = match Gen.ucd_get ucd u Uucd.name with 
-  | `Name n -> 
-      begin match rcut ' ' n with 
+  let prop u = match Gen.ucd_get ucd u Uucd.name with
+  | `Name n ->
+      begin match rcut ' ' n with
       | n, "" when n <> "" -> assert false
       | p, s -> (get_tok_code p), (get_tok_code s)
       end
-  | `Pattern n -> 
+  | `Pattern n ->
       begin match rcut '#' n with
       | n, "" -> (get_tok_code n), (get_tok_code "")
       | _ -> assert false
@@ -82,23 +82,23 @@ let pp_name ppf ucd =
   Gen.pp ppf "open Uucp_tmap4bytes@\n";
   Gen.pp ppf "@[let name_map : t = %a@]@\n" Uucp_tmap4bytes.dump m;
   ()
-  
-let pp_name_alias ppf ucd = 
-  let size v = 
-    3 * (List.length v) + 
+
+let pp_name_alias ppf ucd =
+  let size v =
+    3 * (List.length v) +
     List.fold_left (fun acc (_, n) -> 3 + String.length n) 0 v
   in
   let pp_tag ppf t = Gen.pp ppf "`%a" Uucp_name_base.pp_alias_tag t in
   let pp_alias ppf (t, n) = Gen.pp ppf "@[<1>(%a,@,%S)@]" pp_tag t n in
   let pp_alist = Gen.pp_list pp_alias in
-  let prop u = 
+  let prop u =
     let permute (n, t) = (t, n) in
     List.map permute (Gen.ucd_get ucd u Uucd.name_alias)
   in
-  Gen.pp_prop_cmap ppf prop 
-    "name_alias" "(Uucp_name_base.alias_tag * string) list" 
+  Gen.pp_prop_cmap ppf prop
+    "name_alias" "(Uucp_name_base.alias_tag * string) list"
     pp_alist ~default:[] size
-    
+
 let pp_props ppf ucd =
   pp_name ppf ucd;
   pp_name_alias ppf ucd;
@@ -113,7 +113,7 @@ let pp_mod ppf ucd = Gen.pp_mod pp_props ppf ucd
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
-     
+
    1. Redistributions of source code must retain the above copyright
       notice, this list of conditions and the following disclaimer.
 

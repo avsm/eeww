@@ -4,31 +4,31 @@
    %%NAME%% release %%VERSION%%
   ---------------------------------------------------------------------------*)
 
-let is_dash u = 
+let is_dash u =
   Uucp_tmapbool.get Uucp_func_data.dash_map u
 
-let is_diacritic u = 
+let is_diacritic u =
   Uucp_tmapbool.get Uucp_func_data.diacritic_map u
 
-let is_extender u = 
+let is_extender u =
   Uucp_tmapbool.get Uucp_func_data.extender_map u
 
-let is_grapheme_base u = 
+let is_grapheme_base u =
   Uucp_tmapbool.get Uucp_func_data.grapheme_base_map u
 
-let is_grapheme_extend u = 
+let is_grapheme_extend u =
   Uucp_tmapbool.get Uucp_func_data.grapheme_extend_map u
-    
-let is_math u = 
-  Uucp_tmapbool.get Uucp_func_data.math_map u 
-    
-let is_quotation_mark u = 
+
+let is_math u =
+  Uucp_tmapbool.get Uucp_func_data.math_map u
+
+let is_quotation_mark u =
   Uucp_tmapbool.get Uucp_func_data.quotation_mark_map u
-    
-let is_soft_dotted u = 
+
+let is_soft_dotted u =
   Uucp_tmapbool.get Uucp_func_data.soft_dotted_map u
-    
-let is_terminal_punctuation u = 
+
+let is_terminal_punctuation u =
   Uucp_tmapbool.get Uucp_func_data.terminal_punctuation_map u
 
 (*---------------------------------------------------------------------------
@@ -38,7 +38,7 @@ let is_terminal_punctuation u =
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
-     
+
    1. Redistributions of source code must retain the above copyright
       notice, this list of conditions and the following disclaimer.
 

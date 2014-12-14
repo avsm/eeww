@@ -4,7 +4,7 @@
    %%NAME%% release %%VERSION%%
   ---------------------------------------------------------------------------*)
 
-include Uucp_gc_base 
+include Uucp_gc_base
 
 let compare = Pervasives.compare
 let general_category u = Uucp_rmap.get Uucp_gc_data.general_category_map u
@@ -16,7 +16,7 @@ let general_category u = Uucp_rmap.get Uucp_gc_data.general_category_map u
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
-     
+
    1. Redistributions of source code must retain the above copyright
       notice, this list of conditions and the following disclaimer.
 

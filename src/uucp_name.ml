@@ -6,13 +6,13 @@
 
 include Uucp_name_base
 
-let name u = 
+let name u =
   match Uucp_tmap4bytes.get_uint16_pair Uucp_name_data.name_map u with
   | 0, 0 -> ""
-  | p, 0 -> Printf.sprintf "%s%04X" Uucp_name_data.name_toks.(p) u 
+  | p, 0 -> Printf.sprintf "%s%04X" Uucp_name_data.name_toks.(p) u
   | 0, s -> Uucp_name_data.name_toks.(s)
-  | p, s -> 
-      Printf.sprintf "%s %s" 
+  | p, s ->
+      Printf.sprintf "%s %s"
         Uucp_name_data.name_toks.(p) Uucp_name_data.name_toks.(s)
 
 let name_alias u = Uucp_cmap.get Uucp_name_data.name_alias_map u
@@ -24,7 +24,7 @@ let name_alias u = Uucp_cmap.get Uucp_name_data.name_alias_map u
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
-     
+
    1. Redistributions of source code must retain the above copyright
       notice, this list of conditions and the following disclaimer.
 

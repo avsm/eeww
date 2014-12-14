@@ -5,15 +5,15 @@
   ---------------------------------------------------------------------------*)
 
 
-type alias_tag = 
+type alias_tag =
   [ `Abbreviation | `Alternate | `Control | `Correction | `Figment ]
 
 let pp_alias_tag ppf t = Format.fprintf ppf "%s" begin match t with
   | `Abbreviation -> "Abbreviation"
-  | `Alternate -> "Alternate" 
-  | `Control -> "Control" 
-  | `Correction -> "Correction" 
-  | `Figment -> "Figment" 
+  | `Alternate -> "Alternate"
+  | `Control -> "Control"
+  | `Correction -> "Correction"
+  | `Figment -> "Figment"
   end
 
 (*---------------------------------------------------------------------------
@@ -23,7 +23,7 @@ let pp_alias_tag ppf t = Format.fprintf ppf "%s" begin match t with
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
-     
+
    1. Redistributions of source code must retain the above copyright
       notice, this list of conditions and the following disclaimer.
 

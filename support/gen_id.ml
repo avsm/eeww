@@ -3,15 +3,15 @@
    Distributed under the BSD3 license, see license at the end of the file.
    %%NAME%% release %%VERSION%%
   ---------------------------------------------------------------------------*)
-  
+
 let pp_props ppf ucd =
   let prop = Gen.pp_prop_tmapbool_ucd ppf ucd in
-  prop Uucd.id_start "id_start"; 
-  prop Uucd.id_continue "id_continue"; 
-  prop Uucd.xid_start "xid_start"; 
-  prop Uucd.xid_continue "xid_continue"; 
-  prop Uucd.pattern_syntax "pattern_syntax"; 
-  prop Uucd.pattern_white_space "pattern_white_space"; 
+  prop Uucd.id_start "id_start";
+  prop Uucd.id_continue "id_continue";
+  prop Uucd.xid_start "xid_start";
+  prop Uucd.xid_continue "xid_continue";
+  prop Uucd.pattern_syntax "pattern_syntax";
+  prop Uucd.pattern_white_space "pattern_white_space";
   ()
 
 let pp_mod ppf ucd = Gen.pp_mod pp_props ppf ucd
@@ -23,7 +23,7 @@ let pp_mod ppf ucd = Gen.pp_mod pp_props ppf ucd
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
-     
+
    1. Redistributions of source code must retain the above copyright
       notice, this list of conditions and the following disclaimer.
 
