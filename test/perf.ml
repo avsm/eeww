@@ -33,6 +33,14 @@ let lookup_block count =
   prop "block" Uucp.Block.block; 
   ()
 
+let lookup_break count =
+  let prop fname p = prop count "Uucp.Break" fname p in
+  prop "line" Uucp.Break.line;
+  prop "grapheme_cluster" Uucp.Break.grapheme_cluster;
+  prop "word" Uucp.Break.word;
+  prop "sentence" Uucp.Break.sentence;
+  ()
+
 let lookup_case count = 
   let prop fname p = prop count "Uucd.Case" fname p in
   prop "is_upper" Uucp.Case.is_upper;
@@ -122,6 +130,7 @@ let lookup count mods =
   if do_lookup `Age    then lookup_age count; 
   if do_lookup `Alpha  then lookup_alpha count; 
   if do_lookup `Block  then lookup_block count;
+  if do_lookup `Break  then lookup_break count;
   if do_lookup `Case   then lookup_case count;
   if do_lookup `Cjk    then lookup_cjk count; 
   if do_lookup `Func   then lookup_func count; 
@@ -151,6 +160,7 @@ let main () =
     "-age",    add `Age, " test the Age module";
     "-alpha",  add `Alpha, " test the Alpha module";
     "-block",  add `Block, " test the Block module";
+    "-break",  add `Break, " test the Break module";
     "-case",   add `Case, " test the Case module";
     "-cjk",    add `Cjk, " test the CJK module";
     "-func",   add `Func, " test the Func module";

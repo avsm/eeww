@@ -21,6 +21,7 @@ action ()
                        -name src/data/uucp_name_data.ml \
                        -alpha src/data/uucp_alpha_data.ml \
                        -block src/data/uucp_block_data.ml \
+                       -break src/data/uucp_break_data.ml \
                        -case src/data/uucp_case_data.ml \
                        -case-fold src/data/uucp_case_fold_data.ml \
                        -case-map src/data/uucp_case_map_data.ml \

@@ -20,8 +20,8 @@ let ucd_or_die inf = try
       exit 1
 with Sys_error e -> Printf.eprintf "%s\n%!" e; exit 1
 
-let process inf age alpha block case case_map case_fold case_nfkc cjk func 
-    gc gen id name num script white =
+let process inf age alpha block break case case_map case_fold case_nfkc cjk
+    func gc gen id name num script white =
   let inf = match inf with None -> "support/ucd.xml" | Some inf -> inf in 
   let ucd = (Gen.log "Loading Unicode character database.\n"; ucd_or_die inf) in
   let generate pp f ucd = match f with 
@@ -41,6 +41,7 @@ let process inf age alpha block case case_map case_fold case_nfkc cjk func
   generate Gen_age.pp_mod age ucd;
   generate Gen_alpha.pp_mod alpha ucd;
   generate Gen_block.pp_mod block ucd;
+  generate Gen_break.pp_mod break ucd;
   generate Gen_case.pp_mod case ucd;
   generate Gen_case_map.pp_mod case_map ucd;
   generate Gen_case_fold.pp_mod case_fold ucd;
@@ -71,6 +72,7 @@ let main () =
   let age = ref None in
   let alpha = ref None in
   let block = ref None in 
+  let break = ref None in
   let case = ref None in   
   let case_map = ref None in 
   let case_fold = ref None in 
@@ -89,6 +91,7 @@ let main () =
     "-age", set age, "<FILE> Support for the age property";
     "-alpha", set alpha, "<FILE> Support for the alphabetic property";
     "-block", set block, "<FILE> Support for block properties";
+    "-break", set break, "<FILE> Support for break properties";
     "-case", set case, "<FILE> Support for case properties";
     "-case-map", set case_map, "<FILE> Support for case mappings";
     "-case-fold", set case_fold, "<FILE> Support for case folding";
@@ -104,8 +107,8 @@ let main () =
     "-white", set white, "<FILE> Support for the white space property"; ]
   in
   Arg.parse (Arg.align options) set_inf usage;
-  process !inf !age !alpha !block !case !case_map !case_fold !case_nfkc !cjk 
-    !func !gc !gen !id !name !num !script !white
+  process !inf !age !alpha !block !break !case !case_map !case_fold
+    !case_nfkc !cjk !func !gc !gen !id !name !num !script !white
 
 let () = main () 
 

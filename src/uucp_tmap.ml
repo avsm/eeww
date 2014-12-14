@@ -4,7 +4,7 @@
    %%NAME%% release %%VERSION%%
   ---------------------------------------------------------------------------*)
 
-(* uchar to aribtrary value trie maps *)
+(* uchar to arbitrary value trie maps *)
 
 type 'a t = 
   { default : 'a;                                      (* default value. *)
@@ -113,4 +113,3 @@ let dump pr_v ppf m =
    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   ---------------------------------------------------------------------------*)
-

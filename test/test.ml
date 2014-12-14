@@ -70,6 +70,15 @@ let assert_block ucd =
   prop ucd "Uucd.Block" "block" block_prop Uucp.Block.block;
   ()
 
+let assert_break ucd =
+  let prop fname ucd_p p = prop ucd "Uucp.Break" fname (ucd_get ucd_p) p in
+  prop "line" Uucd.line_break Uucp.Break.line;
+  prop "grapheme_cluster" Uucd.grapheme_cluster_break
+    Uucp.Break.grapheme_cluster;
+  prop "word" Uucd.word_break Uucp.Break.word;
+  prop "sentence" Uucd.sentence_break Uucp.Break.sentence;
+  ()
+
 let assert_case ucd = 
   let map fname ucd_p p = 
     let assert_map ucd u = match ucd_get ucd_p ucd u with 
@@ -190,6 +199,7 @@ let test inf mods =
   if do_assert `Age    then assert_age ucd; 
   if do_assert `Alpha  then assert_alpha ucd; 
   if do_assert `Block  then assert_block ucd;
+  if do_assert `Break  then assert_break ucd;
   if do_assert `Case   then assert_case ucd;
   if do_assert `Cjk    then assert_cjk ucd; 
   if do_assert `Func   then assert_func ucd; 
@@ -222,6 +232,7 @@ let main () =
     "-age",    add `Age,    " assert the Age module";
     "-alpha",  add `Alpha,  " assert the Alpha module";
     "-block",  add `Block,  " assert the Block module";
+    "-break",  add `Break,  " assert the Break module";
     "-case",   add `Case,   " assert the Case module";
     "-cjk",    add `Cjk,    " assert the CJK module";
     "-func",   add `Func,   " assert the Func module";

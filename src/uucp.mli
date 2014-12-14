@@ -420,8 +420,93 @@ module Block : sig
       [`NB] which is not part of this list as it is not a block. *)
 
   val block : uchar -> t
-  (** [block u] is [u]'s 
-      {{:http://www.unicode.org/reports/tr44/#Block}Block} property. *) 
+  (** [block u] is [u]'s
+      {{:http://www.unicode.org/reports/tr44/#Block}Block} property. *)
+end
+
+(** Break properties.
+
+    These properties are for the Unicode text segmentation and line
+    breaking algorithm.
+
+    {3 References}
+    {ul
+    {- The Unicode Consortium.
+    {e {{:http://www.unicode.org/versions/latest}The Unicode Standard}}.
+    (latest version)}
+    {- Mark Davis.
+    {e {{:http://www.unicode.org/reports/tr29/}UAX #29 Unicode Text
+    Segmentation}}. (latest version)}
+    {- Andy Heninger.
+    {e {{:http://www.unicode.org/reports/tr14/}UAX #14 Unicode Line Breaking
+    Algorithm}}. (latest version)}}
+*)
+module Break : sig
+
+  (** {1:line_break Line break} *)
+
+  type line =
+    [ `AI | `AL | `B2 | `BA | `BB | `BK | `CB | `CJ | `CL | `CM | `CP
+    | `CR | `EX | `GL | `H2 | `H3 | `HL | `HY | `ID | `IN | `IS | `JL
+    | `JT | `JV | `LF | `NL | `NS | `NU | `OP | `PO | `PR | `QU | `RI
+    | `SA | `SG | `SP | `SY | `WJ | `XX | `ZW ]
+  (** The type for line breaks. *)
+
+  val pp_line : Format.formatter -> line -> unit
+  (** [pp_line ppf l] prints an unspecified representation of [l] on
+      [ppf]. *)
+
+  val line : uchar -> line
+  (** [line u] is [u]'s
+      {{:http://www.unicode.org/reports/tr44/#Line_Break}line break}
+      property. *)
+
+  (** {1:grapheme_cluster_break Grapheme cluster break} *)
+
+  type grapheme_cluster =
+    [ `CN | `CR | `EX | `L | `LF | `LV | `LVT | `PP | `RI | `SM | `T | `V | `XX]
+  (** The type for grapheme cluster breaks. *)
+
+  val pp_grapheme_cluster : Format.formatter -> grapheme_cluster -> unit
+  (** [pp_grapheme_cluster ppf g] prints an unspecified representation of [g]
+      on [ppf]. *)
+
+  val grapheme_cluster : uchar -> grapheme_cluster
+  (** [grapheme_cluster u] is [u]'s
+      {{:http://www.unicode.org/reports/tr44/#Grapheme_Cluster_Break}grapheme
+      cluster break} property. *)
+
+  (** {1:word_break Word break} *)
+
+  type word =
+    [ `CR | `DQ | `EX | `Extend | `FO | `HL | `KA | `LE | `LF | `MB | `ML
+    | `MN | `NL | `NU | `RI | `SQ | `XX ]
+  (** The type for word breaks. *)
+
+  val pp_word : Format.formatter -> word -> unit
+  (** [pp_grapheme_cluster ppf g] prints an unspecified representation of [g]
+      on [ppf]. *)
+
+  val word : uchar -> word
+  (** [world u] is [u]'s
+      {{:http://www.unicode.org/reports/tr44/#Word_Break}word break}
+      property. *)
+
+  (** {1:sentence_break Sentence break} *)
+
+  type sentence =
+    [ `AT | `CL | `CR | `EX | `FO | `LE | `LF | `LO | `NU | `SC | `SE | `SP
+    | `ST | `UP | `XX ]
+  (** The type for sentence breaks. *)
+
+  val pp_sentence : Format.formatter -> sentence -> unit
+  (** [pp_grapheme_cluster ppf g] prints an unspecified representation of [g]
+      on [ppf]. *)
+
+  val sentence : uchar -> sentence
+    (** [sentence u] is [u]'s
+        {{:http://www.unicode.org/reports/tr44/#Sentence_Break}sentence break}
+        property. *)
 end
 
 (** Case properties, mappings and foldings.
@@ -825,7 +910,7 @@ module Name : sig
     [ `Abbreviation | `Alternate | `Control | `Correction | `Figment ]
 
   val pp_alias_tag : Format.formatter -> alias_tag -> unit 
-  (** [pp_alias_tag t] prints an unspecified representaitno of [t]
+  (** [pp_alias_tag t] prints an unspecified representation of [t]
       on [ppf]. *) 
 
   val name_alias : uchar -> (alias_tag * string) list
@@ -1090,13 +1175,14 @@ end
     {- Normalization. All properties under that section name in 
        {{:http://www.unicode.org/reports/tr44/#Property_Index_Table}
        this table}.}
-    {- Shaping and rendering. All properties under that section name in 
-       {{:http://www.unicode.org/reports/tr44/#Property_Index_Table}
-       this table} plus
+    {- Shaping and rendering.
+       {{:http://www.unicode.org/reports/tr44/#Join_Control}Join_Control},
+       {{:http://www.unicode.org/reports/tr44/#Joining_Group}Joining_Group},
+       {{:http://www.unicode.org/reports/tr44/#Joining_Type}Joining_Type},
        {{:http://www.unicode.org/reports/tr44/#Indic_Matra_Category}
        Indic_Matra_Category},
        {{:http://www.unicode.org/reports/tr44/#Indic_Syllabic_Category}
-       Indic_Syllabic_Category}}
+       Indic_Syllabic_Category}.}
     {- Bidirectional. All properties under that section name in 
        {{:http://www.unicode.org/reports/tr44/#Property_Index_Table}
        this table}.}

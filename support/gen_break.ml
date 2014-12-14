@@ -4,49 +4,56 @@
    %%NAME%% release %%VERSION%%
   ---------------------------------------------------------------------------*)
 
-(* Unicode version *) 
+let pp_line_break ppf ucd =
+  let size v = 0 in
+  let pp_line_break ppf v = Gen.pp ppf "`%a" Uucp_break_base.pp_line v in
+  Gen.pp_prop_rmap_ucd ppf ucd
+    Uucd.line_break "line_break" "Uucp_break_base.line"
+    pp_line_break ~default:`XX  size
 
-let unicode_version = "%%UNICODE_VERSION%%"
+let pp_grapheme_cluster_break ppf ucd =
+  let size v = 0 in
+  let pp_grapheme_cluster_break ppf v =
+    Gen.pp ppf "`%a" Uucp_break_base.pp_grapheme_cluster v
+  in
+  Gen.pp_prop_rmap_ucd ppf ucd
+    Uucd.grapheme_cluster_break "grapheme_cluster_break"
+    "Uucp_break_base.grapheme_cluster"
+    pp_grapheme_cluster_break ~default:`XX  size
 
-(* Characters *) 
+let pp_word_break ppf ucd =
+  let size v = 0 in
+  let pp_word_break ppf v = Gen.pp ppf "`%a" Uucp_break_base.pp_word v in
+  Gen.pp_prop_rmap_ucd ppf ucd
+    Uucd.word_break "word_break" "Uucp_break_base.word"
+    pp_word_break ~default:`XX size
 
-type uchar = int
-module Uchar = Uucp_uchar 
+let pp_sentence_break ppf ucd =
+  let size v = 0 in
+  let pp_sentence_break ppf v =
+    Gen.pp ppf "`%a" Uucp_break_base.pp_sentence v
+  in
+  Gen.pp_prop_rmap_ucd ppf ucd
+    Uucd.sentence_break "sentence_break" "Uucp_break_base.sentence"
+    pp_sentence_break ~default:`XX size
 
-(* Properties *) 
+let pp_props ppf ucd =
+  pp_line_break ppf ucd;
+  pp_grapheme_cluster_break ppf ucd;
+  pp_word_break ppf ucd;
+  pp_sentence_break ppf ucd;
+  ()
 
-module Age = Uucp_age
-module Break = Uucp_break
-module Alpha = Uucp_alpha
-module Block = Uucp_block
-module Case = Uucp_case
-module Cjk = Uucp_cjk
-module Func = Uucp_func
-module Gc = Uucp_gc
-module Gen = Uucp_gen
-module Id = Uucp_id
-module Name = Uucp_name
-module Num = Uucp_num
-module Script = Uucp_script
-module White = Uucp_white
-
-(* Maps. Not part of the public API. *) 
-
-module Cmap = Uucp_cmap
-module Rmap = Uucp_rmap
-module Tmap = Uucp_tmap
-module Tmapbool = Uucp_tmapbool
-module Tmapbyte = Uucp_tmapbyte
-module Tmap4bytes = Uucp_tmap4bytes
+let pp_mod ppf ucd = Gen.pp_mod pp_props ppf ucd
 
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 Daniel C. Bünzli
+   Copyright (c) 2014 Daniel C. Bünzli.
    All rights reserved.
 
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
-     
+
    1. Redistributions of source code must retain the above copyright
       notice, this list of conditions and the following disclaimer.
 

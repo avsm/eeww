@@ -4,49 +4,28 @@
    %%NAME%% release %%VERSION%%
   ---------------------------------------------------------------------------*)
 
-(* Unicode version *) 
+include Uucp_break_base
 
-let unicode_version = "%%UNICODE_VERSION%%"
+let line u =
+  Uucp_rmap.get Uucp_break_data.line_break_map u
 
-(* Characters *) 
+let grapheme_cluster u =
+  Uucp_rmap.get Uucp_break_data.grapheme_cluster_break_map u
 
-type uchar = int
-module Uchar = Uucp_uchar 
+let word u =
+  Uucp_rmap.get Uucp_break_data.word_break_map u
 
-(* Properties *) 
-
-module Age = Uucp_age
-module Break = Uucp_break
-module Alpha = Uucp_alpha
-module Block = Uucp_block
-module Case = Uucp_case
-module Cjk = Uucp_cjk
-module Func = Uucp_func
-module Gc = Uucp_gc
-module Gen = Uucp_gen
-module Id = Uucp_id
-module Name = Uucp_name
-module Num = Uucp_num
-module Script = Uucp_script
-module White = Uucp_white
-
-(* Maps. Not part of the public API. *) 
-
-module Cmap = Uucp_cmap
-module Rmap = Uucp_rmap
-module Tmap = Uucp_tmap
-module Tmapbool = Uucp_tmapbool
-module Tmapbyte = Uucp_tmapbyte
-module Tmap4bytes = Uucp_tmap4bytes
+let sentence u =
+  Uucp_rmap.get Uucp_break_data.sentence_break_map u
 
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 Daniel C. Bünzli
+   Copyright (c) 2014 Daniel C. Bünzli.
    All rights reserved.
 
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
-     
+
    1. Redistributions of source code must retain the above copyright
       notice, this list of conditions and the following disclaimer.
 
