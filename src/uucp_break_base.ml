@@ -20,6 +20,8 @@ let line_of_byte : line array =
      `ID; `IN; `HY; `BA; `BB; `B2; `ZW; `CM; `WJ; `H2; `H3; `JL; `JV; `JT;
      `RI; `AI; `BK; `CB; `CJ; `CR; ` LF; `NL; `SA; `SG; `SP; `XX |]
 
+let line_max = Array.length line_of_byte - 1
+
 let line_to_byte = function
 | `OP -> 0 | `CL -> 1 | `CP -> 2 | `QU -> 3 | `GL -> 4 | `NS -> 5 | `EX -> 6
 | `SY -> 7 | `IS -> 8 | `PR -> 9 | `PO -> 10 | `NU -> 11 | `AL -> 12 | `HL -> 13
@@ -48,6 +50,8 @@ type grapheme_cluster =
 let grapheme_cluster_of_byte : grapheme_cluster array =
     [| `CN; `CR; `EX; `L; `LF; `LV; `LVT; `PP; `RI; `SM; `T; `V; `XX |]
 
+let grapheme_cluster_max = Array.length grapheme_cluster_of_byte - 1
+
 let grapheme_cluster_to_byte = function
 | `CN -> 0 | `CR -> 1 | `EX -> 2 | `L -> 3 | `LF -> 4 | `LV -> 5 | `LVT -> 6
 | `PP -> 7 | `RI -> 8 | `SM -> 9 | `T -> 10 | `V -> 11 | `XX -> 12
@@ -67,6 +71,8 @@ type word =
 let word_of_byte : word array =
   [| `CR; `DQ; `EX; `Extend; `FO; `HL; `KA; `LE; `LF; `MB; `ML; `MN; `NL; `NU;
      `RI; `SQ; `XX |]
+
+let word_max = Array.length word_of_byte - 1
 
 let word_to_byte = function
 | `CR -> 0 | `DQ -> 1 | `EX -> 2 | `Extend -> 3 | `FO -> 4 | `HL -> 5
@@ -88,6 +94,8 @@ type sentence =
 
 let sentence_of_byte : sentence array =
   [| `AT; `CL; `CR; `EX; `FO; `LE; `LF; `LO; `NU; `SC; `SE; `SP; `ST; `UP; `XX|]
+
+let sentence_max = Array.length sentence_of_byte - 1
 
 let sentence_to_byte = function
 | `AT -> 0 | `CL -> 1 | `CR -> 2 | `EX -> 3 | `FO -> 4 | `LE -> 5 | `LF -> 6

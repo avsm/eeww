@@ -526,6 +526,9 @@ module Low : sig
     val line : uchar -> int
     (** [line u] is an integer that can be used with {!line_of_int}. *)
 
+    val line_max : int
+    (** [line_max] is the maximal value returned by {!line.} *)
+
     val line_of_int : line array
     (** [line_of_int.(i)] is the line break property value corresponding
         to [i]. *)
@@ -534,6 +537,10 @@ module Low : sig
     (** [grapheme_cluster u] is an integer that can be used with
         {!grapheme_cluster_of_int}. *)
 
+    val grapheme_cluster_max : int
+    (** [grapheme_cluster_max] is the maximal value returned by
+        {!grapheme_cluster.} *)
+
     val grapheme_cluster_of_int : grapheme_cluster array
     (** [line_of_int.(i)] is the grapheme cluster break property value
         corresponding to [i]. *)
@@ -541,12 +548,18 @@ module Low : sig
     val word : uchar -> int
     (** [word u] is an integer that can be used with {!word_of_int}. *)
 
+    val word_max : int
+    (** [word_max] is the maximal value returned by {!word.} *)
+
     val word_of_int : word array
     (** [word_of_int.(i)] is the word break property value
         corresponding to [i]. *)
 
     val sentence : uchar -> int
     (** [sentence u] is an integer that can be used with {!sentence_of_int}. *)
+
+    val sentence_max : int
+    (** [sentence_max] is the maximal value returned by {!sentence.} *)
 
     val sentence_of_int : sentence array
     (** [sentence_of_int.(i)] is the sentence break property value
