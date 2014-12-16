@@ -8,17 +8,21 @@ include Uucp_break_base
 
 module Low = struct
   let line u = Uucp_tmapbyte.get Uucp_break_data.line_break_map u
+  let line_max = line_max
   let line_of_int = line_of_byte
 
   let grapheme_cluster u =
     Uucp_tmapbyte.get Uucp_break_data.grapheme_cluster_break_map u
 
+  let grapheme_cluster_max = grapheme_cluster_max
   let grapheme_cluster_of_int = grapheme_cluster_of_byte
 
   let word u = Uucp_tmapbyte.get Uucp_break_data.word_break_map u
+  let word_max = word_max
   let word_of_int = word_of_byte
 
   let sentence u = Uucp_tmapbyte.get Uucp_break_data.sentence_break_map u
+  let sentence_max = sentence_max
   let sentence_of_int = sentence_of_byte
 end
 
