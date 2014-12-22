@@ -1291,7 +1291,7 @@ end
     A very important subset of code points are the Unicode {e scalar
     values}, these are the code points that belong to the ranges
     [0x0000]…[0xD7FF] and [0xE000]…[0x10FFFF]. This is the
-    complete Unicode codespace minus the range [0xD800]…[0xDBFF]
+    complete Unicode codespace minus the range [0xD800]…[0xDFFF]
     of so called {e surrogate} code points, a hack to be able to
     encode all scalar values in UTF-16 (more on that below).
 
@@ -1307,7 +1307,7 @@ end
     uppercase hexadecimal digits with leading zeros omitted unless the
     code point has fewer than four digits (in [printf] words
     ["U+%04X"]).  For example the code point bounds are expressed by
-    U+0000 and U+10FFFF and the surrogate bounds by U+D800 and U+DBFF.
+    U+0000 and U+10FFFF and the surrogate bounds by U+D800 and U+DFFF.
 
     {2:assignements Interlude — what is assigned ?}
 
