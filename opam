@@ -1,13 +1,14 @@
-opam-version: "1.1"
+opam-version: "1.2"
 maintainer: "Daniel Bünzli <daniel.buenzl i@erratique.ch>"
-homepage: "http://erratique.ch/software/uucp"
 authors: ["Daniel Bünzli <daniel.buenzl i@erratique.ch>"]
+homepage: "http://erratique.ch/software/uucp"
 doc: "http://erratique.ch/software/uucp/doc/Uucp"
 dev-repo: "http://erratique.ch/repos/uucp.git"
+bug-reports: "https://github.com/dbuenzli/uucp/issues"
 tags: [ "unicode" "text" "character" "org:erratique" ]
 license: "BSD3"
 depends: [ "ocamlfind" "base-bytes" ]
-ocaml-version: [>= "4.00.0"]
+available: [ ocaml-version >= "4.00.0" ]
 build: 
 [
   [ "ocaml" "pkg/git.ml" ]
