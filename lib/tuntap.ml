@@ -47,22 +47,6 @@ let set_ipv4 ?(netmask=Ipaddr.V4.Prefix.global) devname v4addr =
 
 let get_macaddr iface = Macaddr.of_bytes_exn (get_macaddr iface)
 
-type ifaddr_ = {
-  name_: string;
-  sa_family_: int;
-  addr_: string option;
-  mask_: string option;
-  brd_:  string option;
-}
-
-type ifaddrs_ptr
-
-external getifaddrs_stub : unit -> ifaddrs_ptr option = "getifaddrs_stub"
-external freeifaddrs_stub : ifaddrs_ptr -> unit = "freeifaddrs_stub"
-
-external iface_get : ifaddrs_ptr -> ifaddr_ = "iface_get"
-external iface_next : ifaddrs_ptr -> ifaddrs_ptr option = "iface_next"
-
 module Opt = struct
   type 'a t = 'a option
   let (>>=) x f = match x with Some v -> f v | None -> None
@@ -72,41 +56,75 @@ module Opt = struct
     | None -> raise Not_found
 end
 
-let ifaddr_of_ifaddr_ ifaddr_ =
-  let open Ipaddr in
-  let open Opt in
-  match ifaddr_.sa_family_ with
-  | 0 ->
-    let addr = ifaddr_.addr_ >|= fun v -> (V4.of_bytes_exn v)
-    and nmask = ifaddr_.mask_ >|= fun v -> (V4.of_bytes_exn v)
-    in
-    Some (
-      ifaddr_.name_,
-      `V4 ((run addr), V4.Prefix.(of_netmask (run nmask) (run addr)))
-    )
-  | 1 ->
-    let addr = ifaddr_.addr_ >|= fun v -> (V6.of_bytes_exn v)
-    and nmask = ifaddr_.mask_ >|= fun v -> (V6.of_bytes_exn v)
-    in
-    Some (
-      ifaddr_.name_,
-      `V6 ((run addr), V6.Prefix.(of_netmask (run nmask) (run addr)))
-    )
-  | _ -> None
+module Struct_ifaddrs = struct
+  type t = {
+    name: string;
+    sa_family: int;
+    addr: string option;
+    mask: string option;
+    brd:  string option;
+  }
 
-let getifaddrs () =
+  type t' = string * [ `V4 of (Ipaddr.V4.t * Ipaddr.V4.Prefix.t)
+                     | `V6 of (Ipaddr.V6.t * Ipaddr.V6.Prefix.t)]
+
+  type ptr_t
+
+  external getifaddrs_stub : unit -> ptr_t option = "getifaddrs_stub"
+  external freeifaddrs_stub : ptr_t -> unit = "freeifaddrs_stub"
+  external iface_get : ptr_t -> t = "iface_get"
+  external iface_next : ptr_t -> ptr_t option = "iface_next"
+
+  let to_t' t =
+    let open Ipaddr in
+    let open Opt in
+    match t.sa_family with
+    | 0 ->
+      let addr = t.addr >|= fun v -> (V4.of_bytes_exn v) in
+      let nmask = t.mask >|= fun v -> (V4.of_bytes_exn v) in
+      `V4 (t.name, (run addr), V4.Prefix.(of_netmask (run nmask) (run addr)))
+    | 1 ->
+      let addr = t.addr >|= fun v -> (V6.of_bytes_exn v) in
+      let nmask = t.mask >|= fun v -> (V6.of_bytes_exn v) in
+      `V6 (t.name, (run addr), V6.Prefix.(of_netmask (run nmask) (run addr)))
+    | _ -> `NotIP
+end
+
+let getifaddrs ?(wanted = [`V4; `V6]) () =
+  let open Struct_ifaddrs in
   match getifaddrs_stub () with
   | None -> []
   | Some start ->
     let rec loop acc ptr =
-      let acc = match ifaddr_of_ifaddr_ (iface_get ptr) with
-        | Some p -> p::acc
-        | None -> acc in
+      let acc = match to_t' (iface_get ptr) with
+        | `V4 p as a -> if List.mem `V4 wanted then a::acc else acc
+        | `V6 p as a -> if List.mem `V6 wanted then a::acc else acc
+        | `NotIP -> acc
+      in
       match iface_next ptr with
-      | None ->
-        freeifaddrs_stub start;
-        acc
-      | Some p ->
-        loop acc p
+      | None -> freeifaddrs_stub start; acc
+      | Some p -> loop acc p
     in
     loop [] start
+
+let getifaddrs_v4 () =
+  let v4addrs = getifaddrs ~wanted:[`V4] () in
+  List.map (function
+      | `V4 t -> t
+      | `V6 _ -> invalid_arg "getifaddrs_v4") v4addrs
+
+let getifaddrs_v6 () =
+  let v6addrs = getifaddrs ~wanted:[`V6] () in
+  List.map (function
+      | `V6 t -> t
+      | `V4 _ -> invalid_arg "getifaddrs_v6") v6addrs
+
+module List = struct
+  let filter_map f l =
+    List.fold_left (fun a e -> match f e with Some r -> r::a | None -> a) [] l
+end
+
+let v4_of_ifname ifname = List.filter_map
+    (fun (ifn,a,p) -> if ifn = ifname then Some (a, p) else None) @@ getifaddrs_v4 ()
+let v6_of_ifname ifname = List.filter_map
+    (fun (ifn,a,p) -> if ifn = ifname then Some (a, p) else None ) @@ getifaddrs_v6 ()

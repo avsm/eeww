@@ -60,7 +60,19 @@ val set_up_and_running : string -> unit
     running. Note that when using the [set_ipv4] function, the
     interface will automatically be set up and running. *)
 
-val getifaddrs : unit ->
-  (string * [ `V4 of Ipaddr.V4.t * Ipaddr.V4.Prefix.t
-            | `V6 of Ipaddr.V6.t * Ipaddr.V6.Prefix.t ]) list
-(** [getifaddrs ()] is the list of IP addresses of this host. *)
+val getifaddrs : ?wanted:([`V4 | `V6] list) -> unit ->
+  [ `V4 of string * Ipaddr.V4.t * Ipaddr.V4.Prefix.t
+  | `V6 of string * Ipaddr.V6.t * Ipaddr.V6.Prefix.t ] list
+(** [getifaddrs ()] is the list that associates interface names with
+    their available IP addresses and their prefix. *)
+
+val getifaddrs_v4 : unit -> (string * Ipaddr.V4.t * Ipaddr.V4.Prefix.t) list
+val getifaddrs_v6 : unit -> (string * Ipaddr.V6.t * Ipaddr.V6.Prefix.t) list
+
+val v4_of_ifname : string -> (Ipaddr.V4.t * Ipaddr.V4.Prefix.t) list
+(** [v4_of_ifname ifname] is the list of IPv4 addresses and their
+    prefix associated to interface [ifname]. *)
+
+val v6_of_ifname : string -> (Ipaddr.V6.t * Ipaddr.V6.Prefix.t) list
+(** [v6_of_ifname ifname] is the list of IPv6 addresses and their
+    prefix associated to interface [ifname]. *)
