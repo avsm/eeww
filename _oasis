@@ -8,9 +8,10 @@ Plugins:     META (0.4)
 BuildTools:  ocamlbuild
 
 Library stringext
-  Path:       lib
-  BuildTools: ocamlbuild
-  Modules:    Stringext
+  Path:         lib
+  BuildTools:   ocamlbuild
+  BuildDepends: bytes
+  Modules:      Stringext
 
 Test test_stringext
   Run$:             flag(tests)
