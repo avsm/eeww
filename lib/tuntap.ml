@@ -41,12 +41,9 @@ let opentap = open_ Tap
 let closetun devname = ignore (opentun ~devname ())
 let closetap devname = ignore (opentap ~devname ())
 
-let set_ipaddr ?(netmask=0) devname =
-  let open Ipaddr in
-  function
-  | V4 a ->
-    set_ipv4 devname (V4.to_string a) V4.(to_string (Prefix.mask netmask))
-  | V6 a -> raise (Invalid_argument "Setting IPv6 addresses is currenctly unsupported")
+let set_ipv4 ?(netmask=Ipaddr.V4.Prefix.global) devname v4addr =
+  let open Ipaddr.V4 in
+  set_ipv4 devname (to_bytes v4addr) (to_bytes (Prefix.netmask netmask))
 
 let get_macaddr iface = Macaddr.of_bytes_exn (get_macaddr iface)
 
