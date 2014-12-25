@@ -28,6 +28,8 @@ val trim_left : string -> string
     result element *)
 val split_trim_left : string -> on:string -> trim:string -> string list
 
+val of_char : char -> string
+
 val of_list : char list -> string
 
 val to_list : string -> char list

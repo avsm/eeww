@@ -4,16 +4,16 @@ let string_after s n = String.sub s n (String.length s - n)
 
 let quote s =
   let len = String.length s in
-  let buf = String.create (2 * len) in
-  let pos = ref 0 in
+  let buf = Buffer.create (2 * len) in
   for i = 0 to len - 1 do
     match s.[i] with
       '[' | ']' | '*' | '.' | '\\' | '?' | '+' | '^' | '$' as c ->
-      buf.[!pos] <- '\\'; buf.[!pos + 1] <- c; pos := !pos + 2
-    | c ->
-      buf.[!pos] <- c; pos := !pos + 1
+      Buffer.add_char buf '\\';
+      Buffer.add_char buf c
+    | c -> Buffer.add_char buf c
   done;
-  String.sub buf 0 !pos
+  Buffer.contents buf
+
 
 (* Not tail recursive for "performance", please choose low values for
    [max]. The idea is that max is always small because it's hard
@@ -51,11 +51,12 @@ let split_char_unbounded str ~on =
       with Not_found -> (sub str 0 (offset + 1))::acc
     in loop [] (length str - 1)
 
+let of_char = String.make 1
+
 let full_split str ~on =
   if str = "" then []
   else
-    let sep = create 1 in
-    sep.[0] <- on;
+    let sep = of_char on in
     let rec loop acc offset =
       try begin
         let index = rindex_from str offset on in
@@ -228,9 +229,9 @@ let iteri f l =
 
 let of_list xs =
   let l = List.length xs in
-  let s = String.create l in
-  iteri (fun i c -> s.[i] <- c) xs;
-  s
+  let s = Bytes.create l in
+  iteri (fun i c -> Bytes.set s i c) xs;
+  Bytes.unsafe_to_string s
 
 let to_list s =
   let rec loop acc i =
@@ -240,12 +241,8 @@ let to_list s =
   in loop [] (String.length s - 1)
 
 let of_array a =
-  let len = Array.length a in
-  let s = String.create len in
-  for i = 0 to len - 1 do
-    s.[i] <- a.(i)
-  done;
-  s
+  Bytes.init (Array.length a) (Array.get a)
+  |> Bytes.unsafe_to_string
 
 let to_array s = Array.init (String.length s) (String.get s)
 
