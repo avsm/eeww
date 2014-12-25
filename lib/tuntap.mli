@@ -60,15 +60,7 @@ val set_up_and_running : string -> unit
     running. Note that when using the [set_ipv4] function, the
     interface will automatically be set up and running. *)
 
-type ipaddr =
-  | AF_INET of Ipaddr.V4.t * Ipaddr.V4.Prefix.t
-  | AF_INET6 of Ipaddr.V6.t * Ipaddr.V6.Prefix.t
-
-type ifaddr = {
-  name: string;
-  ipaddr: ipaddr
-}
-(** Type of the interface addresses record. *)
-
-val getifaddrs : unit -> ifaddr list
+val getifaddrs : unit ->
+  (string * [ `V4 of Ipaddr.V4.t * Ipaddr.V4.Prefix.t
+            | `V6 of Ipaddr.V6.t * Ipaddr.V6.Prefix.t ]) list
 (** [getifaddrs ()] is the list of IP addresses of this host. *)

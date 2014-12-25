@@ -57,15 +57,6 @@ type ifaddr_ = {
 
 type ifaddrs_ptr
 
-type ipaddr =
-  | AF_INET of Ipaddr.V4.t * Ipaddr.V4.Prefix.t
-  | AF_INET6 of Ipaddr.V6.t * Ipaddr.V6.Prefix.t
-
-type ifaddr = {
-  name: string;
-  ipaddr: ipaddr
-}
-
 external getifaddrs_stub : unit -> ifaddrs_ptr option = "getifaddrs_stub"
 external freeifaddrs_stub : ifaddrs_ptr -> unit = "freeifaddrs_stub"
 
@@ -89,18 +80,18 @@ let ifaddr_of_ifaddr_ ifaddr_ =
     let addr = ifaddr_.addr_ >|= fun v -> (V4.of_bytes_exn v)
     and nmask = ifaddr_.mask_ >|= fun v -> (V4.of_bytes_exn v)
     in
-    Some {
-      name = ifaddr_.name_;
-      ipaddr = AF_INET ((run addr), V4.Prefix.(of_netmask (run nmask) (run addr)))
-    }
+    Some (
+      ifaddr_.name_,
+      `V4 ((run addr), V4.Prefix.(of_netmask (run nmask) (run addr)))
+    )
   | 1 ->
     let addr = ifaddr_.addr_ >|= fun v -> (V6.of_bytes_exn v)
     and nmask = ifaddr_.mask_ >|= fun v -> (V6.of_bytes_exn v)
     in
-    Some {
-      name = ifaddr_.name_;
-      ipaddr = AF_INET6 ((run addr), V6.Prefix.(of_netmask (run nmask) (run addr)))
-    }
+    Some (
+      ifaddr_.name_,
+      `V6 ((run addr), V6.Prefix.(of_netmask (run nmask) (run addr)))
+    )
   | _ -> None
 
 let getifaddrs () =
