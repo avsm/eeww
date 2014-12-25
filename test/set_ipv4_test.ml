@@ -1,20 +1,25 @@
-open Ipaddr
 open Tuntap
-open OUnit
+open OUnit2
 
-let test_setipv4 ipv4 netmask () =
-  let ipv4 = of_string_exn ipv4 in
+open Ipaddr
+
+let test_setipv4 ipv4 netmask ctx =
+  let ipv4 = V4.of_string_exn ipv4 in
+  let netmask = V4.Prefix.make netmask ipv4 in
   let fd, devname = opentap ~devname:"tap0" () in
-  set_ipaddr ~netmask devname ipv4;
-  let iface_addr = List.find
-      (fun ifaddr -> ifaddr.name = devname
-                     && match ifaddr.ipaddr with AF_INET _ -> true | _ -> false)
-      (getifaddrs ())
-  in
-  assert_equal (ipv4, netmask) (match iface_addr.ipaddr with
-      | AF_INET (a, p) -> V4 a, V4.Prefix.bits p
-      | _ -> assert false);
-
+  set_ipv4 ~netmask devname ipv4;
+  let iface_addr = snd @@ List.find
+      (function (dev, `V4 _) when dev = devname -> true | _ -> false)
+      (getifaddrs ()) in
+  assert_equal
+    ~msg:(Printf.sprintf "%s %s" (V4.to_string ipv4) (V4.Prefix.to_string netmask))
+    ~printer:(function
+        | `V4 (a, m) ->
+          Printf.sprintf "%s %s" (V4.to_string a) (V4.Prefix.to_string m)
+        | `V6 (a, m) ->
+          Printf.sprintf "%s %s" (V6.to_string a) (V6.Prefix.to_string m)
+      )
+    (`V4 (ipv4, netmask)) iface_addr;
   Unix.close fd
 
 let suite = "Test IPv4" >:::
@@ -26,6 +31,5 @@ let suite = "Test IPv4" >:::
              "test_wrongclassC" >:: test_setipv4 "192.168.1.2" 8;
              "test_noclass" >:: test_setipv4 "192.168.1.2" 23;
             ]
-
 
 let _ = run_test_tt_main suite
