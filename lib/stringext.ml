@@ -241,8 +241,7 @@ let to_list s =
   in loop [] (String.length s - 1)
 
 let of_array a =
-  Bytes.init (Array.length a) (Array.get a)
-  |> Bytes.unsafe_to_string
+  Bytes.unsafe_to_string (Bytes.init (Array.length a) (Array.get a))
 
 let to_array s = Array.init (String.length s) (String.get s)
 
