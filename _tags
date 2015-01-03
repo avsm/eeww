@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: a29bf8bb2481e92de84bddc6f4d15bdf)
+# DO NOT EDIT (digest: 40049eadd1b3cebd3619e66924819b6e)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -18,12 +18,6 @@ true: annot, bin_annot
 "lib/tuntap.cmxs": use_tuntap
 <lib/*.ml{,i,y}>: oasis_library_tuntap_ccopt
 "lib/tuntap_stubs.c": oasis_library_tuntap_ccopt
-<lib/tuntap.{cma,cmxa}>: oasis_library_tuntap_byte
-<lib/*.ml{,i,y}>: oasis_library_tuntap_byte
-"lib/tuntap_stubs.c": oasis_library_tuntap_byte
-<lib/tuntap.{cma,cmxa}>: oasis_library_tuntap_native
-<lib/*.ml{,i,y}>: oasis_library_tuntap_native
-"lib/tuntap_stubs.c": oasis_library_tuntap_native
 <lib/tuntap.{cma,cmxa}>: use_libtuntap_stubs
 <lib/*.ml{,i,y}>: pkg_bytes
 <lib/*.ml{,i,y}>: pkg_ipaddr
