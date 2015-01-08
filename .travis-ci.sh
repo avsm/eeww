@@ -23,5 +23,6 @@ opam init
 opam install ${OPAM_DEPENDS}
 
 eval `opam config env`
+./configure --enable-tests
 make
 ./_build/test/getifaddrs_test.native
