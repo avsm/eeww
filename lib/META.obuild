@@ -1,6 +1,0 @@
-name            = "tuntap"
-version         = "0.1"
-require         = "unix"
-description     = "Bindings to the TUN/TAP interface on Unix"
-archive(byte)   = "tuntap.cma"
-archive(native) = "tuntap.cmxa"
