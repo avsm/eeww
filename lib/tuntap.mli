@@ -52,27 +52,41 @@ val get_macaddr : string -> Macaddr.t
     [devname], as a raw string (not hexa). *)
 
 val set_ipv4 : ?netmask:Ipaddr.V4.Prefix.t -> string -> Ipaddr.V4.t -> unit
-(** [set_ipv4 ~netmask dev ipaddr] assign an [ipaddr] to interface
-    [dev], with the default netmask unless [netmask] is specified. *)
+(** [set_ipv4 ~netmask dev ipaddr] assigns an [ipaddr] to interface
+    [dev], with associated netmask [netmask] if specified. If
+    unspecified, the kernel will assign a default netmask
+    automatically. *)
 
 val set_up_and_running : string -> unit
 (** [set_up_and_running devname] sets interface [devname] up and
     running. Note that when using the [set_ipv4] function, the
     interface will automatically be set up and running. *)
 
-val getifaddrs : ?wanted:([`V4 | `V6] list) -> unit ->
-  [ `V4 of string * Ipaddr.V4.t * Ipaddr.V4.Prefix.t
-  | `V6 of string * Ipaddr.V6.t * Ipaddr.V6.Prefix.t ] list
+val getifaddrs : unit ->
+  (string * [ `V4 of Ipaddr.V4.t * Ipaddr.V4.Prefix.t
+            | `V6 of Ipaddr.V6.t * Ipaddr.V6.Prefix.t ]) list
 (** [getifaddrs ()] is the list that associates interface names with
-    their available IP addresses and their prefix. *)
+    IP addresses and prefix. Only interfaces that have an IP address
+    assigned are returned. *)
 
-val getifaddrs_v4 : unit -> (string * Ipaddr.V4.t * Ipaddr.V4.Prefix.t) list
-val getifaddrs_v6 : unit -> (string * Ipaddr.V6.t * Ipaddr.V6.Prefix.t) list
+val getifaddrs_v4 : unit -> (string * (Ipaddr.V4.t * Ipaddr.V4.Prefix.t)) list
+(** Same as [getifaddrs] but only return interfaces that have an IPv4
+    assigned. *)
+
+val getifaddrs_v6 : unit -> (string * (Ipaddr.V6.t * Ipaddr.V6.Prefix.t)) list
+(** Same as [getifaddrs] but only return interfaces that have an IPv6
+    assigned. *)
+
+val addrs_of_ifname : string ->
+  [ `V4 of Ipaddr.V4.t * Ipaddr.V4.Prefix.t
+  | `V6 of Ipaddr.V6.t * Ipaddr.V6.Prefix.t ] list
+(** [addrs_of_ifname ifname] is the list of IP addresses and their
+    prefixes associated to interface [ifname]. *)
 
 val v4_of_ifname : string -> (Ipaddr.V4.t * Ipaddr.V4.Prefix.t) list
 (** [v4_of_ifname ifname] is the list of IPv4 addresses and their
-    prefix associated to interface [ifname]. *)
+    prefixes associated to interface [ifname]. *)
 
 val v6_of_ifname : string -> (Ipaddr.V6.t * Ipaddr.V6.Prefix.t) list
 (** [v6_of_ifname ifname] is the list of IPv6 addresses and their
-    prefix associated to interface [ifname]. *)
+    prefixes associated to interface [ifname]. *)

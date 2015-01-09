@@ -65,9 +65,6 @@ module Struct_ifaddrs = struct
     brd:  string option;
   }
 
-  type t' = string * [ `V4 of (Ipaddr.V4.t * Ipaddr.V4.Prefix.t)
-                     | `V6 of (Ipaddr.V6.t * Ipaddr.V6.Prefix.t)]
-
   type ptr_t
 
   external getifaddrs_stub : unit -> ptr_t option = "getifaddrs_stub"
@@ -82,24 +79,23 @@ module Struct_ifaddrs = struct
     | 0 ->
       let addr = t.addr >|= fun v -> (V4.of_bytes_exn v) in
       let nmask = t.mask >|= fun v -> (V4.of_bytes_exn v) in
-      `V4 (t.name, (run addr), V4.Prefix.(of_netmask (run nmask) (run addr)))
+      Some (t.name, `V4 ((run addr), V4.Prefix.(of_netmask (run nmask) (run addr))))
     | 1 ->
       let addr = t.addr >|= fun v -> (V6.of_bytes_exn v) in
       let nmask = t.mask >|= fun v -> (V6.of_bytes_exn v) in
-      `V6 (t.name, (run addr), V6.Prefix.(of_netmask (run nmask) (run addr)))
-    | _ -> `NotIP
+      Some (t.name, `V6 ((run addr), V6.Prefix.(of_netmask (run nmask) (run addr))))
+    | _ -> None
 end
 
-let getifaddrs ?(wanted = [`V4; `V6]) () =
+let getifaddrs () =
   let open Struct_ifaddrs in
   match getifaddrs_stub () with
   | None -> []
   | Some start ->
     let rec loop acc ptr =
       let acc = match to_t' (iface_get ptr) with
-        | `V4 p as a -> if List.mem `V4 wanted then a::acc else acc
-        | `V6 p as a -> if List.mem `V6 wanted then a::acc else acc
-        | `NotIP -> acc
+        | None -> acc
+        | Some t' -> t'::acc
       in
       match iface_next ptr with
       | None -> freeifaddrs_stub start; acc
@@ -107,24 +103,25 @@ let getifaddrs ?(wanted = [`V4; `V6]) () =
     in
     loop [] start
 
+let filter_map f l =
+  List.fold_left (fun a v -> match f v with Some v' -> v'::a | None -> a) [] l
+
 let getifaddrs_v4 () =
-  let v4addrs = getifaddrs ~wanted:[`V4] () in
-  List.map (function
-      | `V4 t -> t
-      | `V6 _ -> invalid_arg "getifaddrs_v4") v4addrs
+  filter_map (function (ifn, `V4 a) -> Some (ifn, a)  | _ -> None) @@
+  getifaddrs ()
 
 let getifaddrs_v6 () =
-  let v6addrs = getifaddrs ~wanted:[`V6] () in
-  List.map (function
-      | `V6 t -> t
-      | `V4 _ -> invalid_arg "getifaddrs_v6") v6addrs
+  filter_map (function (ifn, `V6 a) -> Some (ifn, a ) | _ -> None) @@
+  getifaddrs ()
 
-module List = struct
-  let filter_map f l =
-    List.fold_left (fun a e -> match f e with Some r -> r::a | None -> a) [] l
-end
+let addrs_of_ifname ifname =
+  filter_map (fun (ifn, a) -> if ifn = ifname then Some a else None) @@
+  getifaddrs ()
 
-let v4_of_ifname ifname = List.filter_map
-    (fun (ifn,a,p) -> if ifn = ifname then Some (a, p) else None) @@ getifaddrs_v4 ()
-let v6_of_ifname ifname = List.filter_map
-    (fun (ifn,a,p) -> if ifn = ifname then Some (a, p) else None ) @@ getifaddrs_v6 ()
+let v4_of_ifname ifname =
+  filter_map (fun (ifn, a) -> if ifn = ifname then Some a else None) @@
+  getifaddrs_v4 ()
+
+let v6_of_ifname ifname =
+  filter_map (fun (ifn, a) -> if ifn = ifname then Some a else None) @@
+  getifaddrs_v6 ()
