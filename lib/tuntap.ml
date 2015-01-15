@@ -41,39 +41,11 @@ let opentap = open_ Tap
 let closetun devname = ignore (opentun ~devname ())
 let closetap devname = ignore (opentap ~devname ())
 
-let set_ipaddr ?(netmask=0) devname =
-  let open Ipaddr in
-  function
-  | V4 a ->
-    set_ipv4 devname (V4.to_string a) V4.(to_string (Prefix.mask netmask))
-  | V6 a -> raise (Invalid_argument "Setting IPv6 addresses is currenctly unsupported")
+let set_ipv4 ?(netmask=Ipaddr.V4.Prefix.global) devname v4addr =
+  let open Ipaddr.V4 in
+  set_ipv4 devname (to_bytes v4addr) (to_bytes (Prefix.netmask netmask))
 
 let get_macaddr iface = Macaddr.of_bytes_exn (get_macaddr iface)
-
-type ifaddr_ = {
-  name_: string;
-  sa_family_: int;
-  addr_: string option;
-  mask_: string option;
-  brd_:  string option;
-}
-
-type ifaddrs_ptr
-
-type ipaddr =
-  | AF_INET of Ipaddr.V4.t * Ipaddr.V4.Prefix.t
-  | AF_INET6 of Ipaddr.V6.t * Ipaddr.V6.Prefix.t
-
-type ifaddr = {
-  name: string;
-  ipaddr: ipaddr
-}
-
-external getifaddrs_stub : unit -> ifaddrs_ptr option = "getifaddrs_stub"
-external freeifaddrs_stub : ifaddrs_ptr -> unit = "freeifaddrs_stub"
-
-external iface_get : ifaddrs_ptr -> ifaddr_ = "iface_get"
-external iface_next : ifaddrs_ptr -> ifaddrs_ptr option = "iface_next"
 
 module Opt = struct
   type 'a t = 'a option
@@ -84,41 +56,72 @@ module Opt = struct
     | None -> raise Not_found
 end
 
-let ifaddr_of_ifaddr_ ifaddr_ =
-  let open Ipaddr in
-  let open Opt in
-  match ifaddr_.sa_family_ with
-  | 0 ->
-    let addr = ifaddr_.addr_ >|= fun v -> (V4.of_bytes_exn v)
-    and nmask = ifaddr_.mask_ >|= fun v -> (V4.of_bytes_exn v)
-    in
-    Some {
-      name = ifaddr_.name_;
-      ipaddr = AF_INET ((run addr), V4.Prefix.(of_netmask (run nmask) (run addr)))
-    }
-  | 1 ->
-    let addr = ifaddr_.addr_ >|= fun v -> (V6.of_bytes_exn v)
-    and nmask = ifaddr_.mask_ >|= fun v -> (V6.of_bytes_exn v)
-    in
-    Some {
-      name = ifaddr_.name_;
-      ipaddr = AF_INET6 ((run addr), V6.Prefix.(of_netmask (run nmask) (run addr)))
-    }
-  | _ -> None
+module Struct_ifaddrs = struct
+  type t = {
+    name: string;
+    sa_family: int;
+    addr: string option;
+    mask: string option;
+    brd:  string option;
+  }
+
+  type ptr_t
+
+  external getifaddrs_stub : unit -> ptr_t option = "getifaddrs_stub"
+  external freeifaddrs_stub : ptr_t -> unit = "freeifaddrs_stub"
+  external iface_get : ptr_t -> t = "iface_get"
+  external iface_next : ptr_t -> ptr_t option = "iface_next"
+
+  let to_t' t =
+    let open Ipaddr in
+    let open Opt in
+    match t.sa_family with
+    | 0 ->
+      let addr = t.addr >|= fun v -> (V4.of_bytes_exn v) in
+      let nmask = t.mask >|= fun v -> (V4.of_bytes_exn v) in
+      Some (t.name, `V4 ((run addr), V4.Prefix.(of_netmask (run nmask) (run addr))))
+    | 1 ->
+      let addr = t.addr >|= fun v -> (V6.of_bytes_exn v) in
+      let nmask = t.mask >|= fun v -> (V6.of_bytes_exn v) in
+      Some (t.name, `V6 ((run addr), V6.Prefix.(of_netmask (run nmask) (run addr))))
+    | _ -> None
+end
 
 let getifaddrs () =
+  let open Struct_ifaddrs in
   match getifaddrs_stub () with
   | None -> []
   | Some start ->
     let rec loop acc ptr =
-      let acc = match ifaddr_of_ifaddr_ (iface_get ptr) with
-        | Some p -> p::acc
-        | None -> acc in
+      let acc = match to_t' (iface_get ptr) with
+        | None -> acc
+        | Some t' -> t'::acc
+      in
       match iface_next ptr with
-      | None ->
-        freeifaddrs_stub start;
-        acc
-      | Some p ->
-        loop acc p
+      | None -> freeifaddrs_stub start; acc
+      | Some p -> loop acc p
     in
     loop [] start
+
+let filter_map f l =
+  List.fold_left (fun a v -> match f v with Some v' -> v'::a | None -> a) [] l
+
+let getifaddrs_v4 () =
+  filter_map (function (ifn, `V4 a) -> Some (ifn, a)  | _ -> None) @@
+  getifaddrs ()
+
+let getifaddrs_v6 () =
+  filter_map (function (ifn, `V6 a) -> Some (ifn, a ) | _ -> None) @@
+  getifaddrs ()
+
+let addrs_of_ifname ifname =
+  filter_map (fun (ifn, a) -> if ifn = ifname then Some a else None) @@
+  getifaddrs ()
+
+let v4_of_ifname ifname =
+  filter_map (fun (ifn, a) -> if ifn = ifname then Some a else None) @@
+  getifaddrs_v4 ()
+
+let v6_of_ifname ifname =
+  filter_map (fun (ifn, a) -> if ifn = ifname then Some a else None) @@
+  getifaddrs_v6 ()

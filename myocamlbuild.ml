@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: ce3b0ca224c27ac3b7692fba26bcb6b0) *)
+(* DO NOT EDIT (digest: a4e569b14fba79bb145a339a5768a809) *)
 module OASISGettext = struct
 (* # 22 "src/oasis/OASISGettext.ml" *)
 
@@ -612,19 +612,7 @@ let package_default =
      flags =
        [
           (["oasis_library_tuntap_ccopt"; "compile"],
-            [(OASISExpr.EBool true, S [A "-ccopt"; A "-O3"])]);
-          (["oasis_library_tuntap_byte"; "ocaml"; "link"; "byte"],
-            [(OASISExpr.EBool true, S [A "-bin-annot"])]);
-          (["oasis_library_tuntap_native"; "ocaml"; "link"; "native"],
-            [(OASISExpr.EBool true, S [A "-bin-annot"])]);
-          (["oasis_library_tuntap_byte"; "ocaml"; "ocamldep"; "byte"],
-            [(OASISExpr.EBool true, S [A "-bin-annot"])]);
-          (["oasis_library_tuntap_native"; "ocaml"; "ocamldep"; "native"],
-            [(OASISExpr.EBool true, S [A "-bin-annot"])]);
-          (["oasis_library_tuntap_byte"; "ocaml"; "compile"; "byte"],
-            [(OASISExpr.EBool true, S [A "-bin-annot"])]);
-          (["oasis_library_tuntap_native"; "ocaml"; "compile"; "native"],
-            [(OASISExpr.EBool true, S [A "-bin-annot"])])
+            [(OASISExpr.EBool true, S [A "-ccopt"; A "-O3"])])
        ];
      includes = [("test", ["lib"]); ("bin", ["lib"])]
   }
@@ -634,6 +622,6 @@ let conf = {MyOCamlbuildFindlib.no_automatic_syntax = false}
 
 let dispatch_default = MyOCamlbuildBase.dispatch_default conf package_default;;
 
-# 638 "myocamlbuild.ml"
+# 626 "myocamlbuild.ml"
 (* OASIS_STOP *)
 Ocamlbuild_plugin.dispatch dispatch_default;;

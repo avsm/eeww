@@ -7,3 +7,4 @@ B _build/lib
 B _build/test
 PKG lwt
 PKG ipaddr
+PKG oUnit

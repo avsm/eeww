@@ -15,8 +15,6 @@ Library tuntap
   BuildDepends: ipaddr, bytes
   CSources: tuntap_stubs.c
   CCOpt: -O3
-  NativeOpt: -bin-annot
-  ByteOpt: -bin-annot
 
 Executable otunctl
   Path: bin
@@ -24,7 +22,7 @@ Executable otunctl
   BuildDepends: tuntap, cmdliner
   CompiledObject: native
   Install: false
-  Build: true
+  Build$: flag(tests)
 
 Executable sendfd_test
   Path: test
@@ -32,7 +30,7 @@ Executable sendfd_test
   BuildDepends: tuntap, lwt.unix
   CompiledObject: native
   Install: false
-  Build: true
+  Build$: flag(tests)
 
 Executable nonblock_test
   Path: test
@@ -40,7 +38,7 @@ Executable nonblock_test
   BuildDepends: tuntap, lwt.unix
   CompiledObject: native
   Install: false
-  Build: true
+  Build$: flag(tests)
 
 Executable nonblock_read
   Path: test
@@ -48,7 +46,7 @@ Executable nonblock_read
   BuildDepends: tuntap, lwt.unix
   CompiledObject: native
   Install: false
-  Build: true
+  Build$: flag(tests)
 
 Executable getifaddrs_test
   Path: test
@@ -56,7 +54,7 @@ Executable getifaddrs_test
   BuildDepends: tuntap, ipaddr
   CompiledObject: native
   Install: false
-  Build: true
+  Build$: flag(tests)
 
 Executable set_ipv4_test
   Path: test
@@ -64,7 +62,7 @@ Executable set_ipv4_test
   BuildDepends: tuntap, ipaddr, oUnit
   CompiledObject: native
   Install: false
-  Build: true
+  Build$: flag(tests)
 
 Document api
   Title: Documentation and API reference
