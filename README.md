@@ -9,6 +9,7 @@ database as an ML datastructure.
 
 For example, here's how to lookup MIME types in the [utop] REPL:
 
+    #require "magic-mime";;
     Magic_mime.lookup "/foo/bar.txt";;
     - : bytes = "text/plain"
     Magic_mime.lookup "bar.css";;
