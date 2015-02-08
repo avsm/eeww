@@ -1,0 +1,7 @@
+language: c
+install: wget https://raw.githubusercontent.com/ocaml/ocaml-travisci-skeleton/master/.travis-opam.sh
+script: bash -ex .travis-opam.sh
+env:
+  - PACKAGE="magic-mime" OCAML_VERSION=4.00
+  - PACKAGE="magic-mime" OCAML_VERSION=4.01 
+  - PACKAGE="magic-mime" OCAML_VERSION=latest
