@@ -18,5 +18,5 @@
 
 val lookup : string -> string
 (** [lookup filename] will return a MIME type for the full [filename]
-    supplied by examining its extension and looking it up using
+    supplied by examining its extension and look it up by using
     {!Mime_types.map_extension}. *)
