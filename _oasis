@@ -1,0 +1,28 @@
+OASISFormat: 0.4
+Name:        magic-mime
+Version:     1.0.0
+Synopsis:    Convert file extensions to MIME types
+Description: This library contains a database of MIME types that
+  maps filename extensions into MIME types suitable for use in many
+  Internet protocols such as HTTP or e-mail.  It is generated from
+  the [mime.types] file found in Unix systems, but has no dependency
+  on a filesystem since it includes the contents of the database as
+  an ML datastructure.
+
+Authors:     Anil Madhavapeddy
+Maintainers: Anil Madhavapeddy <anil@recoil.org>
+Homepage:    https://github.com/mirage/ocaml-magic-mime
+License:     ISC
+Plugins:     META (0.4), DevFiles (0.4)
+BuildTools:  ocamlbuild
+PostConfCommand: sh ./generate.sh
+
+Library "magic-mime"
+  Path:          .
+  Findlibname:   magic-mime
+  Modules:       Magic_mime, Mime_types
+
+SourceRepository master
+  Type:     git
+  Location: https://github.com/mirage/ocaml-magic-mime
+  Browser:  https://github.com/mirage/ocaml-magic-mime
