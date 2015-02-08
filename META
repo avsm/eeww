@@ -1,0 +1,11 @@
+# OASIS_START
+# DO NOT EDIT (digest: ce6089afa11a1679e4474e5a3a4e05a2)
+version = "1.0.0"
+description = "Convert file extensions to MIME types"
+archive(byte) = "magic-mime.cma"
+archive(byte, plugin) = "magic-mime.cma"
+archive(native) = "magic-mime.cmxa"
+archive(native, plugin) = "magic-mime.cmxs"
+exists_if = "magic-mime.cma"
+# OASIS_STOP
+
