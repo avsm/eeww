@@ -19,3 +19,7 @@
 (** [map_extension e] converts the file extension [e] into a MIME type,
     defaulting to [application/octet-stream] if it is unknown. *)
 val map_extension : string -> string
+
+(** [map_file f] converts the filename [f] into a MIME type,
+    defaulting to [application/octet-stream] if it is unknown. *)
+val map_file : string -> string

@@ -1,6 +1,7 @@
 # Additional extensions
 
 text/x-R			r R Rhistory Rout Rout.save Rout.fail
+text/x-autoconf		ac
 text/x-ada		adb ads
 text/x-asp		asp
 text/x-bibtex	bib
