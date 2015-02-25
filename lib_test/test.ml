@@ -19,7 +19,6 @@ let (>>=) = Lwt.bind
 
 let inputs = [ "123"; "45"; "6789"; "0" ]
 let output = "xxxxxxxxxx"
-let hihi = Cstruct.of_string "hihi"
 
 let pp_str fmt =
   let b = Buffer.create 20 in                         (* for thread safety. *)
@@ -58,7 +57,7 @@ let input_string () =
   Fflow.read ic >>= fun x2 ->
   check_buffer (Cstruct.of_string output) x1;
   check_eof x2;
-  Fflow.write ic hihi >>= fun r ->
+  Fflow.write ic (cs "hihi") >>= fun r ->
   check_eof r;
   Lwt.return_unit
 
