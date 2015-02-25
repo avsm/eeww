@@ -1,0 +1,28 @@
+OASISFormat: 0.4
+Name:        mirage-flow
+Version:     1.0.0
+Synopsis:    Mirage flow implementations
+Authors:     Thomas Gazagnaire
+License:     ISC
+Plugins:     META (0.4), DevFiles (0.4)
+BuildTools:  ocamlbuild
+
+Library "mirage-flow"
+  CompiledObject:     best
+  Path:               lib
+  Findlibname:        mirage-flow
+  Modules:            Fflow
+  BuildDepends:       mirage-types.lwt, lwt, cstruct
+
+Executable test_flow
+  Path:           lib_test
+  MainIs:         test.ml
+  Build$:         flag(tests)
+  CompiledObject: best
+  Install:        false
+  BuildDepends:   mirage-flow, alcotest, ounit, lwt.unix
+
+Test test_flow
+  Run$:             flag(tests)
+  Command:          $test_flow -q
+  WorkingDirectory: lib_test
