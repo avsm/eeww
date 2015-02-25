@@ -621,5 +621,8 @@ let dispatch_default = MyOCamlbuildBase.dispatch_default conf package_default;;
 # 622 "myocamlbuild.ml"
 (* OASIS_STOP *)
 Ocamlbuild_plugin.dispatch dispatch_default;;
+
+(*
 Ocamlbuild_plugin.mark_tag_used "tests";;
 Ocamlbuild_plugin.mark_tag_used "pkg_ounit";;
+*)
