@@ -17,7 +17,9 @@
 open Printf
 let (>>=) = Lwt.bind
 
-let str = "1234567890"
+let inputs = [ "123"; "45"; "6789"; "0" ]
+let output = "xxxxxxxxxx"
+let hihi = Cstruct.of_string "hihi"
 
 let pp_str fmt =
   let b = Buffer.create 20 in                         (* for thread safety. *)
@@ -50,26 +52,48 @@ let check_eof = function
 
 let cs str = Cstruct.of_string str
 
-let input () =
-  let ic = Fflow.read_string ~chunk_size:3 str in
+let input_string () =
+  let ic = Fflow.string ~input:output () in
+  Fflow.read ic >>= fun x1 ->
+  Fflow.read ic >>= fun x2 ->
+  check_buffer (Cstruct.of_string output) x1;
+  check_eof x2;
+  Fflow.write ic hihi >>= fun r ->
+  check_eof r;
+  Lwt.return_unit
+
+let output_string () =
+  let oc = Fflow.string ~output () in
+  Fflow.write oc (cs  "hell") >>= fun x1 ->
+  Fflow.write oc (cs   "o! ") >>= fun x2 ->
+  Fflow.write oc (cs "world") >>= fun x3 ->
+  check_ok x1;
+  check_ok x2;
+  check_eof x3;
+  Fflow.read oc >>= fun r ->
+  check_eof r;
+  Lwt.return_unit
+
+let input_strings () =
+  let ic = Fflow.strings ~input:inputs () in
   Fflow.read ic >>= fun x1 ->
   Fflow.read ic >>= fun x2 ->
   Fflow.read ic >>= fun x3 ->
   Fflow.read ic >>= fun x4 ->
   Fflow.read ic >>= fun y ->
   Fflow.read ic >>= fun z ->
-  check_buffer (cs "123") x1;
-  check_buffer (cs "456") x2;
-  check_buffer (cs "789") x3;
-  check_buffer (cs   "0") x4;
+  check_buffer (cs  "123") x1;
+  check_buffer (cs   "45") x2;
+  check_buffer (cs "6789") x3;
+  check_buffer (cs    "0") x4;
   check_eof y;
   check_eof z;
   Fflow.write ic (cs "hihi") >>= fun w ->
   check_eof w;
   Lwt.return_unit
 
-let output () =
-  let oc = Fflow.write_string ~chunk_size:3 str in
+let output_strings () =
+  let oc = Fflow.string ~output () in
   Fflow.write oc (cs  "hell") >>= fun x1 ->
   Fflow.write oc (cs   "o! ") >>= fun x2 ->
   Fflow.write oc (cs "world") >>= fun x3 ->
@@ -82,12 +106,18 @@ let output () =
 
 let run f () = Lwt_main.run (f ())
 
-let simple = [
-  "input" , `Quick, run input;
-  "output", `Quick, run output;
+let string = [
+  "input" , `Quick, run input_string;
+  "output", `Quick, run output_string;
+]
+
+let strings = [
+  "input" , `Quick, run input_strings;
+  "output", `Quick, run output_strings;
 ]
 
 let () =
   Alcotest.run "mirage-flow" [
-    "simple", simple
+    "string"  , string;
+    "strings" , strings;
   ]
