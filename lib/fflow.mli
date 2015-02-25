@@ -24,27 +24,50 @@ val pp_error: Format.formatter -> error -> unit
 
 include V1_LWT.FLOW with type error := error
 
-val make: ?close:(unit -> unit Lwt.t) -> (Cstruct.t -> int -> int -> int Lwt.t) -> flow
-(** [make ~close refill] is an abstract flow using [refill] to refill
-    internal buffer when needed, and using [close] to clean-up other
-    resources on close. *)
+type refill = Cstruct.t -> int -> int -> int Lwt.t
+(** The type for refill functions. *)
 
-(** {1 Readers} *)
+val make:
+  ?close:(unit -> unit Lwt.t) -> ?input:refill -> ?output:refill -> unit -> flow
+(** [make ~close ~input ~output ()] is a flow using [input] to refill
+    its internal input buffer when needed and [output] to refill its
+    external output buffer. It is using [close] to eventually clean-up
+    other resources on close. *)
 
-val read_string: ?chunk_size:int -> string -> flow
-(** Build a flow from reading string, using the given chunk size. The
-    output flow is closed. *)
+(** {1 String flows} *)
 
-val read_cstruct: ?chunk_size:int -> Cstruct.t -> flow
-(** Build a flow from reading a cstruct buffer. using the given chunk
-    size. The corresponding output flow is closed. *)
+val input_string: string -> refill
+(** [input_string buf] is the refill function reading its inputs from
+    the string [buf]. *)
 
-(** {1 Writers} *)
+val output_string: string -> refill
+(** [output_string buf] is the refill function writing its outputs in
+    the buffer [buf]. *)
 
-val write_string: ?chunk_size:int -> string -> flow
-(** Build a flow from reading string, using the given chunk size. The
-    output flow is closed. *)
+val string: ?input:string -> ?output:string -> unit -> flow
+(** The flow built using {!input_string} and {!output_string}. *)
 
-val write_cstruct: ?chunk_size:int -> Cstruct.t -> flow
-(** Build a flow from reading a cstruct buffer. using the given chunk
-    size. The corresponding output flow is closed. *)
+val input_strings: string list -> refill
+(** [input_strings bufs] is the refill function reading its inputs from
+    the list of buffers [bufs]. *)
+
+val output_strings: string list -> refill
+(** [output_strings buf] is the refill function writing its outputs in
+    the list of buffers [buf]. *)
+
+val strings: ?input:string list -> ?output:string list -> unit -> flow
+(** The flow built using {!input_strings} and {!output_strings}. *)
+
+(** {1 Cstruct buffers flows} *)
+
+val input_cstruct: Cstruct.t -> refill
+(** Same as {!input_string} but for {!Cstruct.t} buffers. *)
+
+val input_cstructs: Cstruct.t list -> refill
+(** Same as {!input_strings} but for {!Cstruct.t} buffers. *)
+
+val output_cstructs: Cstruct.t list -> refill
+(** Same as {!output_strings} but for {!Cstruct.t} buffers. *)
+
+val cstructs: ?input:Cstruct.t list -> ?output:Cstruct.t list -> unit -> flow
+(** Same as {!strings} but for {!Cstruct.t} buffers. *)

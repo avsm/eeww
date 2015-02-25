@@ -19,9 +19,23 @@ let (>>=) = Lwt.bind
 type 'a io = 'a Lwt.t
 type buffer = Cstruct.t
 
+type refill = Cstruct.t -> int -> int -> int Lwt.t
+
+let seq f1 f2 buf off len =
+  f1 buf off len >>= function
+  | 0 -> f2 buf off len
+  | n -> Lwt.return n
+
+let zero _buf _off _len = Lwt.return 0
+
+let rec iter fn = function
+  | []   -> zero
+  | h::t -> seq (fn h) (iter fn t)
+
 type flow = {
   close: unit -> unit Lwt.t;
-  perform_io: Cstruct.t -> int -> int -> int Lwt.t;
+  input: refill;
+  output: refill;
   mutable buf: Cstruct.t;
   mutable ic_closed: bool;
   mutable oc_closed: bool;
@@ -29,77 +43,58 @@ type flow = {
 
 let default_buffer_size = 4096
 
-let make ?(close=fun () -> Lwt.return_unit) perform_io =
+let make ?(close=fun () -> Lwt.return_unit) ?input ?output () =
   let buf = Cstruct.create default_buffer_size in
-  { close; perform_io; buf; ic_closed = false; oc_closed = false; }
+  let ic_closed = input = None in
+  let oc_closed = output = None in
+  let input = match input with None -> zero | Some x -> x in
+  let output = match output with None -> zero | Some x -> x in
+  { close; input; output; buf; ic_closed; oc_closed; }
 
-let read_string ?(chunk_size=max_int) str =
+let input_fn len blit str =
   let str_off = ref 0 in
-  let str_len = String.length str in
-  let perform_io buf off len =
+  let str_len = len str in
+  fun buf off len ->
     if !str_off >= str_len then Lwt.return 0
     else (
       let len = min (str_len - !str_off) len in
-      let len = min len chunk_size in
-      Cstruct.blit_from_string str !str_off buf off len;
+      blit str !str_off buf off len;
       str_off := !str_off + len;
       Lwt.return len
     )
-  in
-  let ic = make perform_io in
-  ic.oc_closed <- true;
-  ic
 
-let write_string ?(chunk_size=max_int) str =
+let output_fn len blit str =
   let str_off = ref 0 in
-  let str_len = String.length str in
-  let perform_io buf off len =
+  let str_len = len str in
+  fun buf off len ->
     if !str_off >= str_len then Lwt.return 0
     else (
       let len = min (str_len - !str_off) len in
-      let len = min len chunk_size in
-      Cstruct.blit_to_string buf off str !str_off len;
+      blit buf off str !str_off len;
       str_off := !str_off + len;
       Lwt.return len
     )
-  in
-  let oc = make perform_io in
-  oc.ic_closed <- true;
-  oc
 
-let read_cstruct ?(chunk_size=max_int) str =
-  let str_off = ref 0 in
-  let str_len = Cstruct.len str in
-  let perform_io buf off len =
-    if !str_off >= str_len then Lwt.return 0
-    else (
-      let len = min (str_len - !str_off) len in
-      let len = min len chunk_size in
-      Cstruct.blit str !str_off buf off len;
-      str_off := !str_off + len;
-      Lwt.return len
-    )
-  in
-  let ic = make perform_io in
-  ic.oc_closed <- true;
-  ic
+let mk fn_i fn_o ?input ?output () =
+  let input = match input with None -> None | Some x -> Some (fn_i x) in
+  let output = match output with None -> None | Some x -> Some (fn_o x) in
+  make ?input ?output ()
 
-let write_cstruct ?(chunk_size=max_int) str =
-  let str_off = ref 0 in
-  let str_len = Cstruct.len str in
-  let perform_io buf off len =
-    if !str_off >= str_len then Lwt.return 0
-    else (
-      let len = min (str_len - !str_off) len in
-      let len = min len chunk_size in
-      Cstruct.blit buf off str !str_off len;
-      str_off := !str_off + len;
-      Lwt.return len
-    )
-  in
-  let ic = make perform_io in
-  ic.oc_closed <- true;
-  ic
+let input_string = input_fn String.length Cstruct.blit_from_string
+let output_string = output_fn String.length Cstruct.blit_to_string
+let string = mk input_string output_string
+
+let input_cstruct = input_fn Cstruct.len Cstruct.blit
+let output_cstruct = output_fn Cstruct.len Cstruct.blit
+let cstruct = mk input_cstruct output_cstruct
+
+let input_strings = iter input_string
+let output_strings = iter output_string
+let strings = mk input_strings output_strings
+
+let input_cstructs = iter input_cstruct
+let output_cstructs = iter output_cstruct
+let cstructs = mk input_cstructs output_cstructs
 
 type error = [`None]
 
@@ -118,7 +113,7 @@ let read ch =
   if ch.ic_closed then err_eof
   else (
     refill ch;
-    ch.perform_io ch.buf 0 default_buffer_size >>= fun n ->
+    ch.input ch.buf 0 default_buffer_size >>= fun n ->
     if n = 0 then (
       ch.ic_closed <- true;
       Lwt.return `Eof;
@@ -137,7 +132,7 @@ let write ch buf =
     let rec aux off =
       if off = len then Lwt.return (`Ok ())
       else (
-        ch.perform_io buf off (len - off) >>= fun n ->
+        ch.output buf off (len - off) >>= fun n ->
         if n = 0 then (
           ch.oc_closed <- true;
           Lwt.return `Eof
