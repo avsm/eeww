@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *)
 
-(** Function based flows. *)
+(** Function-based flows. *)
 
 type error
 (** Type for errors. *)
@@ -49,11 +49,11 @@ val string: ?input:string -> ?output:string -> unit -> flow
 
 val input_strings: string list -> refill
 (** [input_strings bufs] is the refill function reading its inputs from
-    the list of buffers [bufs]. *)
+    the list of buffers [bufs]. Empty strings are ignored. *)
 
 val output_strings: string list -> refill
 (** [output_strings buf] is the refill function writing its outputs in
-    the list of buffers [buf]. *)
+    the list of buffers [buf]. Empty strings are ignored. *)
 
 val strings: ?input:string list -> ?output:string list -> unit -> flow
 (** The flow built using {!input_strings} and {!output_strings}. *)
@@ -62,6 +62,12 @@ val strings: ?input:string list -> ?output:string list -> unit -> flow
 
 val input_cstruct: Cstruct.t -> refill
 (** Same as {!input_string} but for {!Cstruct.t} buffers. *)
+
+val output_cstruct: Cstruct.t -> refill
+(** Same as {!output_string} buf for {!Cstruct.t} buffers. *)
+
+val cstruct: ?input:Cstruct.t -> ?output:Cstruct.t -> unit -> flow
+(** Same as {!string} but for {!Cstruct.t} buffers. *)
 
 val input_cstructs: Cstruct.t list -> refill
 (** Same as {!input_strings} but for {!Cstruct.t} buffers. *)
