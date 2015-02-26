@@ -181,6 +181,23 @@ let output_cstructs () =
   check_eof     "read"    r;
   Lwt.return_unit
 
+module Lwt_io_flow = Lwt_io_flow.Make (Fflow)
+
+let input_lwt_io () =
+  let ic = Fflow.strings ~input:["1"; "234"; "56"; "78\n90"] () in
+  let lic = Lwt_io_flow.ic ic in
+  Lwt_io.read_line lic >>= fun l ->
+  check_buffer "result" (cs "12345678") (cs l);
+  Lwt.return_unit
+
+let output_lwt_io () =
+  let output = css ["xxxx";"xxxx"; "xxxxxx"] in
+  let oc = Fflow.cstructs ~output () in
+  let loc = Lwt_io_flow.oc oc in
+  Lwt_io.write_line loc "Hello world!" >>= fun () ->
+  check_buffers "result" (css ["Hello"; " wor"; "ld!\nxx"]) output;
+  Lwt.return_unit
+
 let run f () = Lwt_main.run (f ())
 
 let string = [
@@ -203,10 +220,15 @@ let cstructs = [
   "output", `Quick, run output_cstructs;
 ]
 
+let lwt_io = [
+  "input" , `Quick, run input_lwt_io;
+  "output", `Quick, run output_lwt_io;
+]
 let () =
   Alcotest.run "mirage-flow" [
     "string"  , string;
     "strings" , strings;
     "cstruct" , cstruct;
     "cstructs", cstructs;
+    "lwt-io"  , lwt_io;
   ]

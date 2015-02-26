@@ -14,13 +14,21 @@ Library "mirage-flow"
   Modules:            Fflow
   BuildDepends:       mirage-types.lwt, lwt, cstruct
 
+Library "lwt-io"
+  CompiledObject:     best
+  Path:               lib/lwt-io
+  Findlibname:        lwt-io
+  FindlibParent:      mirage-flow
+  Modules:            Lwt_io_flow
+  BuildDepends:       mirage-flow, lwt.unix
+
 Executable test_flow
   Path:           lib_test
   MainIs:         test.ml
   Build$:         flag(tests)
   CompiledObject: best
   Install:        false
-  BuildDepends:   mirage-flow, alcotest, lwt.unix
+  BuildDepends:   mirage-flow, alcotest, lwt.unix, mirage-flow.lwt-io
 
 Test test_flow
   Run$:             flag(tests)

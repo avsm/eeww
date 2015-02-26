@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *)
 
-(** Function based flows. *)
+(** Function-based flows. *)
 
 type error
 (** Type for errors. *)
