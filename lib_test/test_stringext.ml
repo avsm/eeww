@@ -148,7 +148,30 @@ let test_fixtures =
   ; "replace_all_assoc2"   >:: replace_all_assoc2
   ; "replace_all_assoc3"   >:: replace_all_assoc3
   ; "replace_all_assoc4"   >:: replace_all_assoc4
-  ; "of_array"   >:: of_array1 ]
+  ; "chop_prefix"          >:: (fun _ ->
+      let ae = assert_equal ~printer:(function
+        | Some x -> "Some " ^ x
+        | None -> "None") in
+      ae (Some "bar") (Stringext.chop_prefix "foobar" ~prefix:"foo");
+      ae None (Stringext.chop_prefix "foobar" ~prefix:"bar");
+      ae (Some "foobar") (Stringext.chop_prefix "foobar" ~prefix:"");
+      ae (Some "") (Stringext.chop_prefix "foobar" ~prefix:"foobar")
+    )
+  ; "take" >:: (fun _ ->
+      let ae = assert_equal ~printer:(fun x -> x) in
+      ae "foo" (Stringext.take "foobar" 3);
+      ae "bar" (Stringext.take "bar" 5);
+      ae "" (Stringext.take "" 0);
+      ae "" (Stringext.take "xxx" 0)
+    )
+  ; "drop" >:: (fun _ ->
+      let ae = assert_equal ~printer:(fun x -> x) in
+      ae "foobar" (Stringext.drop "foobar" 0);
+      ae "bar" (Stringext.drop "foobar" 3);
+      ae "" (Stringext.drop "" 5);
+      ae "" (Stringext.drop "foobar" 99)
+    )
+  ; "of_array"             >:: of_array1 ]
 
 let _ = run_test_tt_main test_fixtures
 

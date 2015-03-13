@@ -316,3 +316,26 @@ let rcut s ~on =
         let right_start = !i + 1 in
         Some (sub s 0 (left_end + 1), 
               sub s right_start (s_max - right_start + 1))
+
+let chop_prefix s ~prefix =
+  let prefix_l = String.length prefix in
+  let string_l = String.length s in
+  if prefix_l > string_l then None
+  else
+    try
+      for i = 0 to prefix_l - 1 do
+        if s.[i] <> prefix.[i] then raise Exit;
+      done;
+      Some (String.sub s prefix_l (string_l - prefix_l))
+    with _ -> None
+
+let drop s n =
+  let l = String.length s in
+  if n >= l
+  then ""
+  else String.sub s n (l - n)
+
+let take s n =
+  if n >= String.length s
+  then s
+  else String.sub s 0 n

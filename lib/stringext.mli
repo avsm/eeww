@@ -59,3 +59,9 @@ val rcut : string -> on:string -> (string * string) option
     starting from the end of [s].
 
     @raise Invalid_argument if [on] is the empty string. *)
+
+val chop_prefix : string -> prefix:string -> string option
+
+val drop : string -> int -> string
+
+val take : string -> int -> string
