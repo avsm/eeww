@@ -5,9 +5,6 @@ Extra string functions for OCaml. Mainly splitting. All functions are in the
 `Stringext` module. Here's a snippet of most useful functions out of the mli:
 
 ```ocaml
-(** Misc. string functions not found in the built in OCaml string
-    module *)
-
 (** string_after [s] [n] returns the substring of [s] that is after
     character [n] *)
 val string_after : string -> int -> string
