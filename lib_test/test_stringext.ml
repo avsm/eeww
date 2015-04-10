@@ -4,11 +4,11 @@ let printer = String.concat "-"
 
 let test_split_1 _ =
   let strings = Stringext.split "test:one:two" ~on:':' in
-  assert_equal ~printer strings ["test";"one";"two"]
+  assert_equal ~printer ["test";"one";"two"] strings
 
 let test_split_bounded_1 _ =
   let strings = Stringext.split "testing:foo:bar" ~on:':' ~max:2 in
-  assert_equal ~printer strings ["testing";"foo:bar"]
+  assert_equal ~printer ["testing";"foo:bar"] strings
 
 let test_split_none _ =
   let s = "foo:bar" in
@@ -16,8 +16,8 @@ let test_split_none _ =
 
 let split_trim_left _ =
   let strings = Stringext.split_trim_left
-                  "testing, stuff;  \t again" ~on:",;" ~trim:" \t" in
-  assert_equal ~printer strings ["testing";"stuff";"again"]
+                  " testing, stuff;  \t again" ~on:",;" ~trim:" \t" in
+  assert_equal ~printer ["testing";"stuff";"again"] strings
 
 let printer s = "'" ^ (String.concat ";" s) ^ "'"
 
@@ -25,32 +25,32 @@ let full_split1 _ =
   let strings = Stringext.full_split
                   "//var/test//ocaml/" ~on:'/' in
   assert_equal ~printer
-    strings ["/";"/";"var";"/";"test";"/";"/";"ocaml";"/"]
+    ["/";"/";"var";"/";"test";"/";"/";"ocaml";"/"] strings
 
 let full_split2 _ =
   let strings = Stringext.full_split "//foobar.com/quux" ~on:'/' in
   assert_equal ~printer
-    strings ["/";"/";"foobar.com";"/";"quux"]
+    ["/";"/";"foobar.com";"/";"quux"] strings
 
 let full_split3 _ =
   let strings = Stringext.full_split "foobar.com/quux" ~on:'/' in
   assert_equal ~printer
-    strings ["foobar.com";"/";"quux"]
+    ["foobar.com";"/";"quux"] strings
 
 let full_split4 _ =
   let strings = Stringext.full_split "a/path/fragment" ~on:'/' in
   assert_equal ~printer
-    strings ["a";"/";"path";"/";"fragment"]
+    ["a";"/";"path";"/";"fragment"] strings
 
 let (to_list, of_list) = Stringext.(to_list, of_list)
 
-let to_list1 _ = assert_equal (to_list "ocaml") ['o';'c';'a';'m';'l']
+let to_list1 _ = assert_equal ['o';'c';'a';'m';'l'] (to_list "ocaml")
 
-let to_list2 _ = assert_equal (to_list "") []
+let to_list2 _ = assert_equal [] (to_list "")
 
-let of_list1 _ = assert_equal (of_list []) ""
+let of_list1 _ = assert_equal "" (of_list [])
 
-let of_list2 _ = assert_equal (of_list ['o';'c';'a';'m';'l']) "ocaml"
+let of_list2 _ = assert_equal "ocaml" (of_list ['o';'c';'a';'m';'l'])
 
 let s = "testing one two three"
 
@@ -60,23 +60,23 @@ let opt_int = function
 
 let find_from1 _ =
   let r = Stringext.find_from s ~pattern:"ocaml" in
-  assert_equal r None
+  assert_equal None r
 
 let find_from2 _ =
   let r = Stringext.find_from s ~pattern:"testing" in
-  assert_equal r (Some 0)
+  assert_equal (Some 0) r
 
 let find_from3 _ =
   let r = Stringext.find_from s ~pattern:"one" in
-  assert_equal r (Some 8)
+  assert_equal (Some 8) r
 
 let find_from4 _ =
   let r = Stringext.find_from s ~pattern:"threee" in
-  assert_equal r None
+  assert_equal None r
 
 let find_from5 _ =
   let r = Stringext.find_from s ~pattern:" " in
-  assert_equal r (Some 7)
+  assert_equal (Some 7) r
 
 let find_from6 _ =
   let pattern = "three" in
@@ -120,7 +120,7 @@ let replace_all_assoc4 _ =
 
 let of_array1 _ =
   let s = [| 'a'; 'b'; 'c' |] in
-  assert_equal (Stringext.of_array s) "abc"
+  assert_equal "abc" (Stringext.of_array s)
 
 let test_fixtures =
   "test various string functions" >:::
