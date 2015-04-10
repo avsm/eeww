@@ -113,7 +113,8 @@ let split_trim_left str ~on ~trim =
                         ~len:(offset - index) ~chars:trim in
           loop (token::acc) (index - 1)
       end
-      with Not_found -> (sub str 0 (offset + 1))::acc
+      with Not_found ->
+        (trim_left_sub str ~pos:0 ~len:(offset + 1) ~chars:trim)::acc
     in loop [] (length str - 1)
 
 exception Found_int of int
