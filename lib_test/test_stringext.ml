@@ -16,7 +16,7 @@ let test_split_none _ =
 
 let split_trim_left _ =
   let strings = Stringext.split_trim_left
-                  "testing, stuff;  \t again" ~on:",;" ~trim:" \t" in
+                  " testing, stuff;  \t again" ~on:",;" ~trim:" \t" in
   assert_equal ~printer ["testing";"stuff";"again"] strings
 
 let printer s = "'" ^ (String.concat ";" s) ^ "'"
