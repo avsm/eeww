@@ -98,8 +98,10 @@ let cstructs = mk input_cstructs output_cstructs
 
 type error = [`None]
 
-let pp_error ppf (e:error) = match e with
-  | `None -> Format.pp_print_string ppf "<none>"
+let error_message = function
+  | `None -> "<none>"
+
+let pp_error ppf e = Format.pp_print_string ppf (error_message e)
 
 let refill ch =
   if Cstruct.len ch.buf = 0 then (
