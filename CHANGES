@@ -1,4 +1,8 @@
-## 1.0.0 (26/02/2015)
+### 1.0.1 (28/04/2015)
 
-* Add Fflow(functional flows)
-* Add Lwt_io_flow to convert between Mirage and Lwt flows
+* Add `Fflow.error_message` to satisfay `mirage-types.2.3.0`
+
+### 1.0.0 (26/02/2015)
+
+* Add `Fflow` (functional flows)
+* Add `Lwt_io_flow` to convert between Mirage and Lwt flows
