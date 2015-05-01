@@ -6,6 +6,7 @@
 
 type t =
   [ `Aghb
+  | `Ahom
   | `Arab
   | `Armi
   | `Armn
@@ -44,10 +45,13 @@ type t =
   | `Hang
   | `Hani
   | `Hano
+  | `Hatr
   | `Hebr
   | `Hira
+  | `Hluw
   | `Hrkt
   | `Hmng
+  | `Hung
   | `Ital
   | `Java
   | `Kali
@@ -78,6 +82,7 @@ type t =
   | `Mong
   | `Mroo
   | `Mtei
+  | `Mult
   | `Mymr
   | `Narb
   | `Nbat
@@ -102,6 +107,7 @@ type t =
   | `Samr
   | `Sarb
   | `Saur
+  | `Sgnw
   | `Shaw
   | `Shrd
   | `Sidd
@@ -136,6 +142,7 @@ type t =
 
 let pp ppf s = Format.fprintf ppf "%s" begin match s with
   | `Aghb -> "Aghb"
+  | `Ahom -> "Ahom"
   | `Arab -> "Arab"
   | `Armi -> "Armi"
   | `Armn -> "Armn"
@@ -174,10 +181,13 @@ let pp ppf s = Format.fprintf ppf "%s" begin match s with
   | `Hang -> "Hang"
   | `Hani -> "Hani"
   | `Hano -> "Hano"
+  | `Hatr -> "Hatr"
   | `Hebr -> "Hebr"
   | `Hira -> "Hira"
+  | `Hluw -> "Hluw"
   | `Hmng -> "Hmng"
   | `Hrkt -> "Hrkt"
+  | `Hung -> "Hung"
   | `Ital -> "Ital"
   | `Java -> "Java"
   | `Kali -> "Kali"
@@ -208,6 +218,7 @@ let pp ppf s = Format.fprintf ppf "%s" begin match s with
   | `Mong -> "Mong"
   | `Mroo -> "Mroo"
   | `Mtei -> "Mtei"
+  | `Mult -> "Mult"
   | `Mymr -> "Mymr"
   | `Narb -> "Narb"
   | `Nbat -> "Nbat"
@@ -232,6 +243,7 @@ let pp ppf s = Format.fprintf ppf "%s" begin match s with
   | `Samr -> "Samr"
   | `Sarb -> "Sarb"
   | `Saur -> "Saur"
+  | `Sgnw -> "Sgnw"
   | `Shaw -> "Shaw"
   | `Shrd -> "Shrd"
   | `Sidd -> "Sidd"

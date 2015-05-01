@@ -7,8 +7,10 @@
 type t =
   [ `ASCII
   | `Aegean_Numbers
+  | `Ahom
   | `Alchemical
   | `Alphabetic_PF
+  | `Anatolian_Hieroglyphs
   | `Ancient_Greek_Music
   | `Ancient_Greek_Numbers
   | `Ancient_Symbols
@@ -45,6 +47,7 @@ type t =
   | `CJK_Ext_B
   | `CJK_Ext_C
   | `CJK_Ext_D
+  | `CJK_Ext_E
   | `CJK_Radicals_Sup
   | `CJK_Strokes
   | `CJK_Symbols
@@ -53,6 +56,7 @@ type t =
   | `Chakma
   | `Cham
   | `Cherokee
+  | `Cherokee_Sup
   | `Compat_Jamo
   | `Control_Pictures
   | `Coptic
@@ -76,6 +80,7 @@ type t =
   | `Dingbats
   | `Domino
   | `Duployan
+  | `Early_Dynastic_Cuneiform
   | `Egyptian_Hieroglyphs
   | `Elbasan
   | `Emoticons
@@ -102,6 +107,7 @@ type t =
   | `Half_Marks
   | `Hangul
   | `Hanunoo
+  | `Hatran
   | `Hebrew
   | `Hiragana
   | `IDC
@@ -169,6 +175,7 @@ type t =
   | `Mongolian
   | `Mro
   | `Music
+  | `Multani
   | `Myanmar
   | `Myanmar_Ext_A
   | `Myanmar_Ext_B
@@ -180,6 +187,7 @@ type t =
   | `OCR
   | `Ogham
   | `Ol_Chiki
+  | `Old_Hungarian
   | `Old_Italic
   | `Old_North_Arabian
   | `Old_Permic
@@ -224,7 +232,9 @@ type t =
   | `Sup_PUA_A
   | `Sup_PUA_B
   | `Sup_Punctuation
+  | `Sup_Symbols_And_Pictographs
   | `Super_And_Sub
+  | `Sutton_SignWriting
   | `Syloti_Nagri
   | `Syriac
   | `Tagalog
@@ -259,8 +269,10 @@ type t =
 let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `ASCII -> "ASCII"
   | `Aegean_Numbers -> "Aegean_Numbers"
+  | `Ahom -> "Ahom"
   | `Alchemical -> "Alchemical"
   | `Alphabetic_PF -> "Alphabetic_PF"
+  | `Anatolian_Hieroglyphs -> "Anatolian_Hieroglyphs"
   | `Ancient_Greek_Music -> "Ancient_Greek_Music"
   | `Ancient_Greek_Numbers -> "Ancient_Greek_Numbers"
   | `Ancient_Symbols -> "Ancient_Symbols"
@@ -297,6 +309,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `CJK_Ext_B -> "CJK_Ext_B"
   | `CJK_Ext_C -> "CJK_Ext_C"
   | `CJK_Ext_D -> "CJK_Ext_D"
+  | `CJK_Ext_E -> "CJK_Ext_E"
   | `CJK_Radicals_Sup -> "CJK_Radicals_Sup"
   | `CJK_Strokes -> "CJK_Strokes"
   | `CJK_Symbols -> "CJK_Symbols"
@@ -305,6 +318,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Chakma -> "Chakma"
   | `Cham -> "Cham"
   | `Cherokee -> "Cherokee"
+  | `Cherokee_Sup -> "Cherokee_Sup"
   | `Compat_Jamo -> "Compat_Jamo"
   | `Control_Pictures -> "Control_Pictures"
   | `Coptic -> "Coptic"
@@ -328,6 +342,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Dingbats -> "Dingbats"
   | `Domino -> "Domino"
   | `Duployan -> "Duployan"
+  | `Early_Dynastic_Cuneiform -> "Early_Dynastic_Cuneiform"
   | `Egyptian_Hieroglyphs -> "Egyptian_Hieroglyphs"
   | `Elbasan -> "Elbasan"
   | `Emoticons -> "Emoticons"
@@ -354,6 +369,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Half_Marks -> "Half_Marks"
   | `Hangul -> "Hangul"
   | `Hanunoo -> "Hanunoo"
+  | `Hatran -> "Hatran"
   | `Hebrew -> "Hebrew"
   | `High_PU_Surrogates -> "High_PU_Surrogates"
   | `High_Surrogates -> "High_Surrogates"
@@ -424,6 +440,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Mongolian -> "Mongolian"
   | `Mro -> "Mro"
   | `Music -> "Music"
+  | `Multani -> "Multani"
   | `Myanmar -> "Myanmar"
   | `Myanmar_Ext_A -> "Myanmar_Ext_A"
   | `Myanmar_Ext_B -> "Myanmar_Ext_B"
@@ -435,6 +452,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `OCR -> "OCR"
   | `Ogham -> "Ogham"
   | `Ol_Chiki -> "Ol_Chiki"
+  | `Old_Hungarian -> "Old_Hungarian"
   | `Old_Italic -> "Old_Italic"
   | `Old_North_Arabian -> "Old_North_Arabian"
   | `Old_Permic -> "Old_Permic"
@@ -479,7 +497,9 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Sup_PUA_A -> "Sup_PUA_A"
   | `Sup_PUA_B -> "Sup_PUA_B"
   | `Sup_Punctuation -> "Sup_Punctuation"
+  | `Sup_Symbols_And_Pictographs -> "Sup_Symbols_And_Pictographs"
   | `Super_And_Sub -> "Super_And_Sub"
+  | `Sutton_SignWriting -> "Sutton_SignWriting"
   | `Syloti_Nagri -> "Syloti_Nagri"
   | `Syriac -> "Syriac"
   | `Tagalog -> "Tagalog"

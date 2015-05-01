@@ -157,8 +157,10 @@ module Block : sig
   type t =
     [ `ASCII
     | `Aegean_Numbers
+    | `Ahom
     | `Alchemical
     | `Alphabetic_PF
+    | `Anatolian_Hieroglyphs
     | `Ancient_Greek_Music
     | `Ancient_Greek_Numbers
     | `Ancient_Symbols
@@ -195,6 +197,7 @@ module Block : sig
     | `CJK_Ext_B
     | `CJK_Ext_C
     | `CJK_Ext_D
+    | `CJK_Ext_E
     | `CJK_Radicals_Sup
     | `CJK_Strokes
     | `CJK_Symbols
@@ -203,6 +206,7 @@ module Block : sig
     | `Chakma
     | `Cham
     | `Cherokee
+    | `Cherokee_Sup
     | `Compat_Jamo
     | `Control_Pictures
     | `Coptic
@@ -226,6 +230,7 @@ module Block : sig
     | `Dingbats
     | `Domino
     | `Duployan
+    | `Early_Dynastic_Cuneiform
     | `Egyptian_Hieroglyphs
     | `Elbasan
     | `Emoticons
@@ -252,6 +257,7 @@ module Block : sig
     | `Half_Marks
     | `Hangul
     | `Hanunoo
+    | `Hatran
     | `Hebrew
     | `Hiragana
     | `IDC
@@ -319,6 +325,7 @@ module Block : sig
     | `Mongolian
     | `Mro
     | `Music
+    | `Multani
     | `Myanmar
     | `Myanmar_Ext_A
     | `Myanmar_Ext_B
@@ -330,6 +337,7 @@ module Block : sig
     | `OCR
     | `Ogham
     | `Ol_Chiki
+    | `Old_Hungarian
     | `Old_Italic
     | `Old_North_Arabian
     | `Old_Permic
@@ -374,7 +382,9 @@ module Block : sig
     | `Sup_PUA_A
     | `Sup_PUA_B
     | `Sup_Punctuation
+    | `Sup_Symbols_And_Pictographs
     | `Super_And_Sub
+    | `Sutton_SignWriting
     | `Syloti_Nagri
     | `Syriac
     | `Tagalog
@@ -1036,6 +1046,7 @@ module Script : sig
 
   type t =
   [ `Aghb
+  | `Ahom
   | `Arab
   | `Armi
   | `Armn
@@ -1074,10 +1085,13 @@ module Script : sig
   | `Hang
   | `Hani
   | `Hano
+  | `Hatr
   | `Hebr
   | `Hira
+  | `Hluw
   | `Hrkt
   | `Hmng
+  | `Hung
   | `Ital
   | `Java
   | `Kali
@@ -1108,6 +1122,7 @@ module Script : sig
   | `Mong
   | `Mroo
   | `Mtei
+  | `Mult
   | `Mymr
   | `Narb
   | `Nbat
@@ -1132,6 +1147,7 @@ module Script : sig
   | `Samr
   | `Sarb
   | `Saur
+  | `Sgnw
   | `Shaw
   | `Shrd
   | `Sidd
@@ -1240,7 +1256,9 @@ end
        {{:http://www.unicode.org/reports/tr44/#Indic_Matra_Category}
        Indic_Matra_Category},
        {{:http://www.unicode.org/reports/tr44/#Indic_Syllabic_Category}
-       Indic_Syllabic_Category}.}
+       Indic_Syllabic_Category}
+       {{:http://www.unicode.org/reports/tr44/#Indic_Positional_Category}
+       Indic_Positional_Category}.}
     {- Bidirectional. All properties under that section name in
        {{:http://www.unicode.org/reports/tr44/#Property_Index_Table}
        this table}.}
