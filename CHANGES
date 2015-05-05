@@ -5,10 +5,10 @@
 * Use centralised Travis scripts.
 
 1.2.0 (09-Jan-2015):
-* [set_ipaddr] renamed to [set_ipv4] since it can only set IPv4 addresses.
-* Improved [getifaddrs] interface to an association list iface -> addr.
+* `set_ipaddr` renamed to `set_ipv4` since it can only set IPv4 addresses.
+* Improved `getifaddrs` interface to an association list iface -> addr.
 * Dropped OCaml < 4.01.x support.
-* Added convenience functions [gettifaddrs_v{4,6}], [v{4,6}_of_ifname].
+* Added convenience functions `gettifaddrs_v{4,6}`, `v{4,6}_of_ifname`.
 
 1.1.0 (25-Nov-2014):
 * Do not change the `persist` setting if unspecified when

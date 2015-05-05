@@ -30,7 +30,7 @@ remove: [["ocamlfind" "remove" "tuntap"]]
 
 depends: [
   "ocamlfind" {build}
-  "ipaddr" {>= "2.2.0"}
+  "ipaddr" {>= "2.3.0"}
 ]
 
 available: [ ocaml-version >="4.01.0" ]
