@@ -177,6 +177,7 @@ set_up_and_running(value dev)
 
   int fd;
   struct ifreq ifr;
+  int flags;
 
   if((fd = socket(PF_INET, SOCK_DGRAM, 0)) == -1)
     tun_raise_error("set_up_and_running socket", -1);
@@ -192,10 +193,11 @@ set_up_and_running(value dev)
 
   strncpy(ifr.ifr_name, String_val(dev), IFNAMSIZ);
 
-  ifr.ifr_flags |= (IFF_UP|IFF_RUNNING|IFF_BROADCAST|IFF_MULTICAST);
-
-  if (ioctl(fd, SIOCSIFFLAGS, &ifr) == -1)
-    tun_raise_error("set_up_and_running SIOCSIFFLAGS", -1);
+  flags = ifr.ifr_flags | (IFF_UP|IFF_RUNNING|IFF_BROADCAST|IFF_MULTICAST);
+  if (flags != ifr.ifr_flags) {
+    if (ioctl(fd, SIOCSIFFLAGS, &ifr) == -1)
+      tun_raise_error("set_up_and_running SIOCSIFFLAGS", -1);
+  }
 
   CAMLreturn(Val_unit);
 }
