@@ -1,6 +1,6 @@
 OASISFormat: 0.4
 Name: tuntap
-Version: 1.1.0
+Version: 1.3.0
 Synopsis: Bindings to the UNIX tuntap facility.
 Authors: [
   "Vincent Bernardoff <vb@luminar.eu.org>"

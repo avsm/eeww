@@ -1,3 +1,8 @@
+1.3.0 (trunk):
+* Do not leak a file descriptor per tun interface (#12 via Justin Cormack)
+* Avoid the need for root access for persistent interfaces by not calling
+  `SIOCSIFFLAGS` if not needed (#13 via Justin Cormack).
+
 1.2.0 (09-Jan-2015):
 * [set_ipaddr] renamed to [set_ipv4] since it can only set IPv4 addresses.
 * Improved [getifaddrs] interface to an association list iface -> addr.
