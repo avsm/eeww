@@ -104,7 +104,9 @@ get_macaddr(value devname)
   strcpy(ifq.ifr_name, String_val(devname));
 
   if (ioctl(fd, SIOCGIFHWADDR, &ifq) == -1)
-    tun_raise_error("SIOCGIFHWADDR", -1);
+    tun_raise_error("SIOCGIFHWADDR", fd);
+
+  close(fd);
 
   hwaddr = caml_alloc_string(6);
   memcpy(String_val(hwaddr), ifq.ifr_hwaddr.sa_data, 6);
