@@ -396,7 +396,10 @@ iface_get(value ifap)
   struct sockaddr *broadaddr = c_ifap->ifa_dstaddr;
 #endif
 
-  if (broadaddr != NULL)
+  if (broadaddr != NULL &&
+      /* XXX Work around OS X bug.  */
+      (broadaddr->sa_family == AF_INET ||
+       broadaddr->sa_family == AF_INET6))
     {
       opt3 = caml_alloc(1, 0);
       Store_field(opt3, 0, caml_string_of_sa(broadaddr));
