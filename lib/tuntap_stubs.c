@@ -397,7 +397,7 @@ iface_get(value ifap)
 #endif
 
   if (broadaddr != NULL &&
-      /* XXX Work around OS X bug.  */
+      /* XXX Work around *BSD bug. Github Pull Request #14 */
       (broadaddr->sa_family == AF_INET ||
        broadaddr->sa_family == AF_INET6))
     {
