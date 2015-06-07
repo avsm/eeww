@@ -58,7 +58,7 @@ tun_alloc(char *dev, int kind, int pi, int persist, int user, int group)
   struct ifreq ifr;
   int fd;
 
-  if ((fd = open("/dev/net/tun", O_RDWR)) == -1)
+  if ((fd = open("/dev/net/tun", O_RDWR | O_NONBLOCK)) == -1)
     tun_raise_error("open", -1);
 
   memset(&ifr, 0, sizeof(ifr));
