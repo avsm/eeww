@@ -1,3 +1,10 @@
+v1.0.0 2015-06-17 Cambridge (UK)
+--------------------------------
+
+- Updated for Unicode 8.0.0
+  Incompatible release, new variants cases are introduced, see commit
+  adbb5efc036 for details.
+
 v0.9.1 2014-12-23 Cugy (VD)
 ---------------------------
 
