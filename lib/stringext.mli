@@ -50,7 +50,7 @@ val cut : string -> on:string -> (string * string) option
     match of the non empty onarator string [on] or [None] if [on]
     can't be matched in [s]. Matching starts from the beginning of [s].
 
-    The invariant [l ^ on ^ r = s] holds. 
+    The invariant [l ^ on ^ r = s] holds.
 
     @raise Invalid_argument if [on] is the empty string. *)
 
