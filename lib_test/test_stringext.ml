@@ -19,6 +19,11 @@ let split_trim_left _ =
                   " testing, stuff;  \t again" ~on:",;" ~trim:" \t" in
   assert_equal ~printer ["testing";"stuff";"again"] strings
 
+let split_trim_left2 _ =
+  let strings = Stringext.split_trim_left
+                  " testing,stuff;\t again" ~on:",;" ~trim:" \t" in
+  assert_equal ~printer ["testing";"stuff";"again"] strings
+
 let printer s = "'" ^ (String.concat ";" s) ^ "'"
 
 let full_split1 _ =
@@ -82,7 +87,7 @@ let find_from6 _ =
   let pattern = "three" in
   let r = Stringext.find_from s ~pattern in
   assert_equal ~printer:opt_int
-    (Some (String.length s - String.length pattern)) r 
+    (Some (String.length s - String.length pattern)) r
 
 let replace_all1 _ =
   let s = "the quick brown fox brown." in
@@ -122,12 +127,19 @@ let of_array1 _ =
   let s = [| 'a'; 'b'; 'c' |] in
   assert_equal "abc" (Stringext.of_array s)
 
+let trim_left_sub1 _ =
+  let s = "testing" in
+  assert_equal ~printer:(fun x -> x)
+    s (Stringext.trim_left_sub s ~pos:0 ~len:(String.length s) ~chars:"")
+
 let test_fixtures =
   "test various string functions" >:::
   [ "test split char 1"    >:: test_split_1
   ; "test split bounded 1" >:: test_split_bounded_1
   ; "test split none"      >:: test_split_none
   ; "split trim left"      >:: split_trim_left
+  ; "split trim left2"     >:: split_trim_left2
+  ; "trim left sub1"       >:: trim_left_sub1
   ; "full split1"          >:: full_split1
   ; "full split2"          >:: full_split2
   ; "full split3"          >:: full_split3
