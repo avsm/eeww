@@ -87,7 +87,6 @@ let rindex_from_on s ~offset ~on =
     else loop (i - 1)
   in loop offset
 
-(* Like String.sub but trim [chars] if they exist on the left *)
 let trim_left_sub s ~pos ~len ~chars =
   let start_pos =
     let final = pos + len in

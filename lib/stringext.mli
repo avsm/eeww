@@ -66,3 +66,7 @@ val chop_prefix : string -> prefix:string -> string option
 val drop : string -> int -> string
 
 val take : string -> int -> string
+
+(** [trim_left_sub s ~pos ~len ~chars] Trim all characters inside [chars]
+    from [s] starting from [pos] and up to [len] *)
+val trim_left_sub : string -> pos:int -> len:int -> chars:string -> string
