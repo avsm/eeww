@@ -24,10 +24,11 @@ val split : ?max:int -> string -> on:char -> string list
     String.concat (full_split s ~on) =s *)
 val full_split : string -> on:char -> string list
 
-(** Trims spaces on the left of the string *)
+(** Trims spaces on the left of the string. In case no trimming is needed
+    the same string is returned without copying *)
 val trim_left : string -> string
 
-(** split_strim_right [s] [~on] [~trim] splits [s] on every character
+(** split_strim_left [s] [~on] [~trim] splits [s] on every character
     in [on]. Characters in [trim] are trimmed from the left of every
     result element *)
 val split_trim_left : string -> on:string -> trim:string -> string list
@@ -54,7 +55,7 @@ val cut : string -> on:string -> (string * string) option
     match of the non empty onarator string [on] or [None] if [on]
     can't be matched in [s]. Matching starts from the beginning of [s].
 
-    The invariant [l ^ on ^ r = s] holds. 
+    The invariant [l ^ on ^ r = s] holds.
 
     @raise Invalid_argument if [on] is the empty string. *)
 
@@ -69,4 +70,8 @@ val chop_prefix : string -> prefix:string -> string option
 val drop : string -> int -> string
 
 val take : string -> int -> string
+
+(** [trim_left_sub s ~pos ~len ~chars] Trim all characters inside [chars]
+    from [s] starting from [pos] and up to [len] *)
+val trim_left_sub : string -> pos:int -> len:int -> chars:string -> string
 ```
