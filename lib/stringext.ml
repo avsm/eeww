@@ -129,7 +129,7 @@ let trim_left s =
       for i=0 to len - 1 do
         if s.[i] <> ' ' then raise (Found_int i)
       done;
-      s
+      ""
     with Found_int non_space ->
       sub s non_space (len - non_space)
 
