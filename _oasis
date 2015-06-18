@@ -18,10 +18,23 @@ Test test_stringext
   Command:          $test_stringext
   WorkingDirectory: lib_test
 
+Test test_stringext_qcheck
+  Run$:             flag(tests)
+  Command:          $test_stringext_qcheck
+  WorkingDirectory: lib_test
+
 Executable test_stringext
   Path:               lib_test
   MainIs:             test_stringext.ml
   Build$:             flag(tests)
   CompiledObject:     best
   BuildDepends:       stringext, oUnit
+  Install:            false
+
+Executable test_stringext_qcheck
+  Path:               lib_test
+  MainIs:             test_stringext_qcheck.ml
+  Build$:             flag(tests)
+  CompiledObject:     best
+  BuildDepends:       stringext, oUnit, qcheck, qcheck.ounit
   Install:            false
