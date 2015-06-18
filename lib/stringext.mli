@@ -20,7 +20,8 @@ val split : ?max:int -> string -> on:char -> string list
     String.concat (full_split s ~on) =s *)
 val full_split : string -> on:char -> string list
 
-(** Trims spaces on the left of the string *)
+(** Trims spaces on the left of the string. In case no trimming is needed
+    the same string is returned without copying *)
 val trim_left : string -> string
 
 (** split_strim_left [s] [~on] [~trim] splits [s] on every character

@@ -122,8 +122,6 @@ exception Found_int of int
 let first_char_ne s c =
   String.length s > 0 && s.[0] <> c
 
-(* Trim spaces from the start of the strings. Returns the same string
-   in case no mutation is needed *)
 let trim_left s =
   if first_char_ne s ' ' then s
   else
