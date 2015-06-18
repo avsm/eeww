@@ -93,7 +93,7 @@ let trim_left_sub s ~pos ~len ~chars =
     let rec loop last_char i =
       if i = final then last_char
       else if String.contains chars s.[i] then loop (i + 1) (i + 1)
-      else loop last_char (i + 1)
+      else last_char
     in loop pos pos
   in
   let new_len = len - (start_pos - pos) in
