@@ -1,6 +1,10 @@
 open OUnit2
 
-let printer = String.concat "-"
+let printer elems =
+  "[" ^ (elems
+         |> List.map (fun x -> "\"" ^ x ^ "\"")
+         |> String.concat ";")
+  ^ "]"
 
 let test_split_1 _ =
   let strings = Stringext.split "test:one:two" ~on:':' in
@@ -14,7 +18,7 @@ let test_split_none _ =
   let s = "foo:bar" in
   assert_equal ~printer [s] (Stringext.split s ~on:'=')
 
-let split_trim_left _ =
+let split_trim_left1 _ =
   let strings = Stringext.split_trim_left
                   " testing, stuff;  \t again" ~on:",;" ~trim:" \t" in
   assert_equal ~printer ["testing";"stuff";"again"] strings
@@ -23,6 +27,16 @@ let split_trim_left2 _ =
   let strings = Stringext.split_trim_left
                   " testing,stuff;\t again" ~on:",;" ~trim:" \t" in
   assert_equal ~printer ["testing";"stuff";"again"] strings
+
+let split_trim_left3 _ =
+  assert_equal ~printer
+    ["a ";"b ";"c"]
+    (Stringext.split_trim_left ~on:"," ~trim:" " "a ,b ,c")
+
+let split_trim_left4 _ =
+  assert_equal ~printer
+    ["vpof "; "hbjeu "; ""; "c"]
+    (Stringext.split_trim_left ~on:"," ~trim:" " "vpof ,hbjeu , ,c")
 
 let printer s = "'" ^ (String.concat ";" s) ^ "'"
 
@@ -130,16 +144,50 @@ let of_array1 _ =
 let trim_left_sub1 _ =
   let s = "testing" in
   assert_equal ~printer:(fun x -> x)
-    s (Stringext.trim_left_sub s ~pos:0 ~len:(String.length s) ~chars:"")
+    s (Stringext.trim_left_sub s ~pos:0 ~len:(String.length s) ~chars:" ")
+
+let trim_left_sub2 _ =
+  let s = " , testing" in
+  assert_equal ~printer:(fun x -> x)
+    "testing"
+    (Stringext.trim_left_sub s ~pos:0 ~len:(String.length s) ~chars:" ,")
+
+let trim_left_sub3 _ =
+  let s = " , testing" in
+  assert_equal ~printer:(fun x -> x)
+    "test" (Stringext.trim_left_sub s ~pos:0 ~len:(7) ~chars:" ,")
+
+let trim_left_sub4 _ =
+  let s = "a a" in
+  assert_equal ~printer:(fun x -> x)
+    s (Stringext.trim_left_sub s ~pos:0 ~len:3 ~chars:" ")
+
+let trim_left_sub5 _ =
+  assert_equal ~printer:(fun x -> x)
+    "a" (Stringext.trim_left_sub "a" ~pos:0 ~len:1 ~chars:" ")
+
+let trim_left1 _ =
+  assert_equal ~printer:(fun x -> x) "" (Stringext.trim_left " ")
+
+let trim_left2 _ =
+  assert_equal ~printer:(fun x -> x) "" (Stringext.trim_left "")
 
 let test_fixtures =
   "test various string functions" >:::
   [ "test split char 1"    >:: test_split_1
   ; "test split bounded 1" >:: test_split_bounded_1
   ; "test split none"      >:: test_split_none
-  ; "split trim left"      >:: split_trim_left
+  ; "split trim left1"     >:: split_trim_left1
   ; "split trim left2"     >:: split_trim_left2
+  ; "split trim left3"     >:: split_trim_left3
+  ; "split trim left4"     >:: split_trim_left4
   ; "trim left sub1"       >:: trim_left_sub1
+  ; "trim left sub2"       >:: trim_left_sub2
+  ; "trim left sub3"       >:: trim_left_sub3
+  ; "trim left sub4"       >:: trim_left_sub4
+  ; "trim left sub5"       >:: trim_left_sub5
+  ; "trim left1"           >:: trim_left1
+  ; "trim left2"           >:: trim_left2
   ; "full split1"          >:: full_split1
   ; "full split2"          >:: full_split2
   ; "full split3"          >:: full_split3
