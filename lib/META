@@ -1,6 +1,6 @@
 # OASIS_START
-# DO NOT EDIT (digest: 136118b4853d1758dfb2ee6dbeadc579)
-version = "1.3.1"
+# DO NOT EDIT (digest: 2b5088fa97454f44a0de453287aef429)
+version = "1.4.0"
 description = "Extra string functions for OCaml"
 requires = "bytes"
 archive(byte) = "stringext.cma"
