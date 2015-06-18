@@ -25,6 +25,8 @@ remove: ["ocamlfind" "remove" "stringext"]
 
 depends: [
   "ocamlfind" {build}
+  "ounit" {test}
+  "qcheck" {test}
   "base-bytes"
 ]
 
