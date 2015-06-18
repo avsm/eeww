@@ -23,7 +23,7 @@ val full_split : string -> on:char -> string list
 (** Trims spaces on the left of the string *)
 val trim_left : string -> string
 
-(** split_strim_right [s] [~on] [~trim] splits [s] on every character
+(** split_strim_left [s] [~on] [~trim] splits [s] on every character
     in [on]. Characters in [trim] are trimmed from the left of every
     result element *)
 val split_trim_left : string -> on:string -> trim:string -> string list
