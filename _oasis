@@ -24,3 +24,4 @@ Executable test_stringext
   Build$:             flag(tests)
   CompiledObject:     best
   BuildDepends:       stringext, oUnit
+  Install:            false
