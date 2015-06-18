@@ -177,7 +177,7 @@ let replace_all str ~pattern ~with_ =
   let rec loop i =
     match find_from ~start:i str ~pattern with
     | None ->
-     Buffer.add_substring buf str i (slen - i);
+      Buffer.add_substring buf str i (slen - i);
       Buffer.contents buf
     | Some j ->
       Buffer.add_substring buf str i (j - i);
