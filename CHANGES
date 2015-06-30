@@ -1,3 +1,7 @@
+### 1.0.2 (30/06/2015)
+
+* Add explicit dependency to OUnit
+
 ### 1.0.1 (28/04/2015)
 
 * Add `Fflow.error_message` to satisfay `mirage-types.2.3.0`
