@@ -28,7 +28,7 @@ Executable test_flow
   Build$:         flag(tests)
   CompiledObject: best
   Install:        false
-  BuildDepends:   mirage-flow, alcotest, lwt.unix, mirage-flow.lwt-io, OUnit
+  BuildDepends:   mirage-flow, alcotest, lwt.unix, mirage-flow.lwt-io, oUnit
 
 Test test_flow
   Run$:             flag(tests)
