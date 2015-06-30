@@ -1,6 +1,6 @@
 OASISFormat: 0.4
 Name:        mirage-flow
-Version:     1.0.1
+Version:     1.0.2
 Synopsis:    Mirage flow implementations
 Authors:     Thomas Gazagnaire
 License:     ISC
@@ -28,7 +28,7 @@ Executable test_flow
   Build$:         flag(tests)
   CompiledObject: best
   Install:        false
-  BuildDepends:   mirage-flow, alcotest, lwt.unix, mirage-flow.lwt-io
+  BuildDepends:   mirage-flow, alcotest, lwt.unix, mirage-flow.lwt-io, OUnit
 
 Test test_flow
   Run$:             flag(tests)

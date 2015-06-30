@@ -18,4 +18,5 @@ depends: [
   "cstruct"
   "lwt"
   "alcotest" {test}
+  "ounit"    {test}
 ]
