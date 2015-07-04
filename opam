@@ -17,5 +17,6 @@ depends: [
   "ocamlfind" {build}
   "ipaddr"    {>= "2.4.0"}
   "ounit"     {test}
+  "lwt"       {test}
 ]
 available: [ocaml-version >="4.01.0"]
