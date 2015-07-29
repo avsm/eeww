@@ -51,10 +51,12 @@ module Make (F: V1_LWT.FLOW) = struct
 
   let ic ?(buffer_size=1024) ?(close=true) t =
     let close () = if close then F.close t else Lwt.return_unit in
-    Lwt_io.make ~buffer_size ~mode:Lwt_io.input ~close (reader t)
+    let buffer = Lwt_bytes.create buffer_size in
+    Lwt_io.make ~buffer ~mode:Lwt_io.input ~close (reader t)
 
   let oc ?(buffer_size=1024) ?(close=false) t =
     let close () = if close then F.close t else Lwt.return_unit in
-    Lwt_io.make ~buffer_size ~mode:Lwt_io.output  (writer t)
+    let buffer = Lwt_bytes.create buffer_size in
+    Lwt_io.make ~buffer ~mode:Lwt_io.output ~close (writer t)
 
 end
