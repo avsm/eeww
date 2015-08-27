@@ -537,7 +537,7 @@ module Low : sig
     (** [line u] is an integer that can be used with {!line_of_int}. *)
 
     val line_max : int
-    (** [line_max] is the maximal value returned by {!line.} *)
+    (** [line_max] is the maximal value returned by {!line}. *)
 
     val line_of_int : line array
     (** [line_of_int.(i)] is the line break property value corresponding
@@ -549,7 +549,7 @@ module Low : sig
 
     val grapheme_cluster_max : int
     (** [grapheme_cluster_max] is the maximal value returned by
-        {!grapheme_cluster.} *)
+        {!grapheme_cluster}. *)
 
     val grapheme_cluster_of_int : grapheme_cluster array
     (** [line_of_int.(i)] is the grapheme cluster break property value
@@ -559,7 +559,7 @@ module Low : sig
     (** [word u] is an integer that can be used with {!word_of_int}. *)
 
     val word_max : int
-    (** [word_max] is the maximal value returned by {!word.} *)
+    (** [word_max] is the maximal value returned by {!word}. *)
 
     val word_of_int : word array
     (** [word_of_int.(i)] is the word break property value
@@ -569,7 +569,7 @@ module Low : sig
     (** [sentence u] is an integer that can be used with {!sentence_of_int}. *)
 
     val sentence_max : int
-    (** [sentence_max] is the maximal value returned by {!sentence.} *)
+    (** [sentence_max] is the maximal value returned by {!sentence}. *)
 
     val sentence_of_int : sentence array
     (** [sentence_of_int.(i)] is the sentence break property value
