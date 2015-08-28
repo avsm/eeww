@@ -1,5 +1,7 @@
 open OUnit2
 
+let (|>) x f = f x
+
 let printer elems =
   "[" ^ (elems
          |> List.map (fun x -> "\"" ^ x ^ "\"")

@@ -1,5 +1,7 @@
 open QCheck
 
+let (|>) x f = f x
+
 let quoted_str = Printf.sprintf "%S"
 let _ = run (
   let f1 s = Stringext.split_trim_left ~on:"," ~trim:" " s in
