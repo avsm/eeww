@@ -33,9 +33,7 @@ let grapheme_cluster u = Array.unsafe_get Low.grapheme_cluster_of_int
 let word u = Array.unsafe_get Low.word_of_int (Low.word u)
 let sentence u = Array.unsafe_get Low.sentence_of_int (Low.sentence u)
 
-let east_asian_width u =
-  Array.unsafe_get east_asian_width_of_byte
-    (Uucp_tmapbyte.get Uucp_break_data.east_asian_width_map u)
+let east_asian_width u = Uucp_rmap.get Uucp_break_data.east_asian_width_map u
 
 (*---------------------------------------------------------------------------
    Copyright (c) 2014 Daniel C. Bünzli.

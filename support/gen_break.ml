@@ -25,9 +25,11 @@ let pp_sentence_break ppf ucd =
     "sentence_break" ~default:`XX Uucp_break_base.pp_sentence
 
 let pp_east_asian_width ppf ucd =
-  Gen.pp_code_prop_tmapbyte_ucd ppf ucd
-    Uucp_break_base.east_asian_width_to_byte Uucd.east_asian_width
-    "east_asian_width" ~default:`N Uucp_break_base.pp_east_asian_width
+  let size _ = 0 in
+  let pp ppf w = Gen.pp ppf "`%a" Uucp_break_base.pp_east_asian_width w in
+  Gen.pp_prop_rmap_ucd ppf ucd
+    Uucd.east_asian_width "east_asian_width" "Uucp_break_base.east_asian_width"
+    pp ~default:`N size
 
 let pp_props ppf ucd =
   pp_line_break ppf ucd;
