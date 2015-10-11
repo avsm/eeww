@@ -105,6 +105,22 @@ let pp_sentence ppf v = Format.fprintf ppf "%s" begin match v with
   | `SE -> "SE" | `SP -> "SP" | `ST -> "ST" | `UP -> "UP" | `XX -> "XX"
   end
 
+(* East Asian width *)
+
+type east_asian_width = [ `A | `F | `H | `N | `Na | `W ]
+
+let east_asian_width_of_byte : east_asian_width array =
+  [| `A ; `F; `H; `N; `Na; `W |]
+
+let east_asian_width_max = Array.length east_asian_width_of_byte - 1
+
+let east_asian_width_to_byte = function
+| `A -> 0 | `F -> 1 | `H -> 2 | `N -> 3 | `Na -> 4 | `W -> 5
+
+let pp_east_asian_width ppf v = Format.pp_print_string ppf begin match v with
+| `A -> "A" | `F -> "F" | `H -> "H" | `N -> "N" | `Na -> "Na" | `W -> "W"
+end
+
 (*---------------------------------------------------------------------------
    Copyright (c) 2014 Daniel C. Bünzli.
    All rights reserved.

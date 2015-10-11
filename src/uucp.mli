@@ -436,21 +436,20 @@ end
 
 (** Break properties.
 
-    These properties are for the Unicode text segmentation and line
+    These properties are mainly for the Unicode text segmentation and line
     breaking algorithm.
 
     {3 References}
     {ul
-    {- The Unicode Consortium.
-    {e {{:http://www.unicode.org/versions/latest}The Unicode Standard}}.
-    (latest version)}
     {- Mark Davis.
     {e {{:http://www.unicode.org/reports/tr29/}UAX #29 Unicode Text
     Segmentation}}. (latest version)}
     {- Andy Heninger.
     {e {{:http://www.unicode.org/reports/tr14/}UAX #14 Unicode Line Breaking
-    Algorithm}}. (latest version)}}
-*)
+    Algorithm}}. (latest version)}
+    {- Ken Lunde 小林劍.
+    {e {{:http://www.unicode.org/reports/tr11/}UAX #11 East Asian width.}
+    (latest version)}}} *)
 module Break : sig
 
   (** {1:line_break Line break} *)
@@ -514,9 +513,23 @@ module Break : sig
       on [ppf]. *)
 
   val sentence : uchar -> sentence
-    (** [sentence u] is [u]'s
-        {{:http://www.unicode.org/reports/tr44/#Sentence_Break}sentence break}
-        property. *)
+  (** [sentence u] is [u]'s
+      {{:http://www.unicode.org/reports/tr44/#Sentence_Break}sentence break}
+      property. *)
+
+  (** {1:east_asian_width East Asian width} *)
+
+  type east_asian_width = [ `A | `F | `H | `N | `Na | `W ]
+  (** The type for East Asian widths. *)
+
+  val pp_east_asian_width : Format.formatter -> east_asian_width -> unit
+  (** [pp_east_asian_width ppf w] prints an unspecified representation of
+      [w] on [ppf]. *)
+
+  val east_asian_width : uchar -> east_asian_width
+  (** [east_asian_width u] is [u]'s
+      {{:http://www.unicode.org/reports/tr44/#East_Asian_Width}East Asian
+      width} property. *)
 
   (** {1:break_low Low level interface} *)
 
@@ -1253,8 +1266,6 @@ end
        {{:http://www.unicode.org/reports/tr44/#Join_Control}Join_Control},
        {{:http://www.unicode.org/reports/tr44/#Joining_Group}Joining_Group},
        {{:http://www.unicode.org/reports/tr44/#Joining_Type}Joining_Type},
-       {{:http://www.unicode.org/reports/tr44/#Indic_Matra_Category}
-       Indic_Matra_Category},
        {{:http://www.unicode.org/reports/tr44/#Indic_Syllabic_Category}
        Indic_Syllabic_Category}
        {{:http://www.unicode.org/reports/tr44/#Indic_Positional_Category}
@@ -1271,7 +1282,6 @@ end
     {- Contributory properties. All properties under that section in
        {{:http://www.unicode.org/reports/tr44/#Property_Index_Table}this
        table.}}} *)
-
 
 (** {1:uminimal Minimal Unicode introduction}
 

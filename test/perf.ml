@@ -39,6 +39,7 @@ let lookup_break count =
   prop "grapheme_cluster" Uucp.Break.grapheme_cluster;
   prop "word" Uucp.Break.word;
   prop "sentence" Uucp.Break.sentence;
+  prop "east_asian_width" Uucp.Break.east_asian_width;
   ()
 
 let lookup_case count =
