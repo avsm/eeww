@@ -531,6 +531,74 @@ module Break : sig
       {{:http://www.unicode.org/reports/tr44/#East_Asian_Width}East Asian
       width} property. *)
 
+  (** {1:terminal_width Terminal width} *)
+
+  val terminal_width_hint: uchar -> int
+  (** [terminal_width_hint u] approximates [u]'s column width as rendered by a
+      typical character terminal.
+
+      @raise Invalid_argument if [u] is [0x01-0x1f], [0x7f-0x9f], or a not a
+      {{!uchar}uchar}.
+
+      This function is the moral equivalent of POSIX {{:
+      http://pubs.opengroup.org/onlinepubs/009695399/functions/wcwidth.html}
+      [wcwidth]}, in that its purpose is to help align text displayed by a
+      character terminal. It mimics [wcwidth], as widely implemented, in yet
+      another way: it is {e mostly wrong}.
+
+      Computing column width is a surprisingly difficult task in general. Much
+      of the software infrastructure still carries legacy assumptions about the
+      nature of text harking back to the ASCII era. Different terminal emulators
+      attempt to cope with general Unicode text in different ways, creating a
+      fundamental problem: width of text fragments will vary across terminal
+      emulators, with no way of getting feedback from the output layer back
+      into the text-producing layer.
+
+      For example: on a modern Linux system, a collection of terminals will
+      disagree on some or all of [U+00AD], [U+0CBF], and [U+2029]. They will
+      likewise disagree about unassigned characters (category {e Cn}),
+      sometimes contradicting the system's [wcwidth] (e.g. [U+0378], [U+0530]).
+      Terminals using bare {{:
+      http://cgit.freedesktop.org/xorg/lib/libXft}libxft} will display complex
+      scripts differently from terminals using {{:
+      http://www.freedesktop.org/wiki/Software/HarfBuzz}HarfBuzz}, and the
+      rendering on OS X will be slightly different from both.
+
+      [terminal_width_hint] uses a simple and predictable width algorithm, based
+      on Markus Kuhn's {{: https://www.cl.cam.ac.uk/~mgk25/ucs/wcwidth.c}portable
+      [wcwidth]}:
+      {ul
+      {- Scalar values in the ranges [0x01-0x1f] ({b C0} set without [0x00])
+         and [0x7f-0x9f] ({b C1} set and DELETE) have undefined width.}
+      {- Characters with {{: http://www.unicode.org/reports/tr11/tr11-29.html}
+         East Asian Width} {e Fullwidth} or {e Wide} have a width of [2].}
+      {- Characters with
+         {{: http://unicode.org/glossary/#general_category}General Category}
+         {e Mn}, {e Me}, and {e Cf} have a width of [0].}
+      {- {e Most} other characters have a width of [1], including {e Cn}.}}
+
+      This approach works well, in that it gives results generally consistent
+      with a wide range of terminals, for
+      {{: https://en.wikipedia.org/wiki/Alphabet}alphabetic} scripts, and for
+      east Asian {{: https://en.wikipedia.org/wiki/Syllabary}syllabic} and
+      {{: https://en.wikipedia.org/wiki/Logogram}logographic} scripts in
+      non-decomposed form. Support varies for
+      {{: https://en.wikipedia.org/wiki/Abjad}abjad} scripts in the presence of
+      vowel marks, and it mostly breaks down on
+      {{: https://en.wikipedia.org/wiki/Abugida}abugidas}.
+
+      Moreover, non-text symbols like
+      {{: http://unicode.org/emoji/charts/full-emoji-list.html}Emoji} or
+      {{: unicode.org/charts/PDF/U4DC0.pdf}Yijing hexagrams} will be incorrectly
+      classified as [1]-wide, but this in fact agrees with their rendering on
+      many terminals. (See, for example,
+      {{: http://eev.ee/blog/2015/09/12/dark-corners-of-unicode}this post} for
+      more details on rendering inconsistencies.)
+
+      Software clients should not over-rely on [terminal_width_hint]. It
+      provides a best-effort approximation which will sometimes fail in
+      practice. *)
+
   (** {1:break_low Low level interface} *)
 
   (** Low level interface.
