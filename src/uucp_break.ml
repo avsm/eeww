@@ -35,37 +35,28 @@ let sentence u = Array.unsafe_get Low.sentence_of_int (Low.sentence u)
 
 let east_asian_width u = Uucp_rmap.get Uucp_break_data.east_asian_width_map u
 
-let err_ctrl_char e =
-  invalid_arg (Printf.sprintf "0x%02X is a control character" e)
-
-let err_not_uchar e =
-  invalid_arg (Printf.sprintf "U+%04X is not a unicode scalar value." e)
-
-let terminal_width_hint =
+let tty_width_hint =
   let gc = Uucp_gc.general_category in
   function
-  (* C0 (without 0x00) + DELETE + C1 is an error. *)
-  |u when 0 < u && u <= 0x1f || 0x7f <= u && u <= 0x9f -> err_ctrl_char u
-  (* 0x00 is actually safe to (non-)render. *)
+  (* C0 (without U+0000) or DELETE and C1 is non-sensical. *)
+  |u when 0 < u && u <= 0x001F || 0x007F <= u && u <= 0x009F -> -1
+  (* U+0000 is actually safe to (non-)render. *)
   | 0 -> 0
   (* Soft Hyphen. *)
-  | 0xad -> 1
+  | 0x00AD -> 1
   (* Line/Paragraph Separator. *)
-  | 0x2028|0x2029 -> 0
+  | 0x2028 | 0x2029 -> 0
   (* Kannada Vowel Sign I/E: `Mn, non-spacing combiners,
      but treated as 1 by glibc and FreeBSD's libc. *)
-  | 0xcbf|0xcc6 -> 1
+  | 0x0CBF | 0x0CC6 -> 1
   (* Euro-centric fast path: does not intersect branches below. *)
-  | u when u <= 0x2ff -> 1
-  (* Surrogates are an error. *)
-  | u when not (Uucp_uchar.is_uchar u) -> err_not_uchar u
+  | u when u <= 0x02FF -> 1
   (* Wide east-asian. *)
   | u when (let w = east_asian_width u in w = `W || w = `F) -> 2
   (* Non-spacing, unless stated otherwise. *)
   | u when (let c = gc u in c = `Mn || c = `Me || c = `Cf) -> 0
-  (* ...or else. *)
+  (* or else. *)
   | _ -> 1
-
 
 (*---------------------------------------------------------------------------
    Copyright (c) 2014 Daniel C. Bünzli.
