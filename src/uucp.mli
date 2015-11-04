@@ -545,6 +545,11 @@ module Break : sig
       ({b C0} controls without U+0000) and U+007F-U+009F (DELETE and
       {b C1} controls).
 
+      {b Note.} Converting a string to
+      {{:http://unicode.org/glossary/#normalization_form_c}normalization
+      form C} before folding this function over its scalar values
+      will, in general, yield better approximations (e.g. on Hangul).
+
       {b Warning.} This is not a normative property and only a
       heuristic. If you find yourself using this function please read
       carefully the following lines.
