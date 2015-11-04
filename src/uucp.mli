@@ -603,10 +603,10 @@ module Break : sig
       {{:https://en.wikipedia.org/wiki/Abugida}abugidas}.
 
       Moreover, non-text symbols like
-      {{:http://unicode.org/emoji/charts/full-emoji-list.html}Emoji} or
-      {{:unicode.org/charts/PDF/U4DC0.pdf}Yijing hexagrams} will be incorrectly
-      classified as [1]-wide, but this in fact agrees with their rendering on
-      many terminals.
+      {{:http://unicode.org/emoji/charts/full-emoji-list.html}Emoji}
+      or {{:http://unicode.org/charts/PDF/U4DC0.pdf}Yijing hexagrams}
+      will be incorrectly classified as [1]-wide, but this in fact
+      agrees with their rendering on many terminals.
 
       Clients should not over-rely on [tty_width_hint]. It provides a
       best-effort approximation which will sometimes fail in
