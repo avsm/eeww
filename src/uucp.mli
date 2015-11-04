@@ -555,7 +555,7 @@ module Break : sig
       carefully the following lines.
 
       This function is the moral equivalent of POSIX
-      {{:http://pubs.opengroup.org/onlinepubs/009695399/functions/wcwidth.html}
+      {{:http://pubs.opengroup.org/onlinepubs/9699919799/functions/wcwidth.html}
       [wcwidth]}, in that its purpose is to help align text displayed by a
       character terminal. It mimics [wcwidth], as widely implemented, in yet
       another way: it is {e mostly wrong}.
