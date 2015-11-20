@@ -9,9 +9,9 @@ tags: [ "unicode" "text" "character" "org:erratique" ]
 license: "BSD3"
 depends: [ "ocamlfind" "base-bytes" ]
 available: [ ocaml-version >= "4.00.0" ]
-build: 
+build:
 [
   [ "ocaml" "pkg/git.ml" ]
   [ "ocaml" "pkg/build.ml" "native=%{ocaml-native}%"
-                           "native-dynlink=%{ocaml-native}%" ]
+                           "native-dynlink=%{ocaml-native-dynlink}%" ]
 ]

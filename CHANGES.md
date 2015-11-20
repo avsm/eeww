@@ -1,3 +1,10 @@
+v1.1.0 2015-11-20 Cambridge (UK)
+--------------------------------
+
+- Add support for the East Asian width property (`Uucp.Break.east_asian_width`).
+- Add the non-normative, heuristic function `Uucp.Break.tty_width_hint`.
+  Thanks to David Kaloper for the contribution.
+
 v1.0.0 2015-06-17 Cambridge (UK)
 --------------------------------
 
