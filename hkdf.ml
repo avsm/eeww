@@ -4,7 +4,7 @@ module type S = sig
     val expand : prk:Cstruct.t -> ?info:Cstruct.t -> int -> Cstruct.t
 end
 
-module Make (H : Nocrypto.Hash.S) = struct
+module Make (H : Nocrypto.Hash.S) : S = struct
 
   open Nocrypto.Hash
 
@@ -37,27 +37,12 @@ module Make (H : Nocrypto.Hash.S) = struct
     Cstruct.sub buf 0 len
 end
 
-module MD5HKDF = Make(Nocrypto.Hash.MD5)
-module SHA1HKDF = Make(Nocrypto.Hash.SHA1)
-module SHA224HKDF = Make(Nocrypto.Hash.SHA224)
-module SHA256HKDF = Make(Nocrypto.Hash.SHA256)
-module SHA384HKDF = Make(Nocrypto.Hash.SHA384)
-module SHA512HKDF = Make(Nocrypto.Hash.SHA512)
-
 let extract ~hash ?salt ikm =
-  match hash with
-  | `MD5 -> MD5HKDF.extract ?salt ikm
-  | `SHA1 -> SHA1HKDF.extract ?salt ikm
-  | `SHA224 -> SHA224HKDF.extract ?salt ikm
-  | `SHA256 -> SHA256HKDF.extract ?salt ikm
-  | `SHA384 -> SHA384HKDF.extract ?salt ikm
-  | `SHA512 -> SHA512HKDF.extract ?salt ikm
+  let module H = (val (Nocrypto.Hash.module_of hash)) in
+  let module HKDF = Make (H) in
+  HKDF.extract ?salt ikm
 
 let expand ~hash ~prk ?info len =
-  match hash with
-  | `MD5 -> MD5HKDF.expand ~prk ?info len
-  | `SHA1 -> SHA1HKDF.expand ~prk ?info len
-  | `SHA224 -> SHA224HKDF.expand ~prk ?info len
-  | `SHA256 -> SHA256HKDF.expand ~prk ?info len
-  | `SHA384 -> SHA384HKDF.expand ~prk ?info len
-  | `SHA512 -> SHA512HKDF.expand ~prk ?info len
+  let module H = (val (Nocrypto.Hash.module_of hash)) in
+  let module HKDF = Make (H) in
+  HKDF.expand ~prk ?info len
