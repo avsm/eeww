@@ -1,0 +1,13 @@
+# OASIS_START
+# DO NOT EDIT (digest: f82a8491deddf2ce2ca814cf78171284)
+version = "0.2.0"
+description =
+"HMAC-based Extract-and-Expand Key Derivation Function (HKDF), RFC5869"
+requires = "cstruct nocrypto"
+archive(byte) = "hkdf.cma"
+archive(byte, plugin) = "hkdf.cma"
+archive(native) = "hkdf.cmxa"
+archive(native, plugin) = "hkdf.cmxs"
+exists_if = "hkdf.cma"
+# OASIS_STOP
+

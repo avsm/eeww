@@ -1,0 +1,30 @@
+# OASIS_START
+# DO NOT EDIT (digest: b20eaae29190af35bcabae24d899e5f6)
+# Ignore VCS directories, you can use the same kind of rule outside
+# OASIS_START/STOP if you want to exclude directories that contains
+# useless stuff for the build process
+true: annot, bin_annot
+<**/.svn>: -traverse
+<**/.svn>: not_hygienic
+".bzr": -traverse
+".bzr": not_hygienic
+".hg": -traverse
+".hg": not_hygienic
+".git": -traverse
+".git": not_hygienic
+"_darcs": -traverse
+"_darcs": not_hygienic
+# Library hkdf
+"hkdf.cmxs": use_hkdf
+<hkdf.{cma,cmxa}>: oasis_library_hkdf_byte
+<*.ml{,i,y}>: oasis_library_hkdf_byte
+# Executable rfctests
+"rfctests.byte": pkg_alcotest
+"rfctests.byte": pkg_cstruct
+"rfctests.byte": pkg_nocrypto
+"rfctests.byte": use_hkdf
+<*.ml{,i,y}>: pkg_alcotest
+<*.ml{,i,y}>: pkg_cstruct
+<*.ml{,i,y}>: pkg_nocrypto
+<*.ml{,i,y}>: use_hkdf
+# OASIS_STOP
