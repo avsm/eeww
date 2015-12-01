@@ -1,5 +1,7 @@
 [![Build Status](https://travis-ci.org/hannesm/ocaml-hkdf.svg?branch=master)](https://travis-ci.org/hannesm/ocaml-hkdf)
 
+[API Documentation](https://hannesm.github.io/ocaml-hkdf)
+
 # HMAC-based Extract-and-Expand Key Derivation Function (HKDF)
 
 An implementation of [HKDF](https://tools.ietf.org/html/rfc5869) using
