@@ -1,7 +1,7 @@
 
-(** RFC 5869 specifies a HMAC-based Extract-and-Expand Key Derivation Function
-(HKDF), which is abstracted over a specific hash function. *)
-
+(** {{:https://tools.ietf.org/html/rfc5869}RFC 5869} specifies a HMAC-based
+    Extract-and-Expand Key Derivation Function (HKDF), which is abstracted over
+    a specific hash function. *)
 
 module type S = sig
 
