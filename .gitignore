@@ -7,9 +7,8 @@
 *.cmx
 *.cmxs
 *.cmxa
-_build
-setup.data
-setup.log
 *byte
 *native
+_build
 _tests
+hkdf.install

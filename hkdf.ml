@@ -5,9 +5,6 @@ module type S = sig
 end
 
 module Make (H : Nocrypto.Hash.S) : S = struct
-
-  open Nocrypto.Hash
-
   let extract ?salt ikm =
     let key = match salt with
       | None -> let buf = Cstruct.create H.digest_size in

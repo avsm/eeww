@@ -153,7 +153,4 @@ let tests = [
   "RFC 5869 Test Case 7", `Quick, test7 ;
 ]
 
-let () =
-  Alcotest.run "HKDF Tests" [
-    "RFC 5869", tests;
-  ]
+let () = Alcotest.run "HKDF Tests" [ "RFC 5869", tests ]

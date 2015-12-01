@@ -1,0 +1,8 @@
+version = "1.0.0"
+description = "HMAC-based Extract-and-Expand Key Derivation Function (HKDF), RFC5869"
+requires = "cstruct nocrypto"
+archive(byte) = "hkdf.cma"
+archive(byte, plugin) = "hkdf.cma"
+archive(native) = "hkdf.cmxa"
+archive(native, plugin) = "hkdf.cmxs"
+exists_if = "hkdf.cma"

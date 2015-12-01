@@ -8,16 +8,16 @@ maintainer:   ["Hannes Mehnert <hannes@mehnert.org>"]
 license:      "BSD2"
 
 build: [
-  ["./configure" "--prefix" prefix]
-  [make]
+  ["ocaml" "pkg/build.ml" "native=%{ocaml-native}%"
+                          "native-dynlink=%{ocaml-native-dynlink}%"
+                          "alcotest=false"]
 ]
-install: [make "install"]
-remove: ["ocamlfind" "remove" "hkdf"]
 build-test: [
-  [ "./configure" "--%{alcotest:enable}%-tests" ]
-  [ make "test" ]
+  ["ocaml" "pkg/build.ml" "native=%{ocaml-native}%"
+                          "native-dynlink=%{ocaml-native-dynlink}%"
+                          "alcotest=true"]
+  ["./rfctests"]
 ]
-
 depends: [
   "ocamlfind"
   "cstruct" {>= "1.6.0"}
