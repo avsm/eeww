@@ -16,7 +16,7 @@ build-test: [
   ["ocaml" "pkg/build.ml" "native=%{ocaml-native}%"
                           "native-dynlink=%{ocaml-native-dynlink}%"
                           "alcotest=true"]
-  ["./rfctests"]
+  ["sh" "-c" "if test -f ./rfctests.native; then ./rfctests.native; else ./rfctests.byte; fi"]
 ]
 depends: [
   "ocamlfind"
