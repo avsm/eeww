@@ -1,15 +1,15 @@
 # OASIS_START
-# DO NOT EDIT (digest: 8081471c60bc1e02d58412409269c672)
-version = "1.0.3"
+# DO NOT EDIT (digest: 053d2d668d5ad93d305db552bbc396f7)
+version = "1.1.0"
 description = "Mirage flow implementations"
 requires = "mirage-types.lwt lwt cstruct"
-archive(byte) = "mirage-flow.cma"
-archive(byte, plugin) = "mirage-flow.cma"
-archive(native) = "mirage-flow.cmxa"
-archive(native, plugin) = "mirage-flow.cmxs"
-exists_if = "mirage-flow.cma"
+archive(byte) = "mirage_flow.cma"
+archive(byte, plugin) = "mirage_flow.cma"
+archive(native) = "mirage_flow.cmxa"
+archive(native, plugin) = "mirage_flow.cmxs"
+exists_if = "mirage_flow.cma"
 package "lwt-io" (
- version = "1.0.3"
+ version = "1.1.0"
  description = "Mirage flow implementations"
  requires = "mirage-flow lwt.unix"
  archive(byte) = "lwt-io.cma"

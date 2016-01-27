@@ -1,3 +1,10 @@
+### 1.1.0 (unreleased)
+
+* Add a new top-level interface `module Mirage_flow`. Existing `module Fflow`
+  is still present.
+* Add `Mirage_flow.copy` to copy all the data in a flow to another
+* Add `Mirage_flow.proxy` to copy data bidirectionally between two flows
+
 ### 1.0.3 (2015-07-29)
 
 * Support lwt 2.5.0
