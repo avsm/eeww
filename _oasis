@@ -22,6 +22,14 @@ Library "lwt-io"
   Modules:            Lwt_io_flow
   BuildDepends:       mirage-flow, lwt.unix
 
+Document mirage_flow
+  Title:                Mirage block documentation
+  Type:                 ocamlbuild (0.3)
+  BuildTools+:          ocamldoc
+  Install:              true
+  XOCamlbuildPath:      lib
+  XOCamlbuildLibraries: mirage-flow, mirage-flow.lwt-io
+
 Executable test_flow
   Path:           lib_test
   MainIs:         test.ml
