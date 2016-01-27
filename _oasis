@@ -1,8 +1,8 @@
 OASISFormat: 0.4
 Name:        mirage-flow
-Version:     1.0.3
+Version:     1.1.0
 Synopsis:    Mirage flow implementations
-Authors:     Thomas Gazagnaire
+Authors:     Thomas Gazagnaire, David Scott
 License:     ISC
 Plugins:     META (0.4), DevFiles (0.4)
 BuildTools:  ocamlbuild
