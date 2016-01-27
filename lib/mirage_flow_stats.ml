@@ -15,10 +15,36 @@
  *
  *)
 
-module CopyStats = Mirage_flow_stats
+type t = {
+	read_bytes: int64;
+	read_ops: int64;
+	write_bytes: int64;
+	write_ops: int64;
+	duration: float;
+}
 
-module Copy = Mirage_flow_copy
+let kib = 1024L
+let ( ** ) = Int64.mul
+let mib = kib ** 1024L
+let gib = mib ** 1024L
+let tib = gib ** 1024L
 
-module Fun = Fflow
+let suffix = [
+  kib, "KiB";
+	mib, "MiB";
+	gib, "GiB";
+	tib, "TiB";
+]
 
-let proxy = Mirage_flow_proxy.proxy
+let add_suffix x =
+  List.fold_left (fun acc (y, label) ->
+    if Int64.div x y > 0L
+		then Printf.sprintf "%.1f %s" Int64.((to_float x) /. (to_float y)) label
+		else acc
+	) (Printf.sprintf "%Ld bytes" x) suffix
+
+let to_string s =
+  Printf.sprintf "%s bytes at %s/sec and %.1f IOPS/sec"
+		(add_suffix s.read_bytes)
+		(add_suffix Int64.(of_float ((to_float s.read_bytes) /. s.duration)))
+		((Int64.to_float s.read_ops) /. s.duration)

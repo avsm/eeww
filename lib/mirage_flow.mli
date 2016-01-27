@@ -15,23 +15,26 @@
  *
  *)
 
+module CopyStats : sig
+  type t = {
+    read_bytes: int64;
+    read_ops: int64;
+    write_bytes: int64;
+    write_ops: int64;
+    duration: float;
+  }
+  (** I/O statistics from a copy operation *)
+
+  val to_string: t -> string
+end
+
 module Copy : sig
   (** Copy data from one flow to another *)
 
   type t
   (** A copy operation *)
 
-  type stats = {
-  	read_bytes: int64;
-  	read_ops: int64;
-  	write_bytes: int64;
-  	write_ops: int64;
-  	duration: float;
-  }
-
-  val string_of_stats: stats -> string
-
-  val stats: t -> stats
+  val stats: t -> CopyStats.t
   (** [stats t] returns instantantaneous stats about a copy *)
 
   val start:
@@ -56,7 +59,7 @@ val proxy:
      (module V1.CLOCK)
   -> (module Mirage_flow_s.SHUTDOWNABLE with type flow = 'a) -> 'a
   -> (module Mirage_flow_s.SHUTDOWNABLE with type flow = 'b) -> 'b
-  -> unit -> [ `Ok of (Copy.stats * Copy.stats) | `Error of [ `Msg of string ] ] Lwt.t
+  -> unit -> [ `Ok of (CopyStats.t * CopyStats.t) | `Error of [ `Msg of string ] ] Lwt.t
 (** [proxy (module Clock) (module A) a (module B) b ()] proxies data between
     [a] and [b] until both sides close. If either direction encounters an error
     then so will [proxy]. If both directions succeed, then return I/O statistics. *)

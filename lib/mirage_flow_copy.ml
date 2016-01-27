@@ -16,40 +16,6 @@
  *)
 open Lwt
 
-type stats = {
-	read_bytes: int64;
-	read_ops: int64;
-	write_bytes: int64;
-	write_ops: int64;
-	duration: float;
-}
-
-let kib = 1024L
-let ( ** ) = Int64.mul
-let mib = kib ** 1024L
-let gib = mib ** 1024L
-let tib = gib ** 1024L
-
-let suffix = [
-  kib, "KiB";
-	mib, "MiB";
-	gib, "GiB";
-	tib, "TiB";
-]
-
-let add_suffix x =
-  List.fold_left (fun acc (y, label) ->
-    if Int64.div x y > 0L
-		then Printf.sprintf "%.1f %s" Int64.((to_float x) /. (to_float y)) label
-		else acc
-	) (Printf.sprintf "%Ld bytes" x) suffix
-
-let string_of_stats s =
-  Printf.sprintf "%s bytes at %s/sec and %.1f IOPS/sec"
-		(add_suffix s.read_bytes)
-		(add_suffix Int64.(of_float ((to_float s.read_bytes) /. s.duration)))
-		((Int64.to_float s.read_ops) /. s.duration)
-
 type t = {
 	_read_bytes: int64 ref;
 	_read_ops: int64 ref;
@@ -65,7 +31,7 @@ let stats t =
 	let duration = match !(t._finish) with
 	  | None -> t.time () -. t.start
 		| Some x -> x -. t.start in {
-	read_bytes = !(t._read_bytes);
+	Mirage_flow_stats.read_bytes = !(t._read_bytes);
 	read_ops = !(t._read_ops);
 	write_bytes = !(t._write_bytes);
 	write_ops = !(t._write_ops);
