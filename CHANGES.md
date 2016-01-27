@@ -1,4 +1,4 @@
-### 1.1.0 (unreleased)
+### 1.1.0 (2016-01-27)
 
 * Add a new top-level interface `module Mirage_flow`. Existing `module Fflow`
   is still present.
