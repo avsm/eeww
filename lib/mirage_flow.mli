@@ -50,3 +50,13 @@ module Copy : sig
 end
 
 module Fun : (module type of Fflow)
+(** Flows from functions *)
+
+val proxy:
+     (module V1.CLOCK)
+  -> (module Mirage_flow_s.SHUTDOWNABLE with type flow = 'a) -> 'a
+  -> (module Mirage_flow_s.SHUTDOWNABLE with type flow = 'b) -> 'b
+  -> unit -> [ `Ok of (Copy.stats * Copy.stats) | `Error of [ `Msg of string ] ] Lwt.t
+(** [proxy (module Clock) (module A) a (module B) b ()] proxies data between
+    [a] and [b] until both sides close. If either direction encounters an error
+    then so will [proxy]. If both directions succeed, then return I/O statistics. *)

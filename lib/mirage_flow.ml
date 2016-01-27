@@ -18,3 +18,5 @@
 module Copy = Mirage_flow_copy
 
 module Fun = Fflow
+
+let proxy = Mirage_flow_proxy.proxy
