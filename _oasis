@@ -7,18 +7,18 @@ License:     ISC
 Plugins:     META (0.4), DevFiles (0.4)
 BuildTools:  ocamlbuild
 
-Library "mirage-flow"
+Library mirage_flow
   CompiledObject:     best
   Path:               lib
   Findlibname:        mirage-flow
-  Modules:            Fflow, Mirage_flow_copy, Mirage_flow
+  Modules:            Fflow, Mirage_flow_copy, Mirage_flow_s, Mirage_flow
   BuildDepends:       mirage-types.lwt, lwt, cstruct
 
 Library "lwt-io"
   CompiledObject:     best
   Path:               lib/lwt-io
   Findlibname:        lwt-io
-  FindlibParent:      mirage-flow
+  FindlibParent:      mirage_flow
   Modules:            Lwt_io_flow
   BuildDepends:       mirage-flow, lwt.unix
 
