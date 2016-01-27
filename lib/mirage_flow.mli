@@ -35,7 +35,7 @@ end
 
 
 val copy:
-     (module V1.CLOCK)
+  (module V1.CLOCK)
   -> (module V1_LWT.FLOW with type flow = 'a) -> 'a
   -> (module V1_LWT.FLOW with type flow = 'b) -> 'b
   -> unit -> [ `Ok of CopyStats.t | `Error of [ `Msg of string ] ] Lwt.t
@@ -45,7 +45,7 @@ val copy:
     are returned. On failure we return a printable error. *)
 
 val proxy:
-     (module V1.CLOCK)
+  (module V1.CLOCK)
   -> (module Mirage_flow_s.SHUTDOWNABLE with type flow = 'a) -> 'a
   -> (module Mirage_flow_s.SHUTDOWNABLE with type flow = 'b) -> 'b
   -> unit -> [ `Ok of (CopyStats.t * CopyStats.t) | `Error of [ `Msg of string ] ] Lwt.t
