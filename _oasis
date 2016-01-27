@@ -11,7 +11,7 @@ Library "mirage-flow"
   CompiledObject:     best
   Path:               lib
   Findlibname:        mirage-flow
-  Modules:            Fflow
+  Modules:            Fflow, Mirage_flow_copy
   BuildDepends:       mirage-types.lwt, lwt, cstruct
 
 Library "lwt-io"
