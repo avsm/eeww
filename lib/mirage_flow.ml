@@ -15,10 +15,9 @@
  *
  *)
 
-module CopyStats = Mirage_flow_stats
-
-module Copy = Mirage_flow_copy
-
 module Fun = Fflow
 
+module CopyStats = Mirage_flow_stats
+
+let copy = Mirage_flow_copy.copy
 let proxy = Mirage_flow_proxy.proxy

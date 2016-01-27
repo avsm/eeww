@@ -85,3 +85,13 @@ let start (module Clock: V1.CLOCK)
 	}
 
 let wait t = t.t
+
+let copy (module Clock: V1.CLOCK)
+				 (type a) (module A: V1_LWT.FLOW with type flow = a) (a: a)
+				 (type b) (module B: V1_LWT.FLOW with type flow = b) (b: b)
+				 () =
+	let t = start (module Clock) (module A) a (module B) b () in
+	wait t
+	>>= function
+	| `Ok () -> return (`Ok (stats t))
+	| `Error (`Msg m) -> return (`Error (`Msg m))

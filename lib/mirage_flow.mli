@@ -15,6 +15,11 @@
  *
  *)
 
+(** Utility functions over flows *)
+
+module Fun : (module type of Fflow)
+(** Flows from functions *)
+
 module CopyStats : sig
   type t = {
     read_bytes: int64;
@@ -28,32 +33,16 @@ module CopyStats : sig
   val to_string: t -> string
 end
 
-module Copy : sig
-  (** Copy data from one flow to another *)
 
-  type t
-  (** A copy operation *)
-
-  val stats: t -> CopyStats.t
-  (** [stats t] returns instantantaneous stats about a copy *)
-
-  val start:
-       (module V1.CLOCK)
-  	-> (module V1_LWT.FLOW with type flow = 'a) -> 'a
-  	-> (module V1_LWT.FLOW with type flow = 'b) -> 'b
-  	-> unit -> t
-  (** [start (module Clock) (module Source) source (module Destination)
-      destination] copies data from [source] to [destination] using the
-  		clock to compute a transfer rate. *)
-
-  val wait: t -> [ `Ok of unit | `Error of [ `Msg of string ] ] Lwt.t
-  (** [wait t] waits for the copy process to complete. The call succeeds iff all
-      the data read from source (until Eof) is successfully written to destination. *)
-
-end
-
-module Fun : (module type of Fflow)
-(** Flows from functions *)
+val copy:
+     (module V1.CLOCK)
+  -> (module V1_LWT.FLOW with type flow = 'a) -> 'a
+  -> (module V1_LWT.FLOW with type flow = 'b) -> 'b
+  -> unit -> [ `Ok of CopyStats.t | `Error of [ `Msg of string ] ] Lwt.t
+(** [copy (module Clock) (module Source) source (module Destination)
+    destination] copies data from [source] to [destination] using the
+    clock to compute a transfer rate. On successful completion, some statistics
+    are returned. On failure we return a printable error. *)
 
 val proxy:
      (module V1.CLOCK)
