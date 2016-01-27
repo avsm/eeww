@@ -47,5 +47,6 @@ module Copy : sig
   (** [wait t] waits for the copy process to complete. The call succeeds iff all
       the data read from source (until Eof) is successfully written to destination. *)
 
-
 end
+
+module Fun : (module type of Fflow)
