@@ -13,8 +13,8 @@
     properties. A {{!uminimal}minimal Unicode introduction} is also
     available.
 
-    {e Release %%VERSION%% — Unicode version %%UNICODE_VERSION%% —
-    %%MAINTAINER%% }
+    {e %%VERSION%% — Unicode version %%UNICODE_VERSION%% —
+       {{:%%PKG_HOMEPAGE%% }homepage}}
 
     {3 References}
     {ul

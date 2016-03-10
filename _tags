@@ -1,11 +1,9 @@
-true : package(bytes)
+true : bin_annot, package(bytes)
 
-<**/*.{ml,mli}> : bin_annot
 <src> : include
-<src/data> : include
 <support> : include
 <test> : include
 
-<support/gen*.{ml,mli,byte,native}> : package(xmlm), package(uucd)
-<test/test.{ml,mli,byte,native}> : package(xmlm), package(uucd)
+<support/gen*.{ml,mli,byte,native}> : package(uucd)
+<test/test.{ml,mli,byte,native}> : package(uucd)
 <test/examples.{ml,mli,byte,native}> : package(uutf), package(uunf)

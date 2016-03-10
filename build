@@ -12,42 +12,15 @@ action ()
     case $1 in
         default)   $OCAMLBUILD uucp.cma uucp.cmxa ;;
         tests)     $OCAMLBUILD test/tests.otarget ;;
-        doc)       shift; pkg-doc $* doc/dev-api.docdir ;;
+        doc)       shift; topkg doc --dev $* ;;
+        api-doc)   shift; topkg doc $* ;;
         gen_props) $OCAMLBUILD gen_props.native ;;
-        support)   action gen_props
-                   check_db
-                   ./gen_props.native \
-                       -age src/data/uucp_age_data.ml \
-                       -name src/data/uucp_name_data.ml \
-                       -alpha src/data/uucp_alpha_data.ml \
-                       -block src/data/uucp_block_data.ml \
-                       -break src/data/uucp_break_data.ml \
-                       -case src/data/uucp_case_data.ml \
-                       -case-fold src/data/uucp_case_fold_data.ml \
-                       -case-map src/data/uucp_case_map_data.ml \
-                       -case-nfkc src/data/uucp_case_nfkc_data.ml \
-                       -cjk src/data/uucp_cjk_data.ml \
-                       -func src/data/uucp_func_data.ml \
-                       -gc src/data/uucp_gc_data.ml \
-                       -gen src/data/uucp_gen_data.ml \
-                       -id src/data/uucp_id_data.ml \
-                       -num src/data/uucp_num_data.ml \
-                       -script src/data/uucp_script_data.ml \
-                       -white src/data/uucp_white_data.ml \
-                   ;;
+        support)   pkg/build_support.ml ;;
         clean)     $OCAMLBUILD -clean
-                   rm -f src/data/*_data.ml
+                   rm -f src/uucp_*_data.ml
                    ;;
         *)         $OCAMLBUILD $* ;;
     esac
-}
-
-check_db ()
-{
-    if [ ! -f "support/ucd.xml" ]; then
-        echo "Missing unicode character database support/ucd.xml, see DEVEL.md"
-        exit 1
-    fi
 }
 
 if [ $# -eq 0 ];

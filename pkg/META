@@ -1,9 +1,7 @@
-version = "%%VERSION%%"
 description = "Unicode character properties"
+version = "%%VERSION_NUM%%"
 requires = "bytes"
 archive(byte) = "uucp.cma"
-archive(byte, plugin) = "uucp.cma"
 archive(native) = "uucp.cmxa"
-archive(native, plugin) = "uucp.cmxs"
-exists_if = "uucp.cma"
-
+plugin(byte) = "uucp.cma"
+plugin(native) = "uucp.cmxs"

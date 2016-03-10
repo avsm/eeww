@@ -4,5 +4,7 @@ tmp
 \.\#*
 \#*#
 support/ucd.xml
-src/data/*.ml
-CLOCK.org
+src/uucp_*_data.ml
+*.native
+*.byte
+*.install
