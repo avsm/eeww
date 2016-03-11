@@ -1,0 +1,14 @@
+*.annot
+*.cmo
+*.cma
+*.cmi
+*.a
+*.o
+*.cmx
+*.cmxs
+*.cmxa
+*byte
+*native
+_build
+_tests
+hkdf.install
