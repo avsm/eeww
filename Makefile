@@ -1,7 +1,7 @@
 all: lib test
 
 lib: pbkdf.ml
-	ocamlbuild pbkdf.cmx -pkg cstruct
+	ocamlbuild pbkdf.cmx -pkg cstruct -pkg nocrypto
 
 test: pbkdftest.ml
 	ocamlbuild pbkdftest.native -pkg cstruct -pkg nocrypto -pkg alcotest

@@ -1,8 +1,20 @@
-let pbkdf1 ~hash ~password ~salt ~count ~dk_len ~hlen =
-  let rec loop t = function
-      0 -> t
-    | i -> loop (hash t) (i - 1)
-  in
-  if dk_len > hlen 
-  then invalid_arg "derived key too long"
-  else Cstruct.sub (loop (Cstruct.append password salt) count) 0 dk_len
+module type S = sig
+  val pbkdf1 : password:Cstruct.t -> salt:Cstruct.t -> count:int -> dk_len:int -> Cstruct.t
+end
+
+module Make (H: Nocrypto.Hash.S) : S = struct
+  let pbkdf1 ~password ~salt ~count ~dk_len =
+    if dk_len > H.digest_size
+    then invalid_arg "derived key too long"
+    else
+      let rec loop t = function
+          0 -> t
+        | i -> loop (H.digest t) (i - 1)
+      in
+      Cstruct.sub (loop (Cstruct.append password salt) count) 0 dk_len
+end
+
+let pbkdf1 ~hash ~password ~salt ~count ~dk_len =
+  let module H = (val (Nocrypto.Hash.module_of hash)) in
+  let module PBKDF = Make (H) in
+  PBKDF.pbkdf1 ~password ~salt ~count ~dk_len

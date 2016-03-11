@@ -5,7 +5,7 @@ let test_pbkdf1 ~hash ~password ~salt ~count ~dk_len ~dk () =
   and password = Cstruct.of_string password
   in
   (fun () ->
-     let edk = Pbkdf.pbkdf1 ~hash ~password ~salt ~count ~dk_len ~hlen:20 in
+     let edk = Pbkdf.pbkdf1 ~hash ~password ~salt ~count ~dk_len in
      let sedk = Cstruct.to_string edk
      and sdk = Cstruct.to_string dk
      in
@@ -13,7 +13,7 @@ let test_pbkdf1 ~hash ~password ~salt ~count ~dk_len ~dk () =
   
 let test1 =
   test_pbkdf1
-    ~hash:Nocrypto.Hash.SHA1.digest
+    ~hash:`SHA1
     ~password:"password"
     ~salt:"78578e5a5d63cb06"
     ~count:1000
