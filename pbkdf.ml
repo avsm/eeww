@@ -5,4 +5,4 @@ let pbkdf1 hash password salt count dk_len hlen =
   in
   if dk_len > hlen 
   then invalid_arg "derived key too long"
-  else Cstruct.sub (loop (Cstruct.concat [password; salt]) count) 0 dk_len
+  else Cstruct.sub (loop (Cstruct.append password salt) count) 0 dk_len
