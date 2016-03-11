@@ -1,4 +1,4 @@
-let pbkdf1 hash password salt count dk_len hlen =
+let pbkdf1 ~hash ~password ~salt ~count ~dk_len ~hlen =
   let rec loop t = function
       0 -> t
     | i -> loop (hash t) (i - 1)
