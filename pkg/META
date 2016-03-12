@@ -1,0 +1,8 @@
+version = "0.1.0"
+description = "Password based key derivation functions from PKCS#5, RFC 2898"
+requires = "cstruct nocrypto"
+archive(byte) = "pbkdf.cma"
+archive(byte, plugin) = "pbkdf.cma"
+archive(native) = "pbkdf.cmxa"
+archive(native, plugin) = "pbkdf.cmxs"
+exists_if = "pbkdf.cma"
