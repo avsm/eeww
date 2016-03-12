@@ -50,15 +50,6 @@ let test3 =
     ~dk_len:16
     ~msg:"Salt too short"
 
-let test3 =
-  test_pbkdf1_invalid_arg
-    ~hash:`SHA1
-    ~password:"password"
-    ~salt:"78578e5a5d63cb0600"
-    ~count:1000
-    ~dk_len:16
-    ~msg:"Salt too long"
-
 let test4 =
   test_pbkdf1_invalid_arg
     ~hash:`SHA1
@@ -72,12 +63,21 @@ let test5 =
   test_pbkdf1_invalid_arg
     ~hash:`SHA1
     ~password:"password"
+    ~salt:"78578e5a5d63cb0600"
+    ~count:1000
+    ~dk_len:16
+    ~msg:"Salt too long"
+
+let test6 =
+  test_pbkdf1_invalid_arg
+    ~hash:`SHA1
+    ~password:"password"
     ~salt:"78578e5a5d63cb06"
     ~count:(-1)
     ~dk_len:16
     ~msg:"Invalid count"
 
-let test6 =
+let test7 =
   test_pbkdf1_invalid_arg
     ~hash:`SHA1
     ~password:"password"
@@ -94,6 +94,7 @@ let tests = [
   "Test Case 4", `Quick, test4;
   "Test Case 5", `Quick, test5;
   "Test Case 6", `Quick, test6;
+  "Test Case 7", `Quick, test7;
 ]
 
 let () = Alcotest.run "PBKDF Tests" [ "Sample tests", tests ]
