@@ -18,7 +18,7 @@ let test_pbkdf1_invalid_arg ~hash ~password ~salt ~count ~dk_len ~msg () =
   in
   Alcotest.check_raises
     msg
-    (Invalid_argument "")
+    (Invalid_argument msg)
     (fun () -> ignore (Pbkdf.pbkdf1 ~hash ~password ~salt ~count ~dk_len))
 
 (* Taken from http://www.di-mgt.com.au/cryptoKDFs.html *)
@@ -39,7 +39,7 @@ let test2 =
     ~salt:"78578e5a5d63cb06"
     ~count:1000
     ~dk_len:16
-    ~msg:"Invalid hash"
+    ~msg:"only MD5 or SHA1 shall be used"
 
 let test3 =
   test_pbkdf1_invalid_arg
@@ -48,7 +48,7 @@ let test3 =
     ~salt:"78578e5a5d63cb"
     ~count:1000
     ~dk_len:16
-    ~msg:"Salt too short"
+    ~msg:"salt should be 8 bytes"
 
 let test4 =
   test_pbkdf1_invalid_arg
@@ -57,25 +57,25 @@ let test4 =
     ~salt:"78578e5a5d63cb0600"
     ~count:1000
     ~dk_len:16
-    ~msg:"Salt too long"
+    ~msg:"salt should be 8 bytes"
 
 let test5 =
-  test_pbkdf1_invalid_arg
-    ~hash:`SHA1
-    ~password:"password"
-    ~salt:"78578e5a5d63cb0600"
-    ~count:1000
-    ~dk_len:16
-    ~msg:"Salt too long"
-
-let test6 =
   test_pbkdf1_invalid_arg
     ~hash:`SHA1
     ~password:"password"
     ~salt:"78578e5a5d63cb06"
     ~count:(-1)
     ~dk_len:16
-    ~msg:"Invalid count"
+    ~msg:"count must be a positive integer"
+
+let test6 =
+  test_pbkdf1_invalid_arg
+    ~hash:`SHA1
+    ~password:"password"
+    ~salt:"78578e5a5d63cb06"
+    ~count:0
+    ~dk_len:16
+    ~msg:"count must be a positive integer"
 
 let test7 =
   test_pbkdf1_invalid_arg
@@ -84,25 +84,16 @@ let test7 =
     ~salt:"78578e5a5d63cb06"
     ~count:1000
     ~dk_len:24
-    ~msg:"Invalid derived key length"
+    ~msg:"derived key too long"
 
 let test8 =
   test_pbkdf1_invalid_arg
     ~hash:`SHA1
     ~password:"password"
     ~salt:"78578e5a5d63cb06"
-    ~count:0
-    ~dk_len:16
-    ~msg:"Invalid count"
-
-let test9 =
-  test_pbkdf1_invalid_arg
-    ~hash:`SHA1
-    ~password:"password"
-    ~salt:"78578e5a5d63cb06"
     ~count:1000
     ~dk_len:0
-    ~msg:"Invalid derived key length"
+    ~msg:"derived key length must be a positive integer"
 
 
 let tests = [
@@ -114,7 +105,6 @@ let tests = [
   "Test Case 6", `Quick, test6;
   "Test Case 7", `Quick, test7;
   "Test Case 8", `Quick, test8;
-  "Test Case 9", `Quick, test9;
 ]
 
 let () = Alcotest.run "PBKDF Tests" [ "Sample tests", tests ]
