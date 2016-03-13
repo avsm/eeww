@@ -86,6 +86,24 @@ let test7 =
     ~dk_len:24
     ~msg:"Invalid derived key length"
 
+let test8 =
+  test_pbkdf1_invalid_arg
+    ~hash:`SHA1
+    ~password:"password"
+    ~salt:"78578e5a5d63cb06"
+    ~count:0
+    ~dk_len:16
+    ~msg:"Invalid count"
+
+let test9 =
+  test_pbkdf1_invalid_arg
+    ~hash:`SHA1
+    ~password:"password"
+    ~salt:"78578e5a5d63cb06"
+    ~count:1000
+    ~dk_len:0
+    ~msg:"Invalid derived key length"
+
 
 let tests = [
   "Test Case 1", `Quick, test1;
@@ -95,6 +113,8 @@ let tests = [
   "Test Case 5", `Quick, test5;
   "Test Case 6", `Quick, test6;
   "Test Case 7", `Quick, test7;
+  "Test Case 8", `Quick, test8;
+  "Test Case 9", `Quick, test9;
 ]
 
 let () = Alcotest.run "PBKDF Tests" [ "Sample tests", tests ]
