@@ -37,7 +37,6 @@ module Make (H: Hash.S) : S = struct
              let int_i = Cstruct.create 4 in
              Cstruct.BE.set_uint32 int_i 0 (Int32.of_int i);
              let u_1 = H.hmac ~key:password (Cstruct.append salt int_i) in
-             Cstruct.hexdump (Cstruct.append salt int_i);
              f u_1 u_1 (count - 1)
            in
            let rec loop blocks = function
