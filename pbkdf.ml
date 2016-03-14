@@ -18,9 +18,9 @@ module Make (H: Hash.S) : S = struct
       in
       Cstruct.sub (loop (Cstruct.append password salt) count) 0 dk_len
 
-  let pbkdf2 ~password ~salt ~count ~dk_len =    
-    if count < 0 then invalid_arg "count cannot be negative"
-    else if dk_len < 0 then invalid_arg "derived key length cannot be negative"
+  let pbkdf2 ~password ~salt ~count ~dk_len =
+    if count <= 0 then invalid_arg "count must be a positive integer"
+    else if dk_len <= 0 then invalid_arg "derived key length must be a positive integer"
     else let max_num_blocks = Int64.pred (Int64.shift_left Int64.one 32) in
          let h_len = H.digest_size in
          let ceil x y = ((x - 1) / y) + 1 in
