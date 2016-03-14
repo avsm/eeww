@@ -1,6 +1,5 @@
+[![docs](https://img.shields.io/badge/doc-online-blue.svg)](https://abeaumont.github.io/ocaml-pbkdf)
 [![Build Status](https://travis-ci.org/abeaumont/ocaml-pbkdf.svg?branch=master)](https://travis-ci.org/abeaumont/ocaml-pbkdf)
-
-[API Documentation](https://abeaumont.github.io/ocaml-pbkdf)
 
 # Password based key derivation functions (PBKDF) from PKCS#5
 
