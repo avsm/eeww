@@ -1,9 +1,11 @@
+open Nocrypto
+
 module type S = sig
   val pbkdf1 : password:Cstruct.t -> salt:Cstruct.t -> count:int -> dk_len:int -> Cstruct.t
   val pbkdf2 : password:Cstruct.t -> salt:Cstruct.t -> count:int -> dk_len:int -> Cstruct.t
 end
 
-module Make (H: Nocrypto.Hash.S) : S = struct
+module Make (H: Hash.S) : S = struct
   let pbkdf1 ~password ~salt ~count ~dk_len =
     if Cstruct.len salt <> 8 then invalid_arg "salt should be 8 bytes"
     else if count <= 0 then invalid_arg "count must be a positive integer"
@@ -30,7 +32,7 @@ module Make (H: Nocrypto.Hash.S) : S = struct
              let rec f u xor = function
                  0 -> xor
                | j -> let u = H.hmac ~key:password u in
-                      f u (Nocrypto.Uncommon.Cs.xor xor u) (j - 1)
+                      f u (Uncommon.Cs.xor xor u) (j - 1)
              in
              let int_i = Cstruct.create 4 in
              Cstruct.BE.set_uint32 int_i 0 (Int32.of_int i);
@@ -46,11 +48,11 @@ module Make (H: Nocrypto.Hash.S) : S = struct
 end
 
 let pbkdf1 ~hash ~password ~salt ~count ~dk_len =
-  let module H = (val (Nocrypto.Hash.module_of hash)) in
+  let module H = (val (Hash.module_of hash)) in
   let module PBKDF = Make (H) in
   PBKDF.pbkdf1 ~password ~salt ~count ~dk_len
 
 let pbkdf2 ~prf ~password ~salt ~count ~dk_len =
-    let module H = (val (Nocrypto.Hash.module_of prf)) in
+    let module H = (val (Hash.module_of prf)) in
     let module PBKDF = Make (H) in
     PBKDF.pbkdf2 ~password ~salt ~count ~dk_len
