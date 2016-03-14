@@ -119,7 +119,7 @@ let pbkdf2_test1 =
     ~password:""
     ~salt:"0001020304050607"
     ~count:10000
-    ~dk_len:32
+    ~dk_len:32l
     ~dk:"59b2b1143b4cb1059ec58d9722fb1c72471e0d85c6f7543ba5228526375b0127"
     ()
 
@@ -129,7 +129,7 @@ let pbkdf2_test2 =
     ~password:"jyueqgxrscgglpxdykcf"
     ~salt:"9b56e55328a4c97a250738f8dba1b992e8a1b508"
     ~count:10000
-    ~dk_len:14
+    ~dk_len:14l
     ~dk:"df6d9d72872404bf73e708cf3b7d"
     ()
 
@@ -139,7 +139,7 @@ let pbkdf2_test3 =
     ~password:"aqrqsznzvvzgtksammgo"
     ~salt:"57487813cdd2220dfc485d932a2979ee8769ea8b"
     ~count:101
-    ~dk_len:40
+    ~dk_len:40l
     ~dk:"fa13f40af1ade2a30f2fffd66fc8a659ef95e6388c1682fc0fe4d15a70109517a32942e39c371440"
     ()
 
@@ -149,7 +149,7 @@ let pbkdf2_test4 =
     ~password:"ltexmfeyylmlbrsyikaw"
     ~salt:"ed1f39a0a7f3889aaf7e60743b3bc1cc2c738e60"
     ~count:1000
-    ~dk_len:10
+    ~dk_len:10l
     ~dk:"027afadd48f4be8dcc4f"
     ()
 
@@ -159,7 +159,7 @@ let pbkdf2_test5 =
     ~password:"cxgnyrcgrvllylolsjpo"
     ~salt:"94ac88200743fb0f6ac51be62166cbef08d94c15"
     ~count:1
-    ~dk_len:32
+    ~dk_len:32l
     ~dk:"7c0d009fc91b48cb6d19bafbfccff3e2ccabfe725eaa234e56bde1d551c132f2"
     ()
 
@@ -169,7 +169,7 @@ let pbkdf2_test6 =
     ~password:"xqyfhrxehiedlhewnvbj"
     ~salt:"24a1a50b17d63ee8394b69fc70887f4f94883d68"
     ~count:5
-    ~dk_len:32
+    ~dk_len:32l
     ~dk:"4661301d3517ca4443a6a607b32b2a63f69996299df75db75f1e0b98dd0eb7d8"
     ()
 
@@ -179,7 +179,7 @@ let pbkdf2_test7 =
     ~password:"andaqkpjwabvcfnpnjkl"
     ~salt:"9316c80801623cc2734af74bec42cf4dbaa3f6d5"
     ~count:100
-    ~dk_len:30
+    ~dk_len:30l
     ~dk:"82fb44a521448d5aac94b5158ead1e4dcd7363081a747b9f7626752bda2d"
     ()
 
@@ -189,7 +189,7 @@ let pbkdf2_test8 =
     ~password:"hsavvyvocloyuztlsniu"
     ~salt:"612cc61df3cf2bdb36e10c4d8c9d73192bddee05"
     ~count:100
-    ~dk_len:30
+    ~dk_len:30l
     ~dk:"f8ec2b0ac817896ac8189d787c6424ed24a6d881436687a4629802c0ecce"
     ()
 
@@ -199,7 +199,7 @@ let pbkdf2_test9 =
     ~password:"eaimrbzpcopbusaqtkmw"
     ~salt:"45248f9d0cebcb86a18243e76c972a1f3b36772a"
     ~count:100
-    ~dk_len:34
+    ~dk_len:34l
     ~dk:"c9a0b2622f13916036e29e7462e206e8ba5b50ce9212752eb8ea2a4aa7b40a4cc1bf"
     ()
 
@@ -209,7 +209,7 @@ let pbkdf2_test10 =
     ~password:"gwrxpqxumsdsmbmhfhmfdcvlcvngzkig"
     ~salt:"a39b76c6eec8374a11493ad08c246a3e40dfae5064f4ee3489c273646178"
     ~count:1000
-    ~dk_len:64
+    ~dk_len:64l
     ~dk:"4c9db7ba24955225d5b845f65ef24ef1b0c6e86f2e39c8ddaa4b8abd26082d1f350381fadeaeb560dc447afc68a6b47e6ea1e7412f6cf7b2d82342fccd11d3b4"
     ()
 
@@ -219,7 +219,7 @@ let pbkdf2_test11 =
     ~password:"xyz"
     ~salt:"0001020304050607"
     ~count: 10000
-    ~dk_len:48
+    ~dk_len:48l
     ~dk:"defd2987fa26a4672f4d16d98398432ad95e896bf619f6a6b8d4ed1faf98e8b531b39ffb66966d0e115a6cd8e70b72d0"
     ()
 
@@ -229,7 +229,7 @@ let pbkdf2_test12 =
     ~password:"xyz"
     ~salt:"0001020304050607"
     ~count:10000
-    ~dk_len:48
+    ~dk_len:48l
     ~dk:"47a3ae920b24edaa2bb53155808554b13fab58df62b81f043d9812e9f2881164df20bbffa54e5ee2489fa183b6718a74"
     ()
 
@@ -239,7 +239,7 @@ let pbkdf2_test13 =
     ~password:"xyz"
     ~salt:"0001020304050607"
     ~count:10000
-    ~dk_len:48
+    ~dk_len:48l
     ~dk:"daf8a734327745eb63d19054dbd4018a682cef11086a1bfb63fdbc16158c2f8b0742802f36aef1b1df92accbea5d31a5"
     ()
 
