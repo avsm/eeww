@@ -112,6 +112,15 @@ let test_pbkdf2 ~prf ~password ~salt ~count ~dk_len ~dk () =
      in
      Alcotest.check Alcotest.string "PBKDF2 test" sedk sdk)
 
+let test_pbkdf2_invalid_arg ~prf ~password ~salt ~count ~dk_len ~msg () =
+  let salt = Nocrypto.Uncommon.Cs.of_hex salt
+  and password = Cstruct.of_string password
+  in
+  Alcotest.check_raises
+    msg
+    (Invalid_argument msg)
+    (fun () -> ignore (Pbkdf.pbkdf2 ~prf ~password ~salt ~count ~dk_len))
+
 (* Taken from https://github.com/randombit/botan/blob/master/src/tests/data/pbkdf/pbkdf2.vec *)
 let pbkdf2_test1 =
   test_pbkdf2
@@ -243,6 +252,42 @@ let pbkdf2_test13 =
     ~dk:"daf8a734327745eb63d19054dbd4018a682cef11086a1bfb63fdbc16158c2f8b0742802f36aef1b1df92accbea5d31a5"
     ()
 
+let pbkdf2_test14 =
+  test_pbkdf2_invalid_arg
+    ~prf:`SHA1
+    ~password:"password"
+    ~salt:"0001020304050607"
+    ~count:(-1)
+    ~dk_len:48l
+    ~msg:"count must be a positive integer"
+
+let pbkdf2_test15 =
+  test_pbkdf2_invalid_arg
+    ~prf:`SHA1
+    ~password:"password"
+    ~salt:"0001020304050607"
+    ~count:0
+    ~dk_len:48l
+    ~msg:"count must be a positive integer"
+
+let pbkdf2_test16 =
+  test_pbkdf2_invalid_arg
+    ~prf:`SHA1
+    ~password:"password"
+    ~salt:"0001020304050607"
+    ~count:1000
+    ~dk_len:(-1l)
+    ~msg:"derived key length must be a positive integer"
+
+let pbkdf2_test17 =
+  test_pbkdf2_invalid_arg
+    ~prf:`SHA1
+    ~password:"password"
+    ~salt:"0001020304050607"
+    ~count:1000
+    ~dk_len:0l
+    ~msg:"derived key length must be a positive integer"
+
 let pbkdf2_tests = [
   "Test Case 1", `Quick, pbkdf2_test1;
   "Test Case 2", `Quick, pbkdf2_test2;
@@ -257,6 +302,10 @@ let pbkdf2_tests = [
   "Test Case 11", `Quick, pbkdf2_test11;
   "Test Case 12", `Quick, pbkdf2_test12;
   "Test Case 13", `Quick, pbkdf2_test13;
+  "Test Case 14", `Quick, pbkdf2_test14;
+  "Test Case 15", `Quick, pbkdf2_test15;
+  "Test Case 16", `Quick, pbkdf2_test16;
+  "Test Case 17", `Quick, pbkdf2_test17;
 ]
 
 let () =
