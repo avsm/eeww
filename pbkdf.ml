@@ -51,6 +51,6 @@ let pbkdf1 ~hash ~password ~salt ~count ~dk_len =
   PBKDF.pbkdf1 ~password ~salt ~count ~dk_len
 
 let pbkdf2 ~prf ~password ~salt ~count ~dk_len =
-    let module H = (val (Hash.module_of prf)) in
-    let module PBKDF = Make (H) in
-    PBKDF.pbkdf2 ~password ~salt ~count ~dk_len
+  let module H = (val (Hash.module_of prf)) in
+  let module PBKDF = Make (H) in
+  PBKDF.pbkdf2 ~password ~salt ~count ~dk_len
