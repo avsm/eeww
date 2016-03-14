@@ -10,7 +10,7 @@ module type S = sig
 
   (** [pbkdf2 password salt count dk_len] is [dk], the derived key of [dk_len] octets.
       @raise Invalid_argument when either [count] or [dk_len] are not valid *)
-  val pbkdf2 : password:Cstruct.t -> salt:Cstruct.t -> count:int -> dk_len:int -> Cstruct.t
+  val pbkdf2 : password:Cstruct.t -> salt:Cstruct.t -> count:int -> dk_len:int32 -> Cstruct.t
 end
 
 (** Given a Hash/pseudorandom function, get the PBKDF *)
@@ -20,4 +20,4 @@ module Make (H: Nocrypto.Hash.S) : S
 val pbkdf1 : hash:[`MD5 | `SHA1] -> password:Cstruct.t -> salt:Cstruct.t -> count:int -> dk_len:int -> Cstruct.t
 
 (** convenience [pbkdf2 prf password salt count dk_len] where the [prf] has to be provided explicitly *)
-val pbkdf2 : prf:Nocrypto.Hash.hash -> password:Cstruct.t -> salt:Cstruct.t -> count:int -> dk_len:int -> Cstruct.t
+val pbkdf2 : prf:Nocrypto.Hash.hash -> password:Cstruct.t -> salt:Cstruct.t -> count:int -> dk_len:int32 -> Cstruct.t
