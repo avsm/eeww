@@ -46,12 +46,9 @@ module Make (H: Nocrypto.Hash.S) : S = struct
 end
 
 let pbkdf1 ~hash ~password ~salt ~count ~dk_len =
-  match hash with
-    `MD5 | `SHA1 ->
-    let module H = (val (Nocrypto.Hash.module_of hash)) in
-    let module PBKDF = Make (H) in
-    PBKDF.pbkdf1 ~password ~salt ~count ~dk_len
-  | _ -> invalid_arg "only MD5 or SHA1 shall be used"
+  let module H = (val (Nocrypto.Hash.module_of hash)) in
+  let module PBKDF = Make (H) in
+  PBKDF.pbkdf1 ~password ~salt ~count ~dk_len
 
 let pbkdf2 ~prf ~password ~salt ~count ~dk_len =
     let module H = (val (Nocrypto.Hash.module_of prf)) in

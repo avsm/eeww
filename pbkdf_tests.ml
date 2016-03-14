@@ -35,15 +35,6 @@ let pbkdf1_test1 =
 
 let pbkdf1_test2 =
   test_pbkdf1_invalid_arg
-    ~hash:`SHA256
-    ~password:"password"
-    ~salt:"78578e5a5d63cb06"
-    ~count:1000
-    ~dk_len:16
-    ~msg:"only MD5 or SHA1 shall be used"
-
-let pbkdf1_test3 =
-  test_pbkdf1_invalid_arg
     ~hash:`SHA1
     ~password:"password"
     ~salt:"78578e5a5d63cb"
@@ -51,7 +42,7 @@ let pbkdf1_test3 =
     ~dk_len:16
     ~msg:"salt should be 8 bytes"
 
-let pbkdf1_test4 =
+let pbkdf1_test3 =
   test_pbkdf1_invalid_arg
     ~hash:`SHA1
     ~password:"password"
@@ -60,7 +51,7 @@ let pbkdf1_test4 =
     ~dk_len:16
     ~msg:"salt should be 8 bytes"
 
-let pbkdf1_test5 =
+let pbkdf1_test4 =
   test_pbkdf1_invalid_arg
     ~hash:`SHA1
     ~password:"password"
@@ -69,7 +60,7 @@ let pbkdf1_test5 =
     ~dk_len:16
     ~msg:"count must be a positive integer"
 
-let pbkdf1_test6 =
+let pbkdf1_test5 =
   test_pbkdf1_invalid_arg
     ~hash:`SHA1
     ~password:"password"
@@ -78,7 +69,7 @@ let pbkdf1_test6 =
     ~dk_len:16
     ~msg:"count must be a positive integer"
 
-let pbkdf1_test7 =
+let pbkdf1_test6 =
   test_pbkdf1_invalid_arg
     ~hash:`SHA1
     ~password:"password"
@@ -87,7 +78,7 @@ let pbkdf1_test7 =
     ~dk_len:24
     ~msg:"derived key too long"
 
-let pbkdf1_test8 =
+let pbkdf1_test7 =
   test_pbkdf1_invalid_arg
     ~hash:`SHA1
     ~password:"password"
@@ -104,7 +95,6 @@ let pbkdf1_tests = [
   "Test Case 5", `Quick, pbkdf1_test5;
   "Test Case 6", `Quick, pbkdf1_test6;
   "Test Case 7", `Quick, pbkdf1_test7;
-  "Test Case 8", `Quick, pbkdf1_test8;
 ]
 
 
