@@ -18,3 +18,4 @@ docs: pbkdf.mli
 clean:
 	${OCAMLBUILD} -clean
 	rm -rf _tests
+	rm *.install
