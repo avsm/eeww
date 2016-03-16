@@ -11,4 +11,4 @@
 *native
 _build
 _tests
-hkdf.install
+pbkdf.install
