@@ -239,7 +239,12 @@ let to_list s =
   in loop [] (String.length s - 1)
 
 let of_array a =
-  Bytes.unsafe_to_string (Bytes.init (Array.length a) (Array.get a))
+  let len = Array.length a in
+  let bytes = Bytes.create len in
+  for i = 0 to len - 1 do
+    bytes.[i] <- a.(i)
+  done;
+  Bytes.unsafe_to_string bytes
 
 let to_array s = Array.init (String.length s) (String.get s)
 
