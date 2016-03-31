@@ -1,10 +1,9 @@
 (* PBKDF1 *)
-let test_pbkdf1 ~hash ~password ~salt ~count ~dk_len ~dk () =
+let test_pbkdf1 ~hash ~password ~salt ~count ~dk_len ~dk =
   let open Nocrypto.Uncommon.Cs in
   let salt = of_hex salt
   and dk = of_hex dk
-  and password = Cstruct.of_string password
-  in
+  and password = Cstruct.of_string password in
   (fun () ->
      let edk = Pbkdf.pbkdf1 ~hash ~password ~salt ~count ~dk_len in
      let sedk = Cstruct.to_string edk
@@ -12,15 +11,15 @@ let test_pbkdf1 ~hash ~password ~salt ~count ~dk_len ~dk () =
      in
      Alcotest.check Alcotest.string "PBKDF1 test" sedk sdk)
 
-let test_pbkdf1_invalid_arg ~hash ~password ~salt ~count ~dk_len ~msg () =
+let test_pbkdf1_invalid_arg ~hash ~password ~salt ~count ~dk_len ~msg =
   let open Nocrypto.Uncommon.Cs in
   let salt = of_hex salt
-  and password = Cstruct.of_string password
-  in
-  Alcotest.check_raises
-    msg
-    (Invalid_argument msg)
-    (fun () -> ignore (Pbkdf.pbkdf1 ~hash ~password ~salt ~count ~dk_len))
+  and password = Cstruct.of_string password in
+  (fun () ->
+     Alcotest.check_raises
+       msg
+       (Invalid_argument msg)
+       (fun () -> ignore (Pbkdf.pbkdf1 ~hash ~password ~salt ~count ~dk_len)))
 
 (* Taken from http://www.di-mgt.com.au/cryptoKDFs.html *)
 let pbkdf1_test1 =
@@ -31,7 +30,6 @@ let pbkdf1_test1 =
     ~count:1000
     ~dk_len:16
     ~dk:"dc19847e05c64d2faf10ebfb4a3d2a20"
-    ()
 
 let pbkdf1_test2 =
   test_pbkdf1_invalid_arg
@@ -99,7 +97,7 @@ let pbkdf1_tests = [
 
 
 (* PBKDF2 *)
-let test_pbkdf2 ~prf ~password ~salt ~count ~dk_len ~dk () =
+let test_pbkdf2 ~prf ~password ~salt ~count ~dk_len ~dk =
   let open Nocrypto.Uncommon.Cs in
   let salt = of_hex salt
   and dk = of_hex dk
@@ -130,7 +128,6 @@ let pbkdf2_test1 =
     ~count:10000
     ~dk_len:32l
     ~dk:"59b2b1143b4cb1059ec58d9722fb1c72471e0d85c6f7543ba5228526375b0127"
-    ()
 
 let pbkdf2_test2 =
   test_pbkdf2
@@ -140,7 +137,6 @@ let pbkdf2_test2 =
     ~count:10000
     ~dk_len:14l
     ~dk:"df6d9d72872404bf73e708cf3b7d"
-    ()
 
 let pbkdf2_test3 =
   test_pbkdf2
@@ -150,7 +146,6 @@ let pbkdf2_test3 =
     ~count:101
     ~dk_len:40l
     ~dk:"fa13f40af1ade2a30f2fffd66fc8a659ef95e6388c1682fc0fe4d15a70109517a32942e39c371440"
-    ()
 
 let pbkdf2_test4 =
   test_pbkdf2
@@ -160,7 +155,6 @@ let pbkdf2_test4 =
     ~count:1000
     ~dk_len:10l
     ~dk:"027afadd48f4be8dcc4f"
-    ()
 
 let pbkdf2_test5 =
   test_pbkdf2
@@ -170,7 +164,6 @@ let pbkdf2_test5 =
     ~count:1
     ~dk_len:32l
     ~dk:"7c0d009fc91b48cb6d19bafbfccff3e2ccabfe725eaa234e56bde1d551c132f2"
-    ()
 
 let pbkdf2_test6 =
   test_pbkdf2
@@ -180,7 +173,6 @@ let pbkdf2_test6 =
     ~count:5
     ~dk_len:32l
     ~dk:"4661301d3517ca4443a6a607b32b2a63f69996299df75db75f1e0b98dd0eb7d8"
-    ()
 
 let pbkdf2_test7 =
   test_pbkdf2
@@ -190,7 +182,6 @@ let pbkdf2_test7 =
     ~count:100
     ~dk_len:30l
     ~dk:"82fb44a521448d5aac94b5158ead1e4dcd7363081a747b9f7626752bda2d"
-    ()
 
 let pbkdf2_test8 =
   test_pbkdf2
@@ -200,7 +191,6 @@ let pbkdf2_test8 =
     ~count:100
     ~dk_len:30l
     ~dk:"f8ec2b0ac817896ac8189d787c6424ed24a6d881436687a4629802c0ecce"
-    ()
 
 let pbkdf2_test9 =
   test_pbkdf2
@@ -210,7 +200,6 @@ let pbkdf2_test9 =
     ~count:100
     ~dk_len:34l
     ~dk:"c9a0b2622f13916036e29e7462e206e8ba5b50ce9212752eb8ea2a4aa7b40a4cc1bf"
-    ()
 
 let pbkdf2_test10 =
   test_pbkdf2
@@ -220,7 +209,6 @@ let pbkdf2_test10 =
     ~count:1000
     ~dk_len:64l
     ~dk:"4c9db7ba24955225d5b845f65ef24ef1b0c6e86f2e39c8ddaa4b8abd26082d1f350381fadeaeb560dc447afc68a6b47e6ea1e7412f6cf7b2d82342fccd11d3b4"
-    ()
 
 let pbkdf2_test11 =
   test_pbkdf2
@@ -230,7 +218,6 @@ let pbkdf2_test11 =
     ~count: 10000
     ~dk_len:48l
     ~dk:"defd2987fa26a4672f4d16d98398432ad95e896bf619f6a6b8d4ed1faf98e8b531b39ffb66966d0e115a6cd8e70b72d0"
-    ()
 
 let pbkdf2_test12 =
   test_pbkdf2
@@ -240,7 +227,6 @@ let pbkdf2_test12 =
     ~count:10000
     ~dk_len:48l
     ~dk:"47a3ae920b24edaa2bb53155808554b13fab58df62b81f043d9812e9f2881164df20bbffa54e5ee2489fa183b6718a74"
-    ()
 
 let pbkdf2_test13 =
   test_pbkdf2
@@ -250,7 +236,6 @@ let pbkdf2_test13 =
     ~count:10000
     ~dk_len:48l
     ~dk:"daf8a734327745eb63d19054dbd4018a682cef11086a1bfb63fdbc16158c2f8b0742802f36aef1b1df92accbea5d31a5"
-    ()
 
 let pbkdf2_test14 =
   test_pbkdf2_invalid_arg
