@@ -4,6 +4,6 @@ script: bash -ex .travis-opam.sh
 sudo: required
 env:
   - PACKAGE="hkdf" OCAML_VERSION=4.01
-  - PACKAGE="hkdf" OCAML_VERSION=latest
+  - PACKAGE="hkdf" OCAML_VERSION=4.02
 notifications:
   email: false
