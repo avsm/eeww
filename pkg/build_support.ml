@@ -46,8 +46,6 @@ let gen_props () =
   OS.Cmd.run Cmd.(ocb % "gen_props.native")
   >>= fun () -> OS.Cmd.run gen_props
 
-let build_support () = get_ucd () >>| gen_props
-
 let main () =
   begin
     Topkg.Private.disable_main (); (* We only want the nicer OS API. *)
