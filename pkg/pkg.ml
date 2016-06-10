@@ -17,4 +17,5 @@ let () =
   Pkg.describe "uucp" ~distrib @@ fun c ->
   Ok [ Pkg.mllib ~api:["Uucp"] "src/uucp.mllib";
        Pkg.doc "DEVEL.md";
+       Pkg.doc "AUTHORS.md";
        Pkg.doc "test/examples.ml"; ]
