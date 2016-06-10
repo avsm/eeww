@@ -6,12 +6,11 @@ doc: "http://erratique.ch/software/uucp/doc/Uucp"
 dev-repo: "http://erratique.ch/repos/uucp.git"
 bug-reports: "https://github.com/dbuenzli/uucp/issues"
 tags: [ "unicode" "text" "character" "org:erratique" ]
-license: "BSD3"
+license: "ISC"
 depends: [
  "ocamlfind" {build}
  "ocamlbuild" {build}
  "topkg" {build}
-
  "uucd" {test} # dev really
  "uunf" {test}
  "uutf" {test}
