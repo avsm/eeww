@@ -5,7 +5,8 @@
   ---------------------------------------------------------------------------*)
 
 type t =
-  [ `Aghb
+  [ `Adlm
+  | `Aghb
   | `Ahom
   | `Arab
   | `Armi
@@ -16,6 +17,7 @@ type t =
   | `Bass
   | `Batk
   | `Beng
+  | `Bhks
   | `Bopo
   | `Brah
   | `Brai
@@ -74,6 +76,7 @@ type t =
   | `Mahj
   | `Mand
   | `Mani
+  | `Marc
   | `Mend
   | `Merc
   | `Mero
@@ -85,12 +88,14 @@ type t =
   | `Mult
   | `Mymr
   | `Narb
+  | `Newa
   | `Nbat
   | `Nkoo
   | `Ogam
   | `Olck
   | `Orkh
   | `Orya
+  | `Osge
   | `Osma
   | `Palm
   | `Pauc
@@ -122,6 +127,7 @@ type t =
   | `Tale
   | `Talu
   | `Taml
+  | `Tang
   | `Tavt
   | `Telu
   | `Tfng
@@ -141,6 +147,7 @@ type t =
   | `Zzzz ]
 
 let pp ppf s = Format.fprintf ppf "%s" begin match s with
+  | `Adlm -> "Adlm"
   | `Aghb -> "Aghb"
   | `Ahom -> "Ahom"
   | `Arab -> "Arab"
@@ -152,6 +159,7 @@ let pp ppf s = Format.fprintf ppf "%s" begin match s with
   | `Bass -> "Bass"
   | `Batk -> "Batk"
   | `Beng -> "Beng"
+  | `Bhks -> "Bhks"
   | `Bopo -> "Bopo"
   | `Brah -> "Brah"
   | `Brai -> "Brai"
@@ -210,6 +218,7 @@ let pp ppf s = Format.fprintf ppf "%s" begin match s with
   | `Mahj -> "Mahj"
   | `Mand -> "Mand"
   | `Mani -> "Mani"
+  | `Marc -> "Marc"
   | `Mend -> "Mend"
   | `Merc -> "Merc"
   | `Mero -> "Mero"
@@ -222,11 +231,13 @@ let pp ppf s = Format.fprintf ppf "%s" begin match s with
   | `Mymr -> "Mymr"
   | `Narb -> "Narb"
   | `Nbat -> "Nbat"
+  | `Newa -> "Newa"
   | `Nkoo -> "Nkoo"
   | `Ogam -> "Ogam"
   | `Olck -> "Olck"
   | `Orkh -> "Orkh"
   | `Orya -> "Orya"
+  | `Osge -> "Osge"
   | `Osma -> "Osma"
   | `Palm -> "Palm"
   | `Pauc -> "Pauc"
@@ -258,6 +269,7 @@ let pp ppf s = Format.fprintf ppf "%s" begin match s with
   | `Tale -> "Tale"
   | `Talu -> "Talu"
   | `Taml -> "Taml"
+  | `Tang -> "Tang"
   | `Tavt -> "Tavt"
   | `Telu -> "Telu"
   | `Tfng -> "Tfng"

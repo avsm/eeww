@@ -15,7 +15,7 @@ action ()
         doc)       shift; topkg doc --dev $* ;;
         api-doc)   shift; topkg doc $* ;;
         gen_props) $OCAMLBUILD gen_props.native ;;
-        support)   pkg/build_support.ml ;;
+        support)   ocaml "pkg/build_support.ml" ;;
         clean)     $OCAMLBUILD -clean
                    rm -f src/uucp_*_data.ml
                    ;;

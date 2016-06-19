@@ -155,7 +155,8 @@ module Block : sig
 (** {1:blockprop Blocks} *)
 
   type t =
-    [ `ASCII
+    [ `Adlam
+    | `ASCII
     | `Aegean_Numbers
     | `Ahom
     | `Alchemical
@@ -179,6 +180,7 @@ module Block : sig
     | `Bassa_Vah
     | `Batak
     | `Bengali
+    | `Bhaiksuki
     | `Block_Elements
     | `Bopomofo
     | `Bopomofo_Ext
@@ -219,6 +221,7 @@ module Block : sig
     | `Cyrillic
     | `Cyrillic_Ext_A
     | `Cyrillic_Ext_B
+    | `Cyrillic_Ext_C
     | `Cyrillic_Sup
     | `Deseret
     | `Devanagari
@@ -247,6 +250,7 @@ module Block : sig
     | `Georgian
     | `Georgian_Sup
     | `Glagolitic
+    | `Glagolitic_Sup
     | `Gothic
     | `Grantha
     | `Greek
@@ -261,6 +265,7 @@ module Block : sig
     | `Hebrew
     | `Hiragana
     | `IDC
+    | `Ideographic_Symbols
     | `IPA_Ext
     | `Imperial_Aramaic
     | `Indic_Number_Forms
@@ -305,6 +310,7 @@ module Block : sig
     | `Malayalam
     | `Mandaic
     | `Manichaean
+    | `Marchen
     | `Math_Alphanum
     | `Math_Operators
     | `Meetei_Mayek
@@ -323,6 +329,7 @@ module Block : sig
     | `Modifier_Letters
     | `Modifier_Tone_Letters
     | `Mongolian
+    | `Mongolian_Sup
     | `Mro
     | `Music
     | `Multani
@@ -333,6 +340,7 @@ module Block : sig
     | `NKo
     | `Nabataean
     | `New_Tai_Lue
+    | `Newa
     | `Number_Forms
     | `OCR
     | `Ogham
@@ -347,6 +355,7 @@ module Block : sig
     | `Oriya
     | `Ornamental_Dingbats
     | `Osmanya
+    | `Osage
     | `PUA
     | `Pahawh_Hmong
     | `Palmyrene
@@ -396,6 +405,8 @@ module Block : sig
     | `Tai_Xuan_Jing
     | `Takri
     | `Tamil
+    | `Tangut
+    | `Tangut_Components
     | `Telugu
     | `Thaana
     | `Thai
@@ -456,9 +467,9 @@ module Break : sig
 
   type line =
     [ `AI | `AL | `B2 | `BA | `BB | `BK | `CB | `CJ | `CL | `CM | `CP
-    | `CR | `EX | `GL | `H2 | `H3 | `HL | `HY | `ID | `IN | `IS | `JL
-    | `JT | `JV | `LF | `NL | `NS | `NU | `OP | `PO | `PR | `QU | `RI
-    | `SA | `SG | `SP | `SY | `WJ | `XX | `ZW ]
+    | `CR | `EX | `EB | `EM | `GL | `H2 | `H3 | `HL | `HY | `ID | `IN
+    | `IS | `JL | `JT | `JV | `LF | `NL | `NS | `NU | `OP | `PO | `PR
+    | `QU | `RI | `SA | `SG | `SP | `SY | `WJ | `XX | `ZW | `ZWJ ]
   (** The type for line breaks. *)
 
   val pp_line : Format.formatter -> line -> unit
@@ -473,7 +484,8 @@ module Break : sig
   (** {1:grapheme_cluster_break Grapheme cluster break} *)
 
   type grapheme_cluster =
-    [ `CN | `CR | `EX | `L | `LF | `LV | `LVT | `PP | `RI | `SM | `T | `V | `XX]
+    [ `CN | `CR | `EX | `EB | `EBG | `EM | `GAZ | `L | `LF | `LV | `LVT | `PP
+    | `RI | `SM | `T | `V | `XX | `ZWJ ]
   (** The type for grapheme cluster breaks. *)
 
   val pp_grapheme_cluster : Format.formatter -> grapheme_cluster -> unit
@@ -488,8 +500,8 @@ module Break : sig
   (** {1:word_break Word break} *)
 
   type word =
-    [ `CR | `DQ | `EX | `Extend | `FO | `HL | `KA | `LE | `LF | `MB | `ML
-    | `MN | `NL | `NU | `RI | `SQ | `XX ]
+    [ `CR | `DQ | `EX | `EB | `EBG | `EM | `Extend | `FO | `GAZ | `HL | `KA
+    | `LE | `LF | `MB | `ML | `MN | `NL | `NU | `RI | `SQ | `XX | `ZWJ ]
   (** The type for word breaks. *)
 
   val pp_word : Format.formatter -> word -> unit
@@ -1140,7 +1152,8 @@ module Script : sig
   (** {1:scriptprop Script} *)
 
   type t =
-  [ `Aghb
+  [ `Adlm
+  | `Aghb
   | `Ahom
   | `Arab
   | `Armi
@@ -1151,6 +1164,7 @@ module Script : sig
   | `Bass
   | `Batk
   | `Beng
+  | `Bhks
   | `Bopo
   | `Brah
   | `Brai
@@ -1209,6 +1223,7 @@ module Script : sig
   | `Mahj
   | `Mand
   | `Mani
+  | `Marc
   | `Mend
   | `Merc
   | `Mero
@@ -1220,12 +1235,14 @@ module Script : sig
   | `Mult
   | `Mymr
   | `Narb
+  | `Newa
   | `Nbat
   | `Nkoo
   | `Ogam
   | `Olck
   | `Orkh
   | `Orya
+  | `Osge
   | `Osma
   | `Palm
   | `Pauc
@@ -1257,6 +1274,7 @@ module Script : sig
   | `Tale
   | `Talu
   | `Taml
+  | `Tang
   | `Tavt
   | `Telu
   | `Tfng
@@ -1351,7 +1369,8 @@ end
        {{:http://www.unicode.org/reports/tr44/#Indic_Syllabic_Category}
        Indic_Syllabic_Category}
        {{:http://www.unicode.org/reports/tr44/#Indic_Positional_Category}
-       Indic_Positional_Category}.}
+       Indic_Positional_Category}
+       {{:http://www.unicode.org/reports/tr44/proposed.html#Prepended_Concatenation_Mark}Prepended_Concatenation_Mark}}
     {- Bidirectional. All properties under that section name in
        {{:http://www.unicode.org/reports/tr44/#Property_Index_Table}
        this table}.}

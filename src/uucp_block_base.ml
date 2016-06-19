@@ -5,7 +5,8 @@
   ---------------------------------------------------------------------------*)
 
 type t =
-  [ `ASCII
+  [ `Adlam
+  | `ASCII
   | `Aegean_Numbers
   | `Ahom
   | `Alchemical
@@ -29,6 +30,7 @@ type t =
   | `Bassa_Vah
   | `Batak
   | `Bengali
+  | `Bhaiksuki
   | `Block_Elements
   | `Bopomofo
   | `Bopomofo_Ext
@@ -69,6 +71,7 @@ type t =
   | `Cyrillic
   | `Cyrillic_Ext_A
   | `Cyrillic_Ext_B
+  | `Cyrillic_Ext_C
   | `Cyrillic_Sup
   | `Deseret
   | `Devanagari
@@ -97,6 +100,7 @@ type t =
   | `Georgian
   | `Georgian_Sup
   | `Glagolitic
+  | `Glagolitic_Sup
   | `Gothic
   | `Grantha
   | `Greek
@@ -111,6 +115,7 @@ type t =
   | `Hebrew
   | `Hiragana
   | `IDC
+  | `Ideographic_Symbols
   | `IPA_Ext
   | `Imperial_Aramaic
   | `Indic_Number_Forms
@@ -155,6 +160,7 @@ type t =
   | `Malayalam
   | `Mandaic
   | `Manichaean
+  | `Marchen
   | `Math_Alphanum
   | `Math_Operators
   | `Meetei_Mayek
@@ -173,16 +179,18 @@ type t =
   | `Modifier_Letters
   | `Modifier_Tone_Letters
   | `Mongolian
+  | `Mongolian_Sup
   | `Mro
   | `Music
   | `Multani
   | `Myanmar
   | `Myanmar_Ext_A
   | `Myanmar_Ext_B
-  | `NB
+  | `NB (** Non_block *)
   | `NKo
   | `Nabataean
   | `New_Tai_Lue
+  | `Newa
   | `Number_Forms
   | `OCR
   | `Ogham
@@ -197,6 +205,7 @@ type t =
   | `Oriya
   | `Ornamental_Dingbats
   | `Osmanya
+  | `Osage
   | `PUA
   | `Pahawh_Hmong
   | `Palmyrene
@@ -246,6 +255,8 @@ type t =
   | `Tai_Xuan_Jing
   | `Takri
   | `Tamil
+  | `Tangut
+  | `Tangut_Components
   | `Telugu
   | `Thaana
   | `Thai
@@ -267,6 +278,7 @@ type t =
   | `Yijing ]
 
 let pp ppf b = Format.fprintf ppf "%s" begin match b with
+  | `Adlam -> "Adlam"
   | `ASCII -> "ASCII"
   | `Aegean_Numbers -> "Aegean_Numbers"
   | `Ahom -> "Ahom"
@@ -291,6 +303,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Bassa_Vah -> "Bassa_Vah"
   | `Batak -> "Batak"
   | `Bengali -> "Bengali"
+  | `Bhaiksuki -> "Bhaiksuki"
   | `Block_Elements -> "Block_Elements"
   | `Bopomofo -> "Bopomofo"
   | `Bopomofo_Ext -> "Bopomofo_Ext"
@@ -331,6 +344,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Cyrillic -> "Cyrillic"
   | `Cyrillic_Ext_A -> "Cyrillic_Ext_A"
   | `Cyrillic_Ext_B -> "Cyrillic_Ext_B"
+  | `Cyrillic_Ext_C -> "Cyrillic_Ext_C"
   | `Cyrillic_Sup -> "Cyrillic_Sup"
   | `Deseret -> "Deseret"
   | `Devanagari -> "Devanagari"
@@ -359,6 +373,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Georgian -> "Georgian"
   | `Georgian_Sup -> "Georgian_Sup"
   | `Glagolitic -> "Glagolitic"
+  | `Glagolitic_Sup -> "Glagolitic_Sup"
   | `Gothic -> "Gothic"
   | `Grantha -> "Grantha"
   | `Greek -> "Greek"
@@ -375,6 +390,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `High_Surrogates -> "High_Surrogates"
   | `Hiragana -> "Hiragana"
   | `IDC -> "IDC"
+  | `Ideographic_Symbols -> "Ideographic_Symbols"
   | `IPA_Ext -> "IPA_Ext"
   | `Imperial_Aramaic -> "Imperial_Aramaic"
   | `Indic_Number_Forms -> "Indic_Number_Forms"
@@ -420,6 +436,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Malayalam -> "Malayalam"
   | `Mandaic -> "Mandaic"
   | `Manichaean -> "Manichaean"
+  | `Marchen -> "Marchen"
   | `Math_Alphanum -> "Math_Alphanum"
   | `Math_Operators -> "Math_Operators"
   | `Meetei_Mayek -> "Meetei_Mayek"
@@ -438,6 +455,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Modifier_Letters -> "Modifier_Letters"
   | `Modifier_Tone_Letters -> "Modifier_Tone_Letters"
   | `Mongolian -> "Mongolian"
+  | `Mongolian_Sup -> "Mongolian_Sup"
   | `Mro -> "Mro"
   | `Music -> "Music"
   | `Multani -> "Multani"
@@ -448,6 +466,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `NKo -> "NKo"
   | `Nabataean -> "Nabataean"
   | `New_Tai_Lue -> "New_Tai_Lue"
+  | `Newa -> "Newa"
   | `Number_Forms -> "Number_Forms"
   | `OCR -> "OCR"
   | `Ogham -> "Ogham"
@@ -461,6 +480,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Old_Turkic -> "Old_Turkic"
   | `Oriya -> "Oriya"
   | `Ornamental_Dingbats -> "Ornamental_Dingbats"
+  | `Osage -> "Osage"
   | `Osmanya -> "Osmanya"
   | `PUA -> "PUA"
   | `Pahawh_Hmong -> "Pahawh_Hmong"
@@ -511,6 +531,8 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Tai_Xuan_Jing -> "Tai_Xuan_Jing"
   | `Takri -> "Takri"
   | `Tamil -> "Tamil"
+  | `Tangut -> "Tangut"
+  | `Tangut_Components -> "Tangut_Components"
   | `Telugu -> "Telugu"
   | `Thaana -> "Thaana"
   | `Thai -> "Thai"
