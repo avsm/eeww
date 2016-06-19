@@ -16,7 +16,7 @@ let distrib =
 let () =
   Pkg.describe "uucp" ~distrib @@ fun c ->
   Ok [ Pkg.mllib ~api:["Uucp"] "src/uucp.mllib";
-       Pkg.test "test/test";
+       Pkg.test ~run:false "test/test";
        Pkg.test "test/perf";
 (*       Pkg.test "test/examples"; *)
        Pkg.test "test/link_test";
