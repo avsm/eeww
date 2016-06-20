@@ -18,7 +18,7 @@ let () =
   Ok [ Pkg.mllib ~api:["Uucp"] "src/uucp.mllib";
        Pkg.test ~run:false "test/test";
        Pkg.test "test/perf";
-(*       Pkg.test "test/examples"; *)
+       Pkg.test "test/examples";
        Pkg.test "test/link_test";
        Pkg.doc "DEVEL.md";
        Pkg.doc "AUTHORS.md";

@@ -6,7 +6,7 @@ Uucp is an OCaml library providing efficient access to a selection of
 character properties of the [Unicode character database][1].
 
 Uucp is independent from any Unicode text data structure and has no
-dependencies. It is distributed under the BSD3 license.
+dependencies. It is distributed under the ISC license.
 
 [1]: http://www.unicode.org/reports/tr44/
 
