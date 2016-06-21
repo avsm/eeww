@@ -659,8 +659,8 @@ module Low : sig
         {!grapheme_cluster}. *)
 
     val grapheme_cluster_of_int : grapheme_cluster array
-    (** [line_of_int.(i)] is the grapheme cluster break property value
-        corresponding to [i]. *)
+    (** [grapheme_cluster_of_int.(i)] is the grapheme cluster break property
+        value corresponding to [i]. *)
 
     val word : uchar -> int
     (** [word u] is an integer that can be used with {!word_of_int}. *)
