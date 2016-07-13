@@ -2,7 +2,7 @@ opam-version: "1.2"
 maintainer: "Hannes Mehnert <hannes@mehnert.org>"
 authors: ["Hannes Mehnert <hannes@mehnert.org>"]
 homepage: "https://github.com/hannesm/durations"
-doc: "https://hannesm.github.io/durtaions/doc"
+doc: "https://hannesm.github.io/durations/doc"
 dev-repo: "https://github.com/hannesm/durations.git"
 bug-reports: "https://github.com/hannesm/durations/issues"
 license: "ISC"
