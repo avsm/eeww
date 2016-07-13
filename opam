@@ -1,0 +1,18 @@
+opam-version: "1.2"
+maintainer: "Hannes Mehnert <hannes@mehnert.org>"
+authors: ["Hannes Mehnert <hannes@mehnert.org>"]
+homepage: "https://github.com/hannesm/durations"
+doc: "https://hannesm.github.io/durtaions/doc"
+dev-repo: "https://github.com/hannesm/durations.git"
+bug-reports: "https://github.com/hannesm/durations/issues"
+license: "ISC"
+
+depends: [
+  "ocamlfind" {build}
+  "ocamlbuild" {build}
+  "topkg" {build}
+]
+
+build: [
+  [ "ocaml" "pkg/pkg.ml" "build" "--pinned" "%{pinned}%" ]
+]
