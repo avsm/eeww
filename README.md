@@ -6,4 +6,4 @@ A duration is represented in nanoseconds as an unsigned 64 bit integer.  This ha
 
 ## Documentation
 
-[API Documentation](https://hannesm.github.io/durations/doc/) is available online.
+[API Documentation](https://hannesm.github.io/duration/doc/) is available online.
