@@ -4,7 +4,7 @@
 open Topkg
 
 let () =
-  Pkg.describe "durations" @@ fun c ->
+  Pkg.describe "duration" @@ fun c ->
   Ok [
-    Pkg.mllib "src/durations.mllib";
+    Pkg.mllib "src/duration.mllib";
   ]

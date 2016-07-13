@@ -1,21 +1,49 @@
 
 type t = int64
 
-let of_us m = Int64.(mul 1_000L (of_int m))
+let of_us m =
+  let m = Int64.of_int m in
+  if Int64.compare m 0x4189374BC6A7EFL = 1 then
+    invalid_arg "out of range" ;
+  Int64.mul 1_000L m
 
-let of_ms m = Int64.(mul 1_000_000L (of_int m))
+let of_ms m =
+  let m = Int64.of_int m in
+  if Int64.compare m 0x10C6F7A0B5EDL = 1 then
+    invalid_arg "out of range" ;
+  Int64.mul 1_000_000L m
 
-let of_sec s = Int64.(mul 1_000_000L (of_int s))
+let of_sec s =
+  let s = Int64.of_int s in
+  if Int64.compare s 0x44B82FA09L = 1 then
+    invalid_arg "out of range" ;
+  Int64.mul 1_000_000L s
 
-let of_min m = Int64.(mul 60_000_000L (of_int m))
+let of_min m =
+  let m = Int64.of_int m in
+  if Int64.compare m 0x12533FE6L = 1 then
+    invalid_arg "out of range" ;
+  Int64.mul 60_000_000L m
 
 let hour = 3600_000_000L
 
-let of_hour h = Int64.(mul hour (of_int h))
+let of_hour h =
+  let h = Int64.of_int h in
+  if Int64.compare h 0x4E2FFFL = 1 then
+    invalid_arg "out of range" ;
+  Int64.mul hour h
 
-let of_day d = Int64.(mul (mul 24L hour) (of_int d))
+let of_day d =
+  let d = Int64.of_int d in
+  if Int64.compare d 0x341FFL = 1 then
+    invalid_arg "out of range" ;
+  Int64.mul (Int64.mul 24L hour) d
 
-let of_year y = Int64.(mul (mul 8766L hour) (of_int y))
+let of_year y =
+  let y = Int64.of_int y in
+  if Int64.compare y 0x248L = 1 then
+    invalid_arg "out of range" ;
+  Int64.mul (Int64.mul 8766L hour) y
 
 let of_f f =
   let s = int_of_float f in
