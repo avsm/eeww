@@ -1,6 +1,5 @@
-true : annot, bin_annot
-true : warn_error(+1..49)
-true : warn(+A-4-6-7-9-40-42-44-48)
+true : annot, bin_annot, safe_string, principal
+true : warn(+A-4-41-44-58)
 
 <hkdf.{ml,mli}>: package(cstruct), package(nocrypto)
 

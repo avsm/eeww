@@ -3,26 +3,26 @@ name:         "hkdf"
 homepage:     "https://github.com/hannesm/ocaml-hkdf"
 dev-repo:     "https://github.com/hannesm/ocaml-hkdf.git"
 bug-reports:  "https://github.com/hannesm/ocaml-hkdf/issues"
+doc:          "https://hannesm.github.io/ocaml-hkdf/doc"
 author:       ["Hannes Mehnert <hannes@mehnert.org>"]
 maintainer:   ["Hannes Mehnert <hannes@mehnert.org>"]
 license:      "BSD2"
 
+
 build: [
-  ["ocaml" "pkg/build.ml" "native=%{ocaml-native}%"
-                          "native-dynlink=%{ocaml-native-dynlink}%"
-                          "alcotest=false"]
+  ["ocaml" "pkg/pkg.ml" "build" "--pinned" "%{pinned}%"]
 ]
 build-test: [
-  ["ocaml" "pkg/build.ml" "native=%{ocaml-native}%"
-                          "native-dynlink=%{ocaml-native-dynlink}%"
-                          "alcotest=true"]
-  ["sh" "-exc" "if test -f ./rfctests.native; then ./rfctests.native; else ./rfctests.byte; fi"]
+  ["ocaml" "pkg/pkg.ml" "build" "--pinned" "%{pinned}%" "--tests" "true"]
+  ["ocaml" "pkg/pkg.ml" "test"]
 ]
+
 depends: [
   "ocamlfind" {build}
+  "ocamlbuild" {build}
+  "topkg" {build}
   "cstruct" {>= "1.6.0"}
   "nocrypto" {>= "0.5.0"}
   "alcotest" {test}
-  "ocamlbuild" {build}
 ]
 available: [ ocaml-version >= "4.01.0" ]
