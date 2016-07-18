@@ -15,9 +15,9 @@ action ()
         test) action lib ; $OCAMLBUILD rfctests.native ;;
         coverage)
             action clean ;
-            export BISECT_COVERAGE="YES" ;
+            export OCAMLBUILD="$OCAMLBUILD -pkg bisect_ppx" ;
             action lib ;
-            $OCAMLBUILD -pkg bisect_ppx rfctests.native ;
+            $OCAMLBUILD rfctests.native ;
             ./rfctests.native ;
             bisect-ppx-report -I _build/ -html coverage/ bisect0001.out ;;
         clean) $OCAMLBUILD -clean ; rm -rf _tests ; rm -rf coverage ; rm -f bisect*.out ;;
