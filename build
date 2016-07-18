@@ -20,7 +20,7 @@ action ()
             $OCAMLBUILD -pkg bisect_ppx rfctests.native ;
             ./rfctests.native ;
             bisect-ppx-report -I _build/ -html coverage/ bisect0001.out ;;
-        clean) $OCAMLBUILD -clean ; rm -rf _tests ;;
+        clean) $OCAMLBUILD -clean ; rm -rf _tests ; rm -rf coverage ; rm -f bisect*.out ;;
         *) $OCAMLBUILD $* ;;
     esac
 }
