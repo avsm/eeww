@@ -13,6 +13,13 @@ action ()
         default) action lib ;;
         lib) $OCAMLBUILD hkdf.cmx ;;
         test) action lib ; $OCAMLBUILD rfctests.native ;;
+        coverage)
+            action clean ;
+            export BISECT_COVERAGE="YES" ;
+            action lib ;
+            $OCAMLBUILD -pkg bisect_ppx rfctests.native ;
+            ./rfctests.native ;
+            bisect-ppx-report -I _build/ -html coverage/ bisect0001.out ;;
         clean) $OCAMLBUILD -clean ; rm -rf _tests ;;
         *) $OCAMLBUILD $* ;;
     esac
