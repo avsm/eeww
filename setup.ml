@@ -5840,4 +5840,17 @@ let setup () = BaseSetup.setup setup_t;;
 
 # 5842 "setup.ml"
 (* OASIS_STOP *)
+
+let () =
+  InternalInstallPlugin.lib_hook :=
+    fun (cs, bs, lib) ->
+      match lib.OASISTypes.lib_findlib_name with
+        | Some "ocplib-endian" ->
+            (cs, bs, lib, ["_build/src/endianString.mli"; "_build/src/endianBytes.mli"])
+        | Some "bigstring" ->
+            (cs, bs, lib, ["_build/src/endianBigstring.mli"])
+        | _ ->
+            (cs, bs, lib, [])
+;;
+
 let () = setup ();;
