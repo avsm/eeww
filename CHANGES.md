@@ -1,4 +1,4 @@
-0.9
+1.0
 ---------------
 
 * Install generated .mli files
