@@ -2,6 +2,8 @@
 ---------------
 
 * Install generated .mli files
+* Build documentation
+* Fix README links
 
 0.8
 ---------------
