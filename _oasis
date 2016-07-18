@@ -46,6 +46,20 @@ Test test
   Run$: flag(tests)
 
 # +-------------------------------------------------------------------+
+# | Doc                                                               |
+# +-------------------------------------------------------------------+
+
+Document "api"
+  Title: API reference for ocplib-endian
+  Type: ocamlbuild (0.3)
+  Install: true
+  BuildTools: ocamldoc
+  XOCamlbuildPath: ./
+  XOCamlbuildLibraries:
+    ocplib-endian,
+    ocplib-endian.bigstring
+
+# +-------------------------------------------------------------------+
 # | Misc                                                              |
 # +-------------------------------------------------------------------+
 
