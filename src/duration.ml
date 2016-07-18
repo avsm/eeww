@@ -46,6 +46,8 @@ let of_year y =
   Int64.mul (Int64.mul 8766L hour) y
 
 let of_f f =
+  if f > 18446744073.709551615 then
+    invalid_arg "out of range" ;
   let s = int_of_float f in
   let rem = f -. (float_of_int s) in
   let ns = Int64.of_float (rem *. 1_000_000_000.) in
