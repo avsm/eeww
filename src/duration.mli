@@ -1,11 +1,12 @@
 (** Duration - conversions to various time units
 
     A duration is represented in nanoseconds as an unsigned 64 bit integer.
-    This has a range of up to 584 years.  This library does not do any range
-    checks on inputs, but silently rolls over.
+    This has a range of up to 584 years, or 213503 days, or 5124095 hours, or
+    307445734 minutes, or 18446744073 seconds, or 18446744073709 milliseconds,
+    or 18446744073709549 milliseconds.
 
-    All functions converting to [t] @raise Invalid_argument on out of bound
-    input.
+    All functions converting to [t] raise [Invalid_argument] on out of bound
+    or negative input.
 
     {e %%VERSION%% - {{:%%PKG_HOMEPAGE%% }homepage}}
 *)

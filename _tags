@@ -2,3 +2,5 @@ true : annot, bin_annot, safe_string, principal
 true : warn_error(+1..49)
 true : warn(+A-4-6-44-48)
 "src" : include
+
+<test/tests.{ml,native,byte}>: package(alcotest)

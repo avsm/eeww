@@ -11,8 +11,13 @@ depends: [
   "ocamlfind" {build}
   "ocamlbuild" {build}
   "topkg" {build}
+  "alcotest" {test & >= "0.6.0"}
 ]
 
 build: [
   [ "ocaml" "pkg/pkg.ml" "build" "--pinned" "%{pinned}%" ]
+]
+build-test: [
+  [ "ocaml" "pkg/pkg.ml" "build" "--pinned" "%{pinned}%" "--tests" "true" ]
+  [ "ocaml" "pkg/pkg.ml" "test" ]
 ]

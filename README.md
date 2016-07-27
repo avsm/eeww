@@ -2,7 +2,9 @@
 
 %%VERSION%%
 
-A duration is represented in nanoseconds as an unsigned 64 bit integer.  This has a range of up to 584 years.  This library does not do any range checks on inputs, but silently rolls over.
+A duration is represented in nanoseconds as an unsigned 64 bit integer.  This
+has a range of up to 584 years.  Functions provided check the input and raise
+on negative or out of bound input.
 
 ## Documentation
 
