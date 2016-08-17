@@ -16,12 +16,13 @@
  *)
 open Lwt
 
-let proxy (module Clock: V1.CLOCK)
+let proxy
+    (type clock) (module Clock: V1.MCLOCK with type t = clock) (clock:clock)
     (type a) (module A: Mirage_flow_s.SHUTDOWNABLE with type flow = a) (a: a)
     (type b) (module B: Mirage_flow_s.SHUTDOWNABLE with type flow = b) (b: b)
     () =
   let a2b =
-    let t = Mirage_flow_copy.start (module Clock) (module A) a (module B) b () in
+    let t = Mirage_flow_copy.start (module Clock) clock (module A) a (module B) b () in
     Mirage_flow_copy.wait t
     >>= fun result ->
     A.shutdown_read a
@@ -33,7 +34,7 @@ let proxy (module Clock: V1.CLOCK)
     | `Ok () -> return (`Ok stats)
     | `Error (`Msg m) -> return (`Error (`Msg m)) in
   let b2a =
-    let t = Mirage_flow_copy.start (module Clock) (module B) b (module A) a () in
+    let t = Mirage_flow_copy.start (module Clock) clock (module B) b (module A) a () in
     Mirage_flow_copy.wait t
     >>= fun result ->
     B.shutdown_read b
