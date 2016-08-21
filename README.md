@@ -8,4 +8,6 @@ on negative or out of bound input.
 
 ## Documentation
 
+[![Build Status](https://travis-ci.org/hannesm/duration.svg?branch=master)](https://travis-ci.org/hannesm/duration)
+
 [API Documentation](https://hannesm.github.io/duration/doc/) is available online.
