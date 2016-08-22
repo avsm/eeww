@@ -26,7 +26,7 @@ module CopyStats : sig
     read_ops: int64;
     write_bytes: int64;
     write_ops: int64;
-    duration: float;
+    duration: int64;
   }
   (** I/O statistics from a copy operation *)
 
@@ -35,20 +35,20 @@ end
 
 
 val copy:
-  (module V1.CLOCK)
+  (module V1.MCLOCK with type t = 'clock) -> 'clock
   -> (module V1_LWT.FLOW with type flow = 'a) -> 'a
   -> (module V1_LWT.FLOW with type flow = 'b) -> 'b
   -> unit -> [ `Ok of CopyStats.t | `Error of [ `Msg of string ] ] Lwt.t
-(** [copy (module Clock) (module Source) source (module Destination)
+(** [copy (module Clock) clock (module Source) source (module Destination)
     destination] copies data from [source] to [destination] using the
     clock to compute a transfer rate. On successful completion, some statistics
     are returned. On failure we return a printable error. *)
 
 val proxy:
-  (module V1.CLOCK)
+  (module V1.MCLOCK with type t = 'clock) -> 'clock
   -> (module Mirage_flow_s.SHUTDOWNABLE with type flow = 'a) -> 'a
   -> (module Mirage_flow_s.SHUTDOWNABLE with type flow = 'b) -> 'b
   -> unit -> [ `Ok of (CopyStats.t * CopyStats.t) | `Error of [ `Msg of string ] ] Lwt.t
-(** [proxy (module Clock) (module A) a (module B) b ()] proxies data between
+(** [proxy (module Clock) clock (module A) a (module B) b ()] proxies data between
     [a] and [b] until both sides close. If either direction encounters an error
     then so will [proxy]. If both directions succeed, then return I/O statistics. *)

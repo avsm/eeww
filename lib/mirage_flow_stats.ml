@@ -20,7 +20,7 @@ type t = {
   read_ops: int64;
   write_bytes: int64;
   write_ops: int64;
-  duration: float;
+  duration: int64;
 }
 
 let kib = 1024L
@@ -44,7 +44,7 @@ let add_suffix x =
     ) (Printf.sprintf "%Ld bytes" x) suffix
 
 let to_string s =
-  Printf.sprintf "%s bytes at %s/sec and %.1f IOPS/sec"
+  Printf.sprintf "%s bytes at %s/nanosec and %Lu IOPS/nanosec"
     (add_suffix s.read_bytes)
-    (add_suffix Int64.(of_float ((to_float s.read_bytes) /. s.duration)))
-    ((Int64.to_float s.read_ops) /. s.duration)
+    (add_suffix Int64.(div s.read_bytes s.duration))
+    (Int64.div s.read_ops s.duration)

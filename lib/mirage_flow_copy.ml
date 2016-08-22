@@ -16,21 +16,24 @@
  *)
 open Lwt
 
+type time = int64
+
 type t = {
   _read_bytes: int64 ref;
   _read_ops: int64 ref;
   _write_bytes: int64 ref;
   _write_ops: int64 ref;
-  _finish: float option ref;
-  start: float;
-  time: unit -> float;
+  _finish: time option ref;
+  start: time;
+  time: unit -> time;
   t: [ `Ok of unit | `Error of [ `Msg of string ] ] Lwt.t;
 }
 
 let stats t =
-  let duration = match !(t._finish) with
-    | None -> t.time () -. t.start
-    | Some x -> x -. t.start in {
+  let duration : int64 = match !(t._finish) with
+    | None -> Int64.sub (t.time ()) t.start
+    | Some x -> Int64.sub x t.start
+  in {
     Mirage_flow_stats.read_bytes = !(t._read_bytes);
     read_ops = !(t._read_ops);
     write_bytes = !(t._write_bytes);
@@ -38,7 +41,8 @@ let stats t =
     duration;
   }
 
-let start (module Clock: V1.CLOCK)
+let start
+    (type clock) (module Clock: V1.MCLOCK with type t = clock) (clock:clock)
     (type a) (module A: V1_LWT.FLOW with type flow = a) (a: a)
     (type b) (module B: V1_LWT.FLOW with type flow = b) (b: b)
     () =
@@ -47,12 +51,12 @@ let start (module Clock: V1.CLOCK)
   let _write_bytes = ref 0L in
   let _write_ops = ref 0L in
   let _finish = ref None in
-  let start = Clock.time () in
-  let rec loop () =
+  let start = Clock.elapsed_ns clock in
+  let rec loop c () =
     A.read a
     >>= function
     | `Eof ->
-      _finish := Some (Clock.time ());
+      _finish := Some (Clock.elapsed_ns c);
       Lwt.return (`Ok ())
     | `Ok buffer ->
       _read_ops := Int64.succ !_read_ops;
@@ -62,16 +66,16 @@ let start (module Clock: V1.CLOCK)
         | `Ok () ->
           _write_ops := Int64.succ !_write_ops;
           _write_bytes := Int64.(add !_write_bytes (of_int @@ Cstruct.len buffer));
-          loop ()
+          loop c ()
         | `Error m ->
-          _finish := Some (Clock.time ());
+          _finish := Some (Clock.elapsed_ns c);
           Lwt.return (`Error (`Msg (B.error_message m)))
         | `Eof ->
-          _finish := Some (Clock.time ());
+          _finish := Some (Clock.elapsed_ns c);
           Lwt.return (`Error (`Msg (Printf.sprintf "write failed with Eof")))
       end
     | `Error m ->
-      _finish := Some (Clock.time ());
+      _finish := Some (Clock.elapsed_ns c);
       Lwt.return (`Error (`Msg (A.error_message m))) in
   {
     _read_bytes;
@@ -80,17 +84,18 @@ let start (module Clock: V1.CLOCK)
     _write_ops;
     _finish;
     start;
-    time = Clock.time;
-    t = loop ();
+    time = (fun () -> Clock.elapsed_ns clock);
+    t = loop clock ();
   }
 
 let wait t = t.t
 
-let copy (module Clock: V1.CLOCK)
+let copy
+    (type clock) (module Clock: V1.MCLOCK with type t = clock) (clock:clock)
     (type a) (module A: V1_LWT.FLOW with type flow = a) (a: a)
     (type b) (module B: V1_LWT.FLOW with type flow = b) (b: b)
     () =
-  let t = start (module Clock) (module A) a (module B) b () in
+  let t = start (module Clock) clock (module A) a (module B) b () in
   wait t
   >>= function
   | `Ok () -> return (`Ok (stats t))
