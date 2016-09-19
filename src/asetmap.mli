@@ -79,7 +79,9 @@ module Set : sig
 
   (** [Make (Ord)] is a set data structure for values of the totally
       ordered type [Ord]. *)
-  module Make (Ord : Set.OrderedType) : S with type elt = Ord.t
+  module Make (Ord : Set.OrderedType) : S
+    with type elt = Ord.t
+     and type t = Set.Make(Ord).t
 end
 
 (** Maps *)
@@ -158,7 +160,9 @@ module Map : sig
     (** [dom m] is the domain of [m]. *)
   end
 
-  module Make (Ord : Map.OrderedType) : S with type key = Ord.t
+  module Make (Ord : Map.OrderedType) : S
+    with type key = Ord.t
+     and type 'a t = 'a Map.Make(Ord).t
   (** [Make (Ord)] is a map data structure with keys of the totally
       ordered type [Ord]. *)
 
@@ -167,6 +171,7 @@ module Map : sig
       (Key_set : Set.S with type elt = Ord.t) : S_with_key_set
     with type key = Ord.t
      and type key_set = Key_set.t
+     and type 'a t = 'a Map.Make(Ord).t
   (** [Make_with_key_set (Ord) (Key_set)] is a map data structure
       with keys of the totally ordered type [Ord] and key sets [Key_set]. *)
 end
