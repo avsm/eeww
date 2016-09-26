@@ -1,0 +1,7 @@
+description = "Random converted to representation"
+version = "%%VERSION_NUM%%"
+requires = "cstruct"
+archive(byte) = "randomconv.cma"
+archive(native) = "randomconv.cmxa"
+plugin(byte) = "randomconv.cma"
+plugin(native) = "randomconv.cmxs"
