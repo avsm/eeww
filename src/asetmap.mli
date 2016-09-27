@@ -10,7 +10,7 @@
 
 (** {1 Asetmap} *)
 
-(** Sets *)
+(** Sets. *)
 module Set : sig
 
   (** {1 Sets} *)
@@ -84,7 +84,7 @@ module Set : sig
      and type t = Set.Make(Ord).t
 end
 
-(** Maps *)
+(** Maps. *)
 module Map : sig
 
   (** {1 Maps} *)
