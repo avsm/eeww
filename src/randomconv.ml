@@ -1,4 +1,12 @@
 
+type int8 = int
+
+let int8 g = Cstruct.get_uint8 (g 1) 0
+
+type int16 = int
+
+let int16 g = Cstruct.LE.get_uint16 (g 2) 0
+
 let int32 g = Cstruct.LE.get_uint32 (g 4) 0
 
 let int64 g = Cstruct.LE.get_uint64 (g 8) 0

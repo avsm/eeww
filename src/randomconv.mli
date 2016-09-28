@@ -6,6 +6,16 @@
     {e %%VERSION%% - {{:%%PKG_HOMEPAGE%% }homepage}}
 *)
 
+type int8 = int
+
+(** [in8 g] is [r], a random [int8] using the generator [g]. *)
+val int8 : (int -> Cstruct.t) -> int8
+
+type int16 = int
+
+(** [int16 g] is [r], a random [int16] using the generator [g]. *)
+val int16 : (int -> Cstruct.t) -> int16
+
 (** [int32 g] is [r], a random [int32] using the generator [g]. *)
 val int32 : (int -> Cstruct.t) -> int32
 
