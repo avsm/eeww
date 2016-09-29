@@ -1,4 +1,4 @@
-true : annot, bin_annot, safe_string, principal
+true : bin_annot, safe_string, principal
 true : warn(+A-4-6-44-48)
 "src" : include
 
