@@ -8,7 +8,7 @@
 
 type int8 = int
 
-(** [in8 g] is [r], a random [int8] using the generator [g]. *)
+(** [int8 g] is [r], a random [int8] using the generator [g]. *)
 val int8 : (int -> Cstruct.t) -> int8
 
 type int16 = int
