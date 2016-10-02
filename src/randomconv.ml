@@ -15,13 +15,13 @@ let int ?(bound = max_int) g =
   if bound <= 1 then invalid_arg "bound smaller or equal 1 not supported" ;
   let r =
     if bound < 256 then
-      Cstruct.get_uint8 (g 1) 0
+      (Cstruct.get_uint8 (g 1) 0) mod bound
     else if bound < 65536 then
-      Cstruct.LE.get_uint16 (g 2) 0
+      (Cstruct.LE.get_uint16 (g 2) 0) mod bound
     else
       match Sys.word_size with
-      | 32 -> Int32.to_int (int32 g) mod bound
-      | 64 -> Int64.to_int (int64 g) mod bound
+      | 32 -> (Int32.to_int (int32 g)) mod bound
+      | 64 -> (Int64.to_int (int64 g)) mod bound
       | _ -> invalid_arg "unknown word size"
   in
   if r < 0 then r + bound else r
