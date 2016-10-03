@@ -21,9 +21,9 @@ let bitmask n =
 let rec int ?(bound = max_int) g =
   if bound <= 1 then invalid_arg "bound smaller or equal 1 not supported" ;
   let r =
-    if bound < 256 then
+    if bound <= 256 then
       int8 g
-    else if bound < 65536 then
+    else if bound <= 65536 then
       int16 g
     else
       match Sys.word_size with
