@@ -38,8 +38,8 @@ let opentap = open_ Tap
 
 (* Closing is just opening an existing device in non-persistent
    mode *)
-let closetun devname = ignore (opentun ~devname ())
-let closetap devname = ignore (opentap ~devname ())
+let closetun devname = ignore (opentun ~devname ~persist:false ())
+let closetap devname = ignore (opentap ~devname ~persist:false ())
 
 let set_ipv4 ?(netmask=Ipaddr.V4.Prefix.global) devname v4addr =
   let open Ipaddr.V4 in
