@@ -27,7 +27,7 @@ depends: [
   "ocamlfind" {build}
   "ocamlbuild" {build}
   "ounit" {test}
-  "qcheck" {test}
+  "qtest" {test & >="2.2"}
   "base-bytes"
 ]
 

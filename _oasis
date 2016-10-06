@@ -36,5 +36,5 @@ Executable test_stringext_qcheck
   MainIs:             test_stringext_qcheck.ml
   Build$:             flag(tests)
   CompiledObject:     best
-  BuildDepends:       stringext, oUnit, qcheck, qcheck.ounit
+  BuildDepends:       stringext, oUnit, qcheck
   Install:            false
