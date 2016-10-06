@@ -4,5 +4,4 @@ S lib
 S lib_test
 
 PKG qcheck
-PKG qcheck.ounit
 PKG oUnit
