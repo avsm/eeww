@@ -1,4 +1,4 @@
-version = "0.2.0"
+version = "%%VERSION_NUM%%"
 description = "Password based key derivation functions from PKCS#5, RFC 2898"
 requires = "cstruct nocrypto"
 archive(byte) = "pbkdf.cma"
