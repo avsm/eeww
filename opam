@@ -8,20 +8,17 @@ maintainer:   ["Alfredo Beaumont <alfredo.beaumont@gmail.com>"]
 license:      "BSD2"
 
 build: [
-  ["ocaml" "pkg/build.ml" "native=%{ocaml-native}%"
-                          "native-dynlink=%{ocaml-native-dynlink}%"
-                          "alcotest=false"]
+  ["ocaml" "pkg/pkg.ml" "build" "--pinned" "%{pinned}%"]
 ]
 build-test: [
-  ["ocaml" "pkg/build.ml" "native=%{ocaml-native}%"
-                          "native-dynlink=%{ocaml-native-dynlink}%"
-                          "alcotest=true"]
-  ["sh" "-exc" "if test -f ./pbkdf_tests.native; then ./pbkdf_tests.native -v; else ./pbkdf_tests.byte -v; fi"]
+  ["ocaml" "pkg/pkg.ml" "build" "--pinned" "%{pinned}%" "--tests" "true"]
+  ["ocaml" "pkg/pkg.ml" "test"]
 ]
 depends: [
   "ocamlfind" {build}
+  "ocamlbuild" {build}
+  "topkg" {build}
   "cstruct" {>= "1.7.0"}
   "nocrypto" {>= "0.5.0"}
   "alcotest" {test}
-  "ocamlbuild" {build}
 ]
