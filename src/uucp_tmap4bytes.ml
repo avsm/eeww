@@ -77,7 +77,7 @@ let create_uint16_pair (d0, d1) =
   Bytes.set default 1 (Char.unsafe_chr ((d0 land 0xFF)));
   Bytes.set default 2 (Char.unsafe_chr ((d1 lsr 8 land 0xFF)));
   Bytes.set default 3 (Char.unsafe_chr ((d1 land 0xFF)));
-  create default
+  create (Bytes.unsafe_to_string default)
 
 let get_uint16_pair m u =
   let l1 = Array.get m.l0 (u lsr l0_shift) in
@@ -107,12 +107,14 @@ let set_uint16_pair m u (i0, i1) =
   let i = u lsr l0_shift in
   if m.l0.(i) == nil then m.l0.(i) <- Array.make l1_size snil;
   let j = u lsr l1_shift land l1_mask in
-  if m.l0.(i).(j) == snil then m.l0.(i).(j) <- l2_make m;
+  if m.l0.(i).(j) == snil then
+    m.l0.(i).(j) <- Bytes.unsafe_to_string (l2_make m);
   let k = (u land l2_mask) * 4 in
-  Bytes.set m.l0.(i).(j) (k    ) (Char.unsafe_chr ((i0 lsr 8 land 0xFF)));
-  Bytes.set m.l0.(i).(j) (k + 1) (Char.unsafe_chr ((i0 land 0xFF)));
-  Bytes.set m.l0.(i).(j) (k + 2) (Char.unsafe_chr ((i1 lsr 8 land 0xFF)));
-  Bytes.set m.l0.(i).(j) (k + 3) (Char.unsafe_chr ((i1 land 0xFF)));
+  let s = Bytes.unsafe_of_string (m.l0.(i).(j)) in
+  Bytes.set s (k    ) (Char.unsafe_chr ((i0 lsr 8 land 0xFF)));
+  Bytes.set s (k + 1) (Char.unsafe_chr ((i0 land 0xFF)));
+  Bytes.set s (k + 2) (Char.unsafe_chr ((i1 lsr 8 land 0xFF)));
+  Bytes.set s (k + 3) (Char.unsafe_chr ((i1 land 0xFF)));
   ()
 
 (*---------------------------------------------------------------------------
