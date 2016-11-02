@@ -22,7 +22,7 @@ let canonical_caseless_key s =
   let to_nfd_and_utf_8 =
     let n = Uunf.create `NFD in
     let rec add v = match Uunf.add n v with
-    | `Await -> ()
+    | `Await | `End -> ()
     | `Uchar u -> Uutf.Buffer.add_utf_8 b u; add `Await
     in
     add
@@ -30,7 +30,7 @@ let canonical_caseless_key s =
   let add =
     let n = Uunf.create `NFD in
     let rec add v = match Uunf.add n v with
-    | `Await -> ()
+    | `Await | `End -> ()
     | `Uchar u ->
         begin match Uucp.Case.Fold.fold u with
         | `Self -> to_nfd_and_utf_8 (`Uchar u)
@@ -58,7 +58,7 @@ let id_caseless_key s =
   let b = Buffer.create (String.length s * 3) in
   let n = Uunf.create `NFD in
   let rec add v = match Uunf.add n v with
-  | `Await -> ()
+  | `Await | `End -> ()
   | `Uchar u ->
       begin match Uucp.Case.Nfkc_fold.fold u with
       | `Self -> Uutf.Buffer.add_utf_8 b u; add `Await
