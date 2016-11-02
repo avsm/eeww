@@ -1379,7 +1379,7 @@ end
       Unicode_Radical_Stroke} and all the properties of the
       {{:http://www.unicode.org/reports/tr38/}Unicode HAN Database}.}
     {- Miscellaneous.
-       {{:http://www.unicode.org/reports/tr44/#STerm}STerm}}.
+       {{:http://www.unicode.org/reports/tr44/#STerm}STerm}.}
     {- Contributory properties. All properties under that section in
        {{:http://www.unicode.org/reports/tr44/#Property_Index_Table}this
        table.}}} *)
