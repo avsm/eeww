@@ -44,3 +44,9 @@ The resulting binaries are in `_build/test` :
 
 - `test.native` tests the library. Nothing should fail.
 - `perf.native` tests the performance of the library.
+
+## Authors
+
+* [Daniel C. Bünzli](http://erratique.ch), main developer.
+* David Kaloper Meršinjak, `Uucp.Break.tty_width_hint` function.
+

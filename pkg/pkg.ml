@@ -21,5 +21,4 @@ let () =
        Pkg.test "test/examples";
        Pkg.test "test/link_test";
        Pkg.doc "DEVEL.md";
-       Pkg.doc "AUTHORS.md";
        Pkg.doc "test/examples.ml"; ]

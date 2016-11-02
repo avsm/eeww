@@ -1,6 +1,9 @@
 opam-version: "1.2"
 maintainer: "Daniel Bünzli <daniel.buenzl i@erratique.ch>"
-authors: ["Daniel Bünzli <daniel.buenzl i@erratique.ch>"]
+authors: [
+  "Daniel Bünzli <daniel.buenzl i@erratique.ch>"
+  "David Kaloper Meršinjak <david@numm.org>"
+]
 homepage: "http://erratique.ch/software/uucp"
 doc: "http://erratique.ch/software/uucp/doc/Uucp"
 dev-repo: "http://erratique.ch/repos/uucp.git"
