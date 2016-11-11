@@ -9,9 +9,9 @@
     [Uucp] provides efficient access to a selection of character
     {{!props}properties} of the Unicode character database.
 
-    Consult the individual modules for sample code related to the
-    properties. A {{!uminimal}minimal Unicode introduction} and
-    {{!tips}tips} for Unicode processing in OCaml are also available.
+    Consult a {{!uminimal}minimal Unicode introduction} and
+    {{!tips}tips} for Unicode processing in OCaml. Individual modules
+    have sample code related to the properties.
 
     {e %%VERSION%% — Unicode version %%UNICODE_VERSION%% —
        {{:%%PKG_HOMEPAGE%% }homepage}}
@@ -1627,13 +1627,13 @@ end
     {{:https://github.com/ocaml/uchar}[uchar]} OPAM/ocamlfind compatibility
     package.
 
-    {2:utf_8_strings Character data as UTF-8 encoded OCaml strings}
+    {2:utf_8_strings Unicode text as UTF-8 encoded OCaml strings}
 
     For most OCaml programs it will be entirely sufficient to deal
     with Unicode by just treating the byte sequence of regular OCaml
     [string]s as {b valid} UTF-8 encoded data.
 
-    Many libraries will already return you character data under this
+    Many libraries will already return Unicode text under this
     representation. Besides latin1 identifiers having been deprecated
     in OCaml 4.01, UTF-8 encoding your sources allows you to write
     UTF-8 encoded string literals directly in your programs. Be aware
@@ -1647,7 +1647,7 @@ end
     Checking the validity of UTF-8 strings should only be performed at
     the boundaries of your program: on your string literals, on data
     input or on the results of untrusted libraries (be careful, some
-    libraries like Yojson will happily return you invalid UTF-8
+    libraries like Yojson will happily return invalid UTF-8
     strings). This allows you to only deal with valid UTF-8 throughout
     your program and avoid redundant validity checks, internally or on
     output. The following properties of UTF-8 are useful to remember:
@@ -1679,7 +1679,7 @@ end
     holds for line breaks, see for example {!Uutf.nln} and
     {!Uutf.readlines} for more information about these issues.
 
-    {2:eqcmpnorm Equating, comparing and normalizing UTF-8 encoded
+    {2:eqcmpnorm Equate, compare and normalize UTF-8 encoded
      OCaml strings}
 
     If you understood well the above section about
@@ -1695,8 +1695,8 @@ end
     {!Map} or {!Set} modules as long as you are not interested in the actual
     {e meaning} of the order.
 
-    If you are looking for case insensitive equality have a look at
-    the {{!Case.caselesseq}sample code} of the {!Case} module.
+    For case insensitive equality have a look at the
+    {{!Case.caselesseq}sample code} of the {!Case} module.
 
     {2:alphasort Sort strings alphabetically}
 
@@ -1718,13 +1718,12 @@ end
 
     Among other things the {!Uuseg_string} module uses these
     algorithms to provide OCaml standard library {{!Format}formatters}
-    to (mostly) correctly output UTF-8 encoded strings.
+    for best-effort formatting of UTF-8 encoded strings.
 
     {2:readline Unicode readline}
 
-    If you are looking for a [readline] function as mandated by the
-    Unicode standard, have a look at {{!Uutf.readline}this [Uutf] sample
-    code}.
+    A [readline] function as mandated by the Unicode standard is available
+    in {{!Uutf.readline}[Uutf]'s sample code}.
 
     {2:noranges Range processing}
 
