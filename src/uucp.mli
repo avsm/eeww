@@ -10,8 +10,8 @@
     {{!props}properties} of the Unicode character database.
 
     Consult the individual modules for sample code related to the
-    properties. A {{!uminimal}minimal Unicode introduction} is also
-    available.
+    properties. A {{!uminimal}minimal Unicode introduction} and
+    {{!tips}tips} for Unicode processing in OCaml are also available.
 
     {e %%VERSION%% — Unicode version %%UNICODE_VERSION%% —
        {{:%%PKG_HOMEPAGE%% }homepage}}
@@ -1419,17 +1419,18 @@ end
 
     A very important subset of code points are the Unicode {e scalar
     values}, these are the code points that belong to the ranges
-    [0x0000]…[0xD7FF] and [0xE000]…[0x10FFFF]. This is the
-    complete Unicode codespace minus the range [0xD800]…[0xDFFF]
-    of so called {e surrogate} code points, a hack to be able to
-    encode all scalar values in UTF-16 (more on that below).
+    [0x0000]…[0xD7FF] and [0xE000]…[0x10FFFF]. This is the complete
+    Unicode codespace minus the range [0xD800]…[0xDFFF] of so called
+    {e surrogate} code points, a hack to be able to encode all scalar
+    values in UTF-16 (more on that below).
 
     Scalar values are what I call, by a {b total abuse of
     terminology}, the Unicode characters; it is what a proper [uchar]
     type should represent. From a programmer's point of view they are
     the sole integers you will have to deal with during processing and
     the only code points that you are allowed to serialize and
-    deserialize to valid Unicode byte sequences.
+    deserialize to valid Unicode byte sequences. Since OCaml 4.03 the
+    standard library defines an {!Uchar.t} type to represent them.
 
     Unicode uses a standard notation to denote code points in running
     text. A code point is expressed as U+n where {e n} is four to six
@@ -1603,12 +1604,34 @@ end
     {{:http://www.unicode.org/faq/collation.html}Unicode Collation
     FAQ}.
 
-    {2:tips Biased tips for OCaml programs and libraries}
+    {1:tips Biased tips for OCaml programs and libraries}
 
-    {b Character data as UTF-8 encoded OCaml strings.} For most OCaml
-    programs it will be entirely sufficient to deal with Unicode by
-    just treating the byte sequence of regular OCaml [string]s as {b
-    valid} UTF-8 encoded data.
+    {ul
+    {- {!uchartype}}
+    {- {!utf_8_strings}}
+    {- {!utf_8_ascii}}
+    {- {!eqcmpnorm}}
+    {- {!boundaries}}
+    {- {!readline}}
+    {- {!alphasort}}
+    {- {!noranges}}
+    {- {!transcode}}
+    {- {!ppcp}}
+    {- {!ocamllibs}}}
+
+    {2:uchartype Unicode characters (scalar values) as {!Uchar.t} values.}
+
+    Since OCaml 4.03 the standard library defines the {!Uchar.t} type
+    which represents {{!characters}Unicode scalar values}. Support for
+    previous OCaml versions is provided by the
+    {{:https://github.com/ocaml/uchar}[uchar]} OPAM/ocamlfind compatibility
+    package.
+
+    {2:utf_8_strings Character data as UTF-8 encoded OCaml strings}
+
+    For most OCaml programs it will be entirely sufficient to deal
+    with Unicode by just treating the byte sequence of regular OCaml
+    [string]s as {b valid} UTF-8 encoded data.
 
     Many libraries will already return you character data under this
     representation. Besides latin1 identifiers having been deprecated
@@ -1635,33 +1658,37 @@ end
     {- Splitting a valid UTF-8 encoded string at UTF-8
        encoded US-ASCII scalar values (i.e. at any byte < 128) will
        result in valid UTF-8 encoded substrings.}}
-    For checking validity or recode the other UTF encoding schemes
+    For checking validity or recoding the other UTF encoding schemes
     into UTF-8 encoded OCaml [strings], the {!Uutf} module can be
     used. It will also be useful if you need to fold over the scalar
     values of your UTF-8 encoded strings, or build new UTF-8 strings
-    from scalar values.
+    from scalar values via {!Buffer.t} values.
 
-    {b UTF-8 and ASCII.} As mentioned above, each of the 128 US-ASCII
-    characters is represented by its own US-ASCII byte representation
-    in UTF-8. So if you want to look for an US-ASCII character in an
-    UTF-8 encoded string, you can just scan the bytes.  But beware on
-    the nature of your data and the algorithm you need to
-    implement. For example to detect spaces in the string, looking for
-    the US-ASCII space U+0020 may not be sufficient, there are a lot
-    of other space characters like the no break space U+00A0 that are
-    beyond the US-ASCII repertoire. Folding over the scalar values
-    with {!Uutf} and checking them with {!White.is_white_space} is a
-    better idea. Same holds for line breaks, see for example
-    {!Uutf.nln} and {!Uutf.readlines} for more information about these
-    issues.
+    {2:utf_8_ascii UTF-8 and ASCII}
 
-    {b Equating and comparing UTF-8 encoded OCaml strings.}  If you
-    understood well the above section about {{!equivalence}equivalence
-    and normalization} you should realise that blindly comparing UTF-8
-    encoded OCaml strings using {!Pervasives.compare} won't bring you
-    anywhere if you don't normalize them before. The {!Uunf} module
-    can be used for that. Don't forget that normalization is not
-    closed under string concatenation.
+    As mentioned in {!serializing}, each of the 128 US-ASCII characters is
+    represented by its own US-ASCII byte representation in UTF-8. So
+    if you want to look for an US-ASCII character in an UTF-8 encoded
+    string, you can just scan the bytes.  But beware on the nature of
+    your data and the algorithm you need to implement. For example to
+    detect spaces in the string, looking for the US-ASCII space U+0020
+    may not be sufficient, there are a lot of other space characters
+    like the no break space U+00A0 that are beyond the US-ASCII
+    repertoire. Folding over the scalar values with {!Uutf} and
+    checking them with {!White.is_white_space} is a better idea. Same
+    holds for line breaks, see for example {!Uutf.nln} and
+    {!Uutf.readlines} for more information about these issues.
+
+    {2:eqcmpnorm Equating, comparing and normalizing UTF-8 encoded
+     OCaml strings}
+
+    If you understood well the above section about
+    {{!equivalence}equivalence and normalization} you should realise
+    that blindly comparing UTF-8 encoded OCaml strings using
+    {!Pervasives.compare} won't bring you anywhere if you don't
+    normalize them before. The {!Uunf} module can be used for
+    that. Remember that concatenating normalized strings does {b not}
+    result in a normalized string.
 
     Using {!Pervasives.compare} on {e normalized} UTF-8 encoded OCaml
     strings defines a total order on them that you can use with the
@@ -1671,32 +1698,57 @@ end
     If you are looking for case insensitive equality have a look at
     the {{!Case.caselesseq}sample code} of the {!Case} module.
 
-    {b Sort strings alphabetically.}
+    {2:alphasort Sort strings alphabetically}
+
     The only solution at the moment for collating strings is to use
     {{:https://github.com/yoriyuki/Camomile}Camomile} but be aware
     that it supports only Unicode 3.2 character data so don't be
     surprised if newer scripts don't order correctly.  The official
     collation data also has been significantly tweaked since then.
 
-    {b Range processing.} Forget about trying to process Unicode
-    characters using hard coded ranges of scalar values like it was
-    possible to do with US-ASCII. The Unicode standard is not closed,
-    it is evolving, new characters are being assigned. This makes it
-    impossible to derive properties based simply on their integer value
-    or position in ranges of characters. That's the reason why we
-    have the Unicode character database and [Uucp] to access their
-    properties. Using {!White.is_white_space} will be future proof should
-    a new character deemed white be added to the standard (both [Uucp]
-    and your progam will need a recompile though).
+    {2:boundaries Find user-perceived character, word, sentence and line
+     boundaries in Unicode text.}
 
-    {b Transcoding.} Transcoding from legacy encodings to
-    Unicode may be quite involved, use
-    {{:https://github.com/yoriyuki/Camomile}Camomile} if you need to do
-    that.  There is however one translation that is very easy and
-    direct: it is the one from ISO 8859-1 also known as latin1,
-    the default encoding of OCaml [char]s. latin1 having been encoded in
-    Unicode in the range of scalar values U+0000 to U+00FF which corresponds
-    to latin1 code value, the translation is trivial, it is the identity:
+    The {!Uuseg} module implements the
+    {{:http://www.unicode.org/reports/tr29/} Unicode text segmentation
+    algorithms} to find user-perceived character, word and sentence
+    boundaries in Unicode text. It also provides an implementation of
+    the {{:http://www.unicode.org/reports/tr14/}Unicode Line Breaking
+    Algorithm} to find line breaks and line break opportunities.
+
+    Among other things the {!Uuseg_string} module uses these
+    algorithms to provide OCaml standard library {{!Format}formatters}
+    to (mostly) correctly output UTF-8 encoded strings.
+
+    {2:readline Unicode readline}
+
+    If you are looking for a [readline] function as mandated by the
+    Unicode standard, have a look at {{!Uutf.readline}this [Uutf] sample
+    code}.
+
+    {2:noranges Range processing}
+
+    Forget about trying to process Unicode characters using hard coded
+    ranges of scalar values like it was possible to do with
+    US-ASCII. The Unicode standard is not closed, it is evolving, new
+    characters are being assigned. This makes it impossible to derive
+    properties based simply on their integer value or position in
+    ranges of characters. That's the reason why we have the Unicode
+    character database and [Uucp] to access their properties. Using
+    {!White.is_white_space} will be future proof should a new
+    character deemed white be added to the standard (both [Uucp] and
+    your progam will need a recompile though).
+
+    {2:transcode Transcoding}
+
+    Transcoding from legacy encodings to Unicode may be quite
+    involved, use {{:https://github.com/yoriyuki/Camomile}Camomile} if
+    you need to do that.  There is however one translation that is
+    very easy and direct: it is the one from ISO 8859-1 also known as
+    latin1, the default encoding of OCaml [char]s. latin1 having been
+    encoded in Unicode in the range of scalar values U+0000 to U+00FF
+    which corresponds to latin1 code value, the translation is
+    trivial, it is the identity:
 {[
 let char_to_scalar_value c = Char.code c
 let char_of_scalar_value s =
@@ -1704,28 +1756,32 @@ let char_of_scalar_value s =
     Char.chr s
 ]}
 
-    {b Pretty-printing code points in ASCII} ["U+%04X"] is an OCaml
-    formatting string for printing an US-ASCII representation of an
-    Unicode code point according to the standards' notational
-    conventions.
+    {2:ppcp Pretty-printing code points in ASCII}
 
-    {b OCaml libraries.} If you write a library that deals with
-    textual data, you should, unless technically impossible, always
-    interact with the client of the library using Unicode. If there
-    are other encodings involved transcode them to/from Unicode so
-    that the client needs only to deal with Unicode, the burden of
-    dealing with the encoding mess has to be on the library, not the client.
+    ["U+%04X"] is an OCaml formatting string for printing an US-ASCII
+    representation of an Unicode code point according to the
+    standards' notational conventions. This is what the standard library
+    {!Uchar.dump} formatter does for {!Uchar.t} values.
 
-    In this case there is no absolute need to depend on an Unicode text
-    data structure, just use {b valid} UTF-8 encoded data as OCaml
-    [string]s. Specify clearly in the documentation that all the
-    [string]s returned by or given to the library must be valid
-    UTF-8 encoded data. The validity contract is important for
-    performance reasons, it allows the client to trust the string and
-    avoid performing redundant checks and the library to trust the
-    strings it was given without having to perform further
-    checks. Remember that concatenating to UTF-8 valid strings results
-    in an UTF-8 valid string. *)
+    {2:ocamllibs Writing OCaml libraries}
+
+    If you write a library that deals with textual data, you should,
+    unless technically impossible, always interact with the client of
+    the library using Unicode. If there are other encodings involved
+    transcode them to/from Unicode so that the client needs only to
+    deal with Unicode, the burden of dealing with the encoding mess
+    has to be on the library, not the client.
+
+    In this case there is no absolute need to depend on an Unicode
+    text data structure, just use {b valid} UTF-8 encoded data as
+    OCaml [string]s and the standard library {!Uchar.t} type.
+
+    Specify clearly in the documentation that all the [string]s
+    returned by or given to the library must be valid UTF-8 encoded
+    data. This validity contract is important for performance reasons:
+    it allows both the client and the library to trust the string and
+    forgo redundant validity checks. Remember that concatenating valid
+    UTF-8 strings results in valid UTF-8 string. *)
 
 (**/**)
 
