@@ -16,13 +16,10 @@
 
 (** Function-based flows. *)
 
-type error
+type error = V1.Flow.error
 (** Type for errors. *)
 
-val pp_error: Format.formatter -> error -> unit
-(** Pretty-print errors. *)
-
-include V1_LWT.FLOW with type error := error
+include V1_LWT.FLOW
 
 type refill = Cstruct.t -> int -> int -> int Lwt.t
 (** The type for refill functions. *)

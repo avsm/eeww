@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 7c4a36a841acad9fe719ee06a49fd8ba)
+# DO NOT EDIT (digest: e48cc5c6228d96dcee3c7b8ab22eab69)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -19,12 +19,14 @@ true: annot, bin_annot
 <lib/*.ml{,i,y}>: pkg_cstruct
 <lib/*.ml{,i,y}>: pkg_lwt
 <lib/*.ml{,i,y}>: pkg_mirage-types.lwt
+<lib/*.ml{,i,y}>: pkg_result
 # Library lwt-io
 "lib/lwt-io/lwt-io.cmxs": use_lwt-io
 <lib/lwt-io/*.ml{,i,y}>: pkg_cstruct
 <lib/lwt-io/*.ml{,i,y}>: pkg_lwt
 <lib/lwt-io/*.ml{,i,y}>: pkg_lwt.unix
 <lib/lwt-io/*.ml{,i,y}>: pkg_mirage-types.lwt
+<lib/lwt-io/*.ml{,i,y}>: pkg_result
 <lib/lwt-io/*.ml{,i,y}>: use_mirage_flow
 # Executable test_flow
 <lib_test/test.{native,byte}>: pkg_alcotest
@@ -33,6 +35,7 @@ true: annot, bin_annot
 <lib_test/test.{native,byte}>: pkg_lwt.unix
 <lib_test/test.{native,byte}>: pkg_mirage-types.lwt
 <lib_test/test.{native,byte}>: pkg_oUnit
+<lib_test/test.{native,byte}>: pkg_result
 <lib_test/test.{native,byte}>: use_lwt-io
 <lib_test/test.{native,byte}>: use_mirage_flow
 <lib_test/*.ml{,i,y}>: pkg_alcotest
@@ -41,6 +44,7 @@ true: annot, bin_annot
 <lib_test/*.ml{,i,y}>: pkg_lwt.unix
 <lib_test/*.ml{,i,y}>: pkg_mirage-types.lwt
 <lib_test/*.ml{,i,y}>: pkg_oUnit
+<lib_test/*.ml{,i,y}>: pkg_result
 <lib_test/*.ml{,i,y}>: use_lwt-io
 <lib_test/*.ml{,i,y}>: use_mirage_flow
 # OASIS_STOP

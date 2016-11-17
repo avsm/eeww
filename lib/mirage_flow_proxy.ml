@@ -31,8 +31,8 @@ let proxy
     >>= fun () ->
     let stats = Mirage_flow_copy.stats t in
     match result with
-    | `Ok () -> return (`Ok stats)
-    | `Error (`Msg m) -> return (`Error (`Msg m)) in
+    | Ok () -> return (Ok stats)
+    | Error (`Msg m) -> return (Error (`Msg m)) in
   let b2a =
     let t = Mirage_flow_copy.start (module Clock) clock (module B) b (module A) a () in
     Mirage_flow_copy.wait t
@@ -43,12 +43,12 @@ let proxy
     >>= fun () ->
     let stats = Mirage_flow_copy.stats t in
     match result with
-    | `Ok () -> return (`Ok stats)
-    | `Error (`Msg m) -> return (`Error (`Msg m)) in
+    | Ok () -> return (Ok stats)
+    | Error (`Msg m) -> return (Error (`Msg m)) in
   a2b >>= fun a_stats ->
   b2a >>= fun b_stats ->
   match a_stats, b_stats with
-  | `Ok a_stats, `Ok b_stats -> return (`Ok (a_stats, b_stats))
-  | `Error (`Msg m1), `Error (`Msg m2) -> return (`Error (`Msg ("flow proxy a: " ^ m1 ^ "; flow proxy b: " ^ m1)))
-  | `Error (`Msg m), _ -> return (`Error (`Msg ("flow proxy a: " ^ m)))
-  | _, `Error (`Msg m) -> return (`Error (`Msg ("flow proxy b: " ^ m)))
+  | Ok a_stats, Ok b_stats -> return (Ok (a_stats, b_stats))
+  | Error (`Msg m1), Error (`Msg m2) -> return (Error (`Msg ("flow proxy a: " ^ m1 ^ "; flow proxy b: " ^ m1)))
+  | Error (`Msg m), _ -> return (Error (`Msg ("flow proxy a: " ^ m)))
+  | _, Error (`Msg m) -> return (Error (`Msg ("flow proxy b: " ^ m)))
