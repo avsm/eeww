@@ -28,12 +28,12 @@ module Make (F: V1_LWT.FLOW) = struct
         let available = Cstruct.len !frag in
         if available = 0 then begin
           F.read t >>= function
-          | `Ok b ->
+          | Ok (`Data b) ->
             frag := b;
             aux buf ofs len
-          | `Eof -> Lwt.return 0
-          | `Error e -> Lwt.fail (Failure "Lwt_io_flow.reader")
-          (* FIXME: F.pp_error *)
+          | Ok `Eof -> Lwt.return 0
+          | Error (`Msg f) ->
+            Lwt.fail @@ Failure ("Lwt_io_flow.reader: " ^ f)
         end else begin
           let n = min available len in
           Cstruct.blit !frag 0 (Cstruct.of_bigarray buf) ofs n;
@@ -45,9 +45,9 @@ module Make (F: V1_LWT.FLOW) = struct
   let writer t buf ofs len =
     let b = Cstruct.sub (Cstruct.of_bigarray buf) ofs len in
     F.write t b >>= function
-    | `Ok ()   -> Lwt.return len
-    | `Eof     -> Lwt.return 0
-    | `Error e -> (* FIXME: pp_error *) Lwt.fail (Failure "Lwt_io_flow.writer")
+    | Ok ()          -> Lwt.return len
+    | Error `Closed  -> Lwt.return 0
+    | Error (`Msg s) -> Lwt.fail @@ Failure ("Lwt_io_flow.writer: " ^ s)
 
   let ic ?(buffer_size=1024) ?(close=true) t =
     let close () = if close then F.close t else Lwt.return_unit in

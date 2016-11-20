@@ -12,7 +12,7 @@ Library mirage_flow
   Path:               lib
   Findlibname:        mirage-flow
   Modules:            Fflow, Mirage_flow_stats, Mirage_flow_copy, Mirage_flow_proxy, Mirage_flow_s, Mirage_flow
-  BuildDepends:       mirage-types.lwt, lwt, cstruct
+  BuildDepends:       mirage-types.lwt, lwt, cstruct, result
 
 Library "lwt-io"
   CompiledObject:     best

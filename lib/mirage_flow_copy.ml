@@ -26,7 +26,7 @@ type t = {
   _finish: time option ref;
   start: time;
   time: unit -> time;
-  t: [ `Ok of unit | `Error of [ `Msg of string ] ] Lwt.t;
+  t: (unit, [`Msg of string]) Result.result Lwt.t;
 }
 
 let stats t =
@@ -55,28 +55,29 @@ let start
   let rec loop c () =
     A.read a
     >>= function
-    | `Eof ->
+    | Error (`Msg m) ->
       _finish := Some (Clock.elapsed_ns c);
-      Lwt.return (`Ok ())
-    | `Ok buffer ->
+      Lwt.return (Error (`Msg m))
+    | Ok `Eof ->
+      _finish := Some (Clock.elapsed_ns c);
+      Lwt.return (Ok ())
+    | Ok (`Data buffer) ->
       _read_ops := Int64.succ !_read_ops;
       _read_bytes := Int64.(add !_read_bytes (of_int @@ Cstruct.len buffer));
       begin B.write b buffer
         >>= function
-        | `Ok () ->
+        | Ok () ->
           _write_ops := Int64.succ !_write_ops;
           _write_bytes := Int64.(add !_write_bytes (of_int @@ Cstruct.len buffer));
           loop c ()
-        | `Error m ->
+        | Error (`Msg m) ->
           _finish := Some (Clock.elapsed_ns c);
-          Lwt.return (`Error (`Msg (B.error_message m)))
-        | `Eof ->
+          Lwt.return (Error (`Msg m))
+        | Error `Closed ->
           _finish := Some (Clock.elapsed_ns c);
-          Lwt.return (`Error (`Msg (Printf.sprintf "write failed with Eof")))
+          Lwt.return (Error (`Msg (Printf.sprintf "write failed with Eof")))
       end
-    | `Error m ->
-      _finish := Some (Clock.elapsed_ns c);
-      Lwt.return (`Error (`Msg (A.error_message m))) in
+  in
   {
     _read_bytes;
     _read_ops;
@@ -98,5 +99,5 @@ let copy
   let t = start (module Clock) clock (module A) a (module B) b () in
   wait t
   >>= function
-  | `Ok () -> return (`Ok (stats t))
-  | `Error (`Msg m) -> return (`Error (`Msg m))
+  | Ok () -> return (Ok (stats t))
+  | Error (`Msg m) -> return (Error (`Msg m))

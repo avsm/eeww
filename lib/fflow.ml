@@ -21,6 +21,8 @@ type buffer = Cstruct.t
 
 type refill = Cstruct.t -> int -> int -> int Lwt.t
 
+type error = V1.Flow.error
+
 let seq f1 f2 buf off len =
   f1 buf off len >>= function
   | 0 -> f2 buf off len
@@ -96,48 +98,39 @@ let input_cstructs = iter input_cstruct
 let output_cstructs = iter output_cstruct
 let cstructs = mk input_cstructs output_cstructs
 
-type error = [`None]
-
-let error_message = function
-  | `None -> "<none>"
-
-let pp_error ppf e = Format.pp_print_string ppf (error_message e)
-
 let refill ch =
   if Cstruct.len ch.buf = 0 then (
     let buf = Cstruct.create default_buffer_size in
     ch.buf <- buf
   )
 
-let err_eof = Lwt.return `Eof
-
 let read ch =
-  if ch.ic_closed then err_eof
+  if ch.ic_closed then Lwt.return @@ Ok `Eof
   else (
     refill ch;
     ch.input ch.buf 0 default_buffer_size >>= fun n ->
     if n = 0 then (
       ch.ic_closed <- true;
-      Lwt.return `Eof;
+      Lwt.return (Ok `Eof);
     ) else (
       let ret = Cstruct.sub ch.buf 0 n in
       let buf = Cstruct.shift ch.buf n in
       ch.buf <- buf;
-      Lwt.return (`Ok ret)
+      Lwt.return (Ok (`Data ret))
     )
   )
 
 let write ch buf =
-  if ch.oc_closed then err_eof
+  if ch.oc_closed then Lwt.return @@ Error `Closed
   else (
     let len = Cstruct.len buf in
     let rec aux off =
-      if off = len then Lwt.return (`Ok ())
+      if off = len then Lwt.return (Ok ())
       else (
         ch.output buf off (len - off) >>= fun n ->
         if n = 0 then (
           ch.oc_closed <- true;
-          Lwt.return `Eof
+          Lwt.return @@ Error `Closed
         ) else aux (off+n)
       )
     in
@@ -145,15 +138,14 @@ let write ch buf =
   )
 
 let writev ch bufs =
-  if ch.oc_closed then err_eof
+  if ch.oc_closed then Lwt.return @@ Error `Closed
   else
     let rec aux = function
-      | []   -> Lwt.return (`Ok ())
+      | []   -> Lwt.return (Ok ())
       | h::t ->
         write ch h >>= function
-        | `Error e -> Lwt.return (`Error e)
-        | `Eof     -> Lwt.return `Eof
-        | `Ok ()   -> aux t
+        | Error e -> Lwt.return (Error e)
+        | Ok ()   -> aux t
     in
     aux bufs
 
