@@ -13,8 +13,8 @@ let log fmt = Format.eprintf (fmt ^^ "%!")
 let prop count mname fname prop =
   log "Lookup %s.%s for each uchar (%dx)@\n" mname fname count;
   for i = 1 to count do
-    for u = 0 to 0xD7FF do ignore (prop u) done;
-    for u = 0xE000 to 0x10FFFF do ignore (prop u) done;
+    for u = 0 to 0xD7FF do ignore (prop (Uchar.unsafe_of_int u)) done;
+    for u = 0xE000 to 0x10FFFF do ignore (prop (Uchar.unsafe_of_int u)) done;
   done;
   ()
 

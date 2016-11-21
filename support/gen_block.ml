@@ -26,9 +26,11 @@ let pp_blocks ppf ucd =
   let not_nb (`R (_, _, b)) = b <> `NB in
   let ranges = List.find_all not_nb ranges in
   let pp_block ppf (`R (is,ie,b)) =
-    Gen.pp ppf "@[<1>(%a,@,(%d,@,%d))@]" pp_block b is ie
+    Gen.pp ppf "@[<1>(%a,@,(%a,@,%a))@]"
+      pp_block b Gen.pp_uchar is Gen.pp_uchar ie
   in
-  Gen.pp ppf "@[let block_list : (Uucp_block_base.t * (int * int)) list =\
+  Gen.pp ppf "@[let block_list : \
+              (Uucp_block_base.t * (Uchar.t * Uchar.t)) list =\
               @\n %a@]@\n"
     (Gen.pp_list pp_block) ranges
 

@@ -13,12 +13,21 @@ let pp_size ppf s =
   if b < 1_073_741_824 then pp ppf "%.1f Mo" (float b /. (1024. ** 2.)) else
   pp ppf "%.1f Go" (float b /. (1024. ** 3.))
 
+let pp_uchar ppf u = pp ppf "Uchar.unsafe_of_int 0x%04X" u
+
 let pp_list pp_v ppf vs =
   let rec loop = function
   | v :: vs -> pp ppf "@[%a@];@," pp_v v; loop vs
   | [] -> ()
   in
   pp ppf "@[<1>["; loop vs; pp ppf "]@]"
+
+let uchar_iter_ints f =
+  let rec loop u f =
+    f (Uchar.to_int u);
+    if Uchar.equal u Uchar.max then () else loop (Uchar.succ u) f
+  in
+  loop Uchar.min f
 
 (* Property lookup *)
 
@@ -34,19 +43,19 @@ let assert_prop_map prop get =
     if prop u = get u then () else
     failwith (str "map failure for U+%04X" u)
   in
-  Uucp_uchar.iter assert_u
+  uchar_iter_ints assert_u
 
 let prop_map create set get prop default =
   let m = create default in
   let add_u u = set m u (prop u) in
-  Uucp_uchar.iter add_u; m, (get m)
+  uchar_iter_ints add_u; m, (get m)
 
 (* Generate Uucp_cmap.t values *)
 
 let prop_cmap ~default prop =
   let m = ref [] in
   let add_u u = m := (`C (u, prop u)) :: !m in
-  Uucp_uchar.iter add_u; Uucp_cmap.of_sorted_list default (List.rev !m)
+  uchar_iter_ints add_u; Uucp_cmap.of_sorted_list default (List.rev !m)
 
 let pp_prop_cmap ppf prop pname ptype pp_prop ~default size_v =
   log "* %s property, binary tree character map@\n" pname;
@@ -67,6 +76,7 @@ let pp_prop_cmap_ucd ppf ucd prop pname ptype pp_prop ~default size_v =
 (* Generate Uucp_rmap.t value *)
 
 let prop_find_ranges prop =
+  let u_max = Uchar.(to_int max) in
   let current = ref None in
   let start = ref 0 in
   let ranges = ref [] in
@@ -79,10 +89,10 @@ let prop_find_ranges prop =
     match !current with
     | None -> current := Some p; start := u
     | Some v ->
-        if v = p then (if u = Uucp_uchar.max then add_range v u) else
+        if v = p then (if u = u_max then add_range v u) else
         add_range v (u - 1)
   in
-  Uucp_uchar.iter add_u; (List.rev !ranges)
+  uchar_iter_ints add_u; (List.rev !ranges)
 
 let pp_prop_rmap ppf prop pname ptype pp_prop ~default size_v =
   log "* %s property, binary tree range code point map@\n" pname;
@@ -134,7 +144,7 @@ let prop_tmapbools prop =
     Uucp_tmapbool.set tm u b;
     Uucp_tmapbool.set fm u b;
   in
-  Uucp_uchar.iter add_u; tm, fm
+  uchar_iter_ints add_u; tm, fm
 
 let assert_tmapbools prop tm fm =
   let assert_u u =
@@ -143,7 +153,7 @@ let assert_tmapbools prop tm fm =
     if b <> Uucp_tmapbool.get tm u then fail ();
     if b <> Uucp_tmapbool.get fm u then fail ();
   in
-  Uucp_uchar.iter assert_u
+  uchar_iter_ints assert_u
 
 let pp_prop_tmapbool ppf prop pname =
   log "* %s property, boolean trie map@\n" pname;

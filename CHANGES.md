@@ -1,6 +1,12 @@
 
 
-
+- OCaml standard library `Uchar.t` support.
+  - Removes and substitutes `type Uunf.uchar = int` by the (abstract)
+    `Uchar.t` type. `Uchar.{of,to}_int` allows to recover the previous
+    representation.
+  - Removes the `Uucp.Uchar` module, corresponding functionality can
+    be found in `Uchar`.
+          
 - Build depend on topkg.
 - Relicense from BSD3 to ISC.
 

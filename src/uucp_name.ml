@@ -7,6 +7,7 @@
 include Uucp_name_base
 
 let name u =
+  let u = Uchar.to_int u in
   match Uucp_tmap4bytes.get_uint16_pair Uucp_name_data.name_map u with
   | 0, 0 -> ""
   | p, 0 -> Printf.sprintf "%s%04X" Uucp_name_data.name_toks.(p) u
@@ -15,7 +16,7 @@ let name u =
       Printf.sprintf "%s %s"
         Uucp_name_data.name_toks.(p) Uucp_name_data.name_toks.(s)
 
-let name_alias u = Uucp_cmap.get Uucp_name_data.name_alias_map u
+let name_alias u = Uucp_cmap.get Uucp_name_data.name_alias_map (Uchar.to_int u)
 
 (*---------------------------------------------------------------------------
    Copyright (c) 2014 Daniel C. Bünzli

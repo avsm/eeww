@@ -6,13 +6,13 @@
 
 let pp_map_untagged_prop prop pname ppf ucd =
   let size us = 3 * (List.length us) in
-  let pp_uchars = Gen.pp_list Format.pp_print_int in
+  let pp_uchars = Gen.pp_list Gen.pp_uchar in
   let prop cp = match Gen.ucd_get ucd cp prop with
   | `Self -> []
   | `Cps [] -> assert false
   | `Cps us -> us
   in
-  Gen.pp_prop_tmap ppf prop pname "int list" pp_uchars ~default:[] size
+  Gen.pp_prop_tmap ppf prop pname "Uchar.t list" pp_uchars ~default:[] size
 
 let pp_props ppf ucd =
   let map prop pname = pp_map_untagged_prop prop pname ppf ucd in

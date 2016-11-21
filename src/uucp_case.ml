@@ -6,10 +6,11 @@
 
 (* Case properties *)
 
-let is_upper u = Uucp_tmapbool.get Uucp_case_data.upper_map u
-let is_lower u = Uucp_tmapbool.get Uucp_case_data.lower_map u
-let is_cased u = Uucp_tmapbool.get Uucp_case_data.cased_map u
-let is_case_ignorable u = Uucp_tmapbool.get Uucp_case_data.case_ignorable_map u
+let is_upper u = Uucp_tmapbool.get Uucp_case_data.upper_map (Uchar.to_int u)
+let is_lower u = Uucp_tmapbool.get Uucp_case_data.lower_map (Uchar.to_int u)
+let is_cased u = Uucp_tmapbool.get Uucp_case_data.cased_map (Uchar.to_int u)
+let is_case_ignorable u =
+  Uucp_tmapbool.get Uucp_case_data.case_ignorable_map (Uchar.to_int u)
 
 (* Case mappings *)
 

@@ -26,86 +26,6 @@
     {e {{:http://www.unicode.org/reports/tr44/}UAX #44 Unicode Character
     Database}}. (latest version)}} *)
 
-(** {1:version Unicode version} *)
-
-val unicode_version : string
-(** [unicode_version] is the Unicode version supported by the library. *)
-
-(** {1:uchar Characters} *)
-
-type uchar = int
-(** The type for Unicode characters. A value of this type {b must}
-    be an Unicode
-      {{:http://unicode.org/glossary/#unicode_scalar_value} scalar
-      value} which is an integer in the ranges [0x0000]…[0xD7FF]
-      and [0xE000]…[0x10FFFF]. This can be asserted
-    with {!Uchar.is_uchar}. *)
-
-(** Characters. *)
-module Uchar : sig
-
-  (** {1:uchars Characters} *)
-
-  type t = uchar
-  (** The type for characters. See {!uchar}. *)
-
-  val min : uchar
-  (** [min] is U+0000. *)
-
-  val max : uchar
-  (** [max] is U+10FFFF. *)
-
-  val is_uchar : int -> bool
-  (** [is_uchar n] is [true] iff [n] is an Unicode
-      {{:http://www.unicode.org/glossary/#Unicode_scalar_value}scalar value}. *)
-
-  val succ : uchar -> uchar
-  (** [succ u] is the scalar value after [u] in the set of Unicode scalar
-      values.
-
-      @raise Invalid_argument if [u] is {!max}. *)
-
-  val pred : uchar -> uchar
-  (** [pred u] is the scalar value before [u] in the set of Unicode scalar
-      values.
-
-      @raise Invalid_argument if [u] is {!min}. *)
-
-  val of_int : int -> uchar
-  (** [of_int i] is [i] as an uchar.
-
-      @raise Invalid_argument if [i] does not satisfy {!is_uchar}. *)
-
-(**/**)
-  val unsafe_of_int : int -> t
-(**/**)
-
-  val to_int : uchar -> int
-  (** [to_int u] is the scalar value of [u] as an integer. *)
-
-  val equal : uchar -> uchar -> bool
-  (** [equal u u'] is [u = u')]. *)
-
-  val compare : uchar -> uchar -> int
-  (** [compare u u'] is [Pervasives.compare u u']. *)
-
-  (** {1:traversal Full Unicode character set traversal} *)
-
-  val fold : ('a -> uchar -> 'a) -> 'a -> 'a
-  (** [fold f acc] is
-      [(f (…(f (f (…(f (f acc 0x0000) 0x0001…) 0xD7FF) 0xE000)…) 0x10FFFF)]
-   *)
-
-  val iter : (uchar -> unit) -> unit
-  (** [iter f] is [f 0x0000; f0x0001; …; f 0xD7FF; f 0xE000; …; f 0x10FFFF]*)
-
-  (** {1:printers Printers} *)
-
-  val pp : Format.formatter -> uchar -> unit
-  (** [pp ppf u] prints [u] on [ppf] using only US-ASCII encoded
-      characters according to the Unicode notational convention. *)
-end
-
 (** {1:props Properties}
 
     Consult information about the {{!distrib_omit}property distribution
@@ -113,6 +33,9 @@ end
 
     {b Warning.} The result of functions is undefined if their [uchar]
     arguments do not satisfy the {!Uchar.is_uchar} predicate. *)
+
+val unicode_version : string
+(** [unicode_version] is the Unicode version supported by the library. *)
 
 (** Age property. *)
 module Age : sig
@@ -128,7 +51,7 @@ module Age : sig
   val pp : Format.formatter -> t -> unit
   (** [pp ppf a] prints an unspecified representation of [a] on [ppf]. *)
 
-  val age : uchar -> t
+  val age : Uchar.t -> t
   (** [age u] is [u]'s
       {{:http://www.unicode.org/reports/tr44/#Age}Age} property. *)
 end
@@ -138,7 +61,7 @@ module Alpha : sig
 
   (** {1:alphaprop Alphabetic property} *)
 
-  val is_alphabetic : uchar -> bool
+  val is_alphabetic : Uchar.t -> bool
   (** [is_alphabetic u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#Alphabetic}Alphabetic}
       property. *)
@@ -435,12 +358,12 @@ module Block : sig
   val pp : Format.formatter -> t -> unit
   (** [pp ppf b] prints an unspecified representation of [b] on [ppf]. *)
 
-  val blocks : (t * (uchar * uchar)) list
+  val blocks : (t * (Uchar.t * Uchar.t)) list
   (** [blocks] is the list of blocks sorted by increasing range order.
       Each block appears exactly once in the list except
       [`NB] which is not part of this list as it is not a block. *)
 
-  val block : uchar -> t
+  val block : Uchar.t -> t
   (** [block u] is [u]'s
       {{:http://www.unicode.org/reports/tr44/#Block}Block} property. *)
 end
@@ -476,7 +399,7 @@ module Break : sig
   (** [pp_line ppf l] prints an unspecified representation of [l] on
       [ppf]. *)
 
-  val line : uchar -> line
+  val line : Uchar.t -> line
   (** [line u] is [u]'s
       {{:http://www.unicode.org/reports/tr44/#Line_Break}line break}
       property. *)
@@ -492,7 +415,7 @@ module Break : sig
   (** [pp_grapheme_cluster ppf g] prints an unspecified representation of [g]
       on [ppf]. *)
 
-  val grapheme_cluster : uchar -> grapheme_cluster
+  val grapheme_cluster : Uchar.t -> grapheme_cluster
   (** [grapheme_cluster u] is [u]'s
       {{:http://www.unicode.org/reports/tr44/#Grapheme_Cluster_Break}grapheme
       cluster break} property. *)
@@ -508,7 +431,7 @@ module Break : sig
   (** [pp_grapheme_cluster ppf g] prints an unspecified representation of [g]
       on [ppf]. *)
 
-  val word : uchar -> word
+  val word : Uchar.t -> word
   (** [world u] is [u]'s
       {{:http://www.unicode.org/reports/tr44/#Word_Break}word break}
       property. *)
@@ -524,7 +447,7 @@ module Break : sig
   (** [pp_grapheme_cluster ppf g] prints an unspecified representation of [g]
       on [ppf]. *)
 
-  val sentence : uchar -> sentence
+  val sentence : Uchar.t -> sentence
   (** [sentence u] is [u]'s
       {{:http://www.unicode.org/reports/tr44/#Sentence_Break}sentence break}
       property. *)
@@ -538,14 +461,14 @@ module Break : sig
   (** [pp_east_asian_width ppf w] prints an unspecified representation of
       [w] on [ppf]. *)
 
-  val east_asian_width : uchar -> east_asian_width
+  val east_asian_width : Uchar.t -> east_asian_width
   (** [east_asian_width u] is [u]'s
       {{:http://www.unicode.org/reports/tr44/#East_Asian_Width}East Asian
       width} property. *)
 
   (** {1:terminal_width Terminal width} *)
 
-  val tty_width_hint: uchar -> int
+  val tty_width_hint: Uchar.t -> int
   (** [tty_width_hint u] approximates [u]'s column width as rendered by a
       typical character terminal.
 
@@ -640,7 +563,7 @@ module Low : sig
 
         {b Warning.} Do not mutate these array. *)
 
-    val line : uchar -> int
+    val line : Uchar.t -> int
     (** [line u] is an integer that can be used with {!line_of_int}. *)
 
     val line_max : int
@@ -650,7 +573,7 @@ module Low : sig
     (** [line_of_int.(i)] is the line break property value corresponding
         to [i]. *)
 
-    val grapheme_cluster : uchar -> int
+    val grapheme_cluster : Uchar.t -> int
     (** [grapheme_cluster u] is an integer that can be used with
         {!grapheme_cluster_of_int}. *)
 
@@ -662,7 +585,7 @@ module Low : sig
     (** [grapheme_cluster_of_int.(i)] is the grapheme cluster break property
         value corresponding to [i]. *)
 
-    val word : uchar -> int
+    val word : Uchar.t -> int
     (** [word u] is an integer that can be used with {!word_of_int}. *)
 
     val word_max : int
@@ -672,7 +595,7 @@ module Low : sig
     (** [word_of_int.(i)] is the word break property value
         corresponding to [i]. *)
 
-    val sentence : uchar -> int
+    val sentence : Uchar.t -> int
     (** [sentence u] is an integer that can be used with {!sentence_of_int}. *)
 
     val sentence_max : int
@@ -700,21 +623,21 @@ module Case : sig
 
   (** {1:caseprops Case properties} *)
 
-  val is_lower : uchar -> bool
+  val is_lower : Uchar.t -> bool
   (** [is_lower u] is [true] iff [u] has the
       {{:http://www.unicode.org/reports/tr44/#Lowercase}Lowercase} derived
       property. *)
 
-  val is_upper : uchar -> bool
+  val is_upper : Uchar.t -> bool
   (** [is_upper u] is [true] iff [u] has the
       {{:http://www.unicode.org/reports/tr44/#Uppercase}Uppercase} derived
       property. *)
 
-  val is_cased : uchar -> bool
+  val is_cased : Uchar.t -> bool
   (** [is_cased u] is [true] iff [u] has the
       {{:http://www.unicode.org/reports/tr44/#Cased}Cased} derived property. *)
 
-  val is_case_ignorable : uchar -> bool
+  val is_case_ignorable : Uchar.t -> bool
   (** [is_case_ignorable] is [true] iff [u] has the
       {{:http://www.unicode.org/reports/tr44/#Case_Ignorable}Case_Ignorable}
       derived property. *)
@@ -729,17 +652,17 @@ module Case : sig
 
     (** {1:casemaps Case mappings} *)
 
-    val to_lower : uchar -> [ `Self | `Uchars of uchar list ]
+    val to_lower : Uchar.t -> [ `Self | `Uchars of Uchar.t list ]
     (** [to_lower u] is [u]'s
         {{:http://www.unicode.org/reports/tr44/#Lowercase_Mapping}
         Lowercase_Mapping} property. *)
 
-    val to_upper : uchar -> [ `Self | `Uchars of uchar list ]
+    val to_upper : Uchar.t -> [ `Self | `Uchars of Uchar.t list ]
     (** [to_upper u] is [u]'s
         {{:http://www.unicode.org/reports/tr44/#Uppercase_Mapping}
         Uppercase_Mapping} property. *)
 
-    val to_title : uchar -> [ `Self | `Uchars of uchar list ]
+    val to_title : Uchar.t -> [ `Self | `Uchars of Uchar.t list ]
     (** [to_title u] is [u]'s
         {{:http://www.unicode.org/reports/tr44/#Titlecase_Mapping}
         Titlecase_Mapping} property. *)
@@ -750,7 +673,7 @@ module Case : sig
 
     (** {1:casefolding Case folding} *)
 
-    val fold : uchar -> [ `Self | `Uchars of uchar list ]
+    val fold : Uchar.t -> [ `Self | `Uchars of Uchar.t list ]
     (** [fold u] is [u]'s
         {{:http://www.unicode.org/reports/tr44/#Case_Folding}Case_Folding}
         property. *)
@@ -761,12 +684,11 @@ module Case : sig
 
     (** {1:nfkcfold NFKC Case folding} *)
 
-    val fold : uchar -> [ `Self | `Uchars of uchar list ]
+    val fold : Uchar.t -> [ `Self | `Uchars of Uchar.t list ]
     (** [fold u] is [u]'s
         {{:http://www.unicode.org/reports/tr44/#NFKC_Casefold}NFKC_Casefold}
         property. *)
   end
-
 
   (** {1:caseexamples Examples}
 
@@ -888,27 +810,27 @@ module Cjk : sig
 
   (**  {1:cjkprops CJK properties} *)
 
-  val is_ideographic : uchar -> bool
+  val is_ideographic : Uchar.t -> bool
   (** [is_ideographic u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#Ideographic}Ideographic}
       property. *)
 
-  val is_ids_bin_op : uchar -> bool
+  val is_ids_bin_op : Uchar.t -> bool
   (** [is_ids_bin_op u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#IDS_Binary_Operator}
       IDS_Binary_Operator} property. *)
 
-  val is_ids_tri_op : uchar -> bool
+  val is_ids_tri_op : Uchar.t -> bool
   (** [is_ids_tri_op u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#IDS_Trinary_Operator}
       IDS_Trinary_Operator} property. *)
 
-  val is_radical : uchar -> bool
+  val is_radical : Uchar.t -> bool
   (** [is_radical u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#Radical}Radical}
       property. *)
 
-  val is_unified_ideograph : uchar -> bool
+  val is_unified_ideograph : Uchar.t -> bool
   (** [is_unified_ideograph u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#Unified_Ideograph}
       Unified_Ideograph} property. *)
@@ -919,47 +841,47 @@ module Func : sig
 
   (** {1:funcprops Function and graphics properties} *)
 
-  val is_dash : uchar -> bool
+  val is_dash : Uchar.t -> bool
   (** [is_dash u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#Dash}Dash}
       property. *)
 
-  val is_diacritic : uchar -> bool
+  val is_diacritic : Uchar.t -> bool
   (** [is_diacritic u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#Diacritic}Diacritic}
       property. *)
 
-  val is_extender : uchar -> bool
+  val is_extender : Uchar.t -> bool
   (** [is_extender u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#Extender}Extender}
       property. *)
 
-  val is_grapheme_base : uchar -> bool
+  val is_grapheme_base : Uchar.t -> bool
   (** [is_grapheme_base u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#Grapheme_Base}Grapheme_Base}
       property. *)
 
-  val is_grapheme_extend : uchar -> bool
+  val is_grapheme_extend : Uchar.t -> bool
   (** [is_grapheme_extend u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#Grapheme_Extend}Grapheme_Extend}
       property. *)
 
-  val is_math : uchar -> bool
+  val is_math : Uchar.t -> bool
   (** [is_math u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#Math}Math}
       property. *)
 
-  val is_quotation_mark : uchar -> bool
+  val is_quotation_mark : Uchar.t -> bool
   (** [is_quotation_mark u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#Quotation_Mark}Quotation_Mark}
       property. *)
 
-  val is_soft_dotted : uchar -> bool
+  val is_soft_dotted : Uchar.t -> bool
   (** [is_soft_dotted u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#Soft_Dotted}Soft_Dotted}
       property. *)
 
-  val is_terminal_punctuation : uchar -> bool
+  val is_terminal_punctuation : Uchar.t -> bool
   (** [is_terminal_punct u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#Terminal_Punctuation}
       Terminal_Punctuation} property. *)
@@ -982,7 +904,7 @@ module Gc : sig
   val pp : Format.formatter -> t -> unit
   (** [pp ppf c] prints an unspecified representation of [c] on [ppf]. *)
 
-  val general_category : uchar -> t
+  val general_category : Uchar.t -> t
   (** [general_category u] is [u]'s
       {{:http://www.unicode.org/reports/tr44/#General_Category}
       General_Category} property. *)
@@ -993,27 +915,27 @@ module Gen : sig
 
   (** {1:genprops General properties} *)
 
-  val is_default_ignorable : uchar -> bool
+  val is_default_ignorable : Uchar.t -> bool
   (** [is_default_ignorable u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#Default_Ignorable_Code_Point}
        Default_Ignorable_Code_Point} property. *)
 
-  val is_deprecated : uchar -> bool
+  val is_deprecated : Uchar.t -> bool
   (** [is_deprecated u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#Deprecated}
        Deprecated} property. *)
 
-  val is_logical_order_exception : uchar -> bool
+  val is_logical_order_exception : Uchar.t -> bool
   (** [is_logical_order_exception u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#Logical_Order_Exception}
       Logical_Order_Exception} property. *)
 
-  val is_non_character : uchar -> bool
+  val is_non_character : Uchar.t -> bool
   (** [is_non_character u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#Noncharacter_Code_Point}
       Noncharacter_Code_Point} property. *)
 
-  val is_variation_selector : uchar -> bool
+  val is_variation_selector : Uchar.t -> bool
   (** [is_variation_selector u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#Variation_Selector}
       Variation_Selector} property. See the
@@ -1031,35 +953,35 @@ module Id : sig
 
   (** {1:idprops Identifier properties} *)
 
-  val is_id_start : uchar -> bool
+  val is_id_start : Uchar.t -> bool
   (** [is_id_start u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#ID_Start}ID_Start}
       property. *)
 
-  val is_id_continue : uchar -> bool
+  val is_id_continue : Uchar.t -> bool
   (** [is_id_continue u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#ID_Continue}ID_Continue}
       property. *)
 
-  val is_xid_start : uchar -> bool
+  val is_xid_start : Uchar.t -> bool
   (** [is_xid_start u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#XID_Start}XID_Start}
       property. *)
 
-  val is_xid_continue : uchar -> bool
+  val is_xid_continue : Uchar.t -> bool
   (** [is_xid_continue u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#XID_Continue}XID_Continue}
       property. *)
 
   (** {1:patprops Pattern syntax properties} *)
 
-  val is_pattern_syntax : uchar -> bool
+  val is_pattern_syntax : Uchar.t -> bool
   (** [is_pattern_syntax u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#Pattern_Syntax}Pattern_Syntax}
       property. *)
 
 
-  val is_pattern_white_space : uchar -> bool
+  val is_pattern_white_space : Uchar.t -> bool
   (** [is_pattern_white_space u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#Pattern_White_Space}
       Pattern_White_Space} property. *)
@@ -1075,7 +997,7 @@ module Name : sig
 
   (** {1:nameprop Names} *)
 
-  val name : uchar -> string
+  val name : Uchar.t -> string
   (** [name u] is [u]'s
       {{:http://www.unicode.org/reports/tr44/#Name}Name} property. *)
 
@@ -1088,7 +1010,7 @@ module Name : sig
   (** [pp_alias_tag t] prints an unspecified representation of [t]
       on [ppf]. *)
 
-  val name_alias : uchar -> (alias_tag * string) list
+  val name_alias : Uchar.t -> (alias_tag * string) list
   (** [name_alias u] is [u]'s
       {{:http://www.unicode.org/reports/tr44/#Name_Alias}Name_Alias}
       property. *)
@@ -1099,12 +1021,12 @@ module Num : sig
 
   (** {1:hexprop Hex digits} *)
 
-  val is_ascii_hex_digit : uchar -> bool
+  val is_ascii_hex_digit : Uchar.t -> bool
   (** [is_ascii_hex_digit u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#ASCII_Hex_Digit}ASCII_Hex_Digit}
       property. *)
 
-  val is_hex_digit : uchar -> bool
+  val is_hex_digit : Uchar.t -> bool
   (** [is_ascii_hex_digit u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#Hex_Digit}Hex_Digit}
       property. *)
@@ -1118,7 +1040,7 @@ module Num : sig
   (** [pp_numeric_type ppf n] prints an unspecified representation of
       [n] on [ppf]. *)
 
-  val numeric_type : uchar -> numeric_type
+  val numeric_type : Uchar.t -> numeric_type
   (** [numeric_type u] is [u]'s
       {{:http://www.unicode.org/reports/tr44/#Numeric_Type}
       Numeric_Type} property. *)
@@ -1132,7 +1054,7 @@ module Num : sig
   (** [pp_numeric_value ppf n] prints an unspecified representation of
       [n] on [ppf]. *)
 
-  val numeric_value : uchar -> [ `Frac of int * int | `NaN | `Num of int64 ]
+  val numeric_value : Uchar.t -> [ `Frac of int * int | `NaN | `Num of int64 ]
   (** [numeric_type u] is [u]'s
       {{:http://www.unicode.org/reports/tr44/#Numeric_Value}
       Numeric_Value} property. *)
@@ -1300,11 +1222,11 @@ module Script : sig
   val pp : Format.formatter -> t -> unit
   (** [pp ppf s] prints an unspecified representation of [s] on [ppf]. *)
 
-  val script : uchar -> t
+  val script : Uchar.t -> t
   (** [script u] is [u]'s
       {{:http://www.unicode.org/reports/tr44/#Script}Script} property. *)
 
-  val script_extensions : uchar -> t list
+  val script_extensions : Uchar.t -> t list
   (** [script_extension u] is [u]'s
       {{:http://www.unicode.org/reports/tr44/#Script_Extensions}
       Script_Extensions} property. The list is never empty. *)
@@ -1315,7 +1237,7 @@ module White : sig
 
   (**  {1:whiteprop White space property} *)
 
-  val is_white_space : uchar -> bool
+  val is_white_space : Uchar.t -> bool
   (** [is_white_space u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#White_Space}White_Space}
       property. *)

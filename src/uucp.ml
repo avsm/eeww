@@ -8,11 +8,6 @@
 
 let unicode_version = "%%UNICODE_VERSION%%"
 
-(* Characters *)
-
-type uchar = int
-module Uchar = Uucp_uchar
-
 (* Properties *)
 
 module Age = Uucp_age

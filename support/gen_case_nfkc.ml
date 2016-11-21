@@ -8,7 +8,7 @@ let pp_map_prop prop pname ppf ucd =
   let pp_map_value ppf = function
   | `Self -> Format.fprintf ppf "`Self"
   | `Uchars us -> Format.fprintf ppf "@[<1>(`Uchars@ %a)@]"
-                    (Gen.pp_list Format.pp_print_int) us
+                    (Gen.pp_list Gen.pp_uchar) us
   in
   let size = function
   | `Self -> 0
@@ -18,7 +18,7 @@ let pp_map_prop prop pname ppf ucd =
   | `Self -> `Self
   | `Cps us -> `Uchars us
   in
-  Gen.pp_prop_tmap ppf prop pname "[ `Self | `Uchars of int list ]"
+  Gen.pp_prop_tmap ppf prop pname "[ `Self | `Uchars of Uchar.t list ]"
     pp_map_value ~default:`Self size
 
 let pp_props ppf ucd =

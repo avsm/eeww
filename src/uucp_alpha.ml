@@ -4,7 +4,8 @@
    %%NAME%% %%VERSION%%
   ---------------------------------------------------------------------------*)
 
-let is_alphabetic u = Uucp_tmapbool.get Uucp_alpha_data.alphabetic_map u
+let is_alphabetic u =
+  Uucp_tmapbool.get Uucp_alpha_data.alphabetic_map (Uchar.to_int u)
 
 (*---------------------------------------------------------------------------
    Copyright (c) 2014 Daniel C. Bünzli

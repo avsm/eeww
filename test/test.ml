@@ -6,7 +6,7 @@
 
 (* Tests the properties against the XML Unicode character database. *)
 
-let str = Format.sprintf
+let str = Format.asprintf
 let exec = Filename.basename Sys.executable_name
 let log fmt = Format.eprintf (fmt ^^ "%!")
 
@@ -26,8 +26,8 @@ let load_ucd inf =
         exit 1
   with Sys_error e -> log "%s@\n" e; exit 1
 
-let ucd_get p ucd u = match Uucd.cp_prop ucd u p with
-| None -> invalid_arg (str "no property for U+%04X" u)
+let ucd_get p ucd u = match Uucd.cp_prop ucd (Uchar.to_int u) p with
+| None -> invalid_arg (str "no property for %a" Uchar.dump u)
 | Some v -> v
 
 (* Assert properties *)
@@ -35,11 +35,11 @@ let ucd_get p ucd u = match Uucd.cp_prop ucd u p with
 let prop ucd mname fname ucd_get prop =
   let do_assert u =
     if ucd_get ucd u = prop u then () else
-    failwith (str "assertion failure on U+%04X" u)
+    failwith (str "assertion failure on %a" Uchar.dump u)
   in
   log "Asserting %s.%s@\n" mname fname;
-  for u = 0 to 0xD7FF do do_assert u done;
-  for u = 0xE000 to 0x10FFFF do do_assert u done;
+  for u = 0 to 0xD7FF do do_assert (Uchar.of_int u) done;
+  for u = 0xE000 to 0x10FFFF do do_assert (Uchar.of_int u) done;
   ()
 
 (* Assert modules *)
@@ -83,9 +83,7 @@ let assert_case ucd =
   let map fname ucd_p p =
     let assert_map ucd u = match ucd_get ucd_p ucd u with
     | `Self -> `Self
-    | `Cps cps ->
-        if not (List.for_all Uucp.Uchar.is_uchar cps) then assert false else
-        `Uchars cps
+    | `Cps cps -> `Uchars (List.map Uchar.of_int cps)
     in
     prop ucd "Uucd.Case" fname assert_map p
   in
@@ -160,8 +158,9 @@ let assert_name ucd =
   | `Pattern n ->
       Buffer.clear buf;
       for i = 0 to String.length n - 1 do
-        if n.[i] = '#' then Buffer.add_string buf (Printf.sprintf "%04X" u) else
-        Buffer.add_char buf n.[i]
+        if n.[i] = '#'
+        then Buffer.add_string buf (str "%04X" (Uchar.to_int u))
+        else Buffer.add_char buf n.[i]
       done;
       Buffer.contents buf
   in

@@ -8,7 +8,7 @@ include Uucp_block_base
 
 let compare = Pervasives.compare
 let blocks = Uucp_block_data.block_list
-let block u = Uucp_rmap.get Uucp_block_data.block_map u
+let block u = Uucp_rmap.get Uucp_block_data.block_map (Uchar.to_int u)
 
 (*---------------------------------------------------------------------------
    Copyright (c) 2014 Daniel C. Bünzli

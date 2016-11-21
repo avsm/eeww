@@ -4,7 +4,8 @@
    %%NAME%% %%VERSION%%
   ---------------------------------------------------------------------------*)
 
-let fold u = Uucp_tmap.get Uucp_case_nfkc_data.nfkc_fold_map_map u
+let fold u =
+  Uucp_tmap.get Uucp_case_nfkc_data.nfkc_fold_map_map (Uchar.to_int u)
 
 (*---------------------------------------------------------------------------
    Copyright (c) 2013 Daniel C. Bünzli
