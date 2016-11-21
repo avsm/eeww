@@ -80,7 +80,7 @@ let create_uint16_pair (d0, d1) =
   create (Bytes.unsafe_to_string default)
 
 let get_uint16_pair m u =
-  let l1 = Array.get m.l0 (u lsr l0_shift) in
+  let l1 = Array.unsafe_get m.l0 (u lsr l0_shift) in
   let s, k =
     if l1 == nil then m.default, 0 else
     let l2 = Array.unsafe_get l1 (u lsr l1_shift land l1_mask) in
