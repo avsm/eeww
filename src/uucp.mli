@@ -29,10 +29,7 @@
 (** {1:props Properties}
 
     Consult information about the {{!distrib_omit}property distribution
-    in modules and omissions}.
-
-    {b Warning.} The result of functions is undefined if their [uchar]
-    arguments do not satisfy the {!Uchar.is_uchar} predicate. *)
+    in modules and omissions}. *)
 
 val unicode_version : string
 (** [unicode_version] is the Unicode version supported by the library. *)
@@ -350,7 +347,7 @@ module Block : sig
     | `Yi_Syllables
     | `Yijing ]
   (** The type for blocks. The value [`NB] is for characters that are not
-      yassigned to a block. *)
+      yet assigned to a block. *)
 
   val compare : t -> t -> int
   (** [compare b b'] is [Pervasives.compare b b']. *)

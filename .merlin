@@ -1,4 +1,4 @@
-PKG uucd
+PKG uucd uutf uunf
 S src
 S src/data
 S test
