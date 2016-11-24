@@ -45,19 +45,28 @@ let check_buffers msg b1s b2s =
     ~msg b1s b2s
 
 let check_ok_buffer msg buf = function
-  | `Ok b    -> check_buffer msg buf b
-  | `Error e -> fail (pp_str "%s: error=%a" msg Fflow.pp_error e)
-  | `Eof     -> fail (pp_str "%s: eof" msg)
+  | Ok (`Data b) -> check_buffer msg buf b
+  | Ok `Eof -> fail (pp_str "%s: eof" msg)
+  | Error (`Msg e) -> fail (pp_str "%s: error=%s" msg e)
 
 let check_ok_unit msg = function
-  | `Ok ()   -> ()
-  | `Error e -> fail (pp_str "%s: error=%a" msg Fflow.pp_error e)
-  | `Eof     -> fail (pp_str "%s: eof" msg)
+  | Ok ()   -> ()
+  | Error (`Msg e) -> fail (pp_str "%s: error=%s" msg e)
+
+let check_ok_write msg = function
+  | Ok ()   -> ()
+  | Error `Closed -> fail (pp_str "%s: closed" msg)
+  | Error (`Msg e) -> fail (pp_str "%s: error=%s" msg e)
+
+let check_closed msg = function
+  | Ok () -> fail (pp_str "%s: not closed" msg)
+  | Error `Closed -> ()
+  | Error (`Msg e) -> fail (pp_str "%s: error=%s" msg e)
 
 let check_eof msg = function
-  | `Ok _    -> fail (Printf.sprintf "%s: ok" msg)
-  | `Error e -> fail (pp_str "%s: error=%a" msg Fflow.pp_error e)
-  | `Eof     -> ()
+  | Ok `Eof     -> ()
+  | Ok _    -> fail (Printf.sprintf "%s: ok" msg)
+  | Error (`Msg e) -> fail (pp_str "%s: error=%s" msg e)
 
 let cs str = Cstruct.of_string str
 let css = List.map cs
@@ -72,8 +81,8 @@ let input_string () =
   Fflow.read ic >>= fun x2 ->
   Fflow.write ic (cs "hihi") >>= fun r ->
   check_ok_buffer "read 1" (cs input) x1;
-  check_eof       "read 2" x2;
-  check_eof       "write"  r;
+  check_eof "read 2" x2;
+  check_closed "write"  r;
   Lwt.return_unit
 
 let output_string () =
@@ -84,10 +93,10 @@ let output_string () =
   Fflow.write oc (cs "world") >>= fun x3 ->
   Fflow.read oc >>= fun r ->
   check_buffer  "result" (cs output) (cs "hello! wor");
-  check_ok_unit "write 1" x1;
-  check_ok_unit "write 2" x2;
-  check_eof     "write 3" x3;
-  check_eof     "read"    r;
+  check_ok_write "write 1" x1;
+  check_ok_write "write 2" x2;
+  check_closed   "write 3" x3;
+  check_eof      "read"    r;
   Lwt.return_unit
 
 let input_strings () =
@@ -106,7 +115,7 @@ let input_strings () =
   check_ok_buffer "read 4" (cs    "0") x4;
   check_eof       "read 5" y;
   check_eof       "read 6" z;
-  check_eof       "write"  w;
+  check_closed    "write"  w;
   Lwt.return_unit
 
 let output_strings () =
@@ -117,9 +126,9 @@ let output_strings () =
   Fflow.write oc (cs "world") >>= fun x3 ->
   Fflow.read oc >>= fun r ->
   check_buffers "result" (filter (css output)) (css ["hel"; "lo"; "! w"]);
-  check_ok_unit "write 1" x1;
-  check_ok_unit "write 2" x2;
-  check_eof     "write 3" x3;
+  check_ok_write "write 1" x1;
+  check_ok_write "write 2" x2;
+  check_closed   "write 3" x3;
   check_eof     "read"    r;
   Lwt.return_unit
 
@@ -131,7 +140,7 @@ let input_cstruct () =
   Fflow.write ic (cs "hihi") >>= fun r ->
   check_ok_buffer "read 1" input x1;
   check_eof       "read 2" x2;
-  check_eof       "write"  r;
+  check_closed    "write"  r;
   Lwt.return_unit
 
 let output_cstruct () =
@@ -142,9 +151,9 @@ let output_cstruct () =
   Fflow.write oc (cs "world") >>= fun x3 ->
   Fflow.read oc >>= fun r ->
   check_buffer  "result" output (cs "hello! wor");
-  check_ok_unit "write 1" x1;
-  check_ok_unit "write 2" x2;
-  check_eof     "write 3" x3;
+  check_ok_write "write 1" x1;
+  check_ok_write "write 2" x2;
+  check_closed   "write 3" x3;
   check_eof     "read"    r;
   Lwt.return_unit
 
@@ -164,7 +173,7 @@ let input_cstructs () =
   check_ok_buffer "read 4" (cs    "0") x4;
   check_eof       "read 5 "y;
   check_eof       "read 6" z;
-  check_eof       "read 7" w;
+  check_closed    "read 7" w;
   Lwt.return_unit
 
 let output_cstructs () =
@@ -175,9 +184,9 @@ let output_cstructs () =
   Fflow.write oc (cs "world") >>= fun x3 ->
   Fflow.read oc >>= fun r ->
   check_buffers "result" (filter output) (css ["hel"; "lo"; "! w"]);
-  check_ok_unit "write 1" x1;
-  check_ok_unit "write 2" x2;
-  check_eof     "write 3" x3;
+  check_ok_write "write 1" x1;
+  check_ok_write "write 2" x2;
+  check_closed   "write 3" x3;
   check_eof     "read"    r;
   Lwt.return_unit
 
