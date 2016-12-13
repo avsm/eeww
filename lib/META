@@ -1,8 +1,8 @@
 # OASIS_START
-# DO NOT EDIT (digest: 0aabc4e0bb3d942370688cdecf7e4867)
+# DO NOT EDIT (digest: 764c844d9de6ca674a254ea873b8b89a)
 version = "1.1.0"
 description = "Mirage flow implementations"
-requires = "mirage-types.lwt lwt cstruct result"
+requires = "mirage-types mirage-types-lwt lwt cstruct result"
 archive(byte) = "mirage_flow.cma"
 archive(byte, plugin) = "mirage_flow.cma"
 archive(native) = "mirage_flow.cmxa"
