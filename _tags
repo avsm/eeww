@@ -1,54 +1,9 @@
-# OASIS_START
-# DO NOT EDIT (digest: 0315e41037c97b307486d16f0f566d52)
-# Ignore VCS directories, you can use the same kind of rule outside
-# OASIS_START/STOP if you want to exclude directories that contains
-# useless stuff for the build process
-true: annot, bin_annot
-<**/.svn>: -traverse
-<**/.svn>: not_hygienic
-".bzr": -traverse
-".bzr": not_hygienic
-".hg": -traverse
-".hg": not_hygienic
-".git": -traverse
-".git": not_hygienic
-"_darcs": -traverse
-"_darcs": not_hygienic
-# Library mirage_flow
-"lib/mirage_flow.cmxs": use_mirage_flow
-<lib/*.ml{,i,y}>: pkg_cstruct
-<lib/*.ml{,i,y}>: pkg_lwt
-<lib/*.ml{,i,y}>: pkg_mirage-types
-<lib/*.ml{,i,y}>: pkg_mirage-types-lwt
-<lib/*.ml{,i,y}>: pkg_result
-# Library lwt-io
-"lib/lwt-io/lwt-io.cmxs": use_lwt-io
-<lib/lwt-io/*.ml{,i,y}>: pkg_cstruct
-<lib/lwt-io/*.ml{,i,y}>: pkg_lwt
-<lib/lwt-io/*.ml{,i,y}>: pkg_lwt.unix
-<lib/lwt-io/*.ml{,i,y}>: pkg_mirage-types
-<lib/lwt-io/*.ml{,i,y}>: pkg_mirage-types-lwt
-<lib/lwt-io/*.ml{,i,y}>: pkg_result
-<lib/lwt-io/*.ml{,i,y}>: use_mirage_flow
-# Executable test_flow
-<lib_test/test.{native,byte}>: pkg_alcotest
-<lib_test/test.{native,byte}>: pkg_cstruct
-<lib_test/test.{native,byte}>: pkg_lwt
-<lib_test/test.{native,byte}>: pkg_lwt.unix
-<lib_test/test.{native,byte}>: pkg_mirage-types
-<lib_test/test.{native,byte}>: pkg_mirage-types-lwt
-<lib_test/test.{native,byte}>: pkg_oUnit
-<lib_test/test.{native,byte}>: pkg_result
-<lib_test/test.{native,byte}>: use_lwt-io
-<lib_test/test.{native,byte}>: use_mirage_flow
-<lib_test/*.ml{,i,y}>: pkg_alcotest
-<lib_test/*.ml{,i,y}>: pkg_cstruct
-<lib_test/*.ml{,i,y}>: pkg_lwt
-<lib_test/*.ml{,i,y}>: pkg_lwt.unix
-<lib_test/*.ml{,i,y}>: pkg_mirage-types
-<lib_test/*.ml{,i,y}>: pkg_mirage-types-lwt
-<lib_test/*.ml{,i,y}>: pkg_oUnit
-<lib_test/*.ml{,i,y}>: pkg_result
-<lib_test/*.ml{,i,y}>: use_lwt-io
-<lib_test/*.ml{,i,y}>: use_mirage_flow
-# OASIS_STOP
+true : bin_annot, safe_string, package(bytes)
+true: warn_error(+1..49), warn(A-4-41-44)
+
+true: package(fmt)
+<lwt/*>: package(lwt cstruct mirage-flow mirage-clock)
+<unix/*>: package(mirage-flow-lwt lwt.unix)
+
+<lib_test/*>: package(mirage-flow alcotest lwt.unix mirage-flow-lwt)
+<unix>: include

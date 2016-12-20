@@ -14,85 +14,70 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *)
 
-open Printf
-let (>>=) = Lwt.bind
+open Lwt.Infix
+open Mirage_flow_lwt
 
-let pp_str fmt =
-  let b = Buffer.create 20 in                         (* for thread safety. *)
-  let ppf = Format.formatter_of_buffer b in
-  let k ppf = Format.pp_print_flush ppf (); Buffer.contents b in
-  Format.kfprintf k ppf fmt
+let pp_buf ppf buf = Fmt.string ppf (Cstruct.to_string buf)
+let eq_buf b1 b2 = Cstruct.to_string b1 = Cstruct.to_string b2
 
-let pp_buf ppf buf = Format.pp_print_string ppf (Cstruct.to_string buf)
+let cstruct = Alcotest.testable pp_buf eq_buf
+let fail fmt = Fmt.kstrf Alcotest.fail fmt
 
-let cmp_cstruct b1 b2 = Cstruct.to_string b1 = Cstruct.to_string b2
-
-let rec cmp_list fn l1 l2 = match l1, l2 with
-  | [], [] -> true
-  | [], _ | _ , [] -> false
-  | h1::t1, h2::t2 -> fn h1 h1 && cmp_list fn t1 t2
-
-let printer_list fn l = String.concat ", " (List.map fn l)
-
-let fail = OUnit.assert_string
-
-let check_buffer msg b1 b2 =
-  OUnit.assert_equal ~cmp:cmp_cstruct ~printer:Cstruct.to_string ~msg b1 b2
-
-let check_buffers msg b1s b2s =
-  OUnit.assert_equal
-    ~cmp:(cmp_list cmp_cstruct) ~printer:(printer_list Cstruct.to_string)
-    ~msg b1s b2s
+let check_buffer = Alcotest.(check cstruct)
+let check_buffers = Alcotest.(check @@ list cstruct)
 
 let check_ok_buffer msg buf = function
   | Ok (`Data b) -> check_buffer msg buf b
-  | Ok `Eof -> fail (pp_str "%s: eof" msg)
-  | Error (`Msg e) -> fail (pp_str "%s: error=%s" msg e)
+  | Ok `Eof      -> fail "%s: eof" msg
+  | Error e      -> fail "%s: error=%a" msg F.pp_error e
 
 let check_ok_unit msg = function
   | Ok ()   -> ()
-  | Error (`Msg e) -> fail (pp_str "%s: error=%s" msg e)
+  | Error e -> fail "%s: error=%a" msg F.pp_error e
 
 let check_ok_write msg = function
   | Ok ()   -> ()
-  | Error `Closed -> fail (pp_str "%s: closed" msg)
-  | Error (`Msg e) -> fail (pp_str "%s: error=%s" msg e)
+  | Error e -> fail "%s: error=%a" msg F.pp_write_error e
 
 let check_closed msg = function
-  | Ok () -> fail (pp_str "%s: not closed" msg)
+  | Ok ()         -> fail "%s: not closed" msg
   | Error `Closed -> ()
-  | Error (`Msg e) -> fail (pp_str "%s: error=%s" msg e)
+  | Error e       -> fail "%s: error=%a" msg F.pp_write_error e
 
 let check_eof msg = function
-  | Ok `Eof     -> ()
-  | Ok _    -> fail (Printf.sprintf "%s: ok" msg)
-  | Error (`Msg e) -> fail (pp_str "%s: error=%s" msg e)
+  | Ok `Eof -> ()
+  | Ok _    -> fail "%s: ok" msg
+  | Error e -> fail "%s: error=%a" msg F.pp_error e
 
 let cs str = Cstruct.of_string str
+let cb str = Cstruct.of_bytes str
+
 let css = List.map cs
+let cbs = List.map cb
+
 let filter x =
   let zero = Cstruct.of_string "" in
   List.filter ((<>) zero) x
 
 let input_string () =
   let input = "xxxxxxxxxx" in
-  let ic = Fflow.string ~input () in
-  Fflow.read ic >>= fun x1 ->
-  Fflow.read ic >>= fun x2 ->
-  Fflow.write ic (cs "hihi") >>= fun r ->
+  let ic = F.string ~input () in
+  F.read ic >>= fun x1 ->
+  F.read ic >>= fun x2 ->
+  F.write ic (cs "hihi") >>= fun r ->
   check_ok_buffer "read 1" (cs input) x1;
   check_eof "read 2" x2;
   check_closed "write"  r;
   Lwt.return_unit
 
 let output_string () =
-  let output = "xxxxxxxxxx" in
-  let oc = Fflow.string ~output () in
-  Fflow.write oc (cs  "hell") >>= fun x1 ->
-  Fflow.write oc (cs   "o! ") >>= fun x2 ->
-  Fflow.write oc (cs "world") >>= fun x3 ->
-  Fflow.read oc >>= fun r ->
-  check_buffer  "result" (cs output) (cs "hello! wor");
+  let output = Bytes.of_string "xxxxxxxxxx" in
+  let oc = F.string ~output () in
+  F.write oc (cs  "hell") >>= fun x1 ->
+  F.write oc (cs   "o! ") >>= fun x2 ->
+  F.write oc (cs "world") >>= fun x3 ->
+  F.read oc >>= fun r ->
+  check_buffer "result" (cb output) (cs "hello! wor");
   check_ok_write "write 1" x1;
   check_ok_write "write 2" x2;
   check_closed   "write 3" x3;
@@ -101,14 +86,14 @@ let output_string () =
 
 let input_strings () =
   let input = [ ""; "123"; "45"; "6789"; "0" ] in
-  let ic = Fflow.strings ~input () in
-  Fflow.read ic >>= fun x1 ->
-  Fflow.read ic >>= fun x2 ->
-  Fflow.read ic >>= fun x3 ->
-  Fflow.read ic >>= fun x4 ->
-  Fflow.read ic >>= fun y ->
-  Fflow.read ic >>= fun z ->
-  Fflow.write ic (cs "hihi") >>= fun w ->
+  let ic = F.strings ~input () in
+  F.read ic >>= fun x1 ->
+  F.read ic >>= fun x2 ->
+  F.read ic >>= fun x3 ->
+  F.read ic >>= fun x4 ->
+  F.read ic >>= fun y ->
+  F.read ic >>= fun z ->
+  F.write ic (cs "hihi") >>= fun w ->
   check_ok_buffer "read 1" (cs  "123") x1;
   check_ok_buffer "read 2" (cs   "45") x2;
   check_ok_buffer "read 3" (cs "6789") x3;
@@ -119,13 +104,13 @@ let input_strings () =
   Lwt.return_unit
 
 let output_strings () =
-  let output = ["xxx"; ""; "xx"; "xxx"; ] in
-  let oc = Fflow.strings ~output () in
-  Fflow.write oc (cs  "hell") >>= fun x1 ->
-  Fflow.write oc (cs   "o! ") >>= fun x2 ->
-  Fflow.write oc (cs "world") >>= fun x3 ->
-  Fflow.read oc >>= fun r ->
-  check_buffers "result" (filter (css output)) (css ["hel"; "lo"; "! w"]);
+  let output = List.map Bytes.of_string ["xxx"; ""; "xx"; "xxx"; ] in
+  let oc = F.strings ~output () in
+  F.write oc (cs  "hell") >>= fun x1 ->
+  F.write oc (cs   "o! ") >>= fun x2 ->
+  F.write oc (cs "world") >>= fun x3 ->
+  F.read oc >>= fun r ->
+  check_buffers "result" (filter (cbs output)) (css ["hel"; "lo"; "! w"]);
   check_ok_write "write 1" x1;
   check_ok_write "write 2" x2;
   check_closed   "write 3" x3;
@@ -134,10 +119,10 @@ let output_strings () =
 
 let input_cstruct () =
   let input = Cstruct.of_string "xxxxxxxxxx" in
-  let ic = Fflow.cstruct ~input () in
-  Fflow.read ic >>= fun x1 ->
-  Fflow.read ic >>= fun x2 ->
-  Fflow.write ic (cs "hihi") >>= fun r ->
+  let ic = F.cstruct ~input () in
+  F.read ic >>= fun x1 ->
+  F.read ic >>= fun x2 ->
+  F.write ic (cs "hihi") >>= fun r ->
   check_ok_buffer "read 1" input x1;
   check_eof       "read 2" x2;
   check_closed    "write"  r;
@@ -145,11 +130,11 @@ let input_cstruct () =
 
 let output_cstruct () =
   let output = Cstruct.of_string "xxxxxxxxxx" in
-  let oc = Fflow.cstruct ~output () in
-  Fflow.write oc (cs  "hell") >>= fun x1 ->
-  Fflow.write oc (cs   "o! ") >>= fun x2 ->
-  Fflow.write oc (cs "world") >>= fun x3 ->
-  Fflow.read oc >>= fun r ->
+  let oc = F.cstruct ~output () in
+  F.write oc (cs  "hell") >>= fun x1 ->
+  F.write oc (cs   "o! ") >>= fun x2 ->
+  F.write oc (cs "world") >>= fun x3 ->
+  F.read oc >>= fun r ->
   check_buffer  "result" output (cs "hello! wor");
   check_ok_write "write 1" x1;
   check_ok_write "write 2" x2;
@@ -159,14 +144,14 @@ let output_cstruct () =
 
 let input_cstructs () =
   let inputs = List.map cs [ "123"; "45"; ""; "6789"; "0" ] in
-  let ic = Fflow.cstructs ~input:inputs () in
-  Fflow.read ic >>= fun x1 ->
-  Fflow.read ic >>= fun x2 ->
-  Fflow.read ic >>= fun x3 ->
-  Fflow.read ic >>= fun x4 ->
-  Fflow.read ic >>= fun y ->
-  Fflow.read ic >>= fun z ->
-  Fflow.write ic (cs "hihi") >>= fun w ->
+  let ic = F.cstructs ~input:inputs () in
+  F.read ic >>= fun x1 ->
+  F.read ic >>= fun x2 ->
+  F.read ic >>= fun x3 ->
+  F.read ic >>= fun x4 ->
+  F.read ic >>= fun y ->
+  F.read ic >>= fun z ->
+  F.write ic (cs "hihi") >>= fun w ->
   check_ok_buffer "read 1" (cs  "123") x1;
   check_ok_buffer "read 2" (cs   "45") x2;
   check_ok_buffer "read 3" (cs "6789") x3;
@@ -178,11 +163,11 @@ let input_cstructs () =
 
 let output_cstructs () =
   let output = List.map cs [ ""; "xxx"; "xx"; "xxx" ] in
-  let oc = Fflow.cstructs ~output () in
-  Fflow.write oc (cs  "hell") >>= fun x1 ->
-  Fflow.write oc (cs   "o! ") >>= fun x2 ->
-  Fflow.write oc (cs "world") >>= fun x3 ->
-  Fflow.read oc >>= fun r ->
+  let oc = F.cstructs ~output () in
+  F.write oc (cs  "hell") >>= fun x1 ->
+  F.write oc (cs   "o! ") >>= fun x2 ->
+  F.write oc (cs "world") >>= fun x3 ->
+  F.read oc >>= fun r ->
   check_buffers "result" (filter output) (css ["hel"; "lo"; "! w"]);
   check_ok_write "write 1" x1;
   check_ok_write "write 2" x2;
@@ -190,10 +175,10 @@ let output_cstructs () =
   check_eof     "read"    r;
   Lwt.return_unit
 
-module Lwt_io_flow = Lwt_io_flow.Make (Fflow)
+module Lwt_io_flow = Mirage_flow_unix.Make(F)
 
 let input_lwt_io () =
-  let ic = Fflow.strings ~input:["1"; "234"; "56"; "78\n90"] () in
+  let ic = F.strings ~input:["1"; "234"; "56"; "78\n90"] () in
   let lic = Lwt_io_flow.ic ic in
   Lwt_io.read_line lic >>= fun l ->
   check_buffer "result" (cs "12345678") (cs l);
@@ -201,10 +186,11 @@ let input_lwt_io () =
 
 let output_lwt_io () =
   let output = css ["xxxx";"xxxx"; "xxxxxx"] in
-  let oc = Fflow.cstructs ~output () in
+  let oc = F.cstructs ~output () in
   let loc = Lwt_io_flow.oc oc in
   Lwt_io.write_line loc "Hello world!" >>= fun () ->
-  check_buffers "result" (css ["Hello"; " wor"; "ld!\nxx"]) output;
+  Lwt_io.flush loc >>= fun () ->
+  check_buffers "result" (css ["Hell"; "o wo"; "rld!\nx"]) output;
   Lwt.return_unit
 
 let run f () = Lwt_main.run (f ())

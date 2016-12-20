@@ -8,11 +8,23 @@ authors:       ["Thomas Gazagnaire" "Dave Scott"]
 tags:          [ "org:mirage"]
 license:       "ISC"
 
-build: ["ocaml" "pkg/pkg.ml" "build" "--pinned" "%{pinned}%"]
+build: ["ocaml" "pkg/pkg.ml" "build" "--tests" "false"
+       "--pkg-name" "mirage-flow-unix" "--pinned" "%{pinned}%"]
+
+build-test: [
+  ["ocaml" "pkg/pkg.ml" "build" "--tests" "true"
+       "--pkg-name" "mirage-flow-unix" "--pinned" "%{pinned}%"]
+  ["ocaml" "pkg/pkg.ml" "test"]
+]
 
 depends: [
   "ocamlfind"  {build}
   "ocamlbuild" {build}
   "topkg"      {build & >= "0.7.3"}
+  "alcotest"   {test}
   "fmt"
+  "mirage-flow"
+  "mirage-flow-lwt"
+  "lwt"
+  "cstruct"
 ]

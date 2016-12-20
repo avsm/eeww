@@ -1,0 +1,7 @@
+description = "flow devices for MirageOS using lwt"
+version = "%%VERSION_NUM%%"
+requires = "mirage-flow fmt lwt cstruct"
+archive(byte) = "mirage-flow-lwt.cma"
+archive(native) = "mirage-flow-lwt.cmxa"
+plugin(byte) = "mirage-flow-lwt.cma"
+plugin(native) = "mirage-flow-lwt.cmxs"

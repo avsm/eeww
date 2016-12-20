@@ -1,6 +1,5 @@
 (*
- * Copyright (c) 2014 Citrix Systems Inc
- * Copyright (c) 2015 Thomas Gazagnaire <thomas@gazagnaire.org>
+ * Copyright (c) 2015-present Thomas Gazagnaire <thomas@gazagnaire.org>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -17,7 +16,7 @@
 
 (** Conversion from mirage flows to Lwt_io channels. *)
 
-module Make (F: V1_LWT.FLOW): sig
+module Make (F: Mirage_flow_lwt.S): sig
 
   val ic: ?buffer_size:int -> ?close:bool -> F.flow -> Lwt_io.input_channel
   (** Build an [Lwt_io] input channel from a mirage flow. If [close]
@@ -28,4 +27,5 @@ module Make (F: V1_LWT.FLOW): sig
   (** Build an [Lwt_io] output channel from a mirage flow. If [close]
       is omitted, the mirage flow will {e not} be closed when the
       output channel is closed. *)
+
 end

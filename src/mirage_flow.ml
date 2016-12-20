@@ -1,5 +1,7 @@
 (*
- * Copyright (C) 2016 David Scott <dave.scott@docker.com>
+ * Copyright (C) 2016-present David Scott <dave.scott@docker.com>
+ * Copyright (c) 2011-present Anil Madhavapeddy <anil@recoil.org>
+ * Copyright (c) 2013-present Thomas Gazagnaire <thomas@gazagnaire.org>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -12,10 +14,40 @@
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- *
  *)
 
-type t = {
+type write_error = [ `Closed ]
+
+let pp_write_error ppf = function
+  | `Closed -> Fmt.pf ppf "attempted to write to a closed flow"
+
+type 'a or_eof = [`Data of 'a | `Eof ]
+
+let pp_or_eof d ppf = function
+  | `Data a -> d ppf a
+  | `Eof    -> Fmt.string ppf "End-of-file"
+
+module type S = sig
+  type +'a io
+  type error
+  val pp_error: error Fmt.t
+  type write_error = private [> `Closed]
+  val pp_write_error: write_error Fmt.t
+  type buffer
+  type flow
+  val read: flow -> (buffer or_eof, error) result io
+  val write: flow -> buffer -> (unit, write_error) result io
+  val writev: flow -> buffer list -> (unit, write_error) result io
+  val close: flow -> unit io
+end
+
+module type SHUTDOWNABLE = sig
+  include S
+  val shutdown_write: flow -> unit io
+  val shutdown_read: flow -> unit io
+end
+
+type stats = {
   read_bytes: int64;
   read_ops: int64;
   write_bytes: int64;
@@ -43,8 +75,8 @@ let add_suffix x =
       else acc
     ) (Printf.sprintf "%Ld bytes" x) suffix
 
-let to_string s =
-  Printf.sprintf "%s bytes at %s/nanosec and %Lu IOPS/nanosec"
+let pp_stats ppf s =
+  Fmt.pf ppf "%s bytes at %s/nanosec and %Lu IOPS/nanosec"
     (add_suffix s.read_bytes)
     (add_suffix Int64.(div s.read_bytes s.duration))
     (Int64.div s.read_ops s.duration)

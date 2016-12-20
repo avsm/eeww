@@ -1,6 +1,5 @@
 (*
- * Copyright (c) 2014 Citrix Systems Inc
- * Copyright (c) 2015 Thomas Gazagnaire <thomas@gazagnaire.org>
+ * Copyright (c) 2015-present Thomas Gazagnaire <thomas@gazagnaire.org>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,9 +14,9 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *)
 
-let (>>=) = Lwt.bind
+open Lwt.Infix
 
-module Make (F: V1_LWT.FLOW) = struct
+module Make (F: Mirage_flow_lwt.S) = struct
 
   let reader t =
     let frag = ref (Cstruct.create 0) in
@@ -32,8 +31,8 @@ module Make (F: V1_LWT.FLOW) = struct
             frag := b;
             aux buf ofs len
           | Ok `Eof -> Lwt.return 0
-          | Error (`Msg f) ->
-            Lwt.fail @@ Failure ("Lwt_io_flow.reader: " ^ f)
+          | Error e ->
+            Lwt.fail_with @@ Fmt.strf "Lwt_io_flow.reader: %a" F.pp_error e
         end else begin
           let n = min available len in
           Cstruct.blit !frag 0 (Cstruct.of_bigarray buf) ofs n;
@@ -47,7 +46,8 @@ module Make (F: V1_LWT.FLOW) = struct
     F.write t b >>= function
     | Ok ()          -> Lwt.return len
     | Error `Closed  -> Lwt.return 0
-    | Error (`Msg s) -> Lwt.fail @@ Failure ("Lwt_io_flow.writer: " ^ s)
+    | Error e        ->
+      Lwt.fail_with @@ Fmt.strf "Lwt_io_flow.writer: %a" F.pp_write_error e
 
   let ic ?(buffer_size=1024) ?(close=true) t =
     let close () = if close then F.close t else Lwt.return_unit in
