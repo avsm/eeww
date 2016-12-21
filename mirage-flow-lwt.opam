@@ -9,7 +9,7 @@ tags:          [ "org:mirage"]
 license:       "ISC"
 
 build: ["ocaml" "pkg/pkg.ml" "build"
-       "--pkg-name" "mirage-flow-lwt" "--pinned" "%{pinned}%"]
+       "--pkg-name" name "--pinned" "%{pinned}%"]
 
 depends: [
   "ocamlfind"  {build}
