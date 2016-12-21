@@ -33,6 +33,6 @@ let () =
   | "mirage-flow-unix" ->
     Ok [ Pkg.lib "pkg/META.unix" ~dst:"META";
          Pkg.mllib "unix/mirage-flow-unix.mllib";
-         Pkg.test "lib_test/test" ]
+         Pkg.test "test/test" ]
   | other ->
     R.error_msgf "unknown package name: %s" other

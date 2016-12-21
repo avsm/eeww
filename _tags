@@ -5,5 +5,5 @@ true: package(fmt)
 <lwt/*>: package(lwt cstruct mirage-flow mirage-clock)
 <unix/*>: package(mirage-flow-lwt lwt.unix)
 
-<lib_test/*>: package(mirage-flow alcotest lwt.unix mirage-flow-lwt)
+<test/*>: package(mirage-flow alcotest lwt.unix mirage-flow-lwt)
 <unix>: include
