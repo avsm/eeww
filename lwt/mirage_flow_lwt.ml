@@ -22,6 +22,16 @@ module type S = Mirage_flow.S
   with type 'a io = 'a Lwt.t
    and type buffer = Cstruct.t
 
+module type ABSTRACT = Mirage_flow.ABSTRACT
+  with type 'a io = 'a Lwt.t
+   and type buffer = Cstruct.t
+
+module type CONCRETE =  Mirage_flow.CONCRETE
+  with type 'a io = 'a Lwt.t
+   and type buffer = Cstruct.t
+
+module Concrete (S: S) = Mirage_flow.Concrete(S)(Lwt)
+
 module type SHUTDOWNABLE = Mirage_flow.SHUTDOWNABLE
   with type 'a io = 'a Lwt.t
    and type buffer = Cstruct.t

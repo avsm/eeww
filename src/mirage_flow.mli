@@ -34,8 +34,8 @@ type 'a or_eof = [`Data of 'a | `Eof ]
 val pp_or_eof: 'a Fmt.t -> 'a or_eof Fmt.t
 (** [pp_or_eof] is the pretty-printer for {!or_eof} values. *)
 
-(** Flow signature. *)
-module type S = sig
+(** Abstract flow signature. *)
+module type ABSTRACT = sig
 
   type +'a io
   (** The type for potentially blocking I/O operations. *)
@@ -46,7 +46,7 @@ module type S = sig
   val pp_error: error Fmt.t
   (** [pp_error] is the pretty-printer for errors. *)
 
-  type write_error = private [> `Closed]
+  type write_error
   (** The type for write errors. *)
 
   val pp_write_error: write_error Fmt.t
@@ -106,6 +106,29 @@ module type S = sig
       and resources associated with the flow can be freed.
       *)
 end
+
+(** The main [FLOW] signature, where [write_errors] is a private row
+    type. Note: ideally [error] should be the empty row, but not easy
+    way to express this in OCaml. *)
+module type S = ABSTRACT with type write_error = private [> write_error ]
+
+(** [CONCRETE] expose the private row as [`Msg str] errors, using
+    [pp_error] and [pp_write_error]. *)
+module type CONCRETE = ABSTRACT
+  with type error = [`Msg of string]
+   and type write_error = [write_error | `Msg of string]
+
+(** Functor to transform a {{!S}flow} signature using private rows for
+    errors into concrete error types. *)
+module Concrete (S: S)
+    (IO: sig
+       type 'a t = 'a S.io
+       val map: ('a -> 'b) -> 'a t -> 'b t
+     end):
+  CONCRETE
+  with type 'a io = 'a S.io
+   and type buffer = S.buffer
+   and type flow = S.flow
 
 (** {1 Shutdownable flows} *)
 module type SHUTDOWNABLE = sig
