@@ -16,6 +16,7 @@
 
 open Lwt.Infix
 open Mirage_flow_lwt
+open Result
 
 let pp_buf ppf buf = Fmt.string ppf (Cstruct.to_string buf)
 let eq_buf b1 b2 = Cstruct.to_string b1 = Cstruct.to_string b2

@@ -17,6 +17,7 @@
  *)
 
 open Lwt.Infix
+open Result
 
 module type S = Mirage_flow.S
   with type 'a io = 'a Lwt.t

@@ -26,5 +26,5 @@ depends: [
   "mirage-flow"
   "mirage-flow-lwt"
   "lwt"
-  "cstruct"
+  "cstruct" {>= "2.3.0"}
 ]

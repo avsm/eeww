@@ -15,6 +15,7 @@
  *)
 
 open Lwt.Infix
+open Result
 
 module Make (F: Mirage_flow_lwt.S) = struct
 

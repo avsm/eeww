@@ -22,6 +22,8 @@
 
     {e Release %%VERSION%% } *)
 
+open Result
+
 type write_error = [ `Closed ]
 (** The type for generic write errors on flows. *)
 
