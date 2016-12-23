@@ -15,10 +15,10 @@ let opams =
   in
   [
     opam
-      ["lwt"; "cstruct"; "mirage-flow"; "mirage-time";
-       "alcotest"; "mirage-flow-lwt"] "opam";
-  opam ["alcotest"; "mirage-flow-lwt"] "mirage-flow-lwt.opam";
-  opam ["mirage-time"] "mirage-flow-unix.opam";
+      ["lwt"; "cstruct"; "mirage-flow"; "mirage-time"; "result";
+       "alcotest"; "mirage-clock"; "mirage-flow-lwt"] "opam";
+    opam ["alcotest"; "mirage-flow-lwt"; "result"] "mirage-flow-lwt.opam";
+    opam ["mirage-time"; "result"; "mirage-clock"] "mirage-flow-unix.opam";
   ]
 
 let () =
