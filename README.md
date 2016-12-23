@@ -1,12 +1,10 @@
-Flow implementations and combinators for mirage
-===============================================
+## mirag-flow -- Flow implementations and combinators for MirageOS
 
 This repo contains generic operations over Mirage `FLOW` implementations.
 
 Please consult [the API documentation](https://mirage.github.io/mirage-flow/index.html).
 
-Example usage
--------------
+### Example usage
 
 In a top-level like utop:
 ```ocaml

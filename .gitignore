@@ -1,0 +1,8 @@
+_build
+*~
+\.\#*
+\#*#
+*.native
+*.byte
+*.install
+_tests/
