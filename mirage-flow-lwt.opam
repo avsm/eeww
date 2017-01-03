@@ -17,7 +17,7 @@ depends: [
   "topkg"      {build & >= "0.7.3"}
   "fmt"
   "lwt"
-  "cstruct"
+  "cstruct" {>= "2.0.0"}
   "mirage-clock"
   "mirage-flow"
 ]
