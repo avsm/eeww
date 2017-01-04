@@ -18,7 +18,7 @@
 
 (** {1 Flow-related devices}
 
-    This module define flow-related devices for MirageOS.
+    This module define flow devices and combinators for MirageOS.
 
     {e Release %%VERSION%% } *)
 
