@@ -1,4 +1,4 @@
-## Randomconv - random in various representations
+## Randomconv - convert from random bytes to random native numbers
 
 %%VERSION%%
 
