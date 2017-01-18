@@ -12,12 +12,12 @@ build: ["ocaml" "pkg/pkg.ml" "build"
        "--pkg-name" name "--pinned" "%{pinned}%"]
 
 depends: [
-  "ocamlfind"  {build}
+  "ocamlfind" {build}
   "ocamlbuild" {build}
-  "topkg"      {build & >= "0.7.3"}
+  "topkg" {build & >= "0.7.3"}
   "fmt"
   "lwt"
   "cstruct" {>= "2.0.0"}
-  "mirage-clock"
-  "mirage-flow"
+  "mirage-clock" {>= "1.2.0"}
+  "mirage-flow" {>= "1.2.0"}
 ]

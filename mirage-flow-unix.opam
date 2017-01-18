@@ -23,8 +23,8 @@ depends: [
   "topkg"      {build & >= "0.7.3"}
   "alcotest"   {test}
   "fmt"
-  "mirage-flow"
-  "mirage-flow-lwt"
+  "mirage-flow" {>= "1.2.0"}
+  "mirage-flow-lwt" {>= "1.2.0"}
   "lwt"
   "cstruct" {>= "2.3.0"}
 ]
