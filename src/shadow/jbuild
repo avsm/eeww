@@ -1,0 +1,10 @@
+(library
+ ((name        ocaml_shadow)
+  (public_name ocaml-compiler-libs.shadow)
+  (extra_disabled_warnings (49))
+  (preprocess  no_preprocessing)))
+
+(rule
+ ((targets (ocaml_shadow.ml))
+  (deps    (gen/gen.exe))
+  (action  (run ${<} -dir ${ocaml_where}/compiler-libs -o ${@}))))

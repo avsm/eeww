@@ -1,0 +1,4 @@
+(executables
+ ((names (gen))
+  (libraries (read_cma))
+  (preprocess no_preprocessing)))
