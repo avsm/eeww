@@ -2,7 +2,8 @@
  ((name        ocaml_shadow)
   (public_name ocaml-compiler-libs.shadow)
   (extra_disabled_warnings (49))
-  (preprocess  no_preprocessing)))
+  (preprocess  no_preprocessing)
+  (js_of_ocaml ())))
 
 (rule
  ((targets (ocaml_shadow.ml))
