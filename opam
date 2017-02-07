@@ -8,15 +8,18 @@ dev-repo:     "https://github.com/mirage/ocaml-tuntap.git"
 bug-reports: "https://github.com/mirage/ocaml-tuntap/issues"
 tags:        [ "org:mirage" "org:xapi-project" ]
 
-build:      [make "PREFIX=%{prefix}%"]
-build-test: [make "PREFIX=%{prefix}%" "test"]
-install:    [make "PREFIX=%{prefix}%" "install"]
-remove:     ["ocamlfind" "remove" "tuntap"]
+build:      [ "ocaml" "pkg/pkg.ml" "build" "--pinned" "%{pinned}%" ]
+build-test: [
+  [ "ocaml" "pkg/pkg.ml" "build" "--pinned" "%{pinned}%" "--tests" "true" ]
+  [ "ocaml" "pkg/pkg.ml" "test" ]
+]
 
 depends: [
-  "ocamlfind" {build}
-  "ipaddr"    {>= "2.4.0"}
-  "ounit"     {test}
-  "lwt"       {test}
+  "topkg"       {build & >= "0.8.0"}
+  "ocamlbuild"  {build}
+  "ocamlfind"   {build}
+  "ipaddr"      {>= "2.4.0"}
+  "ounit"       {test}
+  "lwt"         {test}
 ]
 available: [ocaml-version >="4.01.0"]
