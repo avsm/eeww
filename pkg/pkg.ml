@@ -3,9 +3,13 @@
 #require "topkg"
 open Topkg
 
+let opams =
+  let lint_deps_excluding = Some ["ounit"; "oUnit"]
+  in
+  [Pkg.opam_file ~lint_deps_excluding "opam"]
 
 let () =
-  Pkg.describe "tuntap" @@ fun c ->
+  Pkg.describe ~opams "tuntap" @@ fun c ->
   Ok [
     Pkg.mllib "lib/tuntap.mllib";
     Pkg.clib "lib/libtuntap_stubs.clib";
