@@ -1,3 +1,7 @@
+## 1.4.0 (09-Feb-2017)
+* Port to topkg (#20) (Gabriel Jaldon and Hannes Mehnert).
+* When closing devices, call `open` with `~persist:false`.
+
 ## 1.3.0 (07-Jun-2015):
 * Do not leak a file descriptor per tun interface (#12 via Justin Cormack)
 * Avoid the need for root access for persistent interfaces by not calling
