@@ -33,4 +33,4 @@ let t () =
   |pid -> (* parent *)
      close csock >>= fun () -> parent psock
 
-let () = run (sleep 0.1 >>= t)
+let () = Lwt_main.run (sleep 0.1 >>= t)
