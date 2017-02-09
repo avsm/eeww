@@ -1,5 +1,7 @@
+## tuntap - OCaml library for handling TUN/TAP devices
+
 This is an OCaml library for handling TUN/TAP devices.  TUN refers to layer 3
-virtual interfaces whereas TAP refers to layer 2 Ethernet ones. 
+virtual interfaces whereas TAP refers to layer 2 Ethernet ones.
 
 See <http://en.wikipedia.org/wiki/TUN/TAP> for more information.
 

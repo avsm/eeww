@@ -1,70 +1,8 @@
-# OASIS_START
-# DO NOT EDIT (digest: cdd5a591c420a01ba64306fcc2719609)
-# Ignore VCS directories, you can use the same kind of rule outside
-# OASIS_START/STOP if you want to exclude directories that contains
-# useless stuff for the build process
-true: annot, bin_annot
-<**/.svn>: -traverse
-<**/.svn>: not_hygienic
-".bzr": -traverse
-".bzr": not_hygienic
-".hg": -traverse
-".hg": not_hygienic
-".git": -traverse
-".git": not_hygienic
-"_darcs": -traverse
-"_darcs": not_hygienic
-# Library tuntap
-"lib/tuntap.cmxs": use_tuntap
-<lib/*.ml{,i,y}>: oasis_library_tuntap_ccopt
-"lib/tuntap_stubs.c": oasis_library_tuntap_ccopt
-<lib/tuntap.{cma,cmxa}>: use_libtuntap_stubs
-<lib/*.ml{,i,y}>: pkg_bytes
-<lib/*.ml{,i,y}>: pkg_ipaddr
-"lib/tuntap_stubs.c": pkg_bytes
-"lib/tuntap_stubs.c": pkg_ipaddr
-# Executable otunctl
-"bin/otunctl.native": pkg_bytes
-"bin/otunctl.native": pkg_cmdliner
-"bin/otunctl.native": pkg_ipaddr
-"bin/otunctl.native": use_tuntap
-<bin/*.ml{,i,y}>: pkg_bytes
-<bin/*.ml{,i,y}>: pkg_cmdliner
-<bin/*.ml{,i,y}>: pkg_ipaddr
-<bin/*.ml{,i,y}>: use_tuntap
-# Executable sendfd_test
-"test/sendfd_test.native": pkg_bytes
-"test/sendfd_test.native": pkg_ipaddr
-"test/sendfd_test.native": pkg_lwt.unix
-"test/sendfd_test.native": use_tuntap
-# Executable nonblock_test
-"test/nonblock_test.native": pkg_bytes
-"test/nonblock_test.native": pkg_ipaddr
-"test/nonblock_test.native": pkg_lwt.unix
-"test/nonblock_test.native": use_tuntap
-# Executable nonblock_read
-"test/nonblock_read.native": pkg_bytes
-"test/nonblock_read.native": pkg_ipaddr
-"test/nonblock_read.native": pkg_lwt.unix
-"test/nonblock_read.native": use_tuntap
-<test/*.ml{,i,y}>: pkg_lwt.unix
-# Executable getifaddrs_test
-"test/getifaddrs_test.native": pkg_bytes
-"test/getifaddrs_test.native": pkg_ipaddr
-"test/getifaddrs_test.native": use_tuntap
-# Executable set_ipv4_test
-"test/set_ipv4_test.native": pkg_bytes
-"test/set_ipv4_test.native": pkg_ipaddr
-"test/set_ipv4_test.native": pkg_oUnit
-"test/set_ipv4_test.native": use_tuntap
-<test/*.ml{,i,y}>: pkg_oUnit
-# Executable open_close_test
-"test/open_close_test.native": pkg_bytes
-"test/open_close_test.native": pkg_ipaddr
-"test/open_close_test.native": use_tuntap
-<test/*.ml{,i,y}>: pkg_bytes
-<test/*.ml{,i,y}>: pkg_ipaddr
-<test/*.ml{,i,y}>: use_tuntap
-# OASIS_STOP
-<lib>: include
 true: annot, bin_annot, debug
+true: package(ipaddr)
+
+<lib>: include
+
+<lib/tuntap.{cma,cmxa}>: use_tuntap
+
+<test/**>: link_tuntap, package(oUnit lwt lwt.unix)

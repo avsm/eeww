@@ -1,0 +1,8 @@
+version         = "%%VERSION_NUM%%"
+description     = "Bindings to the UNIX tuntap facility."
+requires        = "ipaddr bytes"
+archive(byte)   = "tuntap.cma"
+plugin(byte)    = "tuntap.cma"
+archive(native) = "tuntap.cmxa"
+plugin(native)  = "tuntap.cmxs"
+exists_if       = "tuntap.cma"
