@@ -1,6 +1,9 @@
+## 1.4.1 (20-Feb-2017)
+* fix linking of binaries using tuntap (-ltuntap_stubs) (#21 by Hannes Mehnert)
+
 ## 1.4.0 (09-Feb-2017)
 * Port to topkg (#20) (Gabriel Jaldon and Hannes Mehnert).
-* When closing devices, call `open` with `~persist:false`.
+* When closing devices, call `open` with `~persist:false` (#17 by Mindy Preston).
 * Remove deprecated use of `Lwt_unix.run` from tests.
 
 ## 1.3.0 (07-Jun-2015):
