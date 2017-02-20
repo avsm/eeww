@@ -6,6 +6,7 @@ license:      "ISC"
 homepage:     "https://github.com/mirage/ocaml-tuntap"
 dev-repo:     "https://github.com/mirage/ocaml-tuntap.git"
 bug-reports:  "https://github.com/mirage/ocaml-tuntap/issues"
+doc:          "https://mirage.github.io/ocaml-tuntap/"
 tags:         [ "org:mirage" "org:xapi-project" ]
 
 build: [
