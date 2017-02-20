@@ -4,5 +4,6 @@ true: package(ipaddr)
 <lib>: include
 
 <lib/tuntap.{cma,cmxa}>: use_tuntap
+<lib/tuntap.cmxs> : link_tuntap
 
 <test/**>: link_tuntap, package(oUnit lwt lwt.unix)

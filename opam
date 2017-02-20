@@ -5,13 +5,11 @@ authors:      [ "Vincent Bernardoff <vb@luminar.eu.org>"
 license:      "ISC"
 homepage:     "https://github.com/mirage/ocaml-tuntap"
 dev-repo:     "https://github.com/mirage/ocaml-tuntap.git"
-bug-reports: "https://github.com/mirage/ocaml-tuntap/issues"
-tags:        [ "org:mirage" "org:xapi-project" ]
+bug-reports:  "https://github.com/mirage/ocaml-tuntap/issues"
+tags:         [ "org:mirage" "org:xapi-project" ]
 
-build:      [ "ocaml" "pkg/pkg.ml" "build" "--pinned" "%{pinned}%" ]
-build-test: [
-  [ "ocaml" "pkg/pkg.ml" "build" "--pinned" "%{pinned}%" "--tests" "true" ]
-  [ "ocaml" "pkg/pkg.ml" "test" ]
+build: [
+  "ocaml" "pkg/pkg.ml" "build" "--pinned" "%{pinned}%" "--tests" "false"
 ]
 
 depends: [
