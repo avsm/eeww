@@ -11,3 +11,5 @@
   (action  (run ${<}
             -archive ${ocaml_where}/compiler-libs/ocamlcommon.cma
             -o ${@}))))
+
+(jbuild_version jane_street)

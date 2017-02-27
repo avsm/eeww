@@ -2,3 +2,5 @@
  ((names (gen))
   (libraries (read_cma))
   (preprocess no_preprocessing)))
+
+(jbuild_version jane_street)

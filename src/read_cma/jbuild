@@ -2,3 +2,5 @@
  ((name read_cma)
   (libraries (compiler-libs.common compiler-libs.bytecomp))
   (preprocess no_preprocessing)))
+
+(jbuild_version jane_street)
