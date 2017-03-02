@@ -2,7 +2,6 @@
  ((name        ocaml_common)
   (public_name ocaml-compiler-libs.common)
   (libraries (compiler-libs.common))
-  (js_of_ocaml ())
   (preprocess no_preprocessing)))
 
 (rule
