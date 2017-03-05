@@ -1,4 +1,0 @@
-#directory "_build/src"
-#use "topfind"
-#require "bytes"
-#load "uucp.cma"
