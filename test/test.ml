@@ -10,6 +10,8 @@ let str = Format.asprintf
 let exec = Filename.basename Sys.executable_name
 let log fmt = Format.eprintf (fmt ^^ "%!")
 
+let uchar_dump ppf u = Format.fprintf ppf "U+%04X" (Uchar.to_int u)
+
 (* UCD loading and access *)
 
 let load_ucd inf =
@@ -27,7 +29,7 @@ let load_ucd inf =
   with Sys_error e -> log "%s@\n" e; exit 1
 
 let ucd_get p ucd u = match Uucd.cp_prop ucd (Uchar.to_int u) p with
-| None -> invalid_arg (str "no property for %a" Uchar.dump u)
+| None -> invalid_arg (str "no property for %a" uchar_dump u)
 | Some v -> v
 
 (* Assert properties *)
@@ -35,7 +37,7 @@ let ucd_get p ucd u = match Uucd.cp_prop ucd (Uchar.to_int u) p with
 let prop ucd mname fname ucd_get prop =
   let do_assert u =
     if ucd_get ucd u = prop u then () else
-    failwith (str "assertion failure on %a" Uchar.dump u)
+    failwith (str "assertion failure on %a" uchar_dump u)
   in
   log "Asserting %s.%s@\n" mname fname;
   for u = 0 to 0xD7FF do do_assert (Uchar.of_int u) done;

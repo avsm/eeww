@@ -1679,7 +1679,7 @@ let char_of_scalar_value s =
     ["U+%04X"] is an OCaml formatting string for printing an US-ASCII
     representation of an Unicode code point according to the
     standards' notational conventions. This is what the standard library
-    {!Uchar.dump} formatter does for {!Uchar.t} values.
+    {!Format.pp_print_dump_uchar} formatter does for {!Uchar.t} values.
 
     {2:ocamllibs Writing OCaml libraries}
 
