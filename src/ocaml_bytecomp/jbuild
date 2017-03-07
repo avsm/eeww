@@ -11,4 +11,4 @@
             -archive ${ocaml_where}/compiler-libs/ocamlbytecomp.cma
             -o ${@}))))
 
-(jbuild_version jane_street)
+(jbuild_version 1)
