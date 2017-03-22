@@ -1,5 +1,6 @@
 _build/
 *.native
 *.byte
-setup.data
-setup.log
+src/.merlin
+tests/.merlin
+ocplib-endian.install
