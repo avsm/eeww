@@ -3,13 +3,13 @@ sudo: required
 install: wget https://raw.githubusercontent.com/ocaml/ocaml-ci-scripts/master/.travis-opam.sh
 script: bash -ex .travis-opam.sh
 env:
-  - OCAML_VERSION=latest TESTS=true
-  - OCAML_VERSION=4.04   TESTS=true
-  - OCAML_VERSION=4.03   TESTS=true
-  - OCAML_VERSION=4.02   TESTS=true
-  - OCAML_VERSION=4.01   TESTS=true
-  - OCAML_VERSION=4.00   TESTS=true
-  - OCAML_VERSION=3.12   TESTS=true
+  - OCAML_VERSION=latest TESTS=true PACKAGE=ocplib-endian
+  - OCAML_VERSION=4.04   TESTS=true PACKAGE=ocplib-endian
+  - OCAML_VERSION=4.03   TESTS=true PACKAGE=ocplib-endian
+  - OCAML_VERSION=4.02   TESTS=true PACKAGE=ocplib-endian
+  - OCAML_VERSION=4.01   TESTS=true PACKAGE=ocplib-endian
+  - OCAML_VERSION=4.00   TESTS=true PACKAGE=ocplib-endian
+  - OCAML_VERSION=3.12   TESTS=true PACKAGE=ocplib-endian
 os:
   - linux
   - osx
