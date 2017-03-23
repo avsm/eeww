@@ -21,6 +21,9 @@ depends: [
 build: [
   ["jbuilder" "build" "--only-packages" "ocplib-endian" "--root" "." "-j" jobs "@install"]
 ]
+build-test: [
+  ["jbuilder" "runtest" "--only-packages" "ocplib-endian" "--root" "." "-j" jobs]
+]
 dev-repo: "git+https://github.com/OCamlPro/ocplib-endian.git"
 url {
   src: "https://github.com/OCamlPro/ocplib-endian/archive/1.0.tar.gz"
