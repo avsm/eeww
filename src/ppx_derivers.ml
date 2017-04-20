@@ -12,3 +12,6 @@ let lookup name =
   match Hashtbl.find all name with
   | drv -> Some drv
   | exception Not_found -> None
+
+let derivers () =
+  Hashtbl.fold (fun name drv acc -> (name, drv) :: acc) all []

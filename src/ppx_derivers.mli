@@ -14,3 +14,6 @@ val register : string -> deriver -> unit
 
 (** Lookup a previously registered deriver *)
 val lookup : string -> deriver option
+
+(** [derivers ()] returns all currently registered derivers. *)
+val derivers : unit -> (string * deriver) list
