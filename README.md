@@ -1,5 +1,5 @@
-Ppx_deriviers
--------------
+Ppx_derivers
+------------
 
 Ppx_derivers is a tiny package whose sole purpose is to allow
 [ppx_deriving](https://github.com/whitequark/ppx_deriving) and
