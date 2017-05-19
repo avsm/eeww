@@ -8,19 +8,17 @@ authors:       ["Thomas Gazagnaire" "Dave Scott"]
 tags:          [ "org:mirage"]
 license:       "ISC"
 
-build: ["ocaml" "pkg/pkg.ml" "build" "--tests" "false"
-       "--pkg-name" name "--pinned" "%{pinned}%"]
+build: [
+  [ "jbuilder" "build" "-p" name "-j" jobs ]
+]
 
 build-test: [
-  ["ocaml" "pkg/pkg.ml" "build" "--tests" "true"
-       "--pkg-name" name "--pinned" "%{pinned}%"]
-  ["ocaml" "pkg/pkg.ml" "test"]
+  [ "jbuilder" "runtest" ]
 ]
 
 depends: [
   "ocamlfind"  {build}
-  "ocamlbuild" {build}
-  "topkg"      {build & >= "0.7.3"}
+  "jbuilder"  {build & >="1.0+beta7"}
   "alcotest"   {test}
   "fmt"
   "mirage-flow" {>= "1.2.0"}

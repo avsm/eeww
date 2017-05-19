@@ -8,11 +8,12 @@ authors:       ["Thomas Gazagnaire" "Dave Scott"]
 tags:          [ "org:mirage"]
 license:       "ISC"
 
-build: ["ocaml" "pkg/pkg.ml" "build" "--pinned" "%{pinned}%"]
+build: [
+  [ "jbuilder" "build" "-p" name "-j" jobs ]
+]
 
 depends: [
-  "ocamlfind"  {build}
-  "ocamlbuild" {build}
-  "topkg"      {build & >= "0.7.3"}
+  "ocamlfind" {build}
+  "jbuilder"  {build & >="1.0+beta7"}
   "fmt"
 ]

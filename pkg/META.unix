@@ -1,7 +1,0 @@
-description = "flow devices for MirageOS using lwt on Unix"
-version = "%%VERSION_NUM%%"
-requires = "mirage-flow-lwt lwt.unix"
-archive(byte) = "mirage-flow-unix.cma"
-archive(native) = "mirage-flow-unix.cmxa"
-plugin(byte) = "mirage-flow-unix.cma"
-plugin(native) = "mirage-flow-unix.cmxs"
