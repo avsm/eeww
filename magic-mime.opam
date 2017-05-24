@@ -7,10 +7,13 @@ homepage: "https://github.com/mirage/ocaml-magic-mime"
 bug-reports: "https://github.com/mirage/ocaml-magic-mime/issues"
 dev-repo: "https://github.com/mirage/ocaml-magic-mime.git"
 license: "ISC"
+
 build: [
-  ["./configure" "--prefix=%{prefix}%"]
-  [make]
+  [ "jbuilder" "subst"] {pinned}
+  [ "jbuilder" "build" "-p" name "-j" jobs ]
 ]
-install: [make "install"]
-remove: ["ocamlfind" "remove" "magic-mime"]
-depends: "ocamlfind" {build}
+
+depends: [
+  "ocamlfind" {build}
+  "jbuilder"  {build & >="1.0+beta9"}
+]
