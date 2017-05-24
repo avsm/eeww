@@ -33,8 +33,8 @@ let _ =
   file_iter (fun l ->
       match split (regexp "\t+") l with
       | [] -> () 
-      | [x] -> ()
-      | [mime;exts] when String.length mime > 0 && mime.[0] = '#' -> ()
+      | [_] -> ()
+      | [mime;_] when String.length mime > 0 && mime.[0] = '#' -> ()
       | [mime;exts] ->     
         List.iter (fun e ->
             if not (Hashtbl.mem dup e) then begin
