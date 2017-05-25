@@ -1,0 +1,10 @@
+(library
+ ((name        magic_mime_library)
+  (public_name magic-mime)
+  (wrapped     false)
+))
+
+(rule
+ ((targets (mime_types.ml))
+  (deps    (../generator/generate_mime_types.exe))
+  (action  (run ${<} ../../../mime.types ${@} ))))
