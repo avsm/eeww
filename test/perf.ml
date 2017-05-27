@@ -75,6 +75,7 @@ let lookup_func count =
   prop "is_quotation_mark" Uucp.Func.is_quotation_mark;
   prop "is_soft_dotted" Uucp.Func.is_soft_dotted;
   prop "is_terminal_punctuation" Uucp.Func.is_terminal_punctuation;
+  prop "is_regional_indicator" Uucp.Func.is_regional_indicator;
   ()
 
 let lookup_gc count =

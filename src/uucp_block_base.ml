@@ -50,6 +50,7 @@ type t =
   | `CJK_Ext_C
   | `CJK_Ext_D
   | `CJK_Ext_E
+  | `CJK_Ext_F
   | `CJK_Radicals_Sup
   | `CJK_Strokes
   | `CJK_Symbols
@@ -115,8 +116,8 @@ type t =
   | `Hebrew
   | `Hiragana
   | `IDC
-  | `Ideographic_Symbols
   | `IPA_Ext
+  | `Ideographic_Symbols
   | `Imperial_Aramaic
   | `Indic_Number_Forms
   | `Inscriptional_Pahlavi
@@ -126,6 +127,7 @@ type t =
   | `Jamo_Ext_B
   | `Javanese
   | `Kaithi
+  | `Kana_Ext_A
   | `Kana_Sup
   | `Kanbun
   | `Kangxi
@@ -161,6 +163,7 @@ type t =
   | `Mandaic
   | `Manichaean
   | `Marchen
+  | `Masaram_Gondi
   | `Math_Alphanum
   | `Math_Operators
   | `Meetei_Mayek
@@ -181,8 +184,8 @@ type t =
   | `Mongolian
   | `Mongolian_Sup
   | `Mro
-  | `Music
   | `Multani
+  | `Music
   | `Myanmar
   | `Myanmar_Ext_A
   | `Myanmar_Ext_B
@@ -192,6 +195,7 @@ type t =
   | `New_Tai_Lue
   | `Newa
   | `Number_Forms
+  | `Nushu
   | `OCR
   | `Ogham
   | `Ol_Chiki
@@ -204,8 +208,8 @@ type t =
   | `Old_Turkic
   | `Oriya
   | `Ornamental_Dingbats
-  | `Osmanya
   | `Osage
+  | `Osmanya
   | `PUA
   | `Pahawh_Hmong
   | `Palmyrene
@@ -231,6 +235,7 @@ type t =
   | `Sinhala_Archaic_Numbers
   | `Small_Forms
   | `Sora_Sompeng
+  | `Soyombo
   | `Specials
   | `Sundanese
   | `Sundanese_Sup
@@ -246,6 +251,7 @@ type t =
   | `Sutton_SignWriting
   | `Syloti_Nagri
   | `Syriac
+  | `Syriac_Sup
   | `Tagalog
   | `Tagbanwa
   | `Tags
@@ -275,11 +281,12 @@ type t =
   | `Warang_Citi
   | `Yi_Radicals
   | `Yi_Syllables
-  | `Yijing ]
+  | `Yijing
+  | `Zanabazar_Square ]
 
 let pp ppf b = Format.fprintf ppf "%s" begin match b with
-  | `Adlam -> "Adlam"
   | `ASCII -> "ASCII"
+  | `Adlam -> "Adlam"
   | `Aegean_Numbers -> "Aegean_Numbers"
   | `Ahom -> "Ahom"
   | `Alchemical -> "Alchemical"
@@ -323,6 +330,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `CJK_Ext_C -> "CJK_Ext_C"
   | `CJK_Ext_D -> "CJK_Ext_D"
   | `CJK_Ext_E -> "CJK_Ext_E"
+  | `CJK_Ext_F -> "CJK_Ext_F"
   | `CJK_Radicals_Sup -> "CJK_Radicals_Sup"
   | `CJK_Strokes -> "CJK_Strokes"
   | `CJK_Symbols -> "CJK_Symbols"
@@ -390,8 +398,8 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `High_Surrogates -> "High_Surrogates"
   | `Hiragana -> "Hiragana"
   | `IDC -> "IDC"
-  | `Ideographic_Symbols -> "Ideographic_Symbols"
   | `IPA_Ext -> "IPA_Ext"
+  | `Ideographic_Symbols -> "Ideographic_Symbols"
   | `Imperial_Aramaic -> "Imperial_Aramaic"
   | `Indic_Number_Forms -> "Indic_Number_Forms"
   | `Inscriptional_Pahlavi -> "Inscriptional_Pahlavi"
@@ -401,6 +409,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Jamo_Ext_B -> "Jamo_Ext_B"
   | `Javanese -> "Javanese"
   | `Kaithi -> "Kaithi"
+  | `Kana_Ext_A -> "Kana_Ext_A"
   | `Kana_Sup -> "Kana_Sup"
   | `Kanbun -> "Kanbun"
   | `Kangxi -> "Kangxi"
@@ -437,6 +446,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Mandaic -> "Mandaic"
   | `Manichaean -> "Manichaean"
   | `Marchen -> "Marchen"
+  | `Masaram_Gondi -> "Masaram_Gondi"
   | `Math_Alphanum -> "Math_Alphanum"
   | `Math_Operators -> "Math_Operators"
   | `Meetei_Mayek -> "Meetei_Mayek"
@@ -457,8 +467,8 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Mongolian -> "Mongolian"
   | `Mongolian_Sup -> "Mongolian_Sup"
   | `Mro -> "Mro"
-  | `Music -> "Music"
   | `Multani -> "Multani"
+  | `Music -> "Music"
   | `Myanmar -> "Myanmar"
   | `Myanmar_Ext_A -> "Myanmar_Ext_A"
   | `Myanmar_Ext_B -> "Myanmar_Ext_B"
@@ -468,6 +478,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `New_Tai_Lue -> "New_Tai_Lue"
   | `Newa -> "Newa"
   | `Number_Forms -> "Number_Forms"
+  | `Nushu -> "Nushu"
   | `OCR -> "OCR"
   | `Ogham -> "Ogham"
   | `Ol_Chiki -> "Ol_Chiki"
@@ -507,6 +518,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Sinhala_Archaic_Numbers -> "Sinhala_Archaic_Numbers"
   | `Small_Forms -> "Small_Forms"
   | `Sora_Sompeng -> "Sora_Sompeng"
+  | `Soyombo -> "Soyombo"
   | `Specials -> "Specials"
   | `Sundanese -> "Sundanese"
   | `Sundanese_Sup -> "Sundanese_Sup"
@@ -522,6 +534,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Sutton_SignWriting -> "Sutton_SignWriting"
   | `Syloti_Nagri -> "Syloti_Nagri"
   | `Syriac -> "Syriac"
+  | `Syriac_Sup -> "Syriac_Sup"
   | `Tagalog -> "Tagalog"
   | `Tagbanwa -> "Tagbanwa"
   | `Tags -> "Tags"
@@ -552,6 +565,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Yi_Radicals -> "Yi_Radicals"
   | `Yi_Syllables -> "Yi_Syllables"
   | `Yijing -> "Yijing"
+  | `Zanabazar_Square -> "Zanabazar_Square"
   end
 
 (*---------------------------------------------------------------------------

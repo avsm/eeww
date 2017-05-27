@@ -122,6 +122,8 @@ let assert_func ucd =
   prop "is_soft_dotted" Uucd.soft_dotted Uucp.Func.is_soft_dotted;
   prop "is_terminal_punctuation" Uucd.terminal_punctuation
     Uucp.Func.is_terminal_punctuation;
+  prop "is_regional_indicator" Uucd.regional_indicator
+    Uucp.Func.is_regional_indicator;
   ()
 
 let assert_gc ucd =

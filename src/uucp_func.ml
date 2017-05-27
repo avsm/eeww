@@ -31,6 +31,9 @@ let is_soft_dotted u =
 let is_terminal_punctuation u =
   Uucp_tmapbool.get Uucp_func_data.terminal_punctuation_map (Uchar.to_int u)
 
+let is_regional_indicator u =
+  Uucp_tmapbool.get Uucp_func_data.regional_indicator_map (Uchar.to_int u)
+
 (*---------------------------------------------------------------------------
    Copyright (c) 2014 Daniel C. Bünzli
 

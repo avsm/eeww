@@ -39,6 +39,7 @@ type t =
   | `Ethi
   | `Geor
   | `Glag
+  | `Gonm
   | `Goth
   | `Gran
   | `Grek
@@ -51,8 +52,8 @@ type t =
   | `Hebr
   | `Hira
   | `Hluw
-  | `Hrkt
   | `Hmng
+  | `Hrkt
   | `Hung
   | `Ital
   | `Java
@@ -88,9 +89,10 @@ type t =
   | `Mult
   | `Mymr
   | `Narb
-  | `Newa
   | `Nbat
+  | `Newa
   | `Nkoo
+  | `Nshu
   | `Ogam
   | `Olck
   | `Orkh
@@ -119,6 +121,7 @@ type t =
   | `Sind
   | `Sinh
   | `Sora
+  | `Soyo
   | `Sund
   | `Sylo
   | `Syrc
@@ -142,6 +145,7 @@ type t =
   | `Xpeo
   | `Xsux
   | `Yiii
+  | `Zanb
   | `Zinh
   | `Zyyy
   | `Zzzz ]
@@ -181,6 +185,7 @@ let pp ppf s = Format.fprintf ppf "%s" begin match s with
   | `Ethi -> "Ethi"
   | `Geor -> "Geor"
   | `Glag -> "Glag"
+  | `Gonm -> "Gonm"
   | `Goth -> "Goth"
   | `Gran -> "Gran"
   | `Grek -> "Grek"
@@ -233,6 +238,7 @@ let pp ppf s = Format.fprintf ppf "%s" begin match s with
   | `Nbat -> "Nbat"
   | `Newa -> "Newa"
   | `Nkoo -> "Nkoo"
+  | `Nshu -> "Nshu"
   | `Ogam -> "Ogam"
   | `Olck -> "Olck"
   | `Orkh -> "Orkh"
@@ -261,6 +267,7 @@ let pp ppf s = Format.fprintf ppf "%s" begin match s with
   | `Sind -> "Sind"
   | `Sinh -> "Sinh"
   | `Sora -> "Sora"
+  | `Soyo -> "Soyo"
   | `Sund -> "Sund"
   | `Sylo -> "Sylo"
   | `Syrc -> "Syrc"
@@ -284,6 +291,7 @@ let pp ppf s = Format.fprintf ppf "%s" begin match s with
   | `Xpeo -> "Xpeo"
   | `Xsux -> "Xsux"
   | `Yiii -> "Yiii"
+  | `Zanb -> "Zanb"
   | `Zinh -> "Zinh"
   | `Zyyy -> "Zyyy"
   | `Zzzz -> "Zzzz"

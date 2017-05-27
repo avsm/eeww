@@ -120,6 +120,7 @@ module Block : sig
     | `CJK_Ext_C
     | `CJK_Ext_D
     | `CJK_Ext_E
+    | `CJK_Ext_F
     | `CJK_Radicals_Sup
     | `CJK_Strokes
     | `CJK_Symbols
@@ -185,8 +186,8 @@ module Block : sig
     | `Hebrew
     | `Hiragana
     | `IDC
-    | `Ideographic_Symbols
     | `IPA_Ext
+    | `Ideographic_Symbols
     | `Imperial_Aramaic
     | `Indic_Number_Forms
     | `Inscriptional_Pahlavi
@@ -196,6 +197,7 @@ module Block : sig
     | `Jamo_Ext_B
     | `Javanese
     | `Kaithi
+    | `Kana_Ext_A
     | `Kana_Sup
     | `Kanbun
     | `Kangxi
@@ -231,6 +233,7 @@ module Block : sig
     | `Mandaic
     | `Manichaean
     | `Marchen
+    | `Masaram_Gondi
     | `Math_Alphanum
     | `Math_Operators
     | `Meetei_Mayek
@@ -251,8 +254,8 @@ module Block : sig
     | `Mongolian
     | `Mongolian_Sup
     | `Mro
-    | `Music
     | `Multani
+    | `Music
     | `Myanmar
     | `Myanmar_Ext_A
     | `Myanmar_Ext_B
@@ -262,6 +265,7 @@ module Block : sig
     | `New_Tai_Lue
     | `Newa
     | `Number_Forms
+    | `Nushu
     | `OCR
     | `Ogham
     | `Ol_Chiki
@@ -274,8 +278,8 @@ module Block : sig
     | `Old_Turkic
     | `Oriya
     | `Ornamental_Dingbats
-    | `Osmanya
     | `Osage
+    | `Osmanya
     | `PUA
     | `Pahawh_Hmong
     | `Palmyrene
@@ -301,6 +305,7 @@ module Block : sig
     | `Sinhala_Archaic_Numbers
     | `Small_Forms
     | `Sora_Sompeng
+    | `Soyombo
     | `Specials
     | `Sundanese
     | `Sundanese_Sup
@@ -316,6 +321,7 @@ module Block : sig
     | `Sutton_SignWriting
     | `Syloti_Nagri
     | `Syriac
+    | `Syriac_Sup
     | `Tagalog
     | `Tagbanwa
     | `Tags
@@ -345,7 +351,8 @@ module Block : sig
     | `Warang_Citi
     | `Yi_Radicals
     | `Yi_Syllables
-    | `Yijing ]
+    | `Yijing
+    | `Zanabazar_Square ]
   (** The type for blocks. The value [`NB] is for characters that are not
       yet assigned to a block. *)
 
@@ -879,9 +886,14 @@ module Func : sig
       property. *)
 
   val is_terminal_punctuation : Uchar.t -> bool
-  (** [is_terminal_punct u] is [true] if [u] has the
+  (** [is_terminal_punctuation u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#Terminal_Punctuation}
       Terminal_Punctuation} property. *)
+
+  val is_regional_indicator : Uchar.t -> bool
+  (** [is_regional_indicator u] is [true] if [u] has the
+      {{:http://www.unicode.org/reports/tr44/#Regional_Indicator}
+      Regional_indicator} property. *)
 end
 
 (** General category property. *)
@@ -1105,6 +1117,7 @@ module Script : sig
   | `Ethi
   | `Geor
   | `Glag
+  | `Gonm
   | `Goth
   | `Gran
   | `Grek
@@ -1117,8 +1130,8 @@ module Script : sig
   | `Hebr
   | `Hira
   | `Hluw
-  | `Hrkt
   | `Hmng
+  | `Hrkt
   | `Hung
   | `Ital
   | `Java
@@ -1154,9 +1167,10 @@ module Script : sig
   | `Mult
   | `Mymr
   | `Narb
-  | `Newa
   | `Nbat
+  | `Newa
   | `Nkoo
+  | `Nshu
   | `Ogam
   | `Olck
   | `Orkh
@@ -1185,6 +1199,7 @@ module Script : sig
   | `Sind
   | `Sinh
   | `Sora
+  | `Soyo
   | `Sund
   | `Sylo
   | `Syrc
@@ -1208,6 +1223,7 @@ module Script : sig
   | `Xpeo
   | `Xsux
   | `Yiii
+  | `Zanb
   | `Zinh
   | `Zyyy
   | `Zzzz ]
@@ -1285,11 +1301,12 @@ end
        {{:http://www.unicode.org/reports/tr44/#Join_Control}Join_Control},
        {{:http://www.unicode.org/reports/tr44/#Joining_Group}Joining_Group},
        {{:http://www.unicode.org/reports/tr44/#Joining_Type}Joining_Type},
+       {{:http://www.unicode.org/reports/tr44/#Vertical_Orientation}Vertical_Orientation},
        {{:http://www.unicode.org/reports/tr44/#Indic_Syllabic_Category}
-       Indic_Syllabic_Category}
+       Indic_Syllabic_Category},
        {{:http://www.unicode.org/reports/tr44/#Indic_Positional_Category}
-       Indic_Positional_Category}
-       {{:http://www.unicode.org/reports/tr44/proposed.html#Prepended_Concatenation_Mark}Prepended_Concatenation_Mark}}
+       Indic_Positional_Category},
+       {{:http://www.unicode.org/reports/tr44/#Prepended_Concatenation_Mark}Prepended_Concatenation_Mark}}
     {- Bidirectional. All properties under that section name in
        {{:http://www.unicode.org/reports/tr44/#Property_Index_Table}
        this table}.}

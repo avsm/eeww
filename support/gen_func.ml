@@ -15,6 +15,7 @@ let pp_props ppf ucd =
   prop Uucd.quotation_mark "quotation_mark";
   prop Uucd.soft_dotted "soft_dotted";
   prop Uucd.terminal_punctuation "terminal_punctuation";
+  prop Uucd.regional_indicator "regional_indicator";
   ()
 
 let pp_mod ppf ucd = Gen.pp_mod pp_props ppf ucd
