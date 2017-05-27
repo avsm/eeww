@@ -1598,7 +1598,8 @@ end
     into UTF-8 encoded OCaml [strings], the {!Uutf} module can be
     used. It will also be useful if you need to fold over the scalar
     values of your UTF-8 encoded strings, or build new UTF-8 strings
-    from scalar values via {!Buffer.t} values.
+    from scalar values via {!Buffer.t} values. Support for the latter
+    is however present in the OCaml {!Buffer} module since OCaml 4.06.
 
     {2:utf_8_ascii UTF-8 and ASCII}
 
@@ -1696,7 +1697,7 @@ let char_of_scalar_value s =
     ["U+%04X"] is an OCaml formatting string for printing an US-ASCII
     representation of an Unicode code point according to the
     standards' notational conventions. This is what the standard library
-    {!Format.pp_print_dump_uchar} formatter does for {!Uchar.t} values.
+    {!Fmt.Dump.uchar} formatter does for {!Uchar.t} values.
 
     {2:ocamllibs Writing OCaml libraries}
 
