@@ -19,6 +19,7 @@ Contact: Daniel Bünzli `<daniel.buenzl i@erratique.ch>`
 Uucp can be installed with `opam`:
 
     opam install uucp
+    opam install cmdliner uutf uunf uucp # for ucharinfo cli tool
 
 If you don't use `opam` consult the [`opam`](opam) file for build
 instructions and a complete specification of the dependencies.
@@ -39,6 +40,9 @@ uucp`.
 
 
 ## Sample programs
+
+The `ucharinfo` tool allows to report character information on the
+command line.
 
 Sample programs are located in the `test` directory of the
 distribution. They can be built with:

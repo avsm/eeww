@@ -3,6 +3,9 @@
 #require "topkg"
 open Topkg
 
+let uutf = Conf.with_pkg "uutf"
+let cmdliner = Conf.with_pkg "cmdliner"
+
 let build_support () =
   let ocaml = Conf.tool "ocaml" `Build_os in
   OS.Cmd.run Cmd.(ocaml % "pkg/build_support.ml")
@@ -15,7 +18,10 @@ let distrib =
 
 let () =
   Pkg.describe "uucp" ~distrib @@ fun c ->
+  let uutf = Conf.value c uutf in
+  let cmdliner = Conf.value c cmdliner in
   Ok [ Pkg.mllib ~api:["Uucp"] "src/uucp.mllib";
+       Pkg.bin ~cond:(uutf && cmdliner) "test/ucharinfo";
        Pkg.test ~run:false "test/test";
        Pkg.test "test/perf";
        Pkg.test "test/examples";

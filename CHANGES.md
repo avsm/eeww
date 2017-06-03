@@ -1,5 +1,6 @@
 
 - Unicode 10.0.0 support.
+- Add ucharinfo tool to query Unicode character information on the cli.
 
 v2.0.0 2016-11-23 Zagreb
 ------------------------

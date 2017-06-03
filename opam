@@ -19,7 +19,13 @@ depends: [
  "uunf" {test}
  "uutf" {test}
  ]
+depopts: [ "uutf" "cmdliner" ]
+conflicts: [ "uutf" {< "1.0.1"}
+             "cmdliner" {< "1.0.0"} ]
 available: [ ocaml-version >= "4.01.0" ]
 build: [[
   "ocaml" "pkg/pkg.ml" "build"
-          "--pinned" "%{pinned}%" ]]
+          "--dev-pkg" "%{pinned}%"
+          "--with-uutf" "%{uutf:installed}%"
+          "--with-cmdliner" "%{cmdliner:installed}%"
+]]
