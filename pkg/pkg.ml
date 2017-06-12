@@ -1,8 +1,3 @@
+#!/usr/bin/env ocaml
 #use "topfind"
-#require "topkg-jbuilder"
-
-open Topkg
-
-let () =
-  Topkg_jbuilder.describe ~name:"cstruct" ()
-
+#require "topkg-jbuilder.auto"
