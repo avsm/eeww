@@ -1,0 +1,8 @@
+(executables
+ ((names (test))
+  (libraries (mirage-flow-unix alcotest))
+))
+(alias
+ ((name    runtest)
+  (deps    (test.exe))
+  (action  (run ${<} -e -v))))

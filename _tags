@@ -1,9 +1,0 @@
-true : bin_annot, safe_string, package(bytes)
-true: warn_error(+1..49-34), warn(A-4-41-44)
-
-true: package(fmt result)
-<lwt/*>: package(lwt cstruct mirage-flow mirage-clock)
-<unix/*>: package(mirage-flow-lwt lwt.unix)
-
-<test/*>: package(mirage-flow alcotest lwt.unix mirage-flow-lwt)
-<unix>: include

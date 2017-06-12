@@ -1,7 +1,0 @@
-description = "flow devices for MirageOS"
-version = "%%VERSION_NUM%%"
-requires = "fmt"
-archive(byte) = "mirage-flow.cma"
-archive(native) = "mirage-flow.cmxa"
-plugin(byte) = "mirage-flow.cma"
-plugin(native) = "mirage-flow.cmxs"
