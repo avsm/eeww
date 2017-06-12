@@ -9,6 +9,7 @@ tags:          [ "org:mirage"]
 license:       "ISC"
 
 build: [
+  [ "jbuilder" "subst" ] {pinned}
   [ "jbuilder" "build" "-p" name "-j" jobs ]
 ]
 
@@ -17,12 +18,11 @@ build-test: [
 ]
 
 depends: [
-  "ocamlfind"  {build}
   "jbuilder"  {build & >="1.0+beta7"}
-  "alcotest"   {test}
   "fmt"
   "mirage-flow" {>= "1.2.0"}
   "mirage-flow-lwt" {>= "1.2.0"}
   "lwt"
   "cstruct" {>= "2.3.0"}
+  "alcotest"   {test}
 ]
