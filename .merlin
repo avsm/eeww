@@ -1,3 +1,0 @@
-PKG cstruct alcotest lwt fmt mirage-clock mirage-flow lwt.unix
-S src/
-B _build/**
