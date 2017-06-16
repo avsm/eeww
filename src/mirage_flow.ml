@@ -44,6 +44,7 @@ module type ABSTRACT = sig
 end
 
 module type S = ABSTRACT with type write_error = private [> write_error]
+  [@@ocaml.warning "-34"]
 
 module type CONCRETE = ABSTRACT
   with type error = [`Msg of string]
