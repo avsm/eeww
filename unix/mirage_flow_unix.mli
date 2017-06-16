@@ -29,3 +29,5 @@ module Make (F: Mirage_flow_lwt.S): sig
       output channel is closed. *)
 
 end
+
+include Mirage_flow_lwt.S with type flow = Lwt_unix.file_descr
