@@ -3,5 +3,5 @@
 (library
  ((name        mirage_flow_lwt)
   (public_name mirage-flow-lwt)
-  (libraries   (lwt cstruct mirage-flow mirage-clock))
+  (libraries   (lwt cstruct mirage-flow mirage-clock logs))
   (wrapped     false)))
