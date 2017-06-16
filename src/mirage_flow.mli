@@ -113,6 +113,7 @@ end
     type. Note: ideally [error] should be the empty row, but not easy
     way to express this in OCaml. *)
 module type S = ABSTRACT with type write_error = private [> write_error ]
+  [@@ocaml.warning "-34"]
 
 (** [CONCRETE] expose the private row as [`Msg str] errors, using
     [pp_error] and [pp_write_error]. *)

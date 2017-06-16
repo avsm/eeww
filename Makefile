@@ -1,20 +1,13 @@
-
 .PHONY: build clean test
 
 build:
-	jbuilder build @install
+	jbuilder build --dev
 
 test:
-	jbuilder runtest
-
-install:
-	jbuilder install
-
-uninstall:
-	jbuilder uninstall
+	jbuilder runtest --dev
 
 clean:
-	rm -rf _build
+	jbuilder clean
 
 REPO=../../mirage/opam-repository
 PACKAGES=$(REPO)/packages
@@ -28,5 +21,3 @@ pkg-%:
 PKGS=$(basename $(wildcard *.opam))
 opam-pkg:
 	$(MAKE) $(PKGS:%=pkg-%)
-
-

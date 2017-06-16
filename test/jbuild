@@ -1,8 +1,10 @@
+(jbuild_version 1)
+
 (executables
  ((names (test))
-  (libraries (mirage-flow-unix alcotest))
-))
+  (libraries (mirage-flow-unix alcotest))))
+
 (alias
  ((name    runtest)
   (deps    (test.exe))
-  (action  (run ${<} -e -v))))
+  (action  (run ${<} --color=always))))
