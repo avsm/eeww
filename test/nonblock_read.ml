@@ -30,4 +30,4 @@ let test devname =
 
 let () = if Array.length Sys.argv < 2
   then Printf.eprintf "Usage: %s <ifname>\n" Sys.argv.(0)
-  else run (sleep 0.1 >>= fun () -> test Sys.argv.(1))
+  else Lwt_main.run (sleep 0.1 >>= fun () -> test Sys.argv.(1))

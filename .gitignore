@@ -1,7 +1,3 @@
-dist
-setup.data
-setup.log
-*.native
 _build
-api.docdir
+.merlin
 *.install

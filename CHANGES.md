@@ -1,5 +1,10 @@
+## 1.5.0
+* port to Jbuilder
+* build all the tests by default.
+* possibly fix bytecode as well, which had a typo in the old rules.
+
 ## 1.4.1 (20-Feb-2017)
-* fix linking of binaries using tuntap (-ltuntap_stubs) (#21 by Hannes Mehnert)
+* fix linking of binaries using tuntap (`-ltuntap_stubs`) (#21 by Hannes Mehnert)
 
 ## 1.4.0 (09-Feb-2017)
 * Port to topkg (#20) (Gabriel Jaldon and Hannes Mehnert).

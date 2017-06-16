@@ -9,4 +9,4 @@ let test () =
   let _lfd = of_unix_file_descr fd ~blocking:false in
   sleep 0.1
 
-let () = run (sleep 0.1 >>= test)
+let () = Lwt_main.run (sleep 0.1 >>= test)

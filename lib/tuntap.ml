@@ -48,8 +48,6 @@ let set_ipv4 ?(netmask=Ipaddr.V4.Prefix.global) devname v4addr =
 let get_macaddr iface = Macaddr.of_bytes_exn (get_macaddr iface)
 
 module Opt = struct
-  type 'a t = 'a option
-  let (>>=) x f = match x with Some v -> f v | None -> None
   let (>|=) x f = match x with Some v -> Some (f v) | None -> None
   let run = function
     | Some x -> x

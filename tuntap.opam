@@ -10,13 +10,12 @@ doc:          "https://mirage.github.io/ocaml-tuntap/"
 tags:         [ "org:mirage" "org:xapi-project" ]
 
 build: [
-  "ocaml" "pkg/pkg.ml" "build" "--pinned" "%{pinned}%" "--tests" "false"
+  ["jbuilder" "subst"] {pinned}
+  ["jbuilder" "build" "-p" name "-j" jobs]
 ]
 
 depends: [
-  "topkg"       {build & >= "0.8.0"}
-  "ocamlbuild"  {build}
-  "ocamlfind"   {build}
+  "jbuilder"    {>= "1.0+beta9"}
   "ipaddr"      {>= "2.4.0"}
   "ounit"       {test}
   "lwt"         {test}
@@ -24,4 +23,4 @@ depends: [
 depexts: [
   [ ["alpine"] ["linux-headers"] ]
 ]
-available: [ocaml-version >="4.01.0"]
+available: [ocaml-version >="4.03.0"]
