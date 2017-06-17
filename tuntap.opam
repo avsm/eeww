@@ -17,6 +17,7 @@ build: [
 depends: [
   "jbuilder"    {>= "1.0+beta9"}
   "ipaddr"      {>= "2.4.0"}
+  "cmdliner"
   "ounit"       {test}
   "lwt"         {test}
 ]
