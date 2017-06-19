@@ -65,66 +65,70 @@ module Make (F: Mirage_flow_lwt.S) = struct
 
 end
 
-type 'a io = 'a Lwt.t
-type buffer = Cstruct.t
-type error = [`Msg of string]
-type write_error = [ Mirage_flow.write_error | error ]
+module Fd = struct
 
-let pp_error ppf (`Msg s) = Fmt.string ppf s
+  type 'a io = 'a Lwt.t
+  type buffer = Cstruct.t
+  type error = [`Msg of string]
+  type write_error = [ Mirage_flow.write_error | error ]
 
-let pp_write_error ppf = function
-  | #Mirage_flow.write_error as e -> Mirage_flow.pp_write_error ppf e
-  | #error as e                   -> pp_error ppf e
+  let pp_error ppf (`Msg s) = Fmt.string ppf s
 
-type flow = Lwt_unix.file_descr
+  let pp_write_error ppf = function
+    | #Mirage_flow.write_error as e -> Mirage_flow.pp_write_error ppf e
+    | #error as e                   -> pp_error ppf e
 
-let err e =  Lwt.return (Error (`Msg (Printexc.to_string e)))
+  type flow = Lwt_unix.file_descr
 
-let failf fmt = Fmt.kstrf Lwt.fail_with fmt
+  let err e =  Lwt.return (Error (`Msg (Printexc.to_string e)))
 
-let pp_fd ppf (t:Lwt_unix.file_descr) =
-  Fmt.int ppf (Obj.magic (Lwt_unix.unix_file_descr t): int)
+  let failf fmt = Fmt.kstrf Lwt.fail_with fmt
 
-let rec really_write fd buf off len =
-  match len with
-  | 0   -> Lwt.return_unit
-  | len ->
-    Log.debug (fun l -> l "really_write %a off=%d len=%d" pp_fd fd off len);
-    Lwt_unix.write fd buf off len >>= fun n ->
-    if n = 0 then Lwt.fail_with "write 0"
-    else really_write fd buf (off+n) (len-n)
+  let pp_fd ppf (t:Lwt_unix.file_descr) =
+    Fmt.int ppf (Obj.magic (Lwt_unix.unix_file_descr t): int)
 
-let write_all fd buf = really_write fd buf 0 (String.length buf)
+  let rec really_write fd buf off len =
+    match len with
+    | 0   -> Lwt.return_unit
+    | len ->
+       Log.debug (fun l -> l "really_write %a off=%d len=%d" pp_fd fd off len);
+       Lwt_unix.write fd buf off len >>= fun n ->
+       if n = 0 then Lwt.fail_with "write 0"
+       else really_write fd buf (off+n) (len-n)
 
-let read_all fd =
-  Log.debug (fun l -> l "read_all %a" pp_fd fd);
-  let len = 16 * 1024 in
-  let buf = Bytes.create len in
-  let rec loop acc =
-    Lwt_unix.read fd buf 0 len >>= fun n ->
-    if n = 0 then failf "read %a: 0" pp_fd fd
-    else
-      let acc = String.sub buf 0 n :: acc in
-      if n <= len then Lwt.return (List.rev acc)
-      else loop acc
-  in
-  loop [] >|= fun bufs ->
-  String.concat "" bufs
+  let write_all fd buf = really_write fd buf 0 (String.length buf)
 
-let read t =
-  Lwt.catch (fun () ->
-      read_all t >|= fun buf -> Ok (`Data (Cstruct.of_string buf))
-    ) (function Failure _ -> Lwt.return (Ok `Eof) | e -> err e)
+  let read_all fd =
+    Log.debug (fun l -> l "read_all %a" pp_fd fd);
+    let len = 16 * 1024 in
+    let buf = Bytes.create len in
+    let rec loop acc =
+      Lwt_unix.read fd buf 0 len >>= fun n ->
+      if n = 0 then failf "read %a: 0" pp_fd fd
+      else
+        let acc = String.sub buf 0 n :: acc in
+        if n <= len then Lwt.return (List.rev acc)
+        else loop acc
+    in
+    loop [] >|= fun bufs ->
+    String.concat "" bufs
 
-let write t b =
-  Lwt.catch (fun () ->
-      write_all t (Cstruct.to_string b) >|= fun () -> Ok ()
-    ) (fun e  -> err e)
+  let read t =
+    Lwt.catch (fun () ->
+        read_all t >|= fun buf -> Ok (`Data (Cstruct.of_string buf))
+      ) (function Failure _ -> Lwt.return (Ok `Eof) | e -> err e)
 
-let close t = Lwt_unix.close t
+  let write t b =
+    Lwt.catch (fun () ->
+        write_all t (Cstruct.to_string b) >|= fun () -> Ok ()
+      ) (fun e  -> err e)
 
-let writev t bs =
-  Lwt.catch (fun () ->
-      Lwt_list.iter_s (fun b -> write_all t (Cstruct.to_string b)) bs
-      >|= fun () -> Ok ()
-    ) (fun e -> err e)
+  let close t = Lwt_unix.close t
+
+  let writev t bs =
+    Lwt.catch (fun () ->
+        Lwt_list.iter_s (fun b -> write_all t (Cstruct.to_string b)) bs
+        >|= fun () -> Ok ()
+      ) (fun e -> err e)
+
+end

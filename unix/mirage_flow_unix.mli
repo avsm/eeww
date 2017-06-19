@@ -30,4 +30,4 @@ module Make (F: Mirage_flow_lwt.S): sig
 
 end
 
-include Mirage_flow_lwt.S with type flow = Lwt_unix.file_descr
+module Fd: Mirage_flow_lwt.S with type flow = Lwt_unix.file_descr
