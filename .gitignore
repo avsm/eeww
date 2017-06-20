@@ -1,5 +1,4 @@
-mime_types_gen.ml
 _build
-*.merlin
+.merlin
 *.install
 .*.swp
