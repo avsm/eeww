@@ -1,6 +1,9 @@
+v10.0.0 2017-06-20
+------------------
 
 - Unicode 10.0.0 support.
 - Add ucharinfo tool to query Unicode character information on the cli.
+- OCaml 4.05 compatibility (removal of `Uchar.dump`)
 
 v2.0.0 2016-11-23 Zagreb
 ------------------------
