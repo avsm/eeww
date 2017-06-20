@@ -1,7 +1,22 @@
-## 1.0.1 (2017-05-25):
-* clarify LICENSE (ISX)
+v1.1.0 2017-06-20
+-----------------
+
+* Support a `map_file` which maps filenames onto MIME types, using
+  a database based on GTKSourceView lang files.  This adds support
+  for several `x-*` MIME type extensions as well which are unofficial
+  but useful, including ones for common programming languages.
+  (#4 by @zoggy)
+
+* Sync mime.types with Apache SVN and note its source in the README.
+
+v1.0.1 2017-05-25
+-----------------
+
+* clarify LICENSE (ISC)
 * build and test against OCaml 4.03 and 4.04
 * build via jbuilder
 
-## 1.0.0 (2015-02-08):
+v1.0.0 (2015-02-08)
+-------------------
+
 * Initial public release.

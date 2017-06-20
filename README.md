@@ -15,6 +15,10 @@ For example, here's how to lookup MIME types in the [utop] REPL:
     Magic_mime.lookup "bar.css";;
     - : bytes = "text/css"
 
+The MIME types are obtained by synching from the Apache Foundation's
+[mime.types](https://svn.apache.org/repos/asf/httpd/httpd/trunk/docs/conf/mime.types)
+in the Apache Subversion repository.
+
 More information:
 
 * WWW: <https://github.com/mirage/ocaml-magic-mime>
