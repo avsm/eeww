@@ -1,6 +1,5 @@
 # Additional extensions
 
-application/font-woff   woff
 text/x-R			r R Rhistory Rout Rout.save Rout.fail
 text/x-autoconf		ac
 text/x-ada		adb ads
@@ -10,7 +9,6 @@ text/x-c			c
 text/x-chdr		h hh hp hpp h++
 text/x-cpp		cpp c++ cxxcc C
 text/x-csharp		cs
-text/css				css CSSL
 text/x-dsrc			d
 text/x-diff			diff path
 text/vnd.graphviz		dot gv
