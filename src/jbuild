@@ -7,4 +7,6 @@
 (rule
  ((targets (mime_types.ml))
   (deps    (../generator/generate_mime_types.exe))
-  (action  (run ${<} ../../../mime.types ${@} ))))
+  (action  (with-stdout-to ${@}
+             (progn (run ${<} ../../../mime.types)
+                    (run ${<} ../../../more-mime.types --files))))))

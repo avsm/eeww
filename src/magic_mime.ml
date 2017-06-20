@@ -24,5 +24,6 @@ let get_extension filename =
   search_dot (String.length filename - 1)
 (* Given a full filename, lookup its MIME type *)
 let lookup filename =
-  let ext = get_extension filename in
-  Mime_types.map_extension (String.lowercase_ascii ext)
+  match get_extension filename with
+  | "" -> Mime_types.map_file filename
+  | ext -> Mime_types.map_extension (String.lowercase_ascii ext)
