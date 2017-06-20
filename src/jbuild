@@ -8,5 +8,5 @@
  ((targets (mime_types.ml))
   (deps    (../generator/generate_mime_types.exe))
   (action  (with-stdout-to ${@}
-             (progn (run ${<} ../../../mime.types)
-                    (run ${<} ../../../more-mime.types --files))))))
+             (progn (run ${<} ../../../mime.types ../../../x-mime.types)
+                    (run ${<} ../../../files.types --files))))))
