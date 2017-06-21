@@ -1,3 +1,9 @@
+v10.0.1 2017-06-21
+------------------
+
+- Fix wrong build dependencies of ucharinfo. Thanks to Andreas Hauptmann
+  for the report.
+
 v10.0.0 2017-06-20
 ------------------
 

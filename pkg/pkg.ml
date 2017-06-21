@@ -4,6 +4,7 @@
 open Topkg
 
 let uutf = Conf.with_pkg "uutf"
+let uunf = Conf.with_pkg "uunf"
 let cmdliner = Conf.with_pkg "cmdliner"
 
 let build_support () =
@@ -19,9 +20,10 @@ let distrib =
 let () =
   Pkg.describe "uucp" ~distrib @@ fun c ->
   let uutf = Conf.value c uutf in
+  let uunf = Conf.value c uunf in
   let cmdliner = Conf.value c cmdliner in
   Ok [ Pkg.mllib ~api:["Uucp"] "src/uucp.mllib";
-       Pkg.bin ~cond:(uutf && cmdliner) "test/ucharinfo";
+       Pkg.bin ~cond:(uutf && uunf && cmdliner) "test/ucharinfo";
        Pkg.test ~run:false "test/test";
        Pkg.test "test/perf";
        Pkg.test "test/examples";
