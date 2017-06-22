@@ -1,11 +1,11 @@
-v10.0.1 2017-06-21
-------------------
+v10.0.1 2017-06-21 Cambridge (UK)
+---------------------------------
 
 - Fix wrong build dependencies of ucharinfo. Thanks to Andreas Hauptmann
   for the report.
 
-v10.0.0 2017-06-20
-------------------
+v10.0.0 2017-06-20 Cambridge (UK)
+---------------------------------
 
 - Unicode 10.0.0 support.
 - Add ucharinfo tool to query Unicode character information on the cli.
