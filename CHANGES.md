@@ -1,3 +1,10 @@
+### v1.4.0 (2017-06-23)
+
+* mirage-flow-unix: add `Mirage_flow_unix.Fd` to wrap `Lwt_unix.file_descr` into
+  a MirageOS flow (#34, #36, @samoht)
+* mirage-flow-lwt: add first class flow values of type `Mirage_flow_lwt.t`
+  (#35, @samoht)
+
 ### v1.3.0 (2017-06-12)
 
 * Port to Jbuilder (#32 @djs55)
