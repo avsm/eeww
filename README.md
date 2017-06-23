@@ -1,8 +1,9 @@
-stringext
-=========
+## Stringext -- Extra string functions fo OCaml
 
 Extra string functions for OCaml. Mainly splitting. All functions are in the
 `Stringext` module. Here's a snippet of most useful functions out of the mli:
+
+## Api Documentation
 
 ```ocaml
 (** string_after [s] [n] returns the substring of [s] that is after
