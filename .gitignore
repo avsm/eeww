@@ -2,3 +2,5 @@
 /setup.data
 /setup.log
 *.native
+.merlin
+*.install
