@@ -1,0 +1,6 @@
+(jbuild_version 1)
+(library
+ ((name        tuntap)
+  (public_name tuntap)
+  (libraries   (ipaddr result))
+  (c_names   (tuntap_stubs))))
