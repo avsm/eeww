@@ -152,13 +152,6 @@ let find_from ?(start=0) str ~pattern =
   | Found_int i -> Some i
   |  _ -> None
 
-let rec find_map f = function
-  | [] -> None
-  | x::xs ->
-    match f x with
-    | None -> find_map f xs
-    | y -> y
-
 let find_min l ~f =
   let rec loop x fx = function
     | [] -> Some (x, fx)
@@ -242,7 +235,7 @@ let of_array a =
   let len = Array.length a in
   let bytes = Bytes.create len in
   for i = 0 to len - 1 do
-    bytes.[i] <- a.(i)
+    Bytes.set bytes i a.(i)
   done;
   Bytes.unsafe_to_string bytes
 
