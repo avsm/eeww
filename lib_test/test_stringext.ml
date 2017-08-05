@@ -107,12 +107,12 @@ let find_from6 _ =
 
 let replace_all1 _ =
   let s = "the quick brown fox brown." in
-  let s' = Stringext.replace_all s "brown" "blue" in
+  let s' = Stringext.replace_all s ~pattern:"brown" ~with_:"blue" in
   assert_equal ~printer:(fun x -> x) "the quick blue fox blue." s'
 
 let replace_all2 _ =
   let s = "one two three" in
-  let s' = Stringext.replace_all s " " "_" in
+  let s' = Stringext.replace_all s ~pattern:" " ~with_:"_" in
   assert_equal ~printer:(fun x -> x) "one_two_three" s'
 
 let replace_all_assoc1 _ =
