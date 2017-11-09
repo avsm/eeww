@@ -1,4 +1,4 @@
-open StdLabels
+module List = ListLabels
 open MoreLabels
 
 module Smap = Map.Make(String)
@@ -16,7 +16,7 @@ let () =
 
   let all_exposed_modules =
     List.filter files ~f:(fun fn -> Filename.check_suffix fn ".cmi")
-    |> List.map ~f:(fun fn -> String.capitalize (Filename.chop_extension fn))
+    |> List.map ~f:(fun fn -> String.capitalize_ascii (Filename.chop_extension fn))
   in
 
   let module_to_lib =
@@ -26,7 +26,7 @@ let () =
         try
           Scanf.sscanf fn "ocaml%s.cma" (fun s -> "Ocaml_" ^ s)
         with _ ->
-          String.capitalize (Filename.chop_extension fn)
+          String.capitalize_ascii (Filename.chop_extension fn)
       in
       let units = Read_cma.units (Filename.concat dir fn) in
       List.fold_left units ~init:acc ~f:(fun acc unit ->
