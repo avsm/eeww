@@ -1,3 +1,7 @@
+## v1.6.0 2017-11-11
+
+* Bring up interface if it was not already up (#24 via @sevenEng).
+
 ## v1.5.0 2017-06-24
 * port to Jbuilder
 * build all the tests by default.
