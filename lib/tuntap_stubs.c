@@ -197,6 +197,7 @@ set_up_and_running(value dev)
 
   flags = ifr.ifr_flags | (IFF_UP|IFF_RUNNING|IFF_BROADCAST|IFF_MULTICAST);
   if (flags != ifr.ifr_flags) {
+    ifr.ifr_flags = flags;
     if (ioctl(fd, SIOCSIFFLAGS, &ifr) == -1)
       tun_raise_error("set_up_and_running SIOCSIFFLAGS", -1);
   }
