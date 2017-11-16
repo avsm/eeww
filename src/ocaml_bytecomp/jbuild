@@ -1,6 +1,7 @@
 (library
  ((name        ocaml_bytecomp)
   (public_name ocaml-compiler-libs.bytecomp)
+  (flags (:standard -safe-string))
   (libraries (compiler-libs.bytecomp))
   (preprocess no_preprocessing)))
 

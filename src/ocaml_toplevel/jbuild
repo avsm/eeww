@@ -1,6 +1,7 @@
 (library
  ((name        ocaml_toplevel)
   (public_name ocaml-compiler-libs.toplevel)
+  (flags (:standard -safe-string))
   (libraries (compiler-libs.toplevel))
   (preprocess no_preprocessing)))
 

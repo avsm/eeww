@@ -1,6 +1,7 @@
 (library
  ((name        ocaml_common)
   (public_name ocaml-compiler-libs.common)
+  (flags (:standard -safe-string))
   (libraries (compiler-libs.common))
   (preprocess no_preprocessing)))
 

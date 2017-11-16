@@ -1,5 +1,6 @@
 (executables
  ((names (gen))
+(flags (:standard -safe-string))
   (libraries (read_cma))
   (preprocess no_preprocessing)))
 
