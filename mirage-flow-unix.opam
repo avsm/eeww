@@ -14,7 +14,7 @@ build: [
 ]
 
 build-test: [
-  [ "jbuilder" "runtest" ]
+  [ "jbuilder" "runtest" "-p" name ]
 ]
 
 depends: [
@@ -27,3 +27,5 @@ depends: [
   "cstruct" {>= "2.3.0"}
   "alcotest"   {test}
 ]
+
+available: [ ocaml-version >= "4.04.2" ]
