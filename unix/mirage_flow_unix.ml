@@ -120,14 +120,14 @@ module Fd = struct
 
   let write t b =
     Lwt.catch (fun () ->
-        write_all t (Bytes.unsafe_of_string (Cstruct.to_string b)) >|= fun () -> Ok ()
+        write_all t (Cstruct.to_bytes b) >|= fun () -> Ok ()
       ) (fun e  -> err e)
 
   let close t = Lwt_unix.close t
 
   let writev t bs =
     Lwt.catch (fun () ->
-        Lwt_list.iter_s (fun b -> write_all t (Bytes.unsafe_of_string (Cstruct.to_string b))) bs
+        Lwt_list.iter_s (fun b -> write_all t (Cstruct.to_bytes b)) bs
         >|= fun () -> Ok ()
       ) (fun e -> err e)
 
