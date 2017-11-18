@@ -72,18 +72,18 @@ let test_of_f () =
 
 let test_to_f () =
   List.iter (fun (e, v) ->
-      Alcotest.(check float ("to_f works " ^ Int64.to_string v)
+      Alcotest.(check (float 0.) ("to_f works " ^ Int64.to_string v)
                   e (to_f v)))
     [ 0., 0L ; 1., 1000000000L ; 2., 2000000000L ; 0.000000001, 1L ] ;
-  Alcotest.(check float ("upper bound to_f good")
+  Alcotest.(check (float 0.) ("upper bound to_f good")
               18446744073.709549 (to_f 0xFFFFFFFFFFFFF596L))
 
 let test_inv_f () =
-  Alcotest.(check float "inverse 0 to/of_f" 0. (to_f (of_f 0.))) ;
-  Alcotest.(check float "inverse 1 to/of_f" 1. (to_f (of_f 1.))) ;
-  Alcotest.(check float "inverse 10 to/of_f" 10. (to_f (of_f 10.))) ;
-  Alcotest.(check float "inverse 3.5 to/of_f" 3.5 (to_f (of_f 3.5))) ;
-  Alcotest.(check float "inverse upper" 18446744073.709549 (to_f (of_f 18446744073.709549)))
+  Alcotest.(check (float 0.) "inverse 0 to/of_f" 0. (to_f (of_f 0.))) ;
+  Alcotest.(check (float 0.) "inverse 1 to/of_f" 1. (to_f (of_f 1.))) ;
+  Alcotest.(check (float 0.) "inverse 10 to/of_f" 10. (to_f (of_f 10.))) ;
+  Alcotest.(check (float 0.) "inverse 3.5 to/of_f" 3.5 (to_f (of_f 3.5))) ;
+  Alcotest.(check (float 0.) "inverse upper" 18446744073.709549 (to_f (of_f 18446744073.709549)))
 
 let test_float = [
   "of_f is good", `Quick, test_of_f ;
