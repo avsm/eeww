@@ -11,7 +11,7 @@
     {e %%VERSION%% - {{:%%PKG_HOMEPAGE%% }homepage}}
 *)
 
-(** The type for a duration, exposed as an int64 to provider interoperability. *)
+(** The type for a duration, exposed as an int64 to provide interoperability. *)
 type t = int64
 
 (** [pp ppf t] prints the duration. *)
