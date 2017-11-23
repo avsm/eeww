@@ -17,3 +17,5 @@ depends: [
 build: [
   [ "ocaml" "pkg/pkg.ml" "build" "--pinned" "%{pinned}%" ]
 ]
+
+available: [ ocaml-version >= "4.02.3" ]

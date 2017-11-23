@@ -8,6 +8,5 @@ env:
   - PACKAGE="randomconv" OCAML_VERSION=4.04
   - PACKAGE="randomconv" OCAML_VERSION=4.03
   - PACKAGE="randomconv" OCAML_VERSION=4.02
-  - PACKAGE="randomconv" OCAML_VERSION=4.01
 notifications:
   email: false
