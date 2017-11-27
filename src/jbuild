@@ -3,5 +3,6 @@
 (library
  ((name        mirage_flow)
   (public_name mirage-flow)
-  (libraries   (fmt result))
-  (wrapped     false)))
+  (libraries   (fmt))
+  (wrapped     false)
+  (flags (:standard -safe-string))))

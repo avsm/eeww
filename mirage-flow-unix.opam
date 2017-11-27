@@ -14,7 +14,7 @@ build: [
 ]
 
 build-test: [
-  [ "jbuilder" "runtest" ]
+  [ "jbuilder" "runtest" "-p" name ]
 ]
 
 depends: [
@@ -24,6 +24,8 @@ depends: [
   "mirage-flow" {>= "1.2.0"}
   "mirage-flow-lwt" {>= "1.2.0"}
   "lwt"
-  "cstruct" {>= "2.3.0"}
+  "cstruct" {>= "3.2.0"}
   "alcotest"   {test}
 ]
+
+available: [ ocaml-version >= "4.04.2" ]

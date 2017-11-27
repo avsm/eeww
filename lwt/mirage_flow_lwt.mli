@@ -22,7 +22,6 @@
 
     {e Release %%VERSION%% } *)
 
-open Result
 open Mirage_flow
 
 module type S = Mirage_flow.S

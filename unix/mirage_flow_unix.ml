@@ -96,7 +96,7 @@ module Fd = struct
        if n = 0 then Lwt.fail_with "write 0"
        else really_write fd buf (off+n) (len-n)
 
-  let write_all fd buf = really_write fd buf 0 (String.length buf)
+  let write_all fd buf = really_write fd buf 0 (Bytes.length buf)
 
   let read_all fd =
     Log.debug (fun l -> l "read_all %a" pp_fd fd);
@@ -106,28 +106,28 @@ module Fd = struct
       Lwt_unix.read fd buf 0 len >>= fun n ->
       if n = 0 then failf "read %a: 0" pp_fd fd
       else
-        let acc = String.sub buf 0 n :: acc in
+        let acc = Bytes.sub buf 0 n :: acc in
         if n <= len then Lwt.return (List.rev acc)
         else loop acc
     in
     loop [] >|= fun bufs ->
-    String.concat "" bufs
+    Bytes.concat (Bytes.create 0) bufs
 
   let read t =
     Lwt.catch (fun () ->
-        read_all t >|= fun buf -> Ok (`Data (Cstruct.of_string buf))
+        read_all t >|= fun buf -> Ok (`Data (Cstruct.of_bytes buf))
       ) (function Failure _ -> Lwt.return (Ok `Eof) | e -> err e)
 
   let write t b =
     Lwt.catch (fun () ->
-        write_all t (Cstruct.to_string b) >|= fun () -> Ok ()
+        write_all t (Cstruct.to_bytes b) >|= fun () -> Ok ()
       ) (fun e  -> err e)
 
   let close t = Lwt_unix.close t
 
   let writev t bs =
     Lwt.catch (fun () ->
-        Lwt_list.iter_s (fun b -> write_all t (Cstruct.to_string b)) bs
+        Lwt_list.iter_s (fun b -> write_all t (Cstruct.to_bytes b)) bs
         >|= fun () -> Ok ()
       ) (fun e -> err e)
 

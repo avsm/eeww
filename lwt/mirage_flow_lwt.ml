@@ -17,7 +17,6 @@
  *)
 
 open Lwt.Infix
-open Result
 
 let src = Logs.Src.create "mirage-flow-lwt"
 module Log = (val Logs.src_log src : Logs.LOG)
@@ -50,7 +49,7 @@ type 'a stats = {
   finish: time option ref;
   start: time;
   time: unit -> time;
-  t: (unit, 'a) Result.result Lwt.t;
+  t: (unit, 'a) result Lwt.t;
 }
 
 let stats t =

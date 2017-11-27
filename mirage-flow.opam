@@ -17,3 +17,5 @@ depends: [
   "jbuilder"  {build & >="1.0+beta7"}
   "fmt"
 ]
+
+available: [ ocaml-version >= "4.04.2" ]
