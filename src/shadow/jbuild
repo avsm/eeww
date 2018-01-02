@@ -1,7 +1,7 @@
 (library
  ((name        ocaml_shadow)
   (public_name ocaml-compiler-libs.shadow)
-(flags ((:standard -safe-string) -w -49))
+  (flags ((:standard -safe-string -w -49)))
   (preprocess  no_preprocessing)
 ))
 
