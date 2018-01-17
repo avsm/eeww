@@ -28,6 +28,9 @@ Uucp_gc_base
 Uucp_gc_data
 Uucp_gen
 Uucp_gen_data
+Uucp_hangul_base
+Uucp_hangul
+Uucp_hangul_data
 Uucp_id
 Uucp_id_data
 Uucp_name

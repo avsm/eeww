@@ -21,7 +21,7 @@ let ucd_or_die inf = try
 with Sys_error e -> Printf.eprintf "%s\n%!" e; exit 1
 
 let process inf age alpha block break case case_map case_fold case_nfkc cjk
-    func gc gen id name num script white =
+    func gc gen hangul id name num script white =
   let inf = match inf with None -> "support/ucd.xml" | Some inf -> inf in
   let ucd = (Gen.log "Loading Unicode character database.\n"; ucd_or_die inf) in
   let generate pp f ucd = match f with
@@ -50,6 +50,7 @@ let process inf age alpha block break case case_map case_fold case_nfkc cjk
   generate Gen_func.pp_mod func ucd;
   generate Gen_gc.pp_mod gc ucd;
   generate Gen_gen.pp_mod gen ucd;
+  generate Gen_hangul.pp_mod hangul ucd;
   generate Gen_id.pp_mod id ucd;
   generate Gen_name.pp_mod name ucd;
   generate Gen_num.pp_mod num ucd;
@@ -81,6 +82,7 @@ let main () =
   let func = ref None in
   let gc = ref None in
   let gen = ref None in
+  let hangul = ref None in
   let id = ref None in
   let name = ref None in
   let num = ref None in
@@ -100,6 +102,7 @@ let main () =
     "-func", set func, "<FILE> Support for function and graph props";
     "-gc", set gc, "<FILE> Support for the general category property";
     "-gen", set gen, "<FILE> Support for general props";
+    "-hangul", set hangul, "<FILE> Support for hangul props";
     "-id", set id, "<FILE> Support for id properties";
     "-name", set name, "<FILE> Support for name properties";
     "-num", set num, "<FILE> Support for numeric properties";
@@ -108,7 +111,7 @@ let main () =
   in
   Arg.parse (Arg.align options) set_inf usage;
   process !inf !age !alpha !block !break !case !case_map !case_fold
-    !case_nfkc !cjk !func !gc !gen !id !name !num !script !white
+    !case_nfkc !cjk !func !gc !gen !hangul !id !name !num !script !white
 
 let () = main ()
 

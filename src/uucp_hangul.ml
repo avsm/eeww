@@ -1,42 +1,16 @@
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 Daniel C. Bünzli. All rights reserved.
+   Copyright (c) 2018 Daniel C. Bünzli. All rights reserved.
    Distributed under the ISC license, see terms at the end of the file.
    %%NAME%% %%VERSION%%
   ---------------------------------------------------------------------------*)
 
-(* Unicode version *)
+include Uucp_hangul_base
 
-let unicode_version = "%%UNICODE_VERSION%%"
-
-(* Properties *)
-
-module Age = Uucp_age
-module Alpha = Uucp_alpha
-module Break = Uucp_break
-module Block = Uucp_block
-module Case = Uucp_case
-module Cjk = Uucp_cjk
-module Func = Uucp_func
-module Gc = Uucp_gc
-module Gen = Uucp_gen
-module Hangul = Uucp_hangul
-module Id = Uucp_id
-module Name = Uucp_name
-module Num = Uucp_num
-module Script = Uucp_script
-module White = Uucp_white
-
-(* Maps. Not part of the public API. *)
-
-module Cmap = Uucp_cmap
-module Rmap = Uucp_rmap
-module Tmap = Uucp_tmap
-module Tmapbool = Uucp_tmapbool
-module Tmapbyte = Uucp_tmapbyte
-module Tmap4bytes = Uucp_tmap4bytes
+let syllable_type u =
+  Uucp_rmap.get Uucp_hangul_data.syllable_type_map (Uchar.to_int u)
 
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 Daniel C. Bünzli
+   Copyright (c) 2018 Daniel C. Bünzli
 
    Permission to use, copy, modify, and/or distribute this software for any
    purpose with or without fee is hereby granted, provided that the above

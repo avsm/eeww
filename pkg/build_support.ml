@@ -37,6 +37,7 @@ let gen_props () =
          "-func" % "src/uucp_func_data.ml" %
          "-gc" % "src/uucp_gc_data.ml" %
          "-gen" % "src/uucp_gen_data.ml" %
+         "-hangul" % "src/uucp_hangul_data.ml" %
          "-id" % "src/uucp_id_data.ml" %
          "-num" % "src/uucp_num_data.ml" %
          "-script" % "src/uucp_script_data.ml" %

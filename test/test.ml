@@ -144,6 +144,11 @@ let assert_gen ucd =
     Uucp.Gen.is_variation_selector;
   ()
 
+let assert_hangul ucd =
+  let prop fname ucd_p p = prop ucd "Uucp.Hangul" fname (ucd_get ucd_p) p in
+  prop "syllable_type" Uucd.hangul_syllable_type Uucp.Hangul.syllable_type;
+  ()
+
 let assert_id ucd =
   let prop fname ucd_p p = prop ucd "Uucp.Id" fname (ucd_get ucd_p) p in
   prop "is_id_start" Uucd.id_start Uucp.Id.is_id_start;
@@ -208,6 +213,7 @@ let test inf mods =
   if do_assert `Func   then assert_func ucd;
   if do_assert `Gc     then assert_gc ucd;
   if do_assert `Gen    then assert_gen ucd;
+  if do_assert `Hangul then assert_hangul ucd;
   if do_assert `Id     then assert_id ucd;
   if do_assert `Name   then assert_name ucd;
   if do_assert `Num    then assert_num ucd;
@@ -241,6 +247,7 @@ let main () =
     "-func",   add `Func,   " assert the Func module";
     "-gc",     add `Gc,     " assert the Gc module";
     "-gen",    add `Gen,    " assert the Gen module";
+    "-hangul", add `Hangul, " assert the Hangul module";
     "-id",     add `Id,     " assert the Id module";
     "-name",   add `Name,   " assert the Name module";
     "-num",    add `Num,    " assert the Num module";

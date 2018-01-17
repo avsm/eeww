@@ -92,6 +92,11 @@ let lookup_gen count =
   prop "is_variation_selector" Uucp.Gen.is_variation_selector;
   ()
 
+let lookup_hangul count =
+  let prop fname p = prop count "Uucp.Hangul" fname p in
+  prop "syllable_type" Uucp.Hangul.syllable_type;
+  ()
+
 let lookup_id count =
   let prop fname p = prop count "Uucp.Id" fname p in
   prop "is_id_start" Uucp.Id.is_id_start;
@@ -138,6 +143,7 @@ let lookup count mods =
   if do_lookup `Func   then lookup_func count;
   if do_lookup `Gc     then lookup_gc count;
   if do_lookup `Gen    then lookup_gen count;
+  if do_lookup `Hangul then lookup_hangul count;
   if do_lookup `Id     then lookup_id count;
   if do_lookup `Name   then lookup_name count;
   if do_lookup `Num    then lookup_num count;
@@ -168,6 +174,7 @@ let main () =
     "-func",   add `Func, " test the Func module";
     "-gc",     add `Gc, " test the Gc module";
     "-gen",    add `Gen, " test the Gen module";
+    "-hangul", add `Hangul, " test the Hangul module";
     "-id",     add `Id, " test the Id module";
     "-name",   add `Name, " test the Name module";
     "-num",    add `Num, " test the Num module";
