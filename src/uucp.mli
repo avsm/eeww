@@ -894,6 +894,11 @@ module Func : sig
   (** [is_regional_indicator u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#Regional_Indicator}
       Regional_indicator} property. *)
+
+  val is_join_control : Uchar.t -> bool
+  (** [is_join_control u] is [true] if [u] has the
+      {{:http://www.unicode.org/reports/tr44/#Join_Control}Join_Control}
+      property. *)
 end
 
 (** General category property. *)
@@ -1298,7 +1303,6 @@ end
        {{:http://www.unicode.org/reports/tr44/#Property_Index_Table}
        this table}.}
     {- Shaping and rendering.
-       {{:http://www.unicode.org/reports/tr44/#Join_Control}Join_Control},
        {{:http://www.unicode.org/reports/tr44/#Joining_Group}Joining_Group},
        {{:http://www.unicode.org/reports/tr44/#Joining_Type}Joining_Type},
        {{:http://www.unicode.org/reports/tr44/#Vertical_Orientation}Vertical_Orientation},
