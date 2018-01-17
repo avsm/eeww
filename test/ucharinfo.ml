@@ -288,6 +288,7 @@ let all_keys = [
   `P "Soft_Dotted", str_bool Uucp.Func.is_soft_dotted;
   `P "Terminal_Punctuation", str_bool Uucp.Func.is_terminal_punctuation;
   `P "Regional_Indicator", str_bool Uucp.Func.is_regional_indicator;
+  `P "Join_Control", str_bool Uucp.Func.is_join_control;
   (* Gc *)
   `P "General_Category", str Uucp.Gc.(pp, general_category);
   (* Gen *)
@@ -296,6 +297,8 @@ let all_keys = [
   `P "Logical_Order_Exception", str_bool Uucp.Gen.is_logical_order_exception;
   `P "Noncharacter_Code_Point", str_bool Uucp.Gen.is_non_character;
   `P "Variation_Selector", str_bool Uucp.Gen.is_variation_selector;
+  (* Hangul *)
+  `P "Hangul_Syllable_Type", str Uucp.Hangul.(pp_syllable_type, syllable_type);
   (* Id *)
   `P "ID_Start", str_bool Uucp.Id.is_id_start;
   `P "ID_Continue", str_bool Uucp.Id.is_id_continue;
