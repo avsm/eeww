@@ -1024,7 +1024,10 @@ end
     {3 References}
     {ul
     {- {{:http://unicode.org/faq/casemap_charprop.html#nameprop}
-    The Unicode names FAQ.}}} *)
+    The Unicode names FAQ}.}
+    {- The Unicode consortium.
+       {{:https://unicode.org/charts/nameslist/index.html}
+       The Unicode names charts}}} *)
 module Name : sig
 
   (** {1:nameprop Names} *)
@@ -1099,7 +1102,7 @@ end
     {- Mark Davis, Ken Whistler.
     {{:http://www.unicode.org/reports/tr24/}{e Unicode script property}}.
     (latest version)}
-    {- {{:http://www.unicode.org/charts/script/index.html}The Unicode Script
+    {- {{:http://www.unicode.org/charts/script/index.html}The Unicode script
     charts}.}} *)
 module Script : sig
 
