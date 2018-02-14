@@ -333,7 +333,7 @@ let compare_key (k0, _) (k1, _) = match k0, k1 with
 | (`P k0 | `N k0 | `H k0), (`P k1 | `N k1 | `H k1) -> compare k0 k1
 
 let eq_key k (k', _) = match k' with
-| `P k' | `N k' | `H k' -> String.(equal (lowercase k) (lowercase k'))
+| `P k' | `N k' | `H k' -> String.(compare (lowercase k) (lowercase k') = 0)
 
 let exist_key k = List.exists (eq_key k) all_keys
 let find_key k = List.find (eq_key k) all_keys
