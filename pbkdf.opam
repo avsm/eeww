@@ -7,18 +7,10 @@ authors:      ["Alfredo Beaumont <alfredo.beaumont@gmail.com>" "Sonia Meruelo <s
 maintainer:   ["Alfredo Beaumont <alfredo.beaumont@gmail.com>"]
 license:      "BSD2"
 
-build: [
-  ["ocaml" "pkg/pkg.ml" "build" "--pinned" "%{pinned}%"]
-]
-build-test: [
-  ["ocaml" "pkg/pkg.ml" "build" "--pinned" "%{pinned}%" "--tests" "true"]
-  ["ocaml" "pkg/pkg.ml" "test"]
-]
+build: [ "jbuilder" "build" "-j" jobs "-p" name "@install" ]
+build-test: [ "jbuilder" "runtest" "-p" name "-j" jobs ]
 depends: [
-  "ocamlfind" {build}
-  "ocamlbuild" {build}
-  "topkg" {build}
-  "cstruct" {>= "1.7.0"}
-  "nocrypto" {>= "0.5.0"}
-  "alcotest" {test}
+  "jbuilder" { build & >= "1.0+beta17" }
+  "nocrypto" { >= "0.5.4" }
+  "alcotest" { test & >= "0.8.1" }
 ]
