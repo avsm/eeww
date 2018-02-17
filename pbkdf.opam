@@ -14,3 +14,4 @@ depends: [
   "nocrypto" { >= "0.5.4" }
   "alcotest" { test & >= "0.8.1" }
 ]
+available: [ ocaml-version >= "4.02.3" ]
