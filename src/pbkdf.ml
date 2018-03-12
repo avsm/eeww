@@ -6,6 +6,14 @@ module type S = sig
   val pbkdf2 : password:Cstruct.t -> salt:Cstruct.t -> count:int -> dk_len:int32 -> Cstruct.t
 end
 
+let cdiv x y =
+  (* This is lifted from Nocrypto.Uncommon.(//)
+     (formerly known as [cdiv]). It is part of the documented, publically
+     exposed _internal_ utility library not for public consumption, hence
+     the API break that prompted this copy-pasted function. *)
+  if y < 1 then raise Division_by_zero else
+    if x > 0 then 1 + ((x - 1) / y) else 0 [@@inline]
+
 module Make (H: Hash.S) : S = struct
   let pbkdf1 ~password ~salt ~count ~dk_len =
     if Cstruct.len salt <> 8 then invalid_arg "salt should be 8 bytes"
