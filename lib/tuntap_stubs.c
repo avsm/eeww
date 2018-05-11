@@ -27,7 +27,7 @@
 #include <net/if.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__OpenBSD__)
 #include <netinet/in.h>
 #endif /* __FreeBSD__ */
 #include <ifaddrs.h>
@@ -114,7 +114,7 @@ get_macaddr(value devname)
   CAMLreturn (hwaddr);
 }
 
-#elif (defined(__APPLE__) && defined(__MACH__)) || defined(__FreeBSD__)
+#elif (defined(__APPLE__) && defined(__MACH__)) || defined(__FreeBSD__) || defined(__OpenBSD__)
 #include <net/if_dl.h>
 #include <ifaddrs.h>
 
@@ -186,7 +186,7 @@ set_up_and_running(value dev)
 
   strncpy(ifr.ifr_name, String_val(dev), IFNAMSIZ);
   ifr.ifr_addr.sa_family = AF_INET;
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__OpenBSD__)
   ifr.ifr_addr.sa_len = IFNAMSIZ;
 #endif /* __FreeBSD__ */
 
@@ -221,7 +221,7 @@ set_ipv4(value dev, value ipv4, value netmask)
 
   strncpy(ifr.ifr_name, String_val(dev), IFNAMSIZ);
   ifr.ifr_addr.sa_family = AF_INET;
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__OpenBSD__)
   ifr.ifr_addr.sa_len = IFNAMSIZ;
 #endif /* __FreeBSD */
 
