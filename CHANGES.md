@@ -1,3 +1,7 @@
+## v1.6.1 2018-05-17
+
+* Fix build on OpenBSD (#28 via @hannesm).
+
 ## v1.6.0 2017-11-11
 
 * Bring up interface if it was not already up (#24 via @sevenEng).
