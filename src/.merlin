@@ -1,3 +1,0 @@
-B ../_build/default/src/.optint.objs
-FLG -open Optint__ -w -40
-S .
