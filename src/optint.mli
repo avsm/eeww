@@ -30,7 +30,7 @@ val of_string_opt: string -> t option
 val to_string: t -> string
 val compare: t -> t -> int
 val equal: t -> t -> bool
-val pp: Format.formatter -> int -> unit
+val pp: Format.formatter -> t -> unit
 
 module Infix: sig
   val ( + ): t -> t -> t
