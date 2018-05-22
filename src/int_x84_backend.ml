@@ -1,6 +1,6 @@
 include Int32
 
-let pp ppf = Format.fprintf ppf "%ld"
+let pp ppf (x:t) = Format.fprintf ppf "%ld" x
 
 module Infix = struct
   let ( + ) = add

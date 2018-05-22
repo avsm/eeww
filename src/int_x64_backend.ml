@@ -31,7 +31,7 @@ let to_string = string_of_int
 let compare : int -> int -> int = fun a b -> a - b
 let equal : int -> int -> bool = fun a b -> a = b
 
-let pp ppf = Format.fprintf ppf "%d"
+let pp ppf (x:t) = Format.fprintf ppf "%d" x
 
 module Infix = struct
   let ( + ) = add
