@@ -13,6 +13,6 @@ let () =
     with _ -> invalid_arg "%s --x64 (true|false) -o <output>" Sys.argv.(0) in
   let oc = open_out output in
   let backend =
-    if is_x64 then "Int_x64_backend" else "Int_x84_backend" in
+    if is_x64 then "Int_x64_backend" else "Int_x86_backend" in
   Printf.fprintf oc "include %s\n%!" backend;
   close_out oc

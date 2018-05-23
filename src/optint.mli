@@ -23,6 +23,8 @@ val shift_right: t -> int -> t
 val shift_right_logical: t -> int -> t
 val of_int: int -> t
 val to_int: t -> int
+val of_int32: int32 -> t
+val to_int32: t -> int32
 val of_float: float -> t
 val to_float: t -> float
 val of_string: string -> t
