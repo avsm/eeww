@@ -89,6 +89,9 @@ val to_string : t -> string
 val of_float_style : [ `Underscores | `No_underscores ] ref
 val of_int_style   : [ `Underscores | `No_underscores ] ref
 
+(*_ See the Jane Street Style Guide for an explanation of [Private] submodules:
+
+  https://opensource.janestreet.com/standards/#private-submodules *)
 module Private : sig
   (*_ Exported for sexplib *)
 
