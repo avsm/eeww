@@ -14,6 +14,6 @@ module Infix = struct
 
   let ( && ) = logand
   let ( || ) = logor
-  let ( >> ) = shift_left
-  let ( << ) = shift_right
+  let ( >> ) = shift_right
+  let ( << ) = shift_left
 end

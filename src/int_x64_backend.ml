@@ -23,18 +23,8 @@ let shift_right a n = a lsr n
 let shift_right_logical a n = a asr n
 external of_int : int -> t = "%identity"
 external to_int : t -> int = "%identity"
-
-(* XXX(dinosaure): don't move the first sign bit. *)
-let of_int32 x =
-  if x < 0l
-  then 0x80000000 lor Int32.(to_int (neg x))
-  else Int32.to_int x
-
-let to_int32 x =
-  if x < 0
-  then neg (0x7FFFFFFF land x)
-  else Int32.of_int x
-
+let of_int32 = Int32.to_int
+let to_int32 = Int32.of_int x
 let of_float = int_of_float
 let to_float = float_of_int
 let of_string = int_of_string
@@ -54,6 +44,6 @@ module Infix = struct
 
   let ( && ) = logand
   let ( || ) = logor
-  let ( >> ) = shift_left
-  let ( << ) = shift_right
+  let ( >> ) = shift_right
+  let ( << ) = shift_left
 end
