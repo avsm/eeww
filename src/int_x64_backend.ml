@@ -41,4 +41,9 @@ module Infix = struct
   let ( * ) = mul
   let ( % ) = rem
   let ( / ) = div
+
+  let ( && ) = logand
+  let ( || ) = logor
+  let ( >> ) = shift_left
+  let ( << ) = shift_right
 end

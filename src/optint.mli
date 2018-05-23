@@ -40,4 +40,9 @@ module Infix: sig
   val ( * ): t -> t -> t
   val ( % ): t -> t -> t
   val ( / ): t -> t -> t
+
+  val ( && ): t -> t -> t
+  val ( || ): t -> t -> t
+  val ( >> ): t -> int -> t
+  val ( << ): t -> int -> t
 end
