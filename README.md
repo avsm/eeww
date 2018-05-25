@@ -3,10 +3,10 @@ Optint - Abstract type on integer between x64 and x86 architecture
 
 This library provide one module `Optint` which use internally an `int` if you
 are in a x64 architecture or an `int32` (boxed value) if you are in a x86
-architecture. This module is __really___ unsafe and does not care some details
+architecture. This module is __really__ unsafe and does not care some details
 (like the sign bit) for any cast.
 
-### Goal
+## Goal
 
 The main difference between an `int` and an `int32` is the second is boxed.
 About performance this is not the best. However, you can not ensure to be in an
