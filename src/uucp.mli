@@ -1598,9 +1598,14 @@ end
     though that as far as OCaml's compiler is concerned these are just
     sequences of bytes and you can't trust these strings to be valid
     UTF-8 as they depend on how correctly your editor encodes them.
-    That is unless you escape their valid UTF-8 bytes explicitely (e.g.
-    ["\xF0\x9F\x90\xAB"] is the correct encoding of U+1F42B), you {b will
-    need} to validate them and most likely normalize them.
+    That is you {b will need} to validate and most likely normalize them
+    unless you:
+    {ul
+    {- Escape their valid UTF-8 bytes explicitely. For example
+       ["\xF0\x9F\x90\xAB"] is the correct encoding of U+1F42B}
+    {- Or use Unicode escapes (since OCaml 4.06). For example ["\u{1F42B}"]
+       will UTF-8 encode the character U+1F42B in the string}}
+
 
     Checking the validity of UTF-8 strings should only be performed at
     the boundaries of your program: on your string literals, on data
