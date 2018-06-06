@@ -1355,7 +1355,9 @@ end
        this table}.}
     {- CJK.
       {{:http://www.unicode.org/reports/tr44/#Unicode_Radical_Stroke}
-      Unicode_Radical_Stroke} and all the properties of the
+      Unicode_Radical_Stroke},
+      {{:http://www.unicode.org/reports/tr44/#Equivalent_Unified_Ideograph}
+      Equivalent_Unified_Ideograph} and all the properties of the
       {{:http://www.unicode.org/reports/tr38/}Unicode HAN Database}.}
     {- Miscellaneous.
        {{:http://www.unicode.org/reports/tr44/#STerm}STerm}.}
