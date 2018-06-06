@@ -4,9 +4,9 @@
    %%NAME%% %%VERSION%%
   ---------------------------------------------------------------------------*)
 
-type t =
-  [ `Adlam
+type t = [
   | `ASCII
+  | `Adlam
   | `Aegean_Numbers
   | `Ahom
   | `Alchemical
@@ -60,6 +60,7 @@ type t =
   | `Cham
   | `Cherokee
   | `Cherokee_Sup
+  | `Chess_Symbols
   | `Compat_Jamo
   | `Control_Pictures
   | `Coptic
@@ -82,6 +83,7 @@ type t =
   | `Diacriticals_For_Symbols
   | `Diacriticals_Sup
   | `Dingbats
+  | `Dogra
   | `Domino
   | `Duployan
   | `Early_Dynastic_Cuneiform
@@ -99,6 +101,7 @@ type t =
   | `Geometric_Shapes
   | `Geometric_Shapes_Ext
   | `Georgian
+  | `Georgian_Ext
   | `Georgian_Sup
   | `Glagolitic
   | `Glagolitic_Sup
@@ -107,10 +110,12 @@ type t =
   | `Greek
   | `Greek_Ext
   | `Gujarati
+  | `Gunjala_Gondi
   | `Gurmukhi
   | `Half_And_Full_Forms
   | `Half_Marks
   | `Hangul
+  | `Hanifi_Rohingya
   | `Hanunoo
   | `Hatran
   | `Hebrew
@@ -120,6 +125,7 @@ type t =
   | `Ideographic_Symbols
   | `Imperial_Aramaic
   | `Indic_Number_Forms
+  | `Indic_Siyaq_Numbers
   | `Inscriptional_Pahlavi
   | `Inscriptional_Parthian
   | `Jamo
@@ -159,6 +165,7 @@ type t =
   | `Lydian
   | `Mahajani
   | `Mahjong
+  | `Makasar
   | `Malayalam
   | `Mandaic
   | `Manichaean
@@ -166,6 +173,8 @@ type t =
   | `Masaram_Gondi
   | `Math_Alphanum
   | `Math_Operators
+  | `Mayan_Numerals
+  | `Medefaidrin
   | `Meetei_Mayek
   | `Meetei_Mayek_Ext
   | `Mende_Kikakui
@@ -204,6 +213,7 @@ type t =
   | `Old_North_Arabian
   | `Old_Permic
   | `Old_Persian
+  | `Old_Sogdian
   | `Old_South_Arabian
   | `Old_Turkic
   | `Oriya
@@ -234,6 +244,7 @@ type t =
   | `Sinhala
   | `Sinhala_Archaic_Numbers
   | `Small_Forms
+  | `Sogdian
   | `Sora_Sompeng
   | `Soyombo
   | `Specials
@@ -282,7 +293,8 @@ type t =
   | `Yi_Radicals
   | `Yi_Syllables
   | `Yijing
-  | `Zanabazar_Square ]
+  | `Zanabazar_Square
+]
 
 let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `ASCII -> "ASCII"
@@ -340,6 +352,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Cham -> "Cham"
   | `Cherokee -> "Cherokee"
   | `Cherokee_Sup -> "Cherokee_Sup"
+  | `Chess_Symbols -> "Chess_Symbols"
   | `Compat_Jamo -> "Compat_Jamo"
   | `Control_Pictures -> "Control_Pictures"
   | `Coptic -> "Coptic"
@@ -362,6 +375,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Diacriticals_For_Symbols -> "Diacriticals_For_Symbols"
   | `Diacriticals_Sup -> "Diacriticals_Sup"
   | `Dingbats -> "Dingbats"
+  | `Dogra -> "Dogra"
   | `Domino -> "Domino"
   | `Duployan -> "Duployan"
   | `Early_Dynastic_Cuneiform -> "Early_Dynastic_Cuneiform"
@@ -379,6 +393,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Geometric_Shapes -> "Geometric_Shapes"
   | `Geometric_Shapes_Ext -> "Geometric_Shapes_Ext"
   | `Georgian -> "Georgian"
+  | `Georgian_Ext -> "Georgian_Ext"
   | `Georgian_Sup -> "Georgian_Sup"
   | `Glagolitic -> "Glagolitic"
   | `Glagolitic_Sup -> "Glagolitic_Sup"
@@ -387,10 +402,12 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Greek -> "Greek"
   | `Greek_Ext -> "Greek_Ext"
   | `Gujarati -> "Gujarati"
+  | `Gunjala_Gondi -> "Gunjala_Gondi"
   | `Gurmukhi -> "Gurmukhi"
   | `Half_And_Full_Forms -> "Half_And_Full_Forms"
   | `Half_Marks -> "Half_Marks"
   | `Hangul -> "Hangul"
+  | `Hanifi_Rohingya -> "Hanifi_Rohingya"
   | `Hanunoo -> "Hanunoo"
   | `Hatran -> "Hatran"
   | `Hebrew -> "Hebrew"
@@ -402,6 +419,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Ideographic_Symbols -> "Ideographic_Symbols"
   | `Imperial_Aramaic -> "Imperial_Aramaic"
   | `Indic_Number_Forms -> "Indic_Number_Forms"
+  | `Indic_Siyaq_Numbers -> "Indic_Siyaq_Numbers"
   | `Inscriptional_Pahlavi -> "Inscriptional_Pahlavi"
   | `Inscriptional_Parthian -> "Inscriptional_Parthian"
   | `Jamo -> "Jamo"
@@ -442,6 +460,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Lydian -> "Lydian"
   | `Mahajani -> "Mahajani"
   | `Mahjong -> "Mahjong"
+  | `Makasar -> "Makasar"
   | `Malayalam -> "Malayalam"
   | `Mandaic -> "Mandaic"
   | `Manichaean -> "Manichaean"
@@ -449,6 +468,8 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Masaram_Gondi -> "Masaram_Gondi"
   | `Math_Alphanum -> "Math_Alphanum"
   | `Math_Operators -> "Math_Operators"
+  | `Mayan_Numerals -> "Mayan_Numerals"
+  | `Medefaidrin -> "Medefaidrin"
   | `Meetei_Mayek -> "Meetei_Mayek"
   | `Meetei_Mayek_Ext -> "Meetei_Mayek_Ext"
   | `Mende_Kikakui -> "Mende_Kikakui"
@@ -487,6 +508,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Old_North_Arabian -> "Old_North_Arabian"
   | `Old_Permic -> "Old_Permic"
   | `Old_Persian -> "Old_Persian"
+  | `Old_Sogdian -> "Old_Sogdian"
   | `Old_South_Arabian -> "Old_South_Arabian"
   | `Old_Turkic -> "Old_Turkic"
   | `Oriya -> "Oriya"
@@ -517,6 +539,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Sinhala -> "Sinhala"
   | `Sinhala_Archaic_Numbers -> "Sinhala_Archaic_Numbers"
   | `Small_Forms -> "Small_Forms"
+  | `Sogdian -> "Sogdian"
   | `Sora_Sompeng -> "Sora_Sompeng"
   | `Soyombo -> "Soyombo"
   | `Specials -> "Specials"

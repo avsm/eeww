@@ -74,9 +74,9 @@ module Block : sig
 
 (** {1:blockprop Blocks} *)
 
-  type t =
-    [ `Adlam
+  type t = [
     | `ASCII
+    | `Adlam
     | `Aegean_Numbers
     | `Ahom
     | `Alchemical
@@ -130,6 +130,7 @@ module Block : sig
     | `Cham
     | `Cherokee
     | `Cherokee_Sup
+    | `Chess_Symbols
     | `Compat_Jamo
     | `Control_Pictures
     | `Coptic
@@ -152,6 +153,7 @@ module Block : sig
     | `Diacriticals_For_Symbols
     | `Diacriticals_Sup
     | `Dingbats
+    | `Dogra
     | `Domino
     | `Duployan
     | `Early_Dynastic_Cuneiform
@@ -169,6 +171,7 @@ module Block : sig
     | `Geometric_Shapes
     | `Geometric_Shapes_Ext
     | `Georgian
+    | `Georgian_Ext
     | `Georgian_Sup
     | `Glagolitic
     | `Glagolitic_Sup
@@ -177,10 +180,12 @@ module Block : sig
     | `Greek
     | `Greek_Ext
     | `Gujarati
+    | `Gunjala_Gondi
     | `Gurmukhi
     | `Half_And_Full_Forms
     | `Half_Marks
     | `Hangul
+    | `Hanifi_Rohingya
     | `Hanunoo
     | `Hatran
     | `Hebrew
@@ -190,6 +195,7 @@ module Block : sig
     | `Ideographic_Symbols
     | `Imperial_Aramaic
     | `Indic_Number_Forms
+    | `Indic_Siyaq_Numbers
     | `Inscriptional_Pahlavi
     | `Inscriptional_Parthian
     | `Jamo
@@ -229,6 +235,7 @@ module Block : sig
     | `Lydian
     | `Mahajani
     | `Mahjong
+    | `Makasar
     | `Malayalam
     | `Mandaic
     | `Manichaean
@@ -236,6 +243,8 @@ module Block : sig
     | `Masaram_Gondi
     | `Math_Alphanum
     | `Math_Operators
+    | `Mayan_Numerals
+    | `Medefaidrin
     | `Meetei_Mayek
     | `Meetei_Mayek_Ext
     | `Mende_Kikakui
@@ -274,6 +283,7 @@ module Block : sig
     | `Old_North_Arabian
     | `Old_Permic
     | `Old_Persian
+    | `Old_Sogdian
     | `Old_South_Arabian
     | `Old_Turkic
     | `Oriya
@@ -304,6 +314,7 @@ module Block : sig
     | `Sinhala
     | `Sinhala_Archaic_Numbers
     | `Small_Forms
+    | `Sogdian
     | `Sora_Sompeng
     | `Soyombo
     | `Specials
@@ -352,7 +363,8 @@ module Block : sig
     | `Yi_Radicals
     | `Yi_Syllables
     | `Yijing
-    | `Zanabazar_Square ]
+    | `Zanabazar_Square
+  ]
   (** The type for blocks. The value [`NB] is for characters that are not
       yet assigned to a block. *)
 
@@ -428,7 +440,8 @@ module Break : sig
 
   type word =
     [ `CR | `DQ | `EX | `EB | `EBG | `EM | `Extend | `FO | `GAZ | `HL | `KA
-    | `LE | `LF | `MB | `ML | `MN | `NL | `NU | `RI | `SQ | `XX | `ZWJ ]
+    | `LE | `LF | `MB | `ML | `MN | `NL | `NU | `RI | `SQ | `WSegSpace
+    | `XX | `ZWJ ]
   (** The type for word breaks. *)
 
   val pp_word : Format.formatter -> word -> unit
@@ -1108,8 +1121,8 @@ module Script : sig
 
   (** {1:scriptprop Script} *)
 
-  type t =
-  [ `Adlm
+  type t = [
+  | `Adlm
   | `Aghb
   | `Ahom
   | `Arab
@@ -1136,6 +1149,7 @@ module Script : sig
   | `Cprt
   | `Cyrl
   | `Deva
+  | `Dogr
   | `Dsrt
   | `Dupl
   | `Egyp
@@ -1143,6 +1157,7 @@ module Script : sig
   | `Ethi
   | `Geor
   | `Glag
+  | `Gong
   | `Gonm
   | `Goth
   | `Gran
@@ -1179,9 +1194,11 @@ module Script : sig
   | `Lyci
   | `Lydi
   | `Mahj
+  | `Maka
   | `Mand
   | `Mani
   | `Marc
+  | `Medf
   | `Mend
   | `Merc
   | `Mero
@@ -1214,6 +1231,7 @@ module Script : sig
   | `Prti
   | `Qaai
   | `Rjng
+  | `Rohg
   | `Runr
   | `Samr
   | `Sarb
@@ -1224,6 +1242,8 @@ module Script : sig
   | `Sidd
   | `Sind
   | `Sinh
+  | `Sogd
+  | `Sogo
   | `Sora
   | `Soyo
   | `Sund
@@ -1252,7 +1272,8 @@ module Script : sig
   | `Zanb
   | `Zinh
   | `Zyyy
-  | `Zzzz ]
+  | `Zzzz
+  ]
   (** The type for scripts. *)
 
   val compare : t -> t -> int

@@ -1,5 +1,5 @@
 
-
+- Unicode 11.0.0 support.
 - Add support for the Join_Control property (`Uucp.Func.is_join_control`)
   and the Hangul_Syllable_Type property (`Uucp.Hangul.syllable_type`).
 

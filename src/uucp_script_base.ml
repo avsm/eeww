@@ -4,8 +4,8 @@
    %%NAME%% %%VERSION%%
   ---------------------------------------------------------------------------*)
 
-type t =
-  [ `Adlm
+type t = [
+  | `Adlm
   | `Aghb
   | `Ahom
   | `Arab
@@ -32,6 +32,7 @@ type t =
   | `Cprt
   | `Cyrl
   | `Deva
+  | `Dogr
   | `Dsrt
   | `Dupl
   | `Egyp
@@ -39,6 +40,7 @@ type t =
   | `Ethi
   | `Geor
   | `Glag
+  | `Gong
   | `Gonm
   | `Goth
   | `Gran
@@ -75,9 +77,11 @@ type t =
   | `Lyci
   | `Lydi
   | `Mahj
+  | `Maka
   | `Mand
   | `Mani
   | `Marc
+  | `Medf
   | `Mend
   | `Merc
   | `Mero
@@ -110,6 +114,7 @@ type t =
   | `Prti
   | `Qaai
   | `Rjng
+  | `Rohg
   | `Runr
   | `Samr
   | `Sarb
@@ -120,6 +125,8 @@ type t =
   | `Sidd
   | `Sind
   | `Sinh
+  | `Sogd
+  | `Sogo
   | `Sora
   | `Soyo
   | `Sund
@@ -148,7 +155,8 @@ type t =
   | `Zanb
   | `Zinh
   | `Zyyy
-  | `Zzzz ]
+  | `Zzzz
+]
 
 let pp ppf s = Format.fprintf ppf "%s" begin match s with
   | `Adlm -> "Adlm"
@@ -178,6 +186,7 @@ let pp ppf s = Format.fprintf ppf "%s" begin match s with
   | `Cprt -> "Cprt"
   | `Cyrl -> "Cyrl"
   | `Deva -> "Deva"
+  | `Dogr -> "Dogr"
   | `Dsrt -> "Dsrt"
   | `Dupl -> "Dupl"
   | `Egyp -> "Egyp"
@@ -185,6 +194,7 @@ let pp ppf s = Format.fprintf ppf "%s" begin match s with
   | `Ethi -> "Ethi"
   | `Geor -> "Geor"
   | `Glag -> "Glag"
+  | `Gong -> "Gong"
   | `Gonm -> "Gonm"
   | `Goth -> "Goth"
   | `Gran -> "Gran"
@@ -221,9 +231,11 @@ let pp ppf s = Format.fprintf ppf "%s" begin match s with
   | `Lyci -> "Lyci"
   | `Lydi -> "Lydi"
   | `Mahj -> "Mahj"
+  | `Maka -> "Maka"
   | `Mand -> "Mand"
   | `Mani -> "Mani"
   | `Marc -> "Marc"
+  | `Medf -> "Medf"
   | `Mend -> "Mend"
   | `Merc -> "Merc"
   | `Mero -> "Mero"
@@ -256,6 +268,7 @@ let pp ppf s = Format.fprintf ppf "%s" begin match s with
   | `Prti -> "Prti"
   | `Qaai -> "Qaai"
   | `Rjng -> "Rjng"
+  | `Rohg -> "Rohg"
   | `Runr -> "Runr"
   | `Samr -> "Samr"
   | `Sarb -> "Sarb"
@@ -266,6 +279,8 @@ let pp ppf s = Format.fprintf ppf "%s" begin match s with
   | `Sidd -> "Sidd"
   | `Sind -> "Sind"
   | `Sinh -> "Sinh"
+  | `Sogd -> "Sogd"
+  | `Sogo -> "Sogo"
   | `Sora -> "Sora"
   | `Soyo -> "Soyo"
   | `Sund -> "Sund"

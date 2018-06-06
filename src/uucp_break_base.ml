@@ -69,11 +69,12 @@ let pp_grapheme_cluster ppf v = Format.fprintf ppf "%s" begin match v with
 
 type word =
   [ `CR | `DQ | `EX | `EB | `EBG | `EM | `Extend | `FO | `GAZ | `HL | `KA
-  | `LE | `LF | `MB | `ML | `MN | `NL | `NU | `RI | `SQ | `XX | `ZWJ ]
+  | `LE | `LF | `MB | `ML | `MN | `NL | `NU | `RI | `SQ | `WSegSpace | `XX
+  | `ZWJ ]
 
 let word_of_byte : word array =
   [| `CR; `DQ; `EX; `EB; `EBG; `EM; `Extend; `FO; `GAZ; `HL; `KA; `LE; `LF;
-     `MB; `ML; `MN; `NL; `NU; `RI; `SQ; `XX; `ZWJ |]
+     `MB; `ML; `MN; `NL; `NU; `RI; `SQ; `WSegSpace; `XX; `ZWJ |]
 
 let word_max = Array.length word_of_byte - 1
 
@@ -81,14 +82,14 @@ let word_to_byte = function
 | `CR -> 0 | `DQ -> 1 | `EX -> 2 | `EB -> 3 | `EBG -> 4 | `EM -> 5
 | `Extend -> 6 | `FO -> 7 | `GAZ -> 8 | `HL -> 9 | `KA -> 10 | `LE -> 11
 | `LF -> 12 | `MB -> 13 | `ML -> 14 | `MN -> 15 | `NL -> 16 | `NU -> 17
-| `RI -> 18 | `SQ -> 19 | `XX -> 20 | `ZWJ -> 21
+| `RI -> 18 | `SQ -> 19 | `WSegSpace -> 20 | `XX -> 21 | `ZWJ -> 22
 
 let pp_word ppf v = Format.fprintf ppf "%s" begin match v with
   | `CR -> "CR" | `DQ -> "DQ" | `EX -> "EX" | `EB -> "EB" | `EBG -> "EBG"
   | `EM -> "EM"  | `Extend -> "Extend" | `FO -> "FO" | `GAZ -> "GAZ"
   | `HL -> "HL" | `KA -> "KA" | `LE -> "LE" | `LF -> "LF" | `MB -> "MB"
   | `ML -> "ML" | `MN -> "MN" | `NL -> "NL" | `NU -> "NU" | `RI -> "RI"
-  | `SQ -> "SQ" | `XX -> "XX" | `ZWJ -> "ZWJ"
+  | `SQ -> "SQ" | `WSegSpace -> "WSegSpace" | `XX -> "XX" | `ZWJ -> "ZWJ"
   end
 
 (* Sentence break *)
