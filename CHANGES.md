@@ -1,3 +1,5 @@
+v11.0.0 2018-06-06 Zürich
+-------------------------
 
 - Unicode 11.0.0 support.
 - Add support for the Join_Control property (`Uucp.Func.is_join_control`)
