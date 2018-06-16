@@ -1,0 +1,7 @@
+description = "RFC 1035 Domain names - used on the Internet"
+version = "%%VERSION_NUM%%"
+requires = "fmt astring"
+archive(byte) = "domain-name.cma"
+archive(native) = "domain-name.cmxa"
+plugin(byte) = "domain-name.cma"
+plugin(native) = "domain-name.cmxs"
