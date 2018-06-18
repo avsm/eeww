@@ -11,9 +11,7 @@ license: ["ISC"]
 tags: ["os" "system" "cli" "command" "file" "path" "log" "unix"
        "org:erratique"]
 depends: ["ocaml" {>= "4.08.0"}
-          "ocamlfind" {build}
-          "ocamlbuild" {build}
-          "topkg" {build & >= "1.0.3"}
+          "dune" {>= "3.4"}
           "base-unix"
           "rresult" {>= "0.7.0"}
           "astring"
@@ -21,7 +19,7 @@ depends: ["ocaml" {>= "4.08.0"}
           "fmt" {>= "0.8.10"}
           "logs"
           "mtime" {with-test}]
-build: [["ocaml" "pkg/pkg.ml" "build" "--dev-pkg" "%{dev}%"]]
+build: [[ "dune" "build" "-p" name ]]
 description: """
 Bos provides support for basic and robust interaction with the
 operating system in OCaml. It has functions to access the process
