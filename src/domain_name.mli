@@ -107,7 +107,13 @@ val compare_sub : string -> string -> int
 
 (** {2 Collections} *)
 
-module Map : Map.S with type key = t
+module Map : sig
+  include Map.S with type key = t
+
+  (** [find key t] is [Some a] where a is the binding of [key] in [t]. [None] if
+      the [key] is not present. *)
+  val find : key -> 'a t -> 'a option
+end
 (** The module of a domain name map *)
 
 module Set : Set.S with type elt = t

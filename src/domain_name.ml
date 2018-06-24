@@ -166,5 +166,10 @@ end
 
 type t = s
 
-module Map = Map.Make(Ordered)
+module Map = struct
+  include Map.Make(Ordered)
+
+  let find k m = try Some (find k m) with Not_found -> None
+end
+
 module Set = Set.Make(Ordered)
