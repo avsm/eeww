@@ -73,7 +73,8 @@ val shift_right_logical: t -> int -> t
    of [x]/ The result is unspecified if [y < 0] or [y >= (32 || 63)]. *)
 
 val of_int: int -> t
-(** Convert the given integer (type [int]) to {!t}. *)
+(** Convert the given integer (type [int]) to {!t}. It's an unsafe function
+   whose semantic is different from architecture. *)
 
 val to_int: t -> int
 (** Convert the given {!t} integer to an integer (type [int]). On 64-bit
@@ -82,7 +83,8 @@ val to_int: t -> int
    conversion. *)
 
 val of_int32: int32 -> t
-(** Convert the given 32-bit integer (type [int32]) to {!t} integer. *)
+(** Convert the given 32-bit integer (type [int32]) to {!t} integer. It's an
+   unsafe function whose semantic is different from architecture. *)
 
 val to_int32: t -> int32
 (** Convert the given {!t} integer to a 32-bits integer. *)
