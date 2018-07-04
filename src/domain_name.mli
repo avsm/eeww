@@ -25,7 +25,8 @@ val of_string : ?hostname:bool -> string -> (t, [> `Msg of string ]) result
 (** [of_string ~hostname name] is either [t], the domain name, or an error if
     the provided [name] is not a valid domain name.  If [hostname] is provided
     and [true] (the default), the contents is additionally checked for being a
-    valid hostname using {!is_hostname}. *)
+    valid hostname using {!is_hostname}.  A potential trailing '.' is ignored,
+    [equal (of_string_exn "example.com") (of_string_exn "example.com.") = true] *)
 
 val of_string_exn : ?hostname:bool -> string -> t
 (** [of_string_exn ~hostname name] is [t], the domain name.  If [hostname] is
@@ -125,7 +126,8 @@ val of_strings : ?hostname:bool -> string list -> (t, [> `Msg of string ]) resul
 (** [of_strings ~hostname labels] is either [t], a domain name, or an error if
     the provided [labels] violate domain name constraints.  If [hostname] is
     provided and [true] (the default), the labels are additionally checked for
-    being a valid hostname using {!is_hostname}. *)
+    being a valid hostname using {!is_hostname}.  A potential trailing empty
+    label is ignored. *)
 
 val of_strings_exn : ?hostname:bool -> string list -> t
 (** [of_strings_exn ~hostname labels] is [t], a domain name.

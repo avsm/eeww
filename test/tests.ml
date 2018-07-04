@@ -50,6 +50,18 @@ let basic_name () =
   Alcotest.(check p_name "of_array 'foo.bar' is good"
               (n_of_s "foo.bar") (Domain_name.of_array [| "bar" ; "foo" |]))
 
+let fqdn () =
+  Alcotest.(check bool "of_string_exn example.com = of_string_exn example.com."
+              true
+              Domain_name.(equal
+                             (of_string_exn "example.com")
+                             (of_string_exn "example.com."))) ;
+  Alcotest.(check bool "of_strings_exn ['example' ; 'com'] = of_strings_exn ['example' ; 'com' ; '']"
+              true
+              Domain_name.(equal
+                             (of_strings_exn [ "example" ; "com" ])
+                             (of_strings_exn [ "example" ; "com" ; "" ])))
+
 let drop_labels () =
   let res = Domain_name.of_string_exn "foo.com" in
   Alcotest.(check p_name "dropping 1 label from www.foo.com is foo.com"
@@ -68,6 +80,7 @@ let drop_labels () =
 let tests = [
   "basic predicates", `Quick, basic_preds ;
   "basic name stuff", `Quick, basic_name ;
+  "fqdn", `Quick, fqdn ;
   "drop labels", `Quick, drop_labels ;
 ]
 

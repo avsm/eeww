@@ -92,7 +92,13 @@ let drop_labels ?back ?amount t =
   | Invalid_argument _ -> Error (`Msg "couldn't drop labels")
 
 let of_strings_exn ?(hostname = true) xs =
-  let t = Array.of_list (List.rev xs) in
+  let labels =
+    (* we support both example.com. and example.com *)
+    match List.rev xs with
+    | ""::rst -> rst
+    | rst -> rst
+  in
+  let t = Array.of_list labels in
   if check hostname t then t
   else invalid_arg "invalid host name"
 

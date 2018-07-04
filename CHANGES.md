@@ -1,5 +1,7 @@
 ## master
 
+* support for FQDN with trailing dot: `of_string "example.com."` now returns
+  `Ok`, and is equal to `of_string "example.com"`
 * fix and add tests for `drop_labels` and `drop_labels_exn`, where the semantics
   of the labeled `back` argument was inversed.
 
