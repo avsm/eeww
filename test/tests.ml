@@ -50,10 +50,27 @@ let basic_name () =
   Alcotest.(check p_name "of_array 'foo.bar' is good"
               (n_of_s "foo.bar") (Domain_name.of_array [| "bar" ; "foo" |]))
 
+let drop_labels () =
+  let res = Domain_name.of_string_exn "foo.com" in
+  Alcotest.(check p_name "dropping 1 label from www.foo.com is foo.com"
+              res
+              (Domain_name.drop_labels_exn (Domain_name.of_string_exn "www.foo.com"))) ;
+  Alcotest.(check p_name "dropping 2 labels from www.bar.foo.com is foo.com"
+              res
+              (Domain_name.drop_labels_exn ~amount:2 (Domain_name.of_string_exn "www.bar.foo.com"))) ;
+  Alcotest.(check p_name "dropping 1 label from the back www.foo.com is www.foo"
+              (Domain_name.of_string_exn "www.foo")
+              (Domain_name.drop_labels_exn ~back:true (Domain_name.of_string_exn "www.foo.com"))) ;
+  Alcotest.(check p_name "prepending 1 and dropping 1 label from foo.com is foo.com"
+              res
+              (Domain_name.drop_labels_exn (Domain_name.prepend_exn (Domain_name.of_string_exn "foo.com") "www")))
+
 let tests = [
   "basic predicates", `Quick, basic_preds ;
   "basic name stuff", `Quick, basic_name ;
+  "drop labels", `Quick, drop_labels ;
 ]
+
 let suites = [
   "domain names", tests ;
 ]

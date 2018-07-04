@@ -83,7 +83,7 @@ let prepend ?hostname xs lbl =
 
 let drop_labels_exn ?(back = false) ?(amount = 1) t =
   let len = Array.length t - amount
-  and start = if back then 0 else amount
+  and start = if back then amount else 0
   in
   Array.sub t start len
 
