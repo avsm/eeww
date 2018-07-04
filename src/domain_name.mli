@@ -6,7 +6,10 @@ type t
     charactes.  The total length of a domain name is limited to 253 (byte
     representation is 255), but other protocols (such as SMTP) may apply even
     smaller limits.  A domain name label is case preserving, comparison is done
-    in a case insensitive manner.
+    in a case insensitive manner.  Every [t] is a fully qualified domain name,
+    its last label is the [root] label.  Input ([of_string]) does not require
+    a trailing dot ([of_strings] does not require a trailing empty string).
+    Output ([to_string], [pp]) omit the trailing dot.
 
     The invariants on the length of domain names are preserved throughout the
     module - no [t] will exist which violates these.
