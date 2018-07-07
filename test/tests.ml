@@ -35,7 +35,19 @@ let case () =
               (Domain_name.equal ~case_sensitive:true
                  (n_of_s "foo123.com") (n_of_s "Foo123.com"))) ;
   Alcotest.(check bool "foo-123.com and com are not equal" false
-              (Domain_name.equal (n_of_s "foo-123.com") (n_of_s "com")))
+              (Domain_name.equal (n_of_s "foo-123.com") (n_of_s "com"))) ;
+  Alcotest.(check bool "foo123.com and Foo123.com are equal if case _and_ canonical used on second"
+              true
+              Domain_name.(equal ~case_sensitive:true
+                 (n_of_s "foo123.com") (canonical (n_of_s "Foo123.com")))) ;
+  Alcotest.(check bool "foo123.com and Foo123.com are not equal if case _and_ canonical used on first"
+              false
+              Domain_name.(equal ~case_sensitive:true
+                 (canonical (n_of_s "foo123.com")) (n_of_s "Foo123.com"))) ;
+  Alcotest.(check bool "foo123.com and Foo123.com are equal if case _and_ canonical used on both"
+              true
+              Domain_name.(equal ~case_sensitive:true
+                 (canonical (n_of_s "foo123.com")) (canonical (n_of_s "Foo123.com"))))
 
 
 let p_msg =
