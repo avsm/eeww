@@ -1,4 +1,4 @@
-## master
+## 0.1.1 (2018-07-07)
 
 * `to_string` and `to_strings` now have an optional labeled `trailing` argument
   of type bool
