@@ -7,15 +7,19 @@ type t
     representation is 255), but other protocols (such as SMTP) may apply even
     smaller limits.  A domain name label is case preserving, comparison is done
     in a case insensitive manner.  Every [t] is a fully qualified domain name,
-    its last label is the [root] label.  Input ([of_string]) does not require
-    a trailing dot ([of_strings] does not require a trailing empty string).
-    Output ([to_string], [pp]) omit the trailing dot.
+    its last label is the [root] label.
 
     The invariants on the length of domain names are preserved throughout the
     module - no [t] will exist which violates these.
 
     The specification of domain names originates from
-    {{:https://tools.ietf.org/html/rfc1035}RFC 1035}. *)
+    {{:https://tools.ietf.org/html/rfc1035}RFC 1035}.
+
+    Constructing a [t] (via [of_string], [of_string_exn], [of_strings]) does
+    not require a trailing dot.
+
+    {e %%VERSION%% - {{:%%PKG_HOMEPAGE%% }homepage}}
+*)
 
 (** {2 Constructor} *)
 
@@ -28,19 +32,21 @@ val of_string : ?hostname:bool -> string -> (t, [> `Msg of string ]) result
 (** [of_string ~hostname name] is either [t], the domain name, or an error if
     the provided [name] is not a valid domain name.  If [hostname] is provided
     and [true] (the default), the contents is additionally checked for being a
-    valid hostname using {!is_hostname}.  A potential trailing '.' is ignored,
-    [equal (of_string_exn "example.com") (of_string_exn "example.com.") = true] *)
+    valid hostname using {!is_hostname}.  A trailing dot is not requred. *)
 
 val of_string_exn : ?hostname:bool -> string -> t
 (** [of_string_exn ~hostname name] is [t], the domain name.  If [hostname] is
     provided and [true] (the default), the contents is additionally checked for
-    being a valid hostname using {!is_hostname}.
+    being a valid hostname using {!is_hostname}.  A trailing dot is not
+    required.
 
     @raise Invalid_argument if [name] is not a valid domain name. *)
 
-val to_string : t -> string
-(** [to_string t] is [String.concat ~sep:"." (to_strings t)], a human-readable
-    representation of [t]. *)
+val to_string : ?trailing:bool -> t -> string
+(** [to_string ~trailing t] is [String.concat ~sep:"." (to_strings t)], a
+    human-readable representation of [t].  If [trailing] is provided and
+    [true] (defaults to [false]), the resulting string will contain a trailing
+    dot. *)
 
 (** {2 Predicates and basic operations} *)
 
@@ -129,19 +135,22 @@ val of_strings : ?hostname:bool -> string list -> (t, [> `Msg of string ]) resul
 (** [of_strings ~hostname labels] is either [t], a domain name, or an error if
     the provided [labels] violate domain name constraints.  If [hostname] is
     provided and [true] (the default), the labels are additionally checked for
-    being a valid hostname using {!is_hostname}.  A potential trailing empty
-    label is ignored. *)
+    being a valid hostname using {!is_hostname}.  A trailing empty
+    label is not required. *)
 
 val of_strings_exn : ?hostname:bool -> string list -> t
-(** [of_strings_exn ~hostname labels] is [t], a domain name.
+(** [of_strings_exn ~hostname labels] is [t], a domain name.  A trailing empty
+    label is not required.
 
     @raise Invalid_argument if [labels] are not a valid domain name. If
     [hostname] is provided and [true] (the default), the labels are
     additionally checked for being a valid hostname using
     {!is_hostname}. *)
 
-val to_strings : t -> string list
-(** [to_strings t] is the list of labels of [t]. *)
+val to_strings : ?trailing:bool -> t -> string list
+(** [to_strings ~trailing t] is the list of labels of [t].  If [trailing] is
+    provided and [true] (defaults to [false]), the resulting list will contain
+    a trailing empty label. *)
 
 (** {2 Pretty printer} *)
 

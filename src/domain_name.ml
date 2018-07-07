@@ -116,9 +116,11 @@ let of_array a = a
 
 let to_array a = a
 
-let to_strings dn = List.rev (Array.to_list dn)
+let to_strings ?(trailing = false) dn =
+  let labels = Array.to_list dn in
+  List.rev (if trailing then "" :: labels else labels)
 
-let to_string dn = String.concat ~sep:"." (to_strings dn)
+let to_string ?trailing dn = String.concat ~sep:"." (to_strings ?trailing dn)
 
 let canonical t =
   let str = to_string t in

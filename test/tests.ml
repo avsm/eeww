@@ -22,7 +22,21 @@ let basic_preds () =
   Alcotest.(check bool "_xmpp-server-server._tcp.foo is no service" false
               (Domain_name.is_service (n_of_s ~hostname:false "_xmpp_server-server._tcp.foo"))) ;
   Alcotest.(check bool "foo is no subdomain of foo.bar" false
-              (Domain_name.sub ~subdomain:(n_of_s "foo") ~domain:(n_of_s "foo.bar")))
+              (Domain_name.sub ~subdomain:(n_of_s "foo") ~domain:(n_of_s "foo.bar"))) ;
+  Alcotest.(check bool "foo is a subdomain of foo" true
+              (Domain_name.sub ~subdomain:(n_of_s "foo") ~domain:(n_of_s "foo"))) ;
+  Alcotest.(check bool "bar.foo is a subdomain of foo" true
+              (Domain_name.sub ~subdomain:(n_of_s "bar.foo") ~domain:(n_of_s "foo")))
+
+let case () =
+  Alcotest.(check bool "foo123.com and Foo123.com are equal" true
+              (Domain_name.equal (n_of_s "foo123.com") (n_of_s "Foo123.com"))) ;
+  Alcotest.(check bool "foo123.com and Foo123.com are not equal if case" false
+              (Domain_name.equal ~case_sensitive:true
+                 (n_of_s "foo123.com") (n_of_s "Foo123.com"))) ;
+  Alcotest.(check bool "foo-123.com and com are not equal" false
+              (Domain_name.equal (n_of_s "foo-123.com") (n_of_s "com")))
+
 
 let p_msg =
   let module M = struct
@@ -53,17 +67,22 @@ let basic_name () =
 let fqdn () =
   Alcotest.(check bool "of_string_exn example.com = of_string_exn example.com."
               true
-              Domain_name.(equal
-                             (of_string_exn "example.com")
-                             (of_string_exn "example.com."))) ;
+              (Domain_name.equal (n_of_s "example.com") (n_of_s "example.com."))) ;
   Alcotest.(check bool "of_strings_exn ['example' ; 'com'] = of_strings_exn ['example' ; 'com' ; '']"
               true
               Domain_name.(equal
                              (of_strings_exn [ "example" ; "com" ])
                              (of_strings_exn [ "example" ; "com" ; "" ])))
 
+let fqdn_around () =
+  let d = n_of_s "foo.com." in
+  Alcotest.(check bool "of_string (to_string (of_string 'foo.com.')) works"
+              true Domain_name.(equal d (of_string_exn (to_string d)))) ;
+  Alcotest.(check bool "of_string (to_string ~trailing:true (of_string 'foo.com.')) works"
+              true Domain_name.(equal d (of_string_exn (to_string ~trailing:true d))))
+
 let drop_labels () =
-  let res = Domain_name.of_string_exn "foo.com" in
+  let res = n_of_s "foo.com" in
   Alcotest.(check p_name "dropping 1 label from www.foo.com is foo.com"
               res
               (Domain_name.drop_labels_exn (Domain_name.of_string_exn "www.foo.com"))) ;
@@ -75,12 +94,21 @@ let drop_labels () =
               (Domain_name.drop_labels_exn ~back:true (Domain_name.of_string_exn "www.foo.com"))) ;
   Alcotest.(check p_name "prepending 1 and dropping 1 label from foo.com is foo.com"
               res
-              (Domain_name.drop_labels_exn (Domain_name.prepend_exn (Domain_name.of_string_exn "foo.com") "www")))
+              (Domain_name.drop_labels_exn (Domain_name.prepend_exn (Domain_name.of_string_exn "foo.com") "www"))) ;
+  Alcotest.(check p_name "prepending 1 and dropping 1 label from foo.com is foo.com"
+              res
+              (Domain_name.drop_labels_exn (Domain_name.prepend_exn (Domain_name.of_string_exn "foo.com") "www"))) ;
+  Alcotest.(check (result p_name p_msg)
+              "dropping 10 labels from foo.com leads to error"
+              (Error (`Msg ""))
+              (Domain_name.drop_labels ~amount:10 (Domain_name.of_string_exn "foo.com")))
 
 let tests = [
   "basic predicates", `Quick, basic_preds ;
   "basic name stuff", `Quick, basic_name ;
+  "case", `Quick, case ;
   "fqdn", `Quick, fqdn ;
+  "fqdn around", `Quick, fqdn_around ;
   "drop labels", `Quick, drop_labels ;
 ]
 
