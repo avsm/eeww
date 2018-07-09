@@ -1,3 +1,7 @@
+### v1.5.0 (2018-07-09)
+  
+* remove Result module, work with `-safe-string` and require cstruct >=3.2.0
+
 ### v1.4.0 (2017-06-23)
 
 * mirage-flow-unix: add `Mirage_flow_unix.Fd` to wrap `Lwt_unix.file_descr` into
