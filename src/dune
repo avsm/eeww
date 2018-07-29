@@ -1,3 +1,4 @@
 (library
+   (wrapped false)
    (name stdlib_shims)
    (public_name stdlib_shims))
