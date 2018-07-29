@@ -1,0 +1,12 @@
+opam-version: "1.2"
+maintainer: "The stdlib-shims programmers"
+authors: "The stdlib-shims programmers"
+homepage: "http://ocaml.org"
+doc: "https://ocaml.github.io/stdlib-shims/"
+dev-repo: "https://github.com/ocaml/uchar.git"
+bug-reports: "https://github.com/ocaml/uchar/issues"
+tags: ["stdlib" "compatibility" "org:ocaml"]
+license: ["typeof OCaml system"]
+available: [ ocaml-version >= "4.03.0" ]
+depends: ["dune"]
+build: [ "dune" "build" "-p" name ]
