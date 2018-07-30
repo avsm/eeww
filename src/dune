@@ -1,4 +1,22 @@
+(* -*- tuareg -*- *)
+
+open Jbuild_plugin.V1
+
+let version = Scanf.sscanf ocaml_version "%u.%u" (fun a b -> (a, b))
+
+let modules =
+  [ "uchar", (4, 03)
+  ]
+
+let modules =
+  List.filter (fun (_, v) -> version < v) modules
+  |> List.map fst
+
+let () =
+  Printf.ksprintf send {|
 (library
    (wrapped false)
    (name stdlib_shims)
-   (public_name stdlib_shims))
+   (public_name stdlib_shims)
+   (modules %s))
+|} (String.concat " " modules)

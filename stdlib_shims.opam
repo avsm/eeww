@@ -7,6 +7,6 @@ dev-repo: "https://github.com/ocaml/uchar.git"
 bug-reports: "https://github.com/ocaml/uchar/issues"
 tags: ["stdlib" "compatibility" "org:ocaml"]
 license: ["typeof OCaml system"]
-available: [ ocaml-version >= "4.03.0" ]
+available: [ ocaml-version >= "4.02.3" ]
 depends: ["dune"]
 build: [ "dune" "build" "-p" name ]
