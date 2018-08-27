@@ -52,6 +52,7 @@ let modules_in_4_02 =
 
 let modules_post_4_02 =
   [ "Uchar", (4, 03)
+  ; "Seq", (4, 07)
   ; "Stdlib", (4, 07)
   ]
 
