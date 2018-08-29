@@ -1,16 +1,72 @@
 (* -*- tuareg -*- *)
 
+open StdLabels
 open Jbuild_plugin.V1
 
 let version = Scanf.sscanf ocaml_version "%u.%u" (fun a b -> (a, b))
 
-let modules =
-  [ "uchar", (4, 03)
+let modules_in_4_02 =
+  [ "Arg"
+  ; "Array"
+  ; "ArrayLabels"
+  ; "Buffer"
+  ; "Bytes"
+  ; "BytesLabels"
+  ; "Callback"
+  ; "Char"
+  ; "Complex"
+  ; "Digest"
+  ; "Filename"
+  ; "Format"
+  ; "Gc"
+  ; "Genlex"
+  ; "Hashtbl"
+  ; "Int32"
+  ; "Int64"
+  ; "Lazy"
+  ; "Lexing"
+  ; "List"
+  ; "ListLabels"
+  ; "Map"
+  ; "Marshal"
+  ; "MoreLabels"
+  ; "Nativeint"
+  ; "Obj"
+  ; "Oo"
+  ; "Parsing"
+  ; "Pervasives"
+  ; "Printexc"
+  ; "Printf"
+  ; "Queue"
+  ; "Random"
+  ; "Scanf"
+  ; "Set"
+  ; "Stack"
+  ; "StdLabels"
+  ; "Stream"
+  ; "String"
+  ; "StringLabels"
+  ; "Sys"
+  ; "Weak"
   ]
 
-let modules =
-  List.filter (fun (_, v) -> version < v) modules
-  |> List.map fst
+let modules_post_4_02 =
+  [ "Uchar", (4, 03)
+  ; "Stdlib", (4, 07)
+  ]
+
+let missing_modules =
+  List.filter modules_post_4_02 ~f:(fun (_, v) -> version < v)
+  |> List.map ~f:fst
+
+let all_modules_except_stdlib =
+  (modules_in_4_02 @ List.map modules_post_4_02 ~f:fst)
+  |> List.filter ~f:((<>) "Stdlib")
+  |> List.sort ~cmp:String.compare
+
+let longest_module_name =
+  List.fold_left all_modules_except_stdlib ~init:0
+    ~f:(fun acc m -> max acc (String.length m))
 
 let () =
   Printf.ksprintf send {|
@@ -19,4 +75,15 @@ let () =
    (name stdlib_shims)
    (public_name stdlib_shims)
    (modules %s))
-|} (String.concat " " modules)
+
+(rule
+ (with-stdout-to stdlib.ml
+  (echo "\
+%s
+
+include Pervasives
+")))
+|} (String.concat ~sep:" " missing_modules)
+    (List.map all_modules_except_stdlib
+       ~f:(fun m -> Printf.sprintf "module %-*s = %s" longest_module_name m m)
+     |> String.concat ~sep:"\n")
