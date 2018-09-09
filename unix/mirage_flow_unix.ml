@@ -15,7 +15,6 @@
  *)
 
 open Lwt.Infix
-open Result
 
 let src = Logs.Src.create "mirage-flow-unix"
 module Log = (val Logs.src_log src : Logs.LOG)
