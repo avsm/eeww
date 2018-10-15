@@ -8,12 +8,11 @@ dev-repo:     "https://github.com/dinosaure/optint.git"
 doc:          "https://dinosaure.github.io/optint/"
 
 build: [
-  ["dune" "subst"] {pinned}
+  ["dune" "subst"]
   ["dune" "build" "-p" name "-j" jobs]
 ]
-build-test: ["dune" "runtest" "-p" name]
 
 depends: [
-  "dune"
+  "dune" {build}
 ]
 available: [ocaml-version >= "4.03.0"]
