@@ -1,6 +1,7 @@
 (rule
  (targets optint.ml)
- (deps    (:select select/select.ml))
+ (deps    (:select select/select.ml)
+          int_x64_backend.ml int_x86_backend.ml)
  (action  (run %{ocaml} %{select}
             --x64 %{arch_sixtyfour} -o %{targets})))
 
