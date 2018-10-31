@@ -6,14 +6,14 @@ external to_int32 : t -> int32 = "%identity"
 let pp ppf (x:t) = Format.fprintf ppf "%ld" x
 
 module Infix = struct
-  let ( + ) = add
-  let ( - ) = sub
-  let ( * ) = mul
-  let ( % ) = rem
-  let ( / ) = div
+  let ( + ) a b = add a b
+  let ( - ) a b = sub a b
+  let ( * ) a b = mul a b
+  let ( % ) a b = rem a b
+  let ( / ) a b = div a b
 
-  let ( && ) = logand
-  let ( || ) = logor
-  let ( >> ) = shift_right
-  let ( << ) = shift_left
+  let ( && ) a b = logand a b
+  let ( || ) a b = logor a b
+  let ( >> ) a b = shift_right a b
+  let ( << ) a b = shift_left a b
 end
