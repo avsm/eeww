@@ -23,27 +23,27 @@ let shift_right a n = a lsr n
 let shift_right_logical a n = a asr n
 external of_int : int -> t = "%identity"
 external to_int : t -> int = "%identity"
-let of_int32 = Int32.to_int
-let to_int32 = Int32.of_int
-let of_float = int_of_float
-let to_float = float_of_int
-let of_string = int_of_string
-let of_string_opt x = try Some (of_string x) with Failure _ -> None
-let to_string = string_of_int
+let of_int32 x = Int32.to_int x
+let to_int32 x = (* allocation *) Int32.of_int x
+let of_float x = int_of_float x
+let to_float x = (* allocation *) float_of_int x
+let of_string x = int_of_string x
+let of_string_opt x = try (* allocation *) Some (of_string x) with Failure _ -> None
+let to_string x = string_of_int x
 let compare : int -> int -> int = fun a b -> a - b
 let equal : int -> int -> bool = fun a b -> a = b
 
 let pp ppf (x:t) = Format.fprintf ppf "%d" x
 
 module Infix = struct
-  let ( + ) = add
-  let ( - ) = sub
-  let ( * ) = mul
-  let ( % ) = rem
-  let ( / ) = div
+  let ( + ) a b = add a b
+  let ( - ) a b = sub a b
+  let ( * ) a b = mul a b
+  let ( % ) a b = rem a b
+  let ( / ) a b = div a b
 
-  let ( && ) = logand
-  let ( || ) = logor
-  let ( >> ) = shift_right
-  let ( << ) = shift_left
+  let ( && ) a b = logand a b
+  let ( || ) a b = logor a b
+  let ( >> ) a b = shift_right a b
+  let ( << ) a b = shift_left a b
 end
