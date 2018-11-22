@@ -29,7 +29,7 @@ let () =
     load_file (if is_x64 then "int_x64_backend.ml" else "int_x86_backend.ml")
   in
   let contents_mli =
-    load_file (if is_x64 then "int_x64_backend.mli" else "inx_x86_backend.mli")
+    load_file (if is_x64 then "int_x64_backend.mli" else "int_x86_backend.mli")
   in
   store_file (output ^ ".ml") contents_ml ;
   store_file (output ^ ".mli") contents_mli
