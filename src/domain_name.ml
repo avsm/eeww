@@ -29,18 +29,17 @@ let check_service_label s =
     else
       let slen = String.length srv in
       if slen > 0 && slen <= 15 then
-        (* service must be LDH, at least one alpha char
+        (* service must be LDH,
            hyphen _not_ at begin nor end, no hyphen following a hyphen
            1-15 characters *)
-        let v, a, _ = String.fold_left (fun (valid, alp, h) c ->
-            let alpha = Char.Ascii.is_letter c in
+        let v, _ = String.fold_left (fun (valid, h) c ->
             let h' = c = '-' in
-            let v = alpha || Char.Ascii.is_digit c || h' in
+            let v = Char.Ascii.(is_letter c || is_digit c) || h' in
             let hh = not (h && h') in
-            (v && valid && hh, alp || alpha, h'))
-            (true, false, false) srv
+            (v && valid && hh, h'))
+            (true, false) srv
         in
-        v && a && String.get srv 0 <> '-' && String.get srv (pred slen) <> '-'
+        v && String.get srv 0 <> '-' && String.get srv (pred slen) <> '-'
       else
         false
 
