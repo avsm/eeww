@@ -21,6 +21,8 @@ let basic_preds () =
               (Domain_name.is_service (n_of_s ~hostname:false "_xmpp_server._tcp.foo"))) ;
   Alcotest.(check bool "_xmpp-server-server._tcp.foo is no service" false
               (Domain_name.is_service (n_of_s ~hostname:false "_xmpp_server-server._tcp.foo"))) ;
+  Alcotest.(check bool "_443._tcp.foo is a service" true
+              (Domain_name.is_service (n_of_s ~hostname:false "_443._tcp.foo"))) ;
   Alcotest.(check bool "foo is no subdomain of foo.bar" false
               (Domain_name.sub ~subdomain:(n_of_s "foo") ~domain:(n_of_s "foo.bar"))) ;
   Alcotest.(check bool "foo is a subdomain of foo" true

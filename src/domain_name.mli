@@ -60,13 +60,17 @@ val is_hostname : t -> bool
     digits, letters, or hyphens. *)
 
 val is_service : t -> bool
-(** [is_service t] is [true] if [t] is a service label: the first label is a
-    service name (containing of letters, digits, hyphens) prefixed with "_".
-    The service name may not contain a hyphen following another hyphen, no hypen
-    at the beginning or end, and must contain at least one letter.  The total
-    length must be between 1 and at most 15 characters.  The second label is the
-    protocol, prefixed by "_" (at the moment, tcp, udp, or sctp), and the
-    remaining must be a host name. *)
+(** [is_service t] is [true] if [t] contains a service label - if:
+    The first label is a service name (or port number); an underscore preceding
+    1-15 characters from the set [- a-z A-Z 0-9].
+    The service name may not contain a hyphen ([-]) following another hyphen;
+    no hyphen at the beginning or end.
+
+    The second label is the protocol, one of [_tcp], [_udp], or [_sctp].
+    The remaining labels must form a valid hostname.
+
+    This function can be used to validate RR's of the types SRV (RFC 2782)
+    and TLSA (RFC 7671). *)
 
 val sub : subdomain:t -> domain:t -> bool
 (** [sub ~subdomain ~domain] is [true] if [subdomain] contains any labels
