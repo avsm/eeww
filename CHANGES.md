@@ -1,3 +1,12 @@
+v1.1.1 2018-12-21
+-----------------
+
+* Port build to Dune and fix the embedded compilation when
+  the repository is included as a subdirectory in a larger
+  Dune build.
+* Update opam metadata to 2.0 format.
+* Switch to using `dune-release` instead of `topkg` for releases.
+
 v1.1.0 2017-06-20
 -----------------
 
