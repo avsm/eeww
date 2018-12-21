@@ -20,7 +20,7 @@ maintainer: "Anil Madhavapeddy <anil@recoil.org>"
 authors: ["Anil Madhavapeddy" "Maxence Guesdon"]
 license: "ISC"
 homepage: "https://github.com/mirage/ocaml-magic-mime"
-doc: "https://mirage.github.io/ocaml-magic-mime"
+doc: "https://mirage.github.io/ocaml-magic-mime/"
 bug-reports: "https://github.com/mirage/ocaml-magic-mime/issues"
 dev-repo: "git+https://github.com/mirage/ocaml-magic-mime.git"
 depends: [
