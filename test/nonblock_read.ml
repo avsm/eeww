@@ -4,7 +4,7 @@ open Lwt_unix
 
 let test devname =
   printf "open %s: " devname;
-  let fd, name =
+  let fd, _name =
     if String.sub devname 0 3 = "tun"
     then Tuntap.opentun ~devname ()
     else Tuntap.opentap ~devname () in

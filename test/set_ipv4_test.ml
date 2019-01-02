@@ -3,7 +3,7 @@ open OUnit2
 
 open Ipaddr
 
-let test_setipv4 ipv4 netmask ctx =
+let test_setipv4 ipv4 netmask _ctx =
   let ipv4 = V4.of_string_exn ipv4 in
   let netmask = V4.Prefix.make netmask ipv4 in
   let fd, devname = opentap ~devname:"tap0" () in
