@@ -14,6 +14,6 @@ x64 architecture where you can use directly an `int` instead an `int32` (and
 improve performance).
 
 So, this library provide an abstraction about a real `int32`. In a x64
-architecture, internally, we use a `int` and in a x86 architure, we use a
+architecture, internally, we use a `int` and in a x86 architecture, we use a
 `int32`. By this way, we ensure to have in any platform 32 free bits in
 `Optint.t`.
