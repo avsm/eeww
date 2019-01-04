@@ -30,7 +30,7 @@ let t () =
   |(-1) -> printf "error\n"; exit 1
   |0 -> (* child *)
      close psock >>= fun () -> child csock
-  |pid -> (* parent *)
+  |_pid -> (* parent *)
      close csock >>= fun () -> parent psock
 
 let () = Lwt_main.run (sleep 0.1 >>= t)

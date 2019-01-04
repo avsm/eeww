@@ -1,7 +1,0 @@
-(jbuild_version 1)
-(library
- ((name        tuntap)
-  (public_name tuntap)
-  (libraries   (ipaddr))
-  (c_names   (tuntap_stubs))
-  (flags (:standard -safe-string))))
