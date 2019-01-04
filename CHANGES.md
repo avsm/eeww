@@ -2,9 +2,9 @@
 
 * Do not specify `ipv4:false` for the conversion function for IP addresses.
   This supports the ipaddr.3.0.0+ interface (#29 by @hannesm)
-* Port build from Jbuilder to Dune (@avsm)
-* Add tests in Travis fro OCaml 4.07 (@avsm)
-* Update opam metadata to 2.0 format (@avsm)
+* Port build from Jbuilder to Dune (#30 by @avsm)
+* Add tests in Travis for OCaml 4.07 (#30 by @avsm)
+* Update opam metadata to 2.0 format (#30 by @avsm)
 
 ## v1.6.1 2018-05-17
 
