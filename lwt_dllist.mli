@@ -1,9 +1,8 @@
-(* This file is part of Lwt, released under the MIT license. See LICENSE.md for
-   details, or visit https://github.com/ocsigen/lwt/blob/master/LICENSE.md. *)
+(* This file is formerly part of Lwt, released under the MIT license.
+ * See LICENSE.md for details, or visit
+ * https://github.com/ocsigen/lwt/blob/master/LICENSE.md. *)
 
-
-
-(** Mutable sequence of elements (deprecated) *)
+(** Mutable double-linked list of elements *)
 
 (** A sequence is an object holding a list of elements which support
     the following operations:
@@ -12,15 +11,7 @@
     - taking an element from the left or the right in time and space O(1)
     - removing a previously added element from a sequence in time and space O(1)
     - removing an element while the sequence is being transversed.
-
-   @deprecated This module should be an internal implementation detail of Lwt,
-   and may be removed from the API at some point in the future. Use any other
-   doubly-linked list library as an alternative.
 *)
-
-[@@@ocaml.deprecated
-" This module is an implementation detail of Lwt. See
-   https://github.com/ocsigen/lwt/issues/361"]
 
 type 'a t
   (** Type of a sequence holding values of type ['a] *)
