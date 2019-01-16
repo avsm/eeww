@@ -1,5 +1,5 @@
 (* Utility Module for S-expression Conversions *)
-
+let polymorphic_compare = compare
 open StdLabels
 open MoreLabels
 open Printf
@@ -12,7 +12,6 @@ type 'a sexp_array = 'a array
 type 'a sexp_opaque = 'a
 
 (* Conversion of OCaml-values to S-expressions *)
-
 external format_float : string -> float -> string = "caml_format_float"
 
 (* '%.17g' is guaranteed to be round-trippable.
@@ -94,7 +93,7 @@ module Exn_converter = struct
   module Int = struct
     type t = int
 
-    let compare t1 t2 = Pervasives.compare (t1 : int) t2
+    let compare t1 t2 = polymorphic_compare (t1 : int) t2
   end
 
   module Exn_ids = Map.Make (Int)
