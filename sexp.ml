@@ -49,15 +49,15 @@ module Printing = struct
   let must_escape str =
     let len = String.length str in
     len = 0 ||
-    let rec loop ix =
+    let rec loop str ix =
       match str.[ix] with
       | '"' | '(' | ')' | ';' | '\\' -> true
-      | '|' -> ix > 0 && let next = ix - 1 in Char.equal str.[next] '#' || loop next
-      | '#' -> ix > 0 && let next = ix - 1 in Char.equal str.[next] '|' || loop next
+      | '|' -> ix > 0 && let next = ix - 1 in Char.equal str.[next] '#' || loop str next
+      | '#' -> ix > 0 && let next = ix - 1 in Char.equal str.[next] '|' || loop str next
       | '\000' .. '\032' | '\127' .. '\255' -> true
-      | _ -> ix > 0 && loop (ix - 1)
+      | _ -> ix > 0 && loop str (ix - 1)
     in
-    loop (len - 1)
+    loop str (len - 1)
 
   let escaped s =
     let n = ref 0 in
