@@ -20,6 +20,7 @@ type kind = Tap | Tun
 external opentun_stub : string -> kind -> bool -> int
   -> int -> int -> Unix.file_descr * string = "tun_opendev_byte" "tun_opendev"
 external get_macaddr : string -> string = "get_macaddr"
+external get_mtu : string -> int = "get_mtu"
 external set_ipv4 : string -> string -> string -> unit = "set_ipv4"
 external set_up_and_running : string -> unit = "set_up_and_running"
 
