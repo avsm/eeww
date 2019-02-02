@@ -93,8 +93,6 @@ let unsafe_set_char (s:bigstring) off v =
 
 #include "common.ml"
 
-#if OCAML_VERSION >= (4, 01, 0)
-
 external unsafe_get_16 : bigstring -> int -> int = "%caml_bigstring_get16u"
 external unsafe_get_32 : bigstring -> int -> int32 = "%caml_bigstring_get32u"
 external unsafe_get_64 : bigstring -> int -> int64 = "%caml_bigstring_get64u"
@@ -112,9 +110,3 @@ external set_32 : bigstring -> int -> int32 -> unit = "%caml_bigstring_set32"
 external set_64 : bigstring -> int -> int64 -> unit = "%caml_bigstring_set64"
 
 #include "common_401.ml"
-
-#else
-
-#include "common_400.ml"
-
-#endif

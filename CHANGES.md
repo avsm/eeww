@@ -1,3 +1,11 @@
+1.2
+---
+
+* Port to Dune from jbuilder (@avsm)
+* Upgrade opam metadata to 2.0 format (@avsm)
+* Remove code for OCaml <4.01 support, as the minimum
+  supported version is now OCaml 4.02+ (@avsm)
+
 1.1
 ---------------
 

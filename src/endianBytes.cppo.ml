@@ -89,8 +89,6 @@ let unsafe_set_char (s:Bytes.t) off v =
 
 #include "common.ml"
 
-#if OCAML_VERSION >= (4, 01, 0)
-
 external unsafe_get_16 : Bytes.t -> int -> int = "%caml_string_get16u"
 external unsafe_get_32 : Bytes.t -> int -> int32 = "%caml_string_get32u"
 external unsafe_get_64 : Bytes.t -> int -> int64 = "%caml_string_get64u"
@@ -108,9 +106,3 @@ external set_32 : Bytes.t -> int -> int32 -> unit = "%caml_string_set32"
 external set_64 : Bytes.t -> int -> int64 -> unit = "%caml_string_set64"
 
 #include "common_401.ml"
-
-#else
-
-#include "common_400.ml"
-
-#endif

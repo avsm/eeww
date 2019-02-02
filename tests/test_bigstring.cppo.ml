@@ -1,17 +1,13 @@
 open Bigarray
 open EndianBigstring
 
+[@@@warning "-52-53"]
+
 module BE = BigEndian
 module LE = LittleEndian
-#if OCAML_VERSION >= (4, 00, 0)
 module NE = NativeEndian
-#endif
 
-#if OCAML_VERSION >= (4, 00, 0)
 let big_endian = Sys.big_endian
-#else
-(* Sys.big_endian is not available on ocaml <= 3.12 *)
-#endif
 
 let bigstring_of_string s =
   let a = Array1.create char c_layout (String.length s) in
@@ -83,7 +79,6 @@ let test2 () =
   assert( LE.get_uint16 s 1 = 0x0034 );
   assert( LE.get_uint16 s 2 = 0 );
 
-#if OCAML_VERSION >= (4, 00, 0)
   if big_endian then begin
     assert( BE.get_uint16 s 0 = NE.get_uint16 s 0 );
     assert( BE.get_uint16 s 1 = NE.get_uint16 s 1 );
@@ -94,7 +89,6 @@ let test2 () =
     assert( LE.get_uint16 s 1 = NE.get_uint16 s 1 );
     assert( LE.get_uint16 s 2 = NE.get_uint16 s 2 );
   end;
-#endif
 
   assert( BE.get_int16 s 0 = 0x1234 );
   assert( BE.get_int16 s 1 = 0x3400 );
@@ -109,7 +103,6 @@ let test2 () =
   assert( LE.get_uint16 s 1 = 0x00DC );
   assert( LE.get_uint16 s 2 = 0 );
 
-#if OCAML_VERSION >= (4, 00, 0)
   if big_endian then begin
     assert( BE.get_uint16 s 0 = NE.get_uint16 s 0 );
     assert( BE.get_uint16 s 1 = NE.get_uint16 s 1 );
@@ -120,13 +113,11 @@ let test2 () =
     assert( LE.get_uint16 s 1 = NE.get_uint16 s 1 );
     assert( LE.get_uint16 s 2 = NE.get_uint16 s 2 );
   end;
-#endif
 
   assert( BE.get_int16 s 0 = -292 );
   assert( BE.get_int16 s 1 = -9216 );
   assert( BE.get_int16 s 2 = 0 );
 
-#if OCAML_VERSION >= (4, 00, 0)
   if big_endian
   then begin
     NE.set_int16 s 0 0x1234;
@@ -134,14 +125,12 @@ let test2 () =
     assert( BE.get_uint16 s 1 = 0xDC00 );
     assert( BE.get_uint16 s 2 = 0 )
   end;
-#endif
 
   LE.set_int16 s 0 0x1234;
   assert( BE.get_uint16 s 0 = 0x3412 );
   assert( BE.get_uint16 s 1 = 0x1200 );
   assert( BE.get_uint16 s 2 = 0 );
 
-#if OCAML_VERSION >= (4, 00, 0)
   if not big_endian
   then begin
     NE.set_int16 s 0 0x1234;
@@ -149,7 +138,6 @@ let test2 () =
     assert( BE.get_uint16 s 1 = 0x1200 );
     assert( BE.get_uint16 s 2 = 0 )
   end;
-#endif
 
   LE.set_int16 s 0 0xFEDC;
   assert( LE.get_uint16 s 0 = 0xFEDC );
@@ -159,17 +147,14 @@ let test2 () =
   BE.set_int32 s 0 0x12345678l;
   assert( BE.get_int32 s 0 = 0x12345678l );
   assert( LE.get_int32 s 0 = 0x78563412l );
-#if OCAML_VERSION >= (4, 00, 0)
   if big_endian
   then assert( BE.get_int32 s 0 = NE.get_int32 s 0 )
   else assert( LE.get_int32 s 0 = NE.get_int32 s 0 );
-#endif
 
   LE.set_int32 s 0 0x12345678l;
   assert( LE.get_int32 s 0 = 0x12345678l );
   assert( BE.get_int32 s 0 = 0x78563412l );
 
-#if OCAML_VERSION >= (4, 00, 0)
   if big_endian
   then assert( BE.get_int32 s 0 = NE.get_int32 s 0 )
   else assert( LE.get_int32 s 0 = NE.get_int32 s 0 );
@@ -178,7 +163,6 @@ let test2 () =
   if big_endian
   then assert( BE.get_int32 s 0 = 0x12345678l )
   else assert( LE.get_int32 s 0 = 0x12345678l );
-#endif
 
   ()
 
@@ -187,17 +171,14 @@ let test_64 () =
   assert( BE.get_int64 s 0 = 0x1234567890ABCDEFL );
   assert( LE.get_int64 s 0 = 0xEFCDAB9078563412L );
 
-#if OCAML_VERSION >= (4, 00, 0)
   if big_endian
   then assert( BE.get_int64 s 0 = NE.get_int64 s 0 )
   else assert( LE.get_int64 s 0 = NE.get_int64 s 0 );
-#endif
 
   LE.set_int64 s 0 0x1234567890ABCDEFL;
   assert( LE.get_int64 s 0 = 0x1234567890ABCDEFL );
   assert( BE.get_int64 s 0 = 0xEFCDAB9078563412L );
 
-#if OCAML_VERSION >= (4, 00, 0)
   if big_endian
   then assert( BE.get_int64 s 0 = NE.get_int64 s 0 )
   else assert( LE.get_int64 s 0 = NE.get_int64 s 0 );
@@ -206,6 +187,5 @@ let test_64 () =
   if big_endian
   then assert( BE.get_int64 s 0 = 0x1234567890ABCDEFL )
   else assert( LE.get_int64 s 0 = 0x1234567890ABCDEFL );
-#endif
 
   ()

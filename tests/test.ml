@@ -4,12 +4,6 @@ let allocdiff =
   let stat2 = Gc.quick_stat () in
   (stat2.Gc.minor_words -. stat1.Gc.minor_words)
 
-let version_over_4_01 =
-  try
-    Scanf.sscanf Sys.ocaml_version "%i.%i.%i"
-      (fun major minor patch -> major > 4 || (major = 4 && minor >= 1))
-  with _ -> false
-
 let () =
   Test_bigstring.test1 ();
   let stat1 = Gc.quick_stat () in
@@ -40,6 +34,6 @@ let () =
   Printf.printf "bytes: allocated words %f\n%!" alloc3;
   (* we cannot ensure that there are no allocations only with the
      primives added in 4.01.0 *)
-  if version_over_4_01 && (alloc1 <> 0. || alloc2 <> 0. || alloc3 <> 0.)
+  if (alloc1 <> 0. || alloc2 <> 0. || alloc3 <> 0.)
   then exit 1
   else exit 0

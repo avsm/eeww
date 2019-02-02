@@ -1,3 +1,5 @@
+[@@@warning "-32"]
+
 let sign8 v =
   (v lsl ( Sys.word_size - 9 )) asr ( Sys.word_size - 9 )
 
