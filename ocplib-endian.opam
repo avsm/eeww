@@ -14,7 +14,7 @@ bug-reports: "https://github.com/OCamlPro/ocplib-endian/issues"
 depends: [
   "base-bytes"
   "ocaml" {>= "4.02.3"}
-  "cppo" {>= "1.1.0"}
+  "cppo" {>= "1.1.0" & build}
   "dune" {build & >= "1.0"}
 ]
 build: [
