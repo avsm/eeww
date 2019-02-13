@@ -57,12 +57,14 @@ let modules_post_4_02 =
   ; "Uchar", (4, 03)
   ]
 
-let missing_modules =
-  List.filter modules_post_4_02 ~f:(fun (_, v) -> version < v)
-  |> List.map ~f:fst
+let available_modules =
+  modules_in_4_02 @
+  (List.filter modules_post_4_02 ~f:(fun (m, v) ->
+       version >= v)
+   |> List.map ~f:fst)
 
 let all_modules_except_stdlib =
-  (modules_in_4_02 @ List.map modules_post_4_02 ~f:fst)
+  available_modules
   |> List.filter ~f:((<>) "Stdlib")
   |> List.sort ~cmp:String.compare
 
@@ -70,14 +72,8 @@ let longest_module_name =
   List.fold_left all_modules_except_stdlib ~init:0
     ~f:(fun acc m -> max acc (String.length m))
 
-let () =
-  Printf.ksprintf send {|
-(library
-   (wrapped false)
-   (name stdlib_shims)
-   (public_name stdlib-shims)
-   (modules %s))
-
+let stdlib_rule =
+  Printf.sprintf {|
 (rule
  (with-stdout-to stdlib.ml
   (echo "\
@@ -85,7 +81,17 @@ let () =
 
 include Pervasives
 ")))
-|} (String.concat ~sep:" " missing_modules)
+|}
     (List.map all_modules_except_stdlib
        ~f:(fun m -> Printf.sprintf "module %-*s = %s" longest_module_name m m)
      |> String.concat ~sep:"\n")
+
+let () =
+  Printf.ksprintf send {|
+(library
+ (wrapped false)
+ (name stdlib_shims)
+ (public_name stdlib-shims))
+%s
+|}
+    (if version >= (4, 07) then "" else stdlib_rule)
