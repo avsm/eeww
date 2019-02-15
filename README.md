@@ -3,7 +3,7 @@
 %%VERSION%%
 
 Given a function which produces random byte vectors, convert it to
-a number of your choice (int32/int64/int/float).
+a number of your choice (int8/int16/int32/int64/int/float).
 
 ## Documentation
 
