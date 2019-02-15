@@ -1,3 +1,7 @@
+# 1.0.3
+
+* move to dune
+
 # 1.0.2 (2016-07-18)
 
 * move to topkg

@@ -5,3 +5,4 @@ bisect*.out
 *.byte
 *.native
 *.install
+.merlin
