@@ -1,3 +1,8 @@
+## 0.1.2 (2019-02-16)
+
+* `is_service` accepts numeric service names, used for ports in TLSA records (#1 by @cfcs)
+* port to dune
+
 ## 0.1.1 (2018-07-07)
 
 * `to_string` and `to_strings` now have an optional labeled `trailing` argument
