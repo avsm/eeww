@@ -1,22 +1,20 @@
 
 module type S = sig
-    val extract : ?salt:Cstruct.t -> Cstruct.t -> Cstruct.t
-    val expand : prk:Cstruct.t -> ?info:Cstruct.t -> int -> Cstruct.t
+  val extract : ?salt:Cstruct.t -> Cstruct.t -> Cstruct.t
+  val expand : prk:Cstruct.t -> ?info:Cstruct.t -> int -> Cstruct.t
 end
 
 module Make (H : Nocrypto.Hash.S) : S = struct
   let extract ?salt ikm =
     let key = match salt with
-      | None -> let buf = Cstruct.create H.digest_size in
-                Cstruct.memset buf 0 ;
-                buf
+      | None -> Cstruct.create H.digest_size
       | Some x -> x
     in
     H.hmac ~key ikm
 
   let expand ~prk ?info len =
     let info = match info with
-      | None -> Cstruct.create 0
+      | None -> Cstruct.empty
       | Some x -> x
     in
     let t n last =
@@ -30,7 +28,7 @@ module Make (H : Nocrypto.Hash.S) : S = struct
       | c, x::_ -> compute (t c x :: acc) (succ c)
       | _, [] -> invalid_arg "can not happen"
     in
-    let buf = compute [Cstruct.create 0] 1 in
+    let buf = compute [Cstruct.empty] 1 in
     Cstruct.sub buf 0 len
 end
 
