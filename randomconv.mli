@@ -1,7 +1,8 @@
 (** Randomconv - random in various representations
 
     Given a generator for random byte vectors, this convenience library converts
-    the output into common number representations: int32, int64, int, and float.
+    the output into common number representations: int8, int16, int32, int64,
+    int, and float.
 
     {e %%VERSION%% - {{:%%PKG_HOMEPAGE%% }homepage}}
 *)
