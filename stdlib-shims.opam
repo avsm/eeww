@@ -14,3 +14,10 @@ depends: [
 ]
 build: [ "dune" "build" "-p" name "-j" jobs ]
 synopsis: "Backport some of the new stdlib features to older compiler"
+description: """
+Backport some of the new stdlib features to older compiler,
+such as the Stdlib module.
+
+This allows projects that require compatibility with older compiler to
+use these new features in their code.
+"""
