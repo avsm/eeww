@@ -1,7 +1,7 @@
 opam-version: "2.0"
 maintainer: "The stdlib-shims programmers"
 authors: "The stdlib-shims programmers"
-homepage: "http://ocaml.org"
+homepage: "https://github.com/ocaml/stdlib-shims"
 doc: "https://ocaml.github.io/stdlib-shims/"
 dev-repo: "git+https://github.com/ocaml/stdlib-shims.git"
 bug-reports: "https://github.com/ocaml/stdlib-shims/issues"
