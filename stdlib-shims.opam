@@ -10,3 +10,4 @@ license: ["typeof OCaml system"]
 available: [ ocaml-version >= "4.02.3" ]
 depends: ["dune"]
 build: [ "dune" "build" "-p" name "-j" jobs ]
+synopsis: "Backport some of the new stdlib features to older compiler"
