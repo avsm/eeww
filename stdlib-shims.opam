@@ -1,13 +1,16 @@
-opam-version: "1.2"
+opam-version: "2.0"
 maintainer: "The stdlib-shims programmers"
 authors: "The stdlib-shims programmers"
 homepage: "http://ocaml.org"
 doc: "https://ocaml.github.io/stdlib-shims/"
-dev-repo: "https://github.com/ocaml/stdlib-shims.git"
+dev-repo: "git+https://github.com/ocaml/stdlib-shims.git"
 bug-reports: "https://github.com/ocaml/stdlib-shims/issues"
 tags: ["stdlib" "compatibility" "org:ocaml"]
 license: ["typeof OCaml system"]
-available: [ ocaml-version >= "4.02.3" ]
-depends: ["dune"]
+available: [  ]
+depends: [
+  "dune"
+  "ocaml" {>= "4.02.3"}
+]
 build: [ "dune" "build" "-p" name "-j" jobs ]
 synopsis: "Backport some of the new stdlib features to older compiler"
