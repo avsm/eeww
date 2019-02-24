@@ -87,7 +87,7 @@ tun_alloc(char *dev, int kind, int pi, int persist, int user, int group)
       tun_raise_error("TUNSETGROUP", fd);
   }
 
-  strcpy(dev, ifr.ifr_name);
+  strncpy(dev, ifr.ifr_name, IFNAMSIZ);
   return fd;
 }
 
@@ -123,7 +123,7 @@ get_macaddr(value devname)
   struct ifreq ifq;
 
   fd = socket(AF_LOCAL, SOCK_DGRAM, 0);
-  strcpy(ifq.ifr_name, String_val(devname));
+  strncpy(ifq.ifr_name, String_val(devname), IFNAMSIZ);
 #if defined(__FreeBSD__) || defined(__OpenBSD__)
   ifq.ifr_addr.sa_len = 6;
 #endif /* __FreeBSD__ */
@@ -197,7 +197,7 @@ get_mtu(value devname)
   struct ifreq ifq;
 
   fd = socket(AF_INET, SOCK_DGRAM, 0);
-  strcpy(ifq.ifr_name, String_val(devname));
+  strncpy(ifq.ifr_name, String_val(devname), IFNAMSIZ);
 
   if (ioctl(fd, SIOCGIFMTU, &ifq) == -1)
     tun_raise_error("SIOCGIFMTU", fd);
