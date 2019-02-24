@@ -51,6 +51,9 @@ val get_macaddr : string -> Macaddr.t
 (** [get_hwaddr devname] is the MAC address of interface
     [devname], as a raw string (not hexa). *)
 
+val get_mtu : string -> int
+(** [get_mtu devname] is the MTU of interface [devname]. *)
+
 val set_ipv4 : ?netmask:Ipaddr.V4.Prefix.t -> string -> Ipaddr.V4.t -> unit
 (** [set_ipv4 ~netmask dev ipaddr] assigns an [ipaddr] to interface
     [dev], with associated netmask [netmask] if specified. If

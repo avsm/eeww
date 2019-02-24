@@ -87,31 +87,8 @@ tun_alloc(char *dev, int kind, int pi, int persist, int user, int group)
       tun_raise_error("TUNSETGROUP", fd);
   }
 
-  strcpy(dev, ifr.ifr_name);
+  strncpy(dev, ifr.ifr_name, IFNAMSIZ);
   return fd;
-}
-
-CAMLprim value
-get_macaddr(value devname) 
-{
-  CAMLparam1(devname);
-  CAMLlocal1(hwaddr);
-
-  int fd;
-  struct ifreq ifq;
-
-  fd = socket(PF_INET, SOCK_DGRAM, 0);
-  strcpy(ifq.ifr_name, String_val(devname));
-
-  if (ioctl(fd, SIOCGIFHWADDR, &ifq) == -1)
-    tun_raise_error("SIOCGIFHWADDR", fd);
-
-  close(fd);
-
-  hwaddr = caml_alloc_string(6);
-  memcpy(String_val(hwaddr), ifq.ifr_hwaddr.sa_data, 6);
-
-  CAMLreturn (hwaddr);
 }
 
 #elif (defined(__APPLE__) && defined(__MACH__)) || defined(__FreeBSD__) || defined(__OpenBSD__)
@@ -133,9 +110,47 @@ tun_alloc(char *dev, int kind, int pi, int persist, int user, int group)
     tun_raise_error("open", -1);
   return fd;
 }
+#endif
+
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__OpenBSD__)
+CAMLprim value
+get_macaddr(value devname)
+{
+  CAMLparam1(devname);
+  CAMLlocal1(hwaddr);
+
+  int fd;
+  struct ifreq ifq;
+
+  fd = socket(AF_LOCAL, SOCK_DGRAM, 0);
+  strncpy(ifq.ifr_name, String_val(devname), IFNAMSIZ);
+#if defined(__FreeBSD__) || defined(__OpenBSD__)
+  ifq.ifr_addr.sa_len = 6;
+#endif /* __FreeBSD__ */
+
+#if defined(__linux__)
+  if (ioctl(fd, SIOCGIFHWADDR, &ifq) == -1)
+    tun_raise_error("SIOCGIFHWADDR", fd);
+#elif defined(__FreeBSD__)
+  if (ioctl(fd, SIOCGHWADDR, &ifq) == -1)
+    tun_raise_error("SIOCGHWADDR", fd);
+#else
+  if (ioctl(fd, SIOCGIFADDR, &ifq) == -1)
+    tun_raise_error("SIOCGIFADDR", fd);
+#endif
+
+  close(fd);
+
+  hwaddr = caml_alloc_string(6);
+  memcpy(String_val(hwaddr), ifq.ifr_addr.sa_data, 6);
+
+  CAMLreturn (hwaddr);
+}
+
+#elif (defined(__APPLE__) && defined(__MACH__))
 
 CAMLprim value
-get_macaddr(value devname) 
+get_macaddr(value devname)
 {
   CAMLparam1(devname);
   CAMLlocal1(v_mac);
@@ -171,6 +186,26 @@ get_macaddr(value devname)
 #endif
 
 // Code for all architectures
+
+CAMLprim value
+get_mtu(value devname)
+{
+  CAMLparam1(devname);
+  CAMLlocal1(mtu);
+
+  int fd;
+  struct ifreq ifq;
+
+  fd = socket(AF_INET, SOCK_DGRAM, 0);
+  strncpy(ifq.ifr_name, String_val(devname), IFNAMSIZ);
+
+  if (ioctl(fd, SIOCGIFMTU, &ifq) == -1)
+    tun_raise_error("SIOCGIFMTU", fd);
+
+  close(fd);
+
+  CAMLreturn (Val_int(ifq.ifr_mtu));
+}
 
 CAMLprim value
 set_up_and_running(value dev)
