@@ -1,5 +1,5 @@
 (library
  (name        tuntap)
  (public_name tuntap)
- (libraries   ipaddr)
+ (libraries   ipaddr macaddr)
  (c_names     tuntap_stubs))

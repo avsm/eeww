@@ -25,6 +25,7 @@ depends: [
   "ocaml" {>= "4.04.2"}
   "dune" {build}
   "ipaddr" {>= "2.4.0"}
+  "macaddr"
   "cmdliner"
   "ounit" {with-test}
   "lwt" {with-test}

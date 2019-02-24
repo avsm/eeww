@@ -1,6 +1,6 @@
 (executables
  (names getifaddrs_test nonblock_read open_close_test set_ipv4_test nonblock_test sendfd_test)
- (libraries lwt.unix tuntap oUnit))
+ (libraries lwt.unix tuntap macaddr ipaddr oUnit))
 
 (alias
  (name    runtest)
