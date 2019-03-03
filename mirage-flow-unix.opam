@@ -8,7 +8,7 @@ doc: "https://mirage.github.io/mirage-flow/"
 bug-reports: "https://github.com/mirage/mirage-flow/issues"
 depends: [
   "ocaml" {>= "4.04.2"}
-  "jbuilder" {build & >= "1.0+beta7"}
+  "dune" {build & >= "1.0"}
   "fmt"
   "logs"
   "mirage-flow" {>= "1.2.0"}
@@ -18,8 +18,8 @@ depends: [
   "alcotest" {with-test}
 ]
 build: [
-  ["jbuilder" "subst"] {pinned}
-  ["jbuilder" "build" "-p" name "-j" jobs]
-  ["jbuilder" "runtest" "-p" name] {with-test}
+  ["dune" "subst"] {pinned}
+  ["dune" "build" "-p" name "-j" jobs]
+  ["dune" "runtest" "-p" name "-j" jobs] {with-test}
 ]
 dev-repo: "git+https://github.com/mirage/mirage-flow.git"
