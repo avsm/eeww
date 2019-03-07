@@ -37,6 +37,7 @@ type t = [
   | `Dupl
   | `Egyp
   | `Elba
+  | `Elym
   | `Ethi
   | `Geor
   | `Glag
@@ -55,6 +56,7 @@ type t = [
   | `Hira
   | `Hluw
   | `Hmng
+  | `Hmnp
   | `Hrkt
   | `Hung
   | `Ital
@@ -92,6 +94,7 @@ type t = [
   | `Mtei
   | `Mult
   | `Mymr
+  | `Nand
   | `Narb
   | `Nbat
   | `Newa
@@ -149,6 +152,7 @@ type t = [
   | `Ugar
   | `Vaii
   | `Wara
+  | `Wcho
   | `Xpeo
   | `Xsux
   | `Yiii
@@ -191,6 +195,7 @@ let pp ppf s = Format.fprintf ppf "%s" begin match s with
   | `Dupl -> "Dupl"
   | `Egyp -> "Egyp"
   | `Elba -> "Elba"
+  | `Elym -> "Elym"
   | `Ethi -> "Ethi"
   | `Geor -> "Geor"
   | `Glag -> "Glag"
@@ -209,6 +214,7 @@ let pp ppf s = Format.fprintf ppf "%s" begin match s with
   | `Hira -> "Hira"
   | `Hluw -> "Hluw"
   | `Hmng -> "Hmng"
+  | `Hmnp -> "Hmnp"
   | `Hrkt -> "Hrkt"
   | `Hung -> "Hung"
   | `Ital -> "Ital"
@@ -246,6 +252,7 @@ let pp ppf s = Format.fprintf ppf "%s" begin match s with
   | `Mtei -> "Mtei"
   | `Mult -> "Mult"
   | `Mymr -> "Mymr"
+  | `Nand -> "Nand"
   | `Narb -> "Narb"
   | `Nbat -> "Nbat"
   | `Newa -> "Newa"
@@ -303,6 +310,7 @@ let pp ppf s = Format.fprintf ppf "%s" begin match s with
   | `Ugar -> "Ugar"
   | `Vaii -> "Vaii"
   | `Wara -> "Wara"
+  | `Wcho -> "Wcho"
   | `Xpeo -> "Xpeo"
   | `Xsux -> "Xsux"
   | `Yiii -> "Yiii"

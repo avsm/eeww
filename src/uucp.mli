@@ -157,8 +157,10 @@ module Block : sig
     | `Domino
     | `Duployan
     | `Early_Dynastic_Cuneiform
+    | `Egyptian_Hieroglyph_Format_Controls
     | `Egyptian_Hieroglyphs
     | `Elbasan
+    | `Elymaic
     | `Emoticons
     | `Enclosed_Alphanum
     | `Enclosed_Alphanum_Sup
@@ -271,10 +273,12 @@ module Block : sig
     | `NB (** Non_block *)
     | `NKo
     | `Nabataean
+    | `Nandinagari
     | `New_Tai_Lue
     | `Newa
     | `Number_Forms
     | `Nushu
+    | `Nyiakeng_Puachue_Hmong
     | `OCR
     | `Ogham
     | `Ol_Chiki
@@ -290,6 +294,7 @@ module Block : sig
     | `Ornamental_Dingbats
     | `Osage
     | `Osmanya
+    | `Ottoman_Siyaq_Numbers
     | `PUA
     | `Pahawh_Hmong
     | `Palmyrene
@@ -314,6 +319,7 @@ module Block : sig
     | `Sinhala
     | `Sinhala_Archaic_Numbers
     | `Small_Forms
+    | `Small_Kana_Ext
     | `Sogdian
     | `Sora_Sompeng
     | `Soyombo
@@ -331,6 +337,7 @@ module Block : sig
     | `Super_And_Sub
     | `Sutton_SignWriting
     | `Syloti_Nagri
+    | `Symbols_And_Pictographs_Ext_A
     | `Syriac
     | `Syriac_Sup
     | `Tagalog
@@ -342,6 +349,7 @@ module Block : sig
     | `Tai_Xuan_Jing
     | `Takri
     | `Tamil
+    | `Tamil_Sup
     | `Tangut
     | `Tangut_Components
     | `Telugu
@@ -359,6 +367,7 @@ module Block : sig
     | `Vai
     | `Vedic_Ext
     | `Vertical_Forms
+    | `Wancho
     | `Warang_Citi
     | `Yi_Radicals
     | `Yi_Syllables
@@ -1154,6 +1163,7 @@ module Script : sig
   | `Dupl
   | `Egyp
   | `Elba
+  | `Elym
   | `Ethi
   | `Geor
   | `Glag
@@ -1172,6 +1182,7 @@ module Script : sig
   | `Hira
   | `Hluw
   | `Hmng
+  | `Hmnp
   | `Hrkt
   | `Hung
   | `Ital
@@ -1209,6 +1220,7 @@ module Script : sig
   | `Mtei
   | `Mult
   | `Mymr
+  | `Nand
   | `Narb
   | `Nbat
   | `Newa
@@ -1266,6 +1278,7 @@ module Script : sig
   | `Ugar
   | `Vaii
   | `Wara
+  | `Wcho
   | `Xpeo
   | `Xsux
   | `Yiii
@@ -1746,7 +1759,7 @@ let char_of_scalar_value s =
 
     ["U+%04X"] is an OCaml formatting string for printing an US-ASCII
     representation of an Unicode code point according to the
-    standards' notational conventions. This is what the standard library
+    standards' notational conventions. This is what the
     {!Fmt.Dump.uchar} formatter does for {!Uchar.t} values.
 
     {2:ocamllibs Writing OCaml libraries}

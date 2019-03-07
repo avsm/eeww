@@ -87,8 +87,10 @@ type t = [
   | `Domino
   | `Duployan
   | `Early_Dynastic_Cuneiform
+  | `Egyptian_Hieroglyph_Format_Controls
   | `Egyptian_Hieroglyphs
   | `Elbasan
+  | `Elymaic
   | `Emoticons
   | `Enclosed_Alphanum
   | `Enclosed_Alphanum_Sup
@@ -201,10 +203,12 @@ type t = [
   | `NB (** Non_block *)
   | `NKo
   | `Nabataean
+  | `Nandinagari
   | `New_Tai_Lue
   | `Newa
   | `Number_Forms
   | `Nushu
+  | `Nyiakeng_Puachue_Hmong
   | `OCR
   | `Ogham
   | `Ol_Chiki
@@ -220,6 +224,7 @@ type t = [
   | `Ornamental_Dingbats
   | `Osage
   | `Osmanya
+  | `Ottoman_Siyaq_Numbers
   | `PUA
   | `Pahawh_Hmong
   | `Palmyrene
@@ -244,6 +249,7 @@ type t = [
   | `Sinhala
   | `Sinhala_Archaic_Numbers
   | `Small_Forms
+  | `Small_Kana_Ext
   | `Sogdian
   | `Sora_Sompeng
   | `Soyombo
@@ -261,6 +267,7 @@ type t = [
   | `Super_And_Sub
   | `Sutton_SignWriting
   | `Syloti_Nagri
+  | `Symbols_And_Pictographs_Ext_A
   | `Syriac
   | `Syriac_Sup
   | `Tagalog
@@ -272,6 +279,7 @@ type t = [
   | `Tai_Xuan_Jing
   | `Takri
   | `Tamil
+  | `Tamil_Sup
   | `Tangut
   | `Tangut_Components
   | `Telugu
@@ -289,6 +297,7 @@ type t = [
   | `Vai
   | `Vedic_Ext
   | `Vertical_Forms
+  | `Wancho
   | `Warang_Citi
   | `Yi_Radicals
   | `Yi_Syllables
@@ -379,8 +388,10 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Domino -> "Domino"
   | `Duployan -> "Duployan"
   | `Early_Dynastic_Cuneiform -> "Early_Dynastic_Cuneiform"
+  | `Egyptian_Hieroglyph_Format_Controls -> "Egyptian_Hieroglyph_Format_Controls"
   | `Egyptian_Hieroglyphs -> "Egyptian_Hieroglyphs"
   | `Elbasan -> "Elbasan"
+  | `Elymaic -> "Elymaic"
   | `Emoticons -> "Emoticons"
   | `Enclosed_Alphanum -> "Enclosed_Alphanum"
   | `Enclosed_Alphanum_Sup -> "Enclosed_Alphanum_Sup"
@@ -496,10 +507,12 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `NB -> "NB"
   | `NKo -> "NKo"
   | `Nabataean -> "Nabataean"
+  | `Nandinagari -> "Nandinagari"
   | `New_Tai_Lue -> "New_Tai_Lue"
   | `Newa -> "Newa"
   | `Number_Forms -> "Number_Forms"
   | `Nushu -> "Nushu"
+  | `Nyiakeng_Puachue_Hmong -> "Nyiakeng_Puachue_Hmong"
   | `OCR -> "OCR"
   | `Ogham -> "Ogham"
   | `Ol_Chiki -> "Ol_Chiki"
@@ -515,6 +528,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Ornamental_Dingbats -> "Ornamental_Dingbats"
   | `Osage -> "Osage"
   | `Osmanya -> "Osmanya"
+  | `Ottoman_Siyaq_Numbers -> "Ottoman_Siyaq_Numbers"
   | `PUA -> "PUA"
   | `Pahawh_Hmong -> "Pahawh_Hmong"
   | `Palmyrene -> "Palmyrene"
@@ -539,6 +553,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Sinhala -> "Sinhala"
   | `Sinhala_Archaic_Numbers -> "Sinhala_Archaic_Numbers"
   | `Small_Forms -> "Small_Forms"
+  | `Small_Kana_Ext -> "Small_Kana_Ext"
   | `Sogdian -> "Sogdian"
   | `Sora_Sompeng -> "Sora_Sompeng"
   | `Soyombo -> "Soyombo"
@@ -556,6 +571,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Super_And_Sub -> "Super_And_Sub"
   | `Sutton_SignWriting -> "Sutton_SignWriting"
   | `Syloti_Nagri -> "Syloti_Nagri"
+  | `Symbols_And_Pictographs_Ext_A -> "Symbols_And_Pictographs_Ext_A"
   | `Syriac -> "Syriac"
   | `Syriac_Sup -> "Syriac_Sup"
   | `Tagalog -> "Tagalog"
@@ -567,6 +583,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Tai_Xuan_Jing -> "Tai_Xuan_Jing"
   | `Takri -> "Takri"
   | `Tamil -> "Tamil"
+  | `Tamil_Sup -> "Tamil_Sup"
   | `Tangut -> "Tangut"
   | `Tangut_Components -> "Tangut_Components"
   | `Telugu -> "Telugu"
@@ -584,6 +601,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Vai -> "Vai"
   | `Vedic_Ext -> "Vedic_Ext"
   | `Vertical_Forms -> "Vertical_Forms"
+  | `Wancho -> "Wancho"
   | `Warang_Citi -> "Warang_Citi"
   | `Yi_Radicals -> "Yi_Radicals"
   | `Yi_Syllables -> "Yi_Syllables"
