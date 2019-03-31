@@ -1,31 +1,31 @@
-opam-version: "1.2"
-maintainer:    "thomas@gazagnaire.org"
-homepage:      "https://github.com/mirage/mirage-flow"
-bug-reports:   "https://github.com/mirage/mirage-flow/issues"
-dev-repo:      "https://github.com/mirage/mirage-flow.git"
-doc:           "https://mirage.github.io/mirage-flow/"
-authors:       ["Thomas Gazagnaire" "Dave Scott"]
-tags:          [ "org:mirage"]
-license:       "ISC"
-
-build: [
-  [ "jbuilder" "subst" ] {pinned}
-  [ "jbuilder" "build" "-p" name "-j" jobs ]
-]
-
-build-test: [
-  [ "jbuilder" "runtest" "-p" name ]
-]
-
+opam-version: "2.0"
+maintainer: "thomas@gazagnaire.org"
+authors: ["Thomas Gazagnaire" "Dave Scott"]
+license: "ISC"
+tags: "org:mirage"
+homepage: "https://github.com/mirage/mirage-flow"
+doc: "https://mirage.github.io/mirage-flow/"
+bug-reports: "https://github.com/mirage/mirage-flow/issues"
 depends: [
-  "jbuilder"  {build & >="1.0+beta7"}
+  "ocaml" {>= "4.04.2"}
+  "dune" {build & >= "1.0"}
   "fmt"
   "logs"
   "mirage-flow" {>= "1.2.0"}
   "mirage-flow-lwt" {>= "1.2.0"}
   "lwt"
   "cstruct" {>= "3.2.0"}
-  "alcotest"   {test}
+  "alcotest" {with-test}
 ]
+build: [
+  ["dune" "subst"] {pinned}
+  ["dune" "build" "-p" name "-j" jobs]
+  ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+]
+dev-repo: "git+https://github.com/mirage/mirage-flow.git"
+synopsis: "Flow implementations and combinators for MirageOS on Unix"
+description: """
+This repo contains generic operations over Mirage `FLOW` implementations.
 
-available: [ ocaml-version >= "4.04.2" ]
+Please consult [the API documentation](https://mirage.github.io/mirage-flow/index.html).
+"""
