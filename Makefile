@@ -2,15 +2,15 @@ INSTALL_ARGS := $(if $(PREFIX),--prefix $(PREFIX),)
 
 .PHONY: all
 all:
-	jbuilder build @install
+	dune build
 
 .PHONY: install
 install:
-	jbuilder install $(INSTALL_ARGS)
+	dune install $(INSTALL_ARGS)
 
 .PHONY: uninstall
 uninstall:
-	jbuilder uninstall $(INSTALL_ARGS)
+	dune uninstall $(INSTALL_ARGS)
 
 .PHONY: reinstall
 reinstall:
@@ -19,5 +19,4 @@ reinstall:
 
 .PHONY: clean
 clean:
-	rm -rf _build *.install
-	find . -name .merlin -delete
+	dune clean
