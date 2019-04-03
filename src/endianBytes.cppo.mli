@@ -79,8 +79,7 @@ module type EndianBytesSig = sig
 end
 
 module BigEndian : sig
-  (** Functions reading according to Big Endian byte order without
-  checking for overflow *)
+  (** Functions reading according to Big Endian byte order *)
 
   include EndianBytesSig
 
