@@ -6,8 +6,8 @@ homepage: "https://github.com/ocaml-ppx/ppx_derivers"
 bug-reports: "https://github.com/ocaml-ppx/ppx_derivers/issues"
 dev-repo: "git://github.com/ocaml-ppx/ppx_derivers.git"
 build: [
-  ["jbuilder" "build" "-p" name "-j" jobs]
+  ["dune" "build" "-p" name "-j" jobs]
 ]
 depends: [
-  "jbuilder" {>= "1.0+beta7"}
+  "dune" {build}
 ]
