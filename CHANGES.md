@@ -1,3 +1,7 @@
+# 1.2.1
+
+- Convert from Jbuilder to Dune (#5).
+
 # 1.2
 
 - Fix copyright year
