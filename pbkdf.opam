@@ -19,6 +19,7 @@ depends: [
   "alcotest" {with-test & >= "0.8.1"}
 ]
 build: [
-  [ "jbuilder" "build" "-j" jobs "-p" name "@install" ]
-  [ "jbuilder" "runtest" "-p" name "-j" jobs ] {with-test}
+  [ "dune" "subst" ] {pinned}
+  [ "dune" "build" "-j" jobs "-p" name "@install" ]
+  [ "dune" "runtest" "-p" name "-j" jobs ] {with-test}
 ]
