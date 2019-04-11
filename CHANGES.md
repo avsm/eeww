@@ -1,4 +1,4 @@
-# 1.0.0 (2019-04-12)
+# Unreleased
 
 * Move to dune
 * Upgrade to opam 2.0
