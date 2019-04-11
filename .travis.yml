@@ -8,6 +8,7 @@ env:
   - PACKAGE=pbkdf OCAML_VERSION=4.04
   - PACKAGE=pbkdf OCAML_VERSION=4.05
   - PACKAGE=pbkdf OCAML_VERSION=4.06
+  - PACKAGE=pbkdf OCAML_VERSION=4.07
 
 notifications:
   email: false
