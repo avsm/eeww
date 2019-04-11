@@ -1,5 +1,6 @@
 # Unreleased
 
+* Upgrade to opam 2.0
 * Reimplement `cdiv`, no longer available in `nocrypto`.
 
 # 0.3.0 (2018-02-16)
