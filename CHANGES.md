@@ -1,3 +1,7 @@
+# Unreleased
+
+* Reimplement `cdiv`, no longer available in `nocrypto`.
+
 # 0.3.0 (2018-02-16)
 
 * Build: switch to jbuilder
