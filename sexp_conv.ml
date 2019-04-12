@@ -98,14 +98,23 @@ module Exn_converter = struct
 
   module Exn_ids = Map.Make (Int)
 
+  module Obj = struct
+    module Extension_constructor = struct
+      [@@@ocaml.warning "-3"]
+      type t = extension_constructor
+      let id = Obj.extension_id
+      let of_val = Obj.extension_constructor
+    end
+  end
+
   let exn_id_map
-    : (extension_constructor, exn -> Sexp.t) Ephemeron.K1.t Exn_ids.t ref =
+    : (Obj.Extension_constructor.t, exn -> Sexp.t) Ephemeron.K1.t Exn_ids.t ref =
     ref Exn_ids.empty
 
   (* [Obj.extension_id] works on both the exception itself, and the extension slot of the
      exception. *)
-  let rec clean_up_handler (slot : extension_constructor) =
-    let id = Obj.extension_id slot in
+  let rec clean_up_handler (slot : Obj.Extension_constructor.t) =
+    let id = Obj.Extension_constructor.id slot in
     let old_exn_id_map = !exn_id_map in
     let new_exn_id_map = Exn_ids.remove id old_exn_id_map in
     (* This trick avoids mutexes and should be fairly efficient *)
@@ -117,7 +126,7 @@ module Exn_converter = struct
   (* Ephemerons are used so that [sexp_of_exn] closure don't keep the
      extension_constructor live. *)
   let add ?(finalise = true) extension_constructor sexp_of_exn =
-    let id = Obj.extension_id extension_constructor in
+    let id = Obj.Extension_constructor.id extension_constructor in
     let rec loop () =
       let old_exn_id_map = !exn_id_map in
       let ephe = Ephemeron.K1.create () in
@@ -140,10 +149,10 @@ module Exn_converter = struct
     loop ()
 
   let add_auto ?finalise exn sexp_of_exn =
-    add ?finalise (Obj.extension_constructor exn) sexp_of_exn
+    add ?finalise (Obj.Extension_constructor.of_val exn) sexp_of_exn
 
   let find_auto exn =
-    let id = Obj.extension_id (Obj.extension_constructor exn) in
+    let id = Obj.Extension_constructor.id (Obj.Extension_constructor.of_val exn) in
     match Exn_ids.find id !exn_id_map with
     | exception Not_found -> None
     | ephe ->
