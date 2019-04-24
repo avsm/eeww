@@ -4,6 +4,7 @@
 
 (alias
  (name runtest)
+ (package mirage-flow-unix)
  (deps
   (:< test.exe))
  (action

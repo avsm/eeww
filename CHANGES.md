@@ -1,3 +1,9 @@
+### v1.6.0 (2019-04-24)
+
+* remove uses of `Result` (#40 @hannesm)
+* port opam metadata to 2.0 format (#41 @hannesm)
+* port build to dune from jbuilder (#41 @hannesm)
+
 ### v1.5.0 (2018-07-09)
   
 * remove Result module, work with `-safe-string` and require cstruct >=3.2.0
