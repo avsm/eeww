@@ -6,12 +6,12 @@ env:
   global:
     - PINS="mirage-flow:. mirage-flow-lwt:. mirage-flow-unix:."
   matrix:
-  - OCAML_VERSION=4.04 PACKAGE="mirage-flow"
   - OCAML_VERSION=4.04 PACKAGE="mirage-flow-lwt"
   - OCAML_VERSION=4.04 PACKAGE="mirage-flow-unix"
-  - OCAML_VERSION=4.05 PACKAGE="mirage-flow"
   - OCAML_VERSION=4.05 PACKAGE="mirage-flow-lwt"
   - OCAML_VERSION=4.05 PACKAGE="mirage-flow-unix"
-  - OCAML_VERSION=4.06 PACKAGE="mirage-flow"
   - OCAML_VERSION=4.06 PACKAGE="mirage-flow-lwt"
   - OCAML_VERSION=4.06 PACKAGE="mirage-flow-unix"
+  - OCAML_VERSION=4.07 PACKAGE="mirage-flow"
+  - OCAML_VERSION=4.07 PACKAGE="mirage-flow-lwt"
+  - OCAML_VERSION=4.07 PACKAGE="mirage-flow-unix"
