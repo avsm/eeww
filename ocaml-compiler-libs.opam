@@ -6,10 +6,10 @@ bug-reports: "https://github.com/janestreet/ocaml-compiler-libs/issues"
 dev-repo: "git+https://github.com/janestreet/ocaml-compiler-libs.git"
 license: "MIT"
 build: [
-  ["jbuilder" "build" "-p" name "-j" jobs]
+  ["dune" "build" "-p" name "-j" jobs]
 ]
 depends: [
-  "jbuilder" {build & >= "1.0+beta12"}
+  "dune" {build & >= "1.0"}
 ]
 available: [ ocaml-version >= "4.04.1" ]
 descr: "
