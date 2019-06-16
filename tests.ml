@@ -1,28 +1,80 @@
 let n_of_s = Domain_name.of_string_exn
 
+let host =
+  let module M = struct
+    type t = [ `host ] Domain_name.t
+    let pp = Domain_name.pp
+    let equal = Domain_name.equal ~case_sensitive:false
+  end in (module M: Alcotest.TESTABLE with type t = M.t)
+
+let service =
+  let module M = struct
+    type t = [ `service ] Domain_name.t
+    let pp = Domain_name.pp
+    let equal = Domain_name.equal ~case_sensitive:false
+  end in (module M: Alcotest.TESTABLE with type t = M.t)
+
+let p_msg =
+  let module M = struct
+    type t = [ `Msg of string ]
+    let pp ppf (`Msg m) = Fmt.string ppf m
+    let equal (`Msg _) (`Msg _) = true
+  end in (module M: Alcotest.TESTABLE with type t = M.t)
+
+let is_domain x = match Domain_name.of_string x with
+  | Ok _ -> true | Error _ -> false
+
+let is_host x = match Domain_name.host x with
+  | Ok _ -> true | Error _ -> false
+
+let is_service x = match Domain_name.service x with
+  | Ok _ -> true | Error _ -> false
+
+let longest_label = "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijk"
+let longest_prefix =
+  let d a b = a ^ "." ^ b in
+  d longest_label (d longest_label longest_label)
+
 let basic_preds () =
-  Alcotest.(check bool "root is_hostname" true (Domain_name.is_hostname Domain_name.root)) ;
-  Alcotest.(check bool "root is no service" false (Domain_name.is_service Domain_name.root)) ;
+  Alcotest.(check bool "root is_hostname" true (is_host Domain_name.root)) ;
+  Alcotest.(check bool "foo is a hostname" true (is_host (n_of_s "foo"))) ;
+  Alcotest.(check bool ".foo is no domain" false (is_domain ".foo")) ;
+  Alcotest.(check bool "bar is a hostname" true (is_host (n_of_s "bar"))) ;
+  Alcotest.(check bool "foo.bar is a hostname" true (is_host (n_of_s "foo.bar"))) ;
+  Alcotest.(check bool "longest label is domain name" true (is_domain longest_label)) ;
+  Alcotest.(check bool "longest label + a is not domain name" false (is_domain (longest_label ^ "a"))) ;
+  Alcotest.(check bool "ll.ll.ll.ll[:-2] is domain name" true
+              (is_domain (longest_prefix ^ "." ^ (String.sub longest_label 0 61)))) ;
+  Alcotest.(check bool "ll.ll.ll.ll[:-1] is not a domain name" false
+              (is_domain (longest_prefix ^ "." ^ (String.sub longest_label 0 62)))) ;
+  Alcotest.(check bool "foo._bar is not a hostname" false (is_host (n_of_s "foo._bar"))) ;
+  Alcotest.(check bool "2foo.bar is a hostname" true (is_host (n_of_s "2foo.bar"))) ;
+  Alcotest.(check bool "f2.bar is a hostname" true (is_host (n_of_s "f2.bar"))) ;
+  Alcotest.(check bool "-f2.bar is not a hostname" false (is_host (n_of_s "-f2.bar"))) ;
+  Alcotest.(check bool "f2.23 is not a hostname" false (is_host (n_of_s "f2.23"))) ;
+  Alcotest.(check bool "42.23b is a hostname" true (is_host (n_of_s "42.23b"))) ;
+  Alcotest.(check bool "'bar.foo is not a hostname" false (is_host (n_of_s "'bar.foo"))) ;
+  Alcotest.(check bool "root is no service" false (is_service Domain_name.root)) ;
   Alcotest.(check bool "_tcp.foo is no service" false
-              (Domain_name.is_service (n_of_s ~hostname:false "_tcp.foo"))) ;
+              (is_service (n_of_s "_tcp.foo"))) ;
   Alcotest.(check bool "_._tcp.foo is no service" false
-              (Domain_name.is_service (n_of_s ~hostname:false "_._tcp.foo"))) ;
+              (is_service (n_of_s "_._tcp.foo"))) ;
   Alcotest.(check bool "foo._tcp.foo is no service" false
-              (Domain_name.is_service (n_of_s ~hostname:false "foo._tcp.foo"))) ;
+              (is_service (n_of_s "foo._tcp.foo"))) ;
   Alcotest.(check bool "f_oo._tcp.foo is no service" false
-              (Domain_name.is_service (n_of_s ~hostname:false "f_oo._tcp.foo"))) ;
+              (is_service (n_of_s "f_oo._tcp.foo"))) ;
   Alcotest.(check bool "foo_._tcp.foo is no service" false
-              (Domain_name.is_service (n_of_s ~hostname:false "foo_._tcp.foo"))) ;
+              (is_service (n_of_s "foo_._tcp.foo"))) ;
   Alcotest.(check bool "_xmpp-server._tcp.foo is a service" true
-              (Domain_name.is_service (n_of_s ~hostname:false "_xmpp-server._tcp.foo"))) ;
+              (is_service (n_of_s "_xmpp-server._tcp.foo"))) ;
   Alcotest.(check bool "_xmpp-server._tcp2.foo is no service" false
-              (Domain_name.is_service (n_of_s ~hostname:false "_xmpp-server._tcp2.foo"))) ;
+              (is_service (n_of_s "_xmpp-server._tcp2.foo"))) ;
   Alcotest.(check bool "_xmpp_server._tcp.foo is no service" false
-              (Domain_name.is_service (n_of_s ~hostname:false "_xmpp_server._tcp.foo"))) ;
+              (is_service (n_of_s "_xmpp_server._tcp.foo"))) ;
   Alcotest.(check bool "_xmpp-server-server._tcp.foo is no service" false
-              (Domain_name.is_service (n_of_s ~hostname:false "_xmpp_server-server._tcp.foo"))) ;
+              (is_service (n_of_s "_xmpp-server-server._tcp.foo"))) ;
   Alcotest.(check bool "_443._tcp.foo is a service" true
-              (Domain_name.is_service (n_of_s ~hostname:false "_443._tcp.foo"))) ;
+              (is_service (n_of_s "_443._tcp.foo"))) ;
   Alcotest.(check bool "foo is no subdomain of foo.bar" false
               (Domain_name.sub ~subdomain:(n_of_s "foo") ~domain:(n_of_s "foo.bar"))) ;
   Alcotest.(check bool "foo is a subdomain of foo" true
@@ -51,32 +103,44 @@ let case () =
               Domain_name.(equal ~case_sensitive:true
                  (canonical (n_of_s "foo123.com")) (canonical (n_of_s "Foo123.com"))))
 
-
-let p_msg =
-  let module M = struct
-    type t = [ `Msg of string ]
-    let pp ppf (`Msg s) = Fmt.string ppf s
-    let equal _ _ = true
-  end in
-  (module M: Alcotest.TESTABLE with type t = M.t)
-
 let p_name = Alcotest.testable Domain_name.pp Domain_name.equal
 
 let basic_name () =
-  Alcotest.(check (result p_name p_msg) "prepend '_foo' to root is not valid"
-              (Error (`Msg "")) (Domain_name.prepend Domain_name.root "_foo")) ;
-  Alcotest.(check_raises "prepend_exn '_foo' to root raises"
-              (Invalid_argument "invalid host name")
-              (fun () -> ignore (Domain_name.prepend_exn Domain_name.root "_foo"))) ;
-  Alcotest.(check (result p_name p_msg) "of_strings '_foo' ; 'bar' is not valid"
-              (Error (`Msg "")) (Domain_name.of_strings [ "_foo" ; "bar" ])) ;
-  Alcotest.(check_raises "of_strings_exn '_foo.bar' raises"
-              (Invalid_argument "invalid host name")
-              (fun () -> ignore (Domain_name.of_strings_exn [ "_foo" ; "bar" ]))) ;
+  let lll = String.sub longest_label 0 61
+  and llt = String.sub longest_label 0 62
+  in
+  Alcotest.(check bool "prepend '_foo' to root is not valid hostname"
+              false (is_host (Domain_name.prepend_label_exn Domain_name.root "_foo"))) ;
+  Alcotest.(check bool "host (of_strings [ '_foo' ; 'bar' ]) is not valid"
+              false (is_host (Domain_name.of_strings_exn [ "_foo" ; "bar" ]))) ;
   Alcotest.(check (result p_name p_msg) "of_string 'foo.bar' is valid"
               (Ok (n_of_s "foo.bar")) (Domain_name.of_string "foo.bar")) ;
+  Alcotest.(check bool "host (of_string 'foo.bar') is valid"
+              true (is_host (Domain_name.of_string_exn "foo.bar"))) ;
   Alcotest.(check p_name "of_array 'foo.bar' is good"
-              (n_of_s "foo.bar") (Domain_name.of_array [| "bar" ; "foo" |]))
+              (n_of_s "foo.bar") (Domain_name.of_array [| "bar" ; "foo" |])) ;
+  Alcotest.(check bool "host (of_array 'foo.bar') is good"
+              true (is_host (Domain_name.of_array [| "bar" ; "foo" |]))) ;
+  Alcotest.(check bool "host (prepend (ll[:-2]) (ll ^ ll ^ ll)) is valid"
+              true (is_host (Domain_name.prepend_label_exn (n_of_s longest_prefix) lll))) ;
+  Alcotest.(check (result p_name p_msg) "prepend '' root is invalid"
+              (Error (`Msg "")) (Domain_name.prepend_label Domain_name.root "")) ;
+  Alcotest.(check (result p_name p_msg) "prepend ll^a root is invalid"
+              (Error (`Msg "")) (Domain_name.prepend_label Domain_name.root (longest_label ^ "a"))) ;
+  Alcotest.(check (result p_name p_msg) "prepend ll (ll ^ ll ^ ll) is invalid"
+              (Error (`Msg "")) (Domain_name.prepend_label (n_of_s longest_prefix) longest_label)) ;
+  Alcotest.(check (result p_name p_msg) "prepend ll[:-1] (ll ^ ll ^ ll) is invalid"
+              (Error (`Msg "")) (Domain_name.prepend_label (n_of_s longest_prefix) llt)) ;
+  Alcotest.(check (result p_name p_msg) "concat 'foo.bar' 'baz.barf' is good"
+              (Ok (n_of_s "foo.bar.baz.barf"))
+              (Domain_name.append (n_of_s "foo.bar") (n_of_s "baz.barf"))) ;
+  let r = Domain_name.prepend_label_exn (n_of_s longest_prefix) lll in
+  Alcotest.(check (result p_name p_msg) "concat ll[:-2] lp is good"
+              (Ok r)
+              (Domain_name.append (n_of_s lll) (n_of_s longest_prefix))) ;
+  Alcotest.(check (result p_name p_msg) "concat ll[:-1] lp is bad"
+              (Error (`Msg ""))
+              (Domain_name.append (n_of_s llt) (n_of_s longest_prefix)))
 
 let fqdn () =
   Alcotest.(check bool "of_string_exn example.com = of_string_exn example.com."
@@ -99,23 +163,23 @@ let drop_labels () =
   let res = n_of_s "foo.com" in
   Alcotest.(check p_name "dropping 1 label from www.foo.com is foo.com"
               res
-              (Domain_name.drop_labels_exn (Domain_name.of_string_exn "www.foo.com"))) ;
+              (Domain_name.drop_label_exn (Domain_name.of_string_exn "www.foo.com"))) ;
   Alcotest.(check p_name "dropping 2 labels from www.bar.foo.com is foo.com"
               res
-              (Domain_name.drop_labels_exn ~amount:2 (Domain_name.of_string_exn "www.bar.foo.com"))) ;
+              (Domain_name.drop_label_exn ~amount:2 (Domain_name.of_string_exn "www.bar.foo.com"))) ;
   Alcotest.(check p_name "dropping 1 label from the back www.foo.com is www.foo"
               (Domain_name.of_string_exn "www.foo")
-              (Domain_name.drop_labels_exn ~back:true (Domain_name.of_string_exn "www.foo.com"))) ;
+              (Domain_name.drop_label_exn ~back:true (Domain_name.of_string_exn "www.foo.com"))) ;
   Alcotest.(check p_name "prepending 1 and dropping 1 label from foo.com is foo.com"
               res
-              (Domain_name.drop_labels_exn (Domain_name.prepend_exn (Domain_name.of_string_exn "foo.com") "www"))) ;
+              (Domain_name.drop_label_exn (Domain_name.prepend_label_exn (Domain_name.of_string_exn "foo.com") "www"))) ;
   Alcotest.(check p_name "prepending 1 and dropping 1 label from foo.com is foo.com"
               res
-              (Domain_name.drop_labels_exn (Domain_name.prepend_exn (Domain_name.of_string_exn "foo.com") "www"))) ;
+              (Domain_name.drop_label_exn (Domain_name.prepend_label_exn (Domain_name.of_string_exn "foo.com") "www"))) ;
   Alcotest.(check (result p_name p_msg)
               "dropping 10 labels from foo.com leads to error"
               (Error (`Msg ""))
-              (Domain_name.drop_labels ~amount:10 (Domain_name.of_string_exn "foo.com")))
+              (Domain_name.drop_label ~amount:10 (Domain_name.of_string_exn "foo.com")))
 
 let tests = [
   "basic predicates", `Quick, basic_preds ;

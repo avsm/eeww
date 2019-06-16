@@ -2,7 +2,7 @@
 
 open Astring
 
-type s = string array
+type 'a s = string array
 
 let root = Array.make 0 ""
 
@@ -13,12 +13,21 @@ let [@inline always] check_host_label s =
       | _ -> false)
     s (* only LDH (letters, digits, hyphen)! *)
 
-let is_hostname t =
+let host_exn t =
   (* TLD should not be all-numeric! *)
-  (if Array.length t > 0 then
-     String.exists Char.Ascii.is_letter (Array.get t 0)
-   else true) &&
-  Array.for_all check_host_label t
+  if
+    (if Array.length t > 0 then
+       String.exists Char.Ascii.is_letter (Array.get t 0)
+     else true) &&
+    Array.for_all check_host_label t
+  then
+    t
+  else
+    invalid_arg "invalid host name"
+
+let host t =
+  try Ok (host_exn t) with
+  | Invalid_argument e -> Error (`Msg e)
 
 let check_service_label s =
   match String.cut ~sep:"_" s with
@@ -53,44 +62,62 @@ let [@inline always] check_label_length s =
 let [@inline always] check_total_length t =
   Array.fold_left (fun acc s -> acc + 1 + String.length s) 1 t <= 255
 
-let is_service t =
+let service_exn t =
   let l = Array.length t in
-  if l > 2 then
-    let name = Array.sub t 0 (l - 2) in
-    check_service_label (Array.get t (l - 1)) &&
-    is_proto (Array.get t (l - 2)) &&
-    Array.for_all check_label_length name &&
-    check_total_length t &&
-    is_hostname name
+  if
+    if l > 2 then
+      let name = Array.sub t 0 (l - 2) in
+      check_service_label (Array.get t (l - 1)) &&
+      is_proto (Array.get t (l - 2)) &&
+      Array.for_all check_label_length name &&
+      check_total_length t &&
+      match host name with Ok _ -> true | Error _ -> false
+    else
+      false
+  then
+    t
   else
-    false
+    invalid_arg "invalid service name"
 
-let [@inline always] check hostname t =
-  Array.for_all check_label_length t &&
-  check_total_length t &&
-  if hostname then is_hostname t else true
-
-let prepend_exn ?(hostname = true) xs lbl =
-  let n = Array.make 1 lbl in
-  let n = Array.append xs n in
-  if check hostname n then n
-  else invalid_arg "invalid host name"
-
-let prepend ?hostname xs lbl =
-  try Ok (prepend_exn ?hostname xs lbl) with
+let service t =
+  try Ok (service_exn t) with
   | Invalid_argument e -> Error (`Msg e)
 
-let drop_labels_exn ?(back = false) ?(amount = 1) t =
+let raw t = t
+
+let [@inline always] check t =
+  Array.for_all check_label_length t &&
+  check_total_length t
+
+let prepend_label_exn xs lbl =
+  let n = Array.make 1 lbl in
+  let n = Array.append xs n in
+  if check_label_length lbl && check_total_length n then n
+  else invalid_arg "invalid domain name"
+
+let prepend_label xs lbl =
+  try Ok (prepend_label_exn xs lbl) with
+  | Invalid_argument e -> Error (`Msg e)
+
+let drop_label_exn ?(back = false) ?(amount = 1) t =
   let len = Array.length t - amount
   and start = if back then amount else 0
   in
   Array.sub t start len
 
-let drop_labels ?back ?amount t =
-  try Ok (drop_labels_exn ?back ?amount t) with
+let drop_label ?back ?amount t =
+  try Ok (drop_label_exn ?back ?amount t) with
   | Invalid_argument _ -> Error (`Msg "couldn't drop labels")
 
-let of_strings_exn ?(hostname = true) xs =
+let append_exn pre post =
+  let r = Array.append post pre in
+  if check_total_length r then r else invalid_arg "invalid domain name"
+
+let append pre post =
+  try Ok (append_exn pre post) with
+  | Invalid_argument _ -> Error (`Msg "couldn't concatenate domain names")
+
+let of_strings_exn xs =
   let labels =
     (* we support both example.com. and example.com *)
     match List.rev xs with
@@ -98,18 +125,16 @@ let of_strings_exn ?(hostname = true) xs =
     | rst -> rst
   in
   let t = Array.of_list labels in
-  if check hostname t then t
+  if check t then t
   else invalid_arg "invalid host name"
 
-let of_strings ?hostname xs =
-  try Ok (of_strings_exn ?hostname xs) with
+let of_strings xs =
+  try Ok (of_strings_exn xs) with
   | Invalid_argument e -> Error (`Msg e)
 
-let of_string ?hostname s =
-  of_strings ?hostname (String.cuts ~sep:"." s)
+let of_string s = of_strings (String.cuts ~sep:"." s)
 
-let of_string_exn ?hostname s =
-  of_strings_exn ?hostname (String.cuts ~sep:"." s)
+let of_string_exn s = of_strings_exn (String.cuts ~sep:"." s)
 
 let of_array a = a
 
@@ -123,7 +148,7 @@ let to_string ?trailing dn = String.concat ~sep:"." (to_strings ?trailing dn)
 
 let canonical t =
   let str = to_string t in
-  of_string_exn ~hostname:false (String.Ascii.lowercase str)
+  of_string_exn (String.Ascii.lowercase str)
 
 (*BISECT-IGNORE-BEGIN*)
 let pp ppf xs = Fmt.string ppf (to_string xs)
@@ -167,11 +192,37 @@ let sub ~subdomain ~domain =
     cmp 0
 
 module Ordered = struct
-  type t = s
+  type t = [ `raw ] s
   let compare = compare_domain compare_sub
 end
 
-type t = s
+module Host_ordered = struct
+  type t = [ `host ] s
+  let compare = compare_domain compare_sub
+end
+
+module Service_ordered = struct
+  type t = [ `service ] s
+  let compare = compare_domain compare_sub
+end
+
+type 'a t = 'a s
+
+module Host_map = struct
+  include Map.Make(Host_ordered)
+
+  let find k m = try Some (find k m) with Not_found -> None
+end
+
+module Host_set = Set.Make(Host_ordered)
+
+module Service_map = struct
+  include Map.Make(Service_ordered)
+
+  let find k m = try Some (find k m) with Not_found -> None
+end
+
+module Service_set = Set.Make(Service_ordered)
 
 module Map = struct
   include Map.Make(Ordered)

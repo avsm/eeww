@@ -1,3 +1,16 @@
+## v0.2.0 (2019-06-25)
+
+* type t is now a phantom type 'a t, where 'a carries whether it is a hostname,
+  a service name or a raw domain name. this lead to removal of various
+  ?hostname:bool arguments
+* val host : 'a t -> ([`host] t, [> `Msg of string ]) result
+* analog host_exn, service, service_exn, raw
+* removed is_service, is_hostname
+* new submodules Host_set, Host_map, Service_set, Service_map
+* new function: append : 'a t -> 'b t -> ([`raw] t, [> `Msg of string ]) result
+* renamed: drop_labels{,_exn} is now drop_label{,_exn}
+* renamed: prepend{,_exn} is now prepend_label{,_exn}
+
 ## 0.1.2 (2019-02-16)
 
 * `is_service` accepts numeric service names, used for ports in TLSA records (#1 by @cfcs)
