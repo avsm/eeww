@@ -1,10 +1,9 @@
 _build
+.merlin
 tmp
 *~
 \.\#*
 \#*#
-support/ucd.xml
-src/uucp_*_data.ml
 *.native
 *.byte
 *.install
