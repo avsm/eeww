@@ -1,3 +1,10 @@
+## v0.2.1 (2019-06-30)
+
+* getter functions for labels:
+  get_label : 'a t -> int -> (string, [> `Msg of string ]) result
+  get_label_exn : 'a t -> int -> string
+* count_labels : 'a t -> int
+
 ## v0.2.0 (2019-06-25)
 
 * type t is now a phantom type 'a t, where 'a carries whether it is a hostname,
