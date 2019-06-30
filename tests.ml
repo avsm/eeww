@@ -181,6 +181,37 @@ let drop_labels () =
               (Error (`Msg ""))
               (Domain_name.drop_label ~amount:10 (Domain_name.of_string_exn "foo.com")))
 
+let get_and_count_label () =
+  Alcotest.(check int "count labels of root is 0" 0
+              Domain_name.(count_labels root));
+  Alcotest.(check (result string p_msg) "get_label 0 of root is Error"
+              (Error (`Msg ""))
+              Domain_name.(get_label root 0));
+  Alcotest.(check (result string p_msg) "get_label 1 of root is Error"
+              (Error (`Msg ""))
+              Domain_name.(get_label root 1));
+  Alcotest.(check (result string p_msg) "get_label 2 of root is Error"
+              (Error (`Msg ""))
+              Domain_name.(get_label root 2));
+  Alcotest.(check (result string p_msg) "get_label -1 of root is Error"
+              (Error (`Msg ""))
+              Domain_name.(get_label root (-1)));
+  let n = n_of_s "www.example.com" in
+  Alcotest.(check int "count labels of www.example.com is 3" 3
+              (Domain_name.count_labels n));
+  Alcotest.(check (result string p_msg) "get_label 0 of n is Ok www"
+              (Ok "www")
+              (Domain_name.get_label n 0));
+  Alcotest.(check (result string p_msg) "get_label 1 of n is Ok example"
+              (Ok "example")
+              (Domain_name.get_label n 1));
+  Alcotest.(check (result string p_msg) "get_label 2 of n is Ok com"
+              (Ok "com")
+              (Domain_name.get_label n 2));
+  Alcotest.(check (result string p_msg) "get_label 3 of n is Error"
+              (Error (`Msg ""))
+              (Domain_name.get_label n 3))
+
 let tests = [
   "basic predicates", `Quick, basic_preds ;
   "basic name stuff", `Quick, basic_name ;
@@ -188,6 +219,7 @@ let tests = [
   "fqdn", `Quick, fqdn ;
   "fqdn around", `Quick, fqdn_around ;
   "drop labels", `Quick, drop_labels ;
+  "get and count labels", `Quick, get_and_count_label ;
 ]
 
 let suites = [

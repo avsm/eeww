@@ -89,6 +89,16 @@ let [@inline always] check t =
   Array.for_all check_label_length t &&
   check_total_length t
 
+let get_label_exn xs idx =
+  try Array.get xs (pred (Array.length xs) - idx) with
+  | Invalid_argument _ -> invalid_arg "bad index for domain name"
+
+let get_label xs idx =
+  try Ok (get_label_exn xs idx) with
+  | Invalid_argument e -> Error (`Msg e)
+
+let count_labels xs = Array.length xs
+
 let prepend_label_exn xs lbl =
   let n = Array.make 1 lbl in
   let n = Array.append xs n in

@@ -95,10 +95,22 @@ val service_exn : 'a t -> [ `service ] t
 val raw : 'a t -> [ `raw ] t
 (** [raw t] is the [`raw t]. *)
 
+val count_labels : 'a t -> int
+(** [count_labels name] returns the amount of labels in [name]. *)
+
 val sub : subdomain:'a t -> domain:'b t -> bool
 (** [sub ~subdomain ~domain] is [true] if [subdomain] contains any labels
     prepended to [domain]: [foo.bar.com] is a subdomain of [bar.com] and of
     [com], [sub ~subdomain:x ~domain:root] is true for all [x]. *)
+
+val get_label : 'a t -> int -> (string, [> `Msg of string ]) result
+(** [get_label name idx] retrieves the label at index [idx] from [name]. If
+    [idx] is out of bounds, an Error is returned. *)
+
+val get_label_exn : 'a t -> int -> string
+(** [get_label_exn name idx] is the label at index [idx] in [name].
+
+    @raise Invalid_argument if [idx] is out of bounds in [name]. *)
 
 (** {2 Label addition and removal} *)
 val prepend_label : 'a t -> string -> ([ `raw ] t, [> `Msg of string ]) result
