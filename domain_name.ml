@@ -97,6 +97,27 @@ let get_label xs idx =
   try Ok (get_label_exn xs idx) with
   | Invalid_argument e -> Error (`Msg e)
 
+let find_label_exn ?(back = false) xs p =
+  let l = pred (Array.length xs) in
+  let check x = x >= 0 && x <= l in
+  let rec go f idx =
+    if check idx then
+      let lbl' = Array.get xs idx in
+      if p lbl' then
+        idx
+      else
+        go f (f idx)
+    else
+      invalid_arg "label not found"
+  in
+  let f, idx = if back then (succ, 0) else (pred, l) in
+  let r = go f idx in
+  l - r
+
+let find_label ?back xs p =
+  try Some (find_label_exn ?back xs p) with
+  | Invalid_argument _ -> None
+
 let count_labels xs = Array.length xs
 
 let prepend_label_exn xs lbl =
@@ -182,6 +203,10 @@ let compare_domain cmp_sub a b =
   | x -> x
 
 let compare = compare_domain compare_sub
+
+let equal_sub ?(case_sensitive = false) a b =
+  let cmp = if case_sensitive then String.compare else compare_sub in
+  cmp a b = 0
 
 let equal ?(case_sensitive = false) a b =
   let cmp = if case_sensitive then String.compare else compare_sub in
