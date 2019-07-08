@@ -89,33 +89,33 @@ let [@inline always] check t =
   Array.for_all check_label_length t &&
   check_total_length t
 
-let get_label_exn xs idx =
-  try Array.get xs (pred (Array.length xs) - idx) with
+let get_label_exn ?(rev = false) xs idx =
+  let idx' = if rev then idx else pred (Array.length xs) - idx in
+  try Array.get xs idx' with
   | Invalid_argument _ -> invalid_arg "bad index for domain name"
 
-let get_label xs idx =
-  try Ok (get_label_exn xs idx) with
+let get_label ?rev xs idx =
+  try Ok (get_label_exn ?rev xs idx) with
   | Invalid_argument e -> Error (`Msg e)
 
-let find_label_exn ?(back = false) xs p =
+let find_label_exn ?(rev = false) xs p =
   let l = pred (Array.length xs) in
   let check x = x >= 0 && x <= l in
-  let rec go f idx =
+  let rec go next idx =
     if check idx then
-      let lbl' = Array.get xs idx in
-      if p lbl' then
+      if p (Array.get xs idx) then
         idx
       else
-        go f (f idx)
+        go next (next idx)
     else
       invalid_arg "label not found"
   in
-  let f, idx = if back then (succ, 0) else (pred, l) in
-  let r = go f idx in
+  let next, start = if rev then (succ, 0) else (pred, l) in
+  let r = go next start in
   l - r
 
-let find_label ?back xs p =
-  try Some (find_label_exn ?back xs p) with
+let find_label ?rev xs p =
+  try Some (find_label_exn ?rev xs p) with
   | Invalid_argument _ -> None
 
 let count_labels xs = Array.length xs
@@ -130,14 +130,14 @@ let prepend_label xs lbl =
   try Ok (prepend_label_exn xs lbl) with
   | Invalid_argument e -> Error (`Msg e)
 
-let drop_label_exn ?(back = false) ?(amount = 1) t =
+let drop_label_exn ?(rev = false) ?(amount = 1) t =
   let len = Array.length t - amount
-  and start = if back then amount else 0
+  and start = if rev then amount else 0
   in
   Array.sub t start len
 
-let drop_label ?back ?amount t =
-  try Ok (drop_label_exn ?back ?amount t) with
+let drop_label ?rev ?amount t =
+  try Ok (drop_label_exn ?rev ?amount t) with
   | Invalid_argument _ -> Error (`Msg "couldn't drop labels")
 
 let append_exn pre post =
@@ -185,7 +185,7 @@ let canonical t =
 let pp ppf xs = Fmt.string ppf (to_string xs)
 (*BISECT-IGNORE-END*)
 
-let compare_sub a b =
+let compare_label a b =
   String.compare (String.Ascii.lowercase a) (String.Ascii.lowercase b)
 
 let compare_domain cmp_sub a b =
@@ -202,14 +202,14 @@ let compare_domain cmp_sub a b =
     cmp 0
   | x -> x
 
-let compare = compare_domain compare_sub
+let compare = compare_domain compare_label
 
-let equal_sub ?(case_sensitive = false) a b =
-  let cmp = if case_sensitive then String.compare else compare_sub in
+let equal_label ?(case_sensitive = false) a b =
+  let cmp = if case_sensitive then String.compare else compare_label in
   cmp a b = 0
 
 let equal ?(case_sensitive = false) a b =
-  let cmp = if case_sensitive then String.compare else compare_sub in
+  let cmp = if case_sensitive then String.compare else compare_label in
   compare_domain cmp a b = 0
 
 let sub ~subdomain ~domain =
@@ -218,7 +218,7 @@ let sub ~subdomain ~domain =
     if idx = supl then
       true
     else
-      compare_sub (Array.get domain idx) (Array.get subdomain idx) = 0 &&
+      compare_label (Array.get domain idx) (Array.get subdomain idx) = 0 &&
       cmp (succ idx)
   in
   if Array.length subdomain < supl then
@@ -228,17 +228,17 @@ let sub ~subdomain ~domain =
 
 module Ordered = struct
   type t = [ `raw ] s
-  let compare = compare_domain compare_sub
+  let compare = compare_domain compare_label
 end
 
 module Host_ordered = struct
   type t = [ `host ] s
-  let compare = compare_domain compare_sub
+  let compare = compare_domain compare_label
 end
 
 module Service_ordered = struct
   type t = [ `service ] s
-  let compare = compare_domain compare_sub
+  let compare = compare_domain compare_label
 end
 
 type 'a t = 'a s
