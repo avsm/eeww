@@ -1,3 +1,11 @@
+## v0.3.0 (2019-07-08)
+
+* all optional ?back arguments are now ?rev
+* compare_sub is now compare_label
+* new function: equal_label : ?case_sensitive:bool -> string -> string -> bool
+* new function: find_label : ?rev:bool -> 'a t -> (string -> bool) -> int option
+  which searches for the predicate (3rd argument) in t (2nd arguments)
+
 ## v0.2.1 (2019-06-30)
 
 * getter functions for labels:
