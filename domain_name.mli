@@ -112,6 +112,16 @@ val get_label_exn : 'a t -> int -> string
 
     @raise Invalid_argument if [idx] is out of bounds in [name]. *)
 
+val find_label : ?back:bool -> 'a t -> (string -> bool) -> int option
+(** [find_label ~back name p] returns the first position where [p lbl] is [true]
+    in [name], if it exists, otherwise [None]. If [back] is provided and [true]
+    (defaults to [false]), the [name] is traversed from the back. *)
+
+val find_label_exn : ?back:bool -> 'a t -> (string -> bool) -> int
+(** [find_label_exn ~back name p], see {!find_label}.
+
+    @raise Invalid_argument if [p] does not return [true] in [name]. *)
+
 (** {2 Label addition and removal} *)
 val prepend_label : 'a t -> string -> ([ `raw ] t, [> `Msg of string ]) result
 (** [prepend_label name pre] is either [t], the new domain name, or an error. *)
@@ -147,13 +157,18 @@ val append_exn : 'a t -> 'b t -> [ `raw ] t
 (** {2 Comparison} *)
 
 val equal : ?case_sensitive:bool -> 'a t -> 'b t -> bool
-(** [equal ~case t t'] is [true] if all labels of [t] and [t'] are equal.
-    If [case_sensitive] is provided and [true], the cases of the labels are
-    respected (default: [false]). *)
+(** [equal ~case_sensitive t t'] is [true] if all labels of [t] and [t'] are
+    equal. If [case_sensitive] is provided and [true], the cases of the labels
+    are respected (defaults to [false]). *)
 
 val compare : 'a t -> 'b t -> int
 (** [compare t t'] compares the domain names [t] and [t'] using a case
     insensitive string comparison. *)
+
+val equal_sub : ?case_sensitive:bool -> string -> string -> bool
+(** [equal_sub ~case_sensitive a b] is [true] if [a] and [b] are equal ignoring
+    casing. If [case_sensitive] is provided and [true] (defaults to [false]),
+    the casing is respected. *)
 
 val compare_sub : string -> string -> int
 (** [compare_sub t t'] compares the labels [t] and [t'] using a case
