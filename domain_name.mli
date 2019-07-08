@@ -98,10 +98,10 @@ val raw : 'a t -> [ `raw ] t
 val count_labels : 'a t -> int
 (** [count_labels name] returns the amount of labels in [name]. *)
 
-val sub : subdomain:'a t -> domain:'b t -> bool
-(** [sub ~subdomain ~domain] is [true] if [subdomain] contains any labels
-    prepended to [domain]: [foo.bar.com] is a subdomain of [bar.com] and of
-    [com], [sub ~subdomain:x ~domain:root] is true for all [x]. *)
+val is_subdomain : subdomain:'a t -> domain:'b t -> bool
+(** [is_subdomain ~subdomain ~domain] is [true] if [subdomain] contains any
+    labels prepended to [domain]: [foo.bar.com] is a subdomain of [bar.com] and
+    of [com], [sub ~subdomain:x ~domain:root] is true for all [x]. *)
 
 val get_label : ?rev:bool -> 'a t -> int -> (string, [> `Msg of string ]) result
 (** [get_label ~rev name idx] retrieves the label at index [idx] from [name]. If

@@ -75,12 +75,13 @@ let basic_preds () =
               (is_service (n_of_s "_xmpp-server-server._tcp.foo"))) ;
   Alcotest.(check bool "_443._tcp.foo is a service" true
               (is_service (n_of_s "_443._tcp.foo"))) ;
+  let foo = n_of_s "foo" in
   Alcotest.(check bool "foo is no subdomain of foo.bar" false
-              (Domain_name.sub ~subdomain:(n_of_s "foo") ~domain:(n_of_s "foo.bar"))) ;
+              (Domain_name.is_subdomain ~subdomain:foo ~domain:(n_of_s "foo.bar"))) ;
   Alcotest.(check bool "foo is a subdomain of foo" true
-              (Domain_name.sub ~subdomain:(n_of_s "foo") ~domain:(n_of_s "foo"))) ;
+              (Domain_name.is_subdomain ~subdomain:foo ~domain:foo)) ;
   Alcotest.(check bool "bar.foo is a subdomain of foo" true
-              (Domain_name.sub ~subdomain:(n_of_s "bar.foo") ~domain:(n_of_s "foo")))
+              (Domain_name.is_subdomain ~subdomain:(n_of_s "bar.foo") ~domain:foo))
 
 let case () =
   Alcotest.(check bool "foo123.com and Foo123.com are equal" true

@@ -212,7 +212,7 @@ let equal ?(case_sensitive = false) a b =
   let cmp = if case_sensitive then String.compare else compare_label in
   compare_domain cmp a b = 0
 
-let sub ~subdomain ~domain =
+let is_subdomain ~subdomain ~domain =
   let supl = Array.length domain in
   let rec cmp idx =
     if idx = supl then
