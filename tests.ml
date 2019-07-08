@@ -75,12 +75,13 @@ let basic_preds () =
               (is_service (n_of_s "_xmpp-server-server._tcp.foo"))) ;
   Alcotest.(check bool "_443._tcp.foo is a service" true
               (is_service (n_of_s "_443._tcp.foo"))) ;
+  let foo = n_of_s "foo" in
   Alcotest.(check bool "foo is no subdomain of foo.bar" false
-              (Domain_name.sub ~subdomain:(n_of_s "foo") ~domain:(n_of_s "foo.bar"))) ;
+              (Domain_name.is_subdomain ~subdomain:foo ~domain:(n_of_s "foo.bar"))) ;
   Alcotest.(check bool "foo is a subdomain of foo" true
-              (Domain_name.sub ~subdomain:(n_of_s "foo") ~domain:(n_of_s "foo"))) ;
+              (Domain_name.is_subdomain ~subdomain:foo ~domain:foo)) ;
   Alcotest.(check bool "bar.foo is a subdomain of foo" true
-              (Domain_name.sub ~subdomain:(n_of_s "bar.foo") ~domain:(n_of_s "foo")))
+              (Domain_name.is_subdomain ~subdomain:(n_of_s "bar.foo") ~domain:foo))
 
 let case () =
   Alcotest.(check bool "foo123.com and Foo123.com are equal" true
@@ -169,7 +170,7 @@ let drop_labels () =
               (Domain_name.drop_label_exn ~amount:2 (Domain_name.of_string_exn "www.bar.foo.com"))) ;
   Alcotest.(check p_name "dropping 1 label from the back www.foo.com is www.foo"
               (Domain_name.of_string_exn "www.foo")
-              (Domain_name.drop_label_exn ~back:true (Domain_name.of_string_exn "www.foo.com"))) ;
+              (Domain_name.drop_label_exn ~rev:true (Domain_name.of_string_exn "www.foo.com"))) ;
   Alcotest.(check p_name "prepending 1 and dropping 1 label from foo.com is foo.com"
               res
               (Domain_name.drop_label_exn (Domain_name.prepend_label_exn (Domain_name.of_string_exn "foo.com") "www"))) ;
@@ -199,7 +200,7 @@ let get_and_count_and_find_label () =
   Alcotest.(check (option int) "find_label root '' is none"
               None Domain_name.(find_label root (fun _ -> true)));
   Alcotest.(check (option int) "find_label root 'a' is none"
-              None Domain_name.(find_label root (equal_sub "a")));
+              None Domain_name.(find_label root (equal_label "a")));
   let n = n_of_s "www.example.com" in
   Alcotest.(check int "count labels of www.example.com is 3" 3
               (Domain_name.count_labels n));
@@ -215,24 +216,36 @@ let get_and_count_and_find_label () =
   Alcotest.(check (result string p_msg) "get_label 3 of n is Error"
               (Error (`Msg ""))
               (Domain_name.get_label n 3));
+  Alcotest.(check (result string p_msg) "get_label ~rev:true 0 of n is Ok com"
+              (Ok "com")
+              (Domain_name.get_label ~rev:true n 0));
+  Alcotest.(check (result string p_msg) "get_label ~rev:true 1 of n is Ok example"
+              (Ok "example")
+              (Domain_name.get_label ~rev:true n 1));
+  Alcotest.(check (result string p_msg) "get_label ~rev:true 2 of n is Ok www"
+              (Ok "www")
+              (Domain_name.get_label ~rev:true n 2));
+  Alcotest.(check (result string p_msg) "get_label ~rev:true 3 of n is Error"
+              (Error (`Msg ""))
+              (Domain_name.get_label ~rev:true n 3));
   Alcotest.(check (option int) "find_label www.example.com is Some 0"
               (Some 0) Domain_name.(find_label n (fun _ -> true)));
   Alcotest.(check (option int) "find_label www.example.com 'a' is none"
-              None Domain_name.(find_label n (equal_sub "a")));
+              None Domain_name.(find_label n (equal_label "a")));
   Alcotest.(check (option int) "find_label www.example.com 'w' is none"
-              None Domain_name.(find_label n (equal_sub "w")));
+              None Domain_name.(find_label n (equal_label "w")));
   Alcotest.(check (option int) "find_label www.example.com 'www' is Some 0"
-              (Some 0) Domain_name.(find_label n (equal_sub "www")));
+              (Some 0) Domain_name.(find_label n (equal_label "www")));
   Alcotest.(check (option int) "find_label www.example.com 'WWW' is Some 0"
-              (Some 0) Domain_name.(find_label n (equal_sub "WWW")));
+              (Some 0) Domain_name.(find_label n (equal_label "WWW")));
   Alcotest.(check (option int) "find_label www.example.com 'WWW' is None (case)"
               None
-              Domain_name.(find_label n (equal_sub ~case_sensitive:true "WWW")));
+              Domain_name.(find_label n (equal_label ~case_sensitive:true "WWW")));
   let n' = Domain_name.of_string_exn "www.www.www" in
   Alcotest.(check (option int) "find_label www.www.www 'www' is 0"
-              (Some 0) Domain_name.(find_label n' (equal_sub "www")));
+              (Some 0) Domain_name.(find_label n' (equal_label "www")));
   Alcotest.(check (option int) "find_label ~back:true www.www.www 'www' is 2"
-              (Some 2) Domain_name.(find_label ~back:true n' (equal_sub "www")))
+              (Some 2) Domain_name.(find_label ~rev:true n' (equal_label "www")))
 
 let tests = [
   "basic predicates", `Quick, basic_preds ;

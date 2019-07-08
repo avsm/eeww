@@ -98,27 +98,29 @@ val raw : 'a t -> [ `raw ] t
 val count_labels : 'a t -> int
 (** [count_labels name] returns the amount of labels in [name]. *)
 
-val sub : subdomain:'a t -> domain:'b t -> bool
-(** [sub ~subdomain ~domain] is [true] if [subdomain] contains any labels
-    prepended to [domain]: [foo.bar.com] is a subdomain of [bar.com] and of
-    [com], [sub ~subdomain:x ~domain:root] is true for all [x]. *)
+val is_subdomain : subdomain:'a t -> domain:'b t -> bool
+(** [is_subdomain ~subdomain ~domain] is [true] if [subdomain] contains any
+    labels prepended to [domain]: [foo.bar.com] is a subdomain of [bar.com] and
+    of [com], [sub ~subdomain:x ~domain:root] is true for all [x]. *)
 
-val get_label : 'a t -> int -> (string, [> `Msg of string ]) result
-(** [get_label name idx] retrieves the label at index [idx] from [name]. If
-    [idx] is out of bounds, an Error is returned. *)
+val get_label : ?rev:bool -> 'a t -> int -> (string, [> `Msg of string ]) result
+(** [get_label ~rev name idx] retrieves the label at index [idx] from [name]. If
+    [idx] is out of bounds, an Error is returned. If [rev] is provided and [true]
+    (defaults to [false]), [idx] is from the end instead of the beginning. *)
 
-val get_label_exn : 'a t -> int -> string
-(** [get_label_exn name idx] is the label at index [idx] in [name].
+val get_label_exn : ?rev:bool -> 'a t -> int -> string
+(** [get_label_exn ~rev name idx] is the label at index [idx] in [name].
 
     @raise Invalid_argument if [idx] is out of bounds in [name]. *)
 
-val find_label : ?back:bool -> 'a t -> (string -> bool) -> int option
-(** [find_label ~back name p] returns the first position where [p lbl] is [true]
-    in [name], if it exists, otherwise [None]. If [back] is provided and [true]
-    (defaults to [false]), the [name] is traversed from the back. *)
+val find_label : ?rev:bool -> 'a t -> (string -> bool) -> int option
+(** [find_label ~rev name p] returns the first position where [p lbl] is [true]
+    in [name], if it exists, otherwise [None]. If [rev] is provided and [true]
+    (defaults to [false]), the [name] is traversed from the end instead of the
+    beginning. *)
 
-val find_label_exn : ?back:bool -> 'a t -> (string -> bool) -> int
-(** [find_label_exn ~back name p], see {!find_label}.
+val find_label_exn : ?rev:bool -> 'a t -> (string -> bool) -> int
+(** [find_label_exn ~rev name p], see {!find_label}.
 
     @raise Invalid_argument if [p] does not return [true] in [name]. *)
 
@@ -131,17 +133,17 @@ val prepend_label_exn : 'a t -> string -> [ `raw ] t
 
     @raise Invalid_argument if [pre] is not a valid domain name. *)
 
-val drop_label : ?back:bool -> ?amount:int -> 'a t ->
+val drop_label : ?rev:bool -> ?amount:int -> 'a t ->
   ([ `raw ] t, [> `Msg of string ]) result
-(** [drop_label ~back ~amount t] is either [t], a domain name with [amount]
-    (defaults to 1) labels dropped from the beginning - if [back] is provided
-    and [true] (default [false]) labels are dropped from the end.
+(** [drop_label ~rev ~amount t] is either [t], a domain name with [amount]
+    (defaults to [1]) labels dropped from the beginning - if [rev] is provided
+    and [true] (defaults to [false]) labels are dropped from the end.
     [drop_label (of_string_exn "foo.com") = Ok (of_string_exn "com")],
-    [drop_label ~back:true (of_string_exn "foo.com") = Ok (of_string_exn "foo")].
+    [drop_label ~rev:true (of_string_exn "foo.com") = Ok (of_string_exn "foo")].
 *)
 
-val drop_label_exn : ?back:bool -> ?amount:int -> 'a t -> [ `raw ] t
-(** [drop_label_exn ~back ~amount t], see {!drop_label}. Instead of a [result],
+val drop_label_exn : ?rev:bool -> ?amount:int -> 'a t -> [ `raw ] t
+(** [drop_label_exn ~rev ~amount t], see {!drop_label}. Instead of a [result],
     the value is returned directly.
 
     @raise Invalid_argument if there are not sufficient labels. *)
@@ -165,13 +167,13 @@ val compare : 'a t -> 'b t -> int
 (** [compare t t'] compares the domain names [t] and [t'] using a case
     insensitive string comparison. *)
 
-val equal_sub : ?case_sensitive:bool -> string -> string -> bool
-(** [equal_sub ~case_sensitive a b] is [true] if [a] and [b] are equal ignoring
-    casing. If [case_sensitive] is provided and [true] (defaults to [false]),
-    the casing is respected. *)
+val equal_label : ?case_sensitive:bool -> string -> string -> bool
+(** [equal_label ~case_sensitive a b] is [true] if [a] and [b] are equal
+    ignoring casing. If [case_sensitive] is provided and [true] (defaults to
+    [false]), the casing is respected. *)
 
-val compare_sub : string -> string -> int
-(** [compare_sub t t'] compares the labels [t] and [t'] using a case
+val compare_label : string -> string -> int
+(** [compare_label t t'] compares the labels [t] and [t'] using a case
     insensitive string comparison. *)
 
 (** {2 Collections} *)
