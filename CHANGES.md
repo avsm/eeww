@@ -1,3 +1,7 @@
+## v1.8.1
+
+* Use ipaddr.4.0.0 interface (@avsm)
+
 ## v1.8.0 (2019-02-24)
 
 * Provide get_mtu : string -> int (#32 by @hannesm)
