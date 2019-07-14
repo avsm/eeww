@@ -44,9 +44,9 @@ let closetap devname = ignore (opentap ~devname ~persist:false ())
 
 let set_ipv4 ?(netmask=Ipaddr.V4.Prefix.global) devname v4addr =
   let open Ipaddr.V4 in
-  set_ipv4 devname (to_bytes v4addr) (to_bytes (Prefix.netmask netmask))
+  set_ipv4 devname (to_octets v4addr) (to_octets (Prefix.netmask netmask))
 
-let get_macaddr iface = Macaddr.of_bytes_exn (get_macaddr iface)
+let get_macaddr iface = Macaddr.of_octets_exn (get_macaddr iface)
 
 module Opt = struct
   let (>|=) x f = match x with Some v -> Some (f v) | None -> None
@@ -76,12 +76,12 @@ module Struct_ifaddrs = struct
     let open Opt in
     match t.sa_family with
     | 0 ->
-      let addr = t.addr >|= fun v -> (V4.of_bytes_exn v) in
-      let nmask = t.mask >|= fun v -> (V4.of_bytes_exn v) in
+      let addr = t.addr >|= fun v -> (V4.of_octets_exn v) in
+      let nmask = t.mask >|= fun v -> (V4.of_octets_exn v) in
       Some (t.name, `V4 ((run addr), V4.Prefix.(of_netmask (run nmask) (run addr))))
     | 1 ->
-      let addr = t.addr >|= fun v -> (V6.of_bytes_exn v) in
-      let nmask = t.mask >|= fun v -> (V6.of_bytes_exn v) in
+      let addr = t.addr >|= fun v -> (V6.of_octets_exn v) in
+      let nmask = t.mask >|= fun v -> (V6.of_octets_exn v) in
       Some (t.name, `V6 ((run addr), V6.Prefix.(of_netmask (run nmask) (run addr))))
     | _ -> None
 end
