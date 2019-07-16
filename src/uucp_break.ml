@@ -55,9 +55,6 @@ let tty_width_hint =
   (* Line/Paragraph Separator. 1 seems more frequent than 0 and we
      never saw -1, i.e. correct handling. *)
   | 0x2028 | 0x2029 -> 1
-  (* Kannada Vowel Sign I/E: `Mn, non-spacing combiners,
-     but treated as 1 by glibc and FreeBSD's libc. *)
-  | 0x0CBF | 0x0CC6 -> 1
   (* Euro-centric fast path: does not intersect branches below. *)
   | u when u <= 0x02FF -> 1
   (* Wide east-asian. *)
