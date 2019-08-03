@@ -6,8 +6,8 @@ homepage: "https://github.com/mirage/lwt-dllist"
 doc: "https://mirage.github.io/lwt-dllist/"
 bug-reports: "https://github.com/mirage/lwt-dllist/issues"
 depends: [
-  "ocaml" {>= "4.03.0"}
-  "lwt"
+  "ocaml" {>= "4.02.0"}
+  "lwt" {with-test}
   "dune"
 ]
 build: [
