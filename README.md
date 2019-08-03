@@ -1,4 +1,4 @@
-# lwt-dllist - Mutable doubly-linked list with Lwt iterators
+# lwt-dllist - Mutable doubly-linked list
 
 An `Lwt_dllist` is an object holding a list of elements which support
 the following operations:
@@ -6,7 +6,7 @@ the following operations:
 - adding an element to the left or the right in time and space O(1)
 - taking an element from the left or the right in time and space O(1)
 - removing a previously added element from a sequence in time and space O(1)
-- removing an element while the sequence is being transversed.
+- removing an element while the sequence is being traversed.
 
 ## History
 
