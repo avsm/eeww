@@ -2,6 +2,7 @@
  (name ocaml_optcomp)
  (public_name ocaml-compiler-libs.optcomp)
  (flags :standard -safe-string)
+ (optional)
  (libraries compiler-libs.optcomp)
  (preprocess no_preprocessing))
 
