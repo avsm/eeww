@@ -51,9 +51,10 @@ let without_bit_sign (x:int32) = if x >= 0l then x else Int32.logand x (Int32.lo
 let invalid_arg fmt = Format.kasprintf invalid_arg fmt
 
 let to_int32 x =
-  if x land (lnot 0xffffffff) <> 0
+  let truncated = x land 0xffffffff in
+  if x <> truncated
   then invalid_arg "Optint.to_int32: %d can not fit into a 32 bits integer" x
-  else Int32.of_int (x land 0xffffffff)
+  else Int32.of_int truncated
 
 let of_int32 x =
   if x < 0l
