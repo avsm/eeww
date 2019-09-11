@@ -25,7 +25,9 @@ let div a b = Nativeint.(to_int (unsigned_div (of_int a) (of_int b)))
 let rem a b = a mod b
 let succ x = x + 1
 let pred x = x - 1
-let abs x = if x >= 0 then x else (-x)
+let abs x =
+  let mask = x asr Sys.int_size in (* extract sign: -1 if signed, 0 if not signed *)
+  (x + mask) lxor mask
 let max_int = Int32.(to_int max_int)
 let min_int = Int32.(to_int min_int)
 let logand a b = a land b
