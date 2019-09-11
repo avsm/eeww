@@ -8,6 +8,8 @@ let pp ppf (x:t) = Format.fprintf ppf "%ld" x
 let bit_sign = 0x40000000l
 let without_bit_sign (x:int) = if x >= 0 then x else x land (lnot 0x40000000)
 
+let invalid_arg fmt = Format.kasprintf invalid_arg fmt
+
 let to_int x =
   let max_int = of_int Stdlib.max_int in
   if compare zero x <= 0 && compare x max_int <= 0
