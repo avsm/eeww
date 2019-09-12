@@ -1,10 +1,10 @@
-opam-version: "1.2"
+opam-version: "2.0"
 maintainer:   [ "romain.calascibetta@gmail.com" ]
 authors:      "Romain Calascibetta"
 license:      "ISC"
 homepage:     "https://github.com/dinosaure/optint"
 bug-reports:  "https://github.com/dinosaure/optint/issues"
-dev-repo:     "https://github.com/dinosaure/optint.git"
+dev-repo:     "git+https://github.com/dinosaure/optint.git"
 doc:          "https://dinosaure.github.io/optint/"
 synopsis:     "Abstract type on integer between x64 and x86 architecture"
 description: """
@@ -15,12 +15,12 @@ On x86, this library use a boxed int32.
 Implementation depends on target architecture.
 """
 
-build: [
-  ["dune" "subst"]
-  ["dune" "build" "-p" name "-j" jobs]
-]
+build: ["dune" "build" "-p" name "-j" jobs]
+run-test: [ "dune" "runtest" "-p" name "-j" jobs ]
 
 depends: [
-  "dune" {build}
+  "ocaml" {>= "4.07.0"}
+  "dune"
+  "crowbar" {with-test}
+  "fmt" {with-test}
 ]
-available: [ocaml-version >= "4.03.0"]
