@@ -1,5 +1,4 @@
-v0.0.3 2010-09-12 Paris (France)
-------------------------------
+### v0.0.3 2010-09-12 Paris (France)
 
 - Avoid partial application of function (#2, @dinosaure)
 - Add `[@immediate]` tag (#4, @dinosaure)
@@ -11,13 +10,11 @@ v0.0.3 2010-09-12 Paris (France)
 - Optimization on `abs` function (64bit) (#8, @cfcs, @dinosaure)
 - Fix 32bit architecture, keep bit-sign in the same place (#8, @dinosaure, review @cfcs)
 
-v0.0.2 2018-10-15 Paris (France)
-------------------------------
+### v0.0.2 2018-10-15 Paris (France)
 
 - _Dunify_ project
 - Fix dependencies on `dune` file when we select impl. (@rgrinberg)
 
-v0.0.1 2018-06-28 Paris (France)
-------------------------------
+### v0.0.1 2018-06-28 Paris (France)
 
 - First version of `optint`
