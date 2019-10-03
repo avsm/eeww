@@ -58,8 +58,17 @@ let modules_post_4_02 =
   ]
 
 let missing_modules =
-  List.filter modules_post_4_02 ~f:(fun (_, v) -> version < v)
-  |> List.map ~f:fst
+  let missing =
+    List.filter modules_post_4_02 ~f:(fun (_, v) -> version < v)
+    |> List.map ~f:fst
+  in
+    (* For OCaml 4.07-4.09 incl. this solves the problem of being unable to
+       generate empty .cmxa files on MSVC by duplicating the Pervasives module
+       (and updating its deprecation warning not to refer to this library! *)
+    if version < (4, 10) && version >= (4, 7) then
+      "Pervasives"::missing
+    else
+      missing
 
 let all_modules_except_stdlib =
   (modules_in_4_02 @ List.map modules_post_4_02 ~f:fst)
