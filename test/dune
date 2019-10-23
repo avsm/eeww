@@ -1,6 +1,6 @@
 (executables
  (names test)
- (libraries mirage-flow-unix alcotest))
+ (libraries mirage-flow-combinators mirage-flow-unix alcotest))
 
 (alias
  (name runtest)

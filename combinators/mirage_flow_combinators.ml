@@ -18,26 +18,45 @@
 
 open Lwt.Infix
 
-let src = Logs.Src.create "mirage-flow-lwt"
+let src = Logs.Src.create "mirage-flow-combinators"
 module Log = (val Logs.src_log src : Logs.LOG)
 
-module type S = Mirage_flow.S
-  with type 'a io = 'a Lwt.t
-   and type buffer = Cstruct.t
+module type CONCRETE =  Mirage_flow.S
+  with type error = [ `Msg of string ]
+   and type write_error = [ Mirage_flow.write_error | `Msg of string ]
 
-module type ABSTRACT = Mirage_flow.ABSTRACT
-  with type 'a io = 'a Lwt.t
-   and type buffer = Cstruct.t
+module Concrete (S: Mirage_flow.S) = struct
+  type error = [`Msg of string]
+  type write_error = [ Mirage_flow.write_error | `Msg of string]
+  type flow = S.flow
 
-module type CONCRETE =  Mirage_flow.CONCRETE
-  with type 'a io = 'a Lwt.t
-   and type buffer = Cstruct.t
+  let pp_error ppf = function
+    | `Msg s -> Fmt.string ppf s
 
-module Concrete (S: S) = Mirage_flow.Concrete(S)(Lwt)
+  let pp_write_error ppf = function
+    | #error as e -> pp_error ppf e
+    | `Closed     -> Mirage_flow.pp_write_error ppf `Closed
 
-module type SHUTDOWNABLE = Mirage_flow.SHUTDOWNABLE
-  with type 'a io = 'a Lwt.t
-   and type buffer = Cstruct.t
+  let lift_read = function
+    | Ok x    -> Ok x
+    | Error e -> Error (`Msg (Fmt.strf "%a" S.pp_error e))
+
+  let lift_write = function
+    | Ok ()         -> Ok ()
+    | Error `Closed -> Error `Closed
+    | Error e       -> Error (`Msg (Fmt.strf "%a" S.pp_write_error e))
+
+  let read t = S.read t >|= lift_read
+  let write t b = S.write t b >|= lift_write
+  let writev t bs = S.writev t bs >|= lift_write
+  let close t = S.close t
+end
+
+module type SHUTDOWNABLE = sig
+  include Mirage_flow.S
+  val shutdown_write: flow -> unit Lwt.t
+  val shutdown_read: flow -> unit Lwt.t
+end
 
 type time = int64
 
@@ -64,7 +83,7 @@ let stats t =
     duration;
   }
 
-module Copy (Clock: Mirage_clock.MCLOCK) (A: S) (B: S) =
+module Copy (Clock: Mirage_clock.MCLOCK) (A: Mirage_flow.S) (B: Mirage_flow.S) =
 struct
 
   type error = [`A of A.error | `B of B.write_error]
@@ -73,20 +92,20 @@ struct
     | `A e -> A.pp_error ppf e
     | `B e -> B.pp_write_error ppf e
 
-  let start (clock:Clock.t) (a: A.flow) (b: B.flow) =
+  let start (a: A.flow) (b: B.flow) =
     let read_bytes = ref 0L in
     let read_ops = ref 0L in
     let write_bytes = ref 0L in
     let write_ops = ref 0L in
     let finish = ref None in
-    let start = Clock.elapsed_ns clock in
-    let rec loop c () =
+    let start = Clock.elapsed_ns () in
+    let rec loop () =
       A.read a >>= function
       | Error e ->
-        finish := Some (Clock.elapsed_ns c);
+        finish := Some (Clock.elapsed_ns ());
         Lwt.return (Error (`A e))
       | Ok `Eof ->
-        finish := Some (Clock.elapsed_ns c);
+        finish := Some (Clock.elapsed_ns ());
         Lwt.return (Ok ())
       | Ok (`Data buffer) ->
         read_ops := Int64.succ !read_ops;
@@ -96,9 +115,9 @@ struct
         | Ok () ->
           write_ops := Int64.succ !write_ops;
           write_bytes := Int64.(add !write_bytes (of_int @@ Cstruct.len buffer));
-          loop c ()
+          loop ()
         | Error e ->
-          finish := Some (Clock.elapsed_ns c);
+          finish := Some (Clock.elapsed_ns ());
           Lwt.return (Error (`B e))
     in
     {
@@ -108,14 +127,14 @@ struct
       write_ops;
       finish;
       start;
-      time = (fun () -> Clock.elapsed_ns clock);
-      t = loop clock ();
+      time = (fun () -> Clock.elapsed_ns ());
+      t = loop ();
     }
 
   let wait t = t.t
 
-  let copy clock ~src:a ~dst:b =
-    let t = start clock a b in
+  let copy ~src:a ~dst:b =
+    let t = start a b in
     wait t >|= function
     | Ok ()   -> Ok (stats t)
     | Error e -> Error e
@@ -141,9 +160,9 @@ struct
     | `A e -> Fmt.pf ppf "flow proxy a: %a" A_to_B.pp_error e
     | `B e -> Fmt.pf ppf "flow proxy b: %a" B_to_A.pp_error e
 
-  let proxy clock a b =
+  let proxy a b =
     let a2b =
-      let t = A_to_B.start clock a b in
+      let t = A_to_B.start a b in
       A_to_B.wait t >>= fun result ->
       A.shutdown_read a >>= fun () ->
       B.shutdown_write b >|= fun () ->
@@ -153,7 +172,7 @@ struct
       | Error e -> Error e
     in
     let b2a =
-      let t = B_to_A.start clock b a in
+      let t = B_to_A.start b a in
       B_to_A.wait t >>= fun result ->
       B.shutdown_read b >>= fun () ->
       A.shutdown_write a >|= fun () ->
@@ -176,13 +195,11 @@ module F = struct
 
   let (>>=) = Lwt.bind
 
-  type 'a io = 'a Lwt.t
-  type buffer = Cstruct.t
-
   type refill = Cstruct.t -> int -> int -> int Lwt.t
 
   type error
-  let pp_error ppf (_:error) = Fmt.string ppf "Mirage_flow_lwt.Fun.error"
+  let pp_error ppf (_:error) =
+    Fmt.string ppf "Mirage_flow_combinators.F.error"
   type write_error = Mirage_flow.write_error
   let pp_write_error = Mirage_flow.pp_write_error
 
@@ -319,8 +336,6 @@ module F = struct
 
 end
 
-type 'a io = 'a Lwt.t
-type buffer = Cstruct.t
 type error = [`Msg of string]
 type write_error = [ Mirage_flow.write_error | error ]
 let pp_error ppf (`Msg s) = Fmt.string ppf s
@@ -334,7 +349,7 @@ type flow =
 
 type t = flow
 
-let create (type a) (module M: S with type flow = a) t name =
+let create (type a) (module M: Mirage_flow.S with type flow = a) t name =
   let m = (module Concrete(M): CONCRETE with type flow = a) in
   Flow (name, m , t)
 

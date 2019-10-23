@@ -16,7 +16,7 @@
 
 (** Conversion from mirage flows to Lwt_io channels. *)
 
-module Make (F: Mirage_flow_lwt.S): sig
+module Make (F: Mirage_flow.S): sig
 
   val ic: ?buffer_size:int -> ?close:bool -> F.flow -> Lwt_io.input_channel
   (** Build an [Lwt_io] input channel from a mirage flow. If [close]
@@ -30,4 +30,4 @@ module Make (F: Mirage_flow_lwt.S): sig
 
 end
 
-module Fd: Mirage_flow_lwt.S with type flow = Lwt_unix.file_descr
+module Fd: Mirage_flow.S with type flow = Lwt_unix.file_descr

@@ -22,29 +22,31 @@
 
     {e Release %%VERSION%% } *)
 
-open Mirage_flow
+(** [CONCRETE] expose the private row as [`Msg str] errors, using
+    [pp_error] and [pp_write_error]. *)
+module type CONCRETE =  Mirage_flow.S
+  with type error = [ `Msg of string ]
+   and type write_error = [ Mirage_flow.write_error | `Msg of string ]
 
-module type S = Mirage_flow.S
-  with type 'a io = 'a Lwt.t
-   and type buffer = Cstruct.t
+(** Functor to transform a {{!S}flow} signature using private rows for
+    errors into concrete error types. *)
+module Concrete (S: Mirage_flow.S): CONCRETE with type flow = S.flow
 
-module type ABSTRACT = Mirage_flow.ABSTRACT
-  with type 'a io = 'a Lwt.t
-   and type buffer = Cstruct.t
+(** {1 Shutdownable flows} *)
+module type SHUTDOWNABLE = sig
+  include Mirage_flow.S
 
-module type CONCRETE =  Mirage_flow.CONCRETE
-  with type 'a io = 'a Lwt.t
-   and type buffer = Cstruct.t
+  val shutdown_write: flow -> unit Lwt.t
+  (** Close the [write] direction of the flow, flushing any buffered
+      data and causing future calls to [read] by the peer to return
+      [`Eof]. *)
 
-module Concrete (S: S): CONCRETE
-  with type buffer = S.buffer
-   and type flow = S.flow
+  val shutdown_read: flow -> unit Lwt.t
+  (** Close the [read] direction of the flow, such that future calls
+      to [write] by the peer will return [`Eof] *)
+end
 
-module type SHUTDOWNABLE = Mirage_flow.SHUTDOWNABLE
-  with type 'a io = 'a Lwt.t
-   and type buffer = Cstruct.t
-
-module Copy (Clock: Mirage_clock.MCLOCK) (A: S) (B: S): sig
+module Copy (Clock: Mirage_clock.MCLOCK) (A: Mirage_flow.S) (B: Mirage_flow.S): sig
 
   type error = [`A of A.error | `B of B.write_error]
   (** The type for copy errors. *)
@@ -52,11 +54,11 @@ module Copy (Clock: Mirage_clock.MCLOCK) (A: S) (B: S): sig
   val pp_error: error Fmt.t
   (** [pp_error] pretty-prints errors. *)
 
-val copy: Clock.t -> src:A.flow -> dst:B.flow -> (stats, error) result Lwt.t
-(** [copy clock source destination] copies data from [source] to
-    [destination] using the clock to compute a transfer rate. On
-    successful completion, some statistics are returned. On failure we
-    return a printable error. *)
+  val copy: src:A.flow -> dst:B.flow -> (Mirage_flow.stats, error) result Lwt.t
+  (** [copy source destination] copies data from [source] to
+      [destination] using the clock to compute a transfer rate. On
+      successful completion, some statistics are returned. On failure we
+      return a printable error. *)
 
 end
 
@@ -69,8 +71,9 @@ sig
   val pp_error: error Fmt.t
   (** [pp_error] pretty-prints errors. *)
 
-  val proxy: Clock.t -> A.flow -> B.flow -> ((stats * stats), error) result Lwt.t
-  (** [proxy clock a b] proxies data between [a] and [b] until both
+  val proxy: A.flow -> B.flow ->
+    ((Mirage_flow.stats * Mirage_flow.stats), error) result Lwt.t
+  (** [proxy a b] proxies data between [a] and [b] until both
       sides close. If either direction encounters an error then so
       will [proxy]. If both directions succeed, then return I/O
       statistics. *)
@@ -81,7 +84,7 @@ module F: sig
 
   (** In-memory, function-based flows. *)
 
-  include S
+  include Mirage_flow.S
 
   type refill = Cstruct.t -> int -> int -> int Lwt.t
   (** The type for refill functions. *)
@@ -145,9 +148,9 @@ end
 type t
 (** The type for first-class flows. *)
 
-include S with type flow = t
+include Mirage_flow.S with type flow = t
 
-val create: (module S with type flow = 'a) -> 'a -> string -> t
+val create: (module Mirage_flow.S with type flow = 'a) -> 'a -> string -> t
 (** [create (module M) t name] is the flow representing [t] using the
     function defined in [M]. *)
 

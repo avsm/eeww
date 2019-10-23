@@ -19,7 +19,7 @@ open Lwt.Infix
 let src = Logs.Src.create "mirage-flow-unix"
 module Log = (val Logs.src_log src : Logs.LOG)
 
-module Make (F: Mirage_flow_lwt.S) = struct
+module Make (F: Mirage_flow.S) = struct
 
   let reader t =
     let frag = ref (Cstruct.create 0) in
@@ -66,8 +66,6 @@ end
 
 module Fd = struct
 
-  type 'a io = 'a Lwt.t
-  type buffer = Cstruct.t
   type error = [`Msg of string]
   type write_error = [ Mirage_flow.write_error | error ]
 

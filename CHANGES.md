@@ -1,3 +1,9 @@
+### v2.0.0 (2019-10-23)
+
+* mirage-flow uses Lwt.t and Cstruct.t directly (#43 @hannesm)
+* mirage-flow-lwt was removed, combinators are now in mirage-flow-combinators (#43 @hannesm)
+* raise lower OCaml bound to 4.06.0 (#43 @hannesm)
+
 ### v1.6.0 (2019-04-24)
 
 * remove uses of `Result` (#40 @hannesm)
@@ -5,7 +11,7 @@
 * port build to dune from jbuilder (#41 @hannesm)
 
 ### v1.5.0 (2018-07-09)
-  
+
 * remove Result module, work with `-safe-string` and require cstruct >=3.2.0
 
 ### v1.4.0 (2017-06-23)

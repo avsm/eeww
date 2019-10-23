@@ -1,6 +1,5 @@
 (library
  (name mirage_flow_unix)
  (public_name mirage-flow-unix)
- (libraries mirage-flow-lwt lwt.unix logs)
- (wrapped false)
- (flags :standard -safe-string))
+ (libraries mirage-flow lwt.unix logs)
+ (wrapped false))

@@ -16,9 +16,9 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *)
 
-(** {1 Flow-related devices}
+(** {1 Flow-related signatures}
 
-    This module define flow devices and combinators for MirageOS.
+    This module defines the flow signature for MirageOS.
 
     {e Release %%VERSION%% } *)
 
@@ -35,10 +35,7 @@ val pp_or_eof: 'a Fmt.t -> 'a or_eof Fmt.t
 (** [pp_or_eof] is the pretty-printer for {!or_eof} values. *)
 
 (** Abstract flow signature. *)
-module type ABSTRACT = sig
-
-  type +'a io
-  (** The type for potentially blocking I/O operations. *)
+module type S = sig
 
   type error
   (** The type for flow errors. *)
@@ -46,20 +43,17 @@ module type ABSTRACT = sig
   val pp_error: error Fmt.t
   (** [pp_error] is the pretty-printer for errors. *)
 
-  type write_error
+  type nonrec write_error = private [> write_error ]
   (** The type for write errors. *)
 
   val pp_write_error: write_error Fmt.t
   (** [pp_write_error] is the pretty-printer for write errors. *)
 
-  type buffer
-  (** The type for memory buffer. *)
-
   type flow
   (** The type for flows. A flow represents the state of a single
       reliable stream that is connected to an endpoint. *)
 
-  val read: flow -> (buffer or_eof, error) result io
+  val read: flow -> (Cstruct.t or_eof, error) result Lwt.t
   (** [read flow] blocks until some data is available and returns a
       fresh buffer containing it.
 
@@ -72,7 +66,7 @@ module type ABSTRACT = sig
       called [close] and when there is no more in-flight data.
    *)
 
-  val write: flow -> buffer -> (unit, write_error) result io
+  val write: flow -> Cstruct.t -> (unit, write_error) result Lwt.t
   (** [write flow buffer] writes a buffer to the flow. There is no
       indication when the buffer has actually been read and, therefore,
       it must not be reused.  The contents may be transmitted in
@@ -81,7 +75,7 @@ module type ABSTRACT = sig
       connection is now closed and therefore the data could not be
       written.  Other errors are possible. *)
 
-  val writev: flow -> buffer list -> (unit, write_error) result io
+  val writev: flow -> Cstruct.t list -> (unit, write_error) result Lwt.t
   (** [writev flow buffers] writes a sequence of buffers to the flow.
       There is no indication when the buffers have actually been read and,
       therefore, they must not be reused. The
@@ -89,7 +83,7 @@ module type ABSTRACT = sig
       connection is now closed and therefore the data could not be
       written.  Other errors are possible. *)
 
-  val close: flow -> unit io
+  val close: flow -> unit Lwt.t
   (** [close flow] flushes all pending writes and signals the remote
       endpoint that there will be no future writes. Once the remote endpoint
       has read all pending data, it is expected that calls to [read] on
@@ -105,44 +99,6 @@ module type ABSTRACT = sig
       before returning. At this point no data can flow in either direction
       and resources associated with the flow can be freed.
       *)
-end
-
-(** The main [FLOW] signature, where [write_errors] is a private row
-    type. Note: ideally [error] should be the empty row, but not easy
-    way to express this in OCaml. *)
-module type S = ABSTRACT with type write_error = private [> write_error ]
-  [@@ocaml.warning "-34"]
-
-(** [CONCRETE] expose the private row as [`Msg str] errors, using
-    [pp_error] and [pp_write_error]. *)
-module type CONCRETE = ABSTRACT
-  with type error = [`Msg of string]
-   and type write_error = [write_error | `Msg of string]
-
-(** Functor to transform a {{!S}flow} signature using private rows for
-    errors into concrete error types. *)
-module Concrete (S: S)
-    (IO: sig
-       type 'a t = 'a S.io
-       val map: ('a -> 'b) -> 'a t -> 'b t
-     end):
-  CONCRETE
-  with type 'a io = 'a S.io
-   and type buffer = S.buffer
-   and type flow = S.flow
-
-(** {1 Shutdownable flows} *)
-module type SHUTDOWNABLE = sig
-  include S
-
-  val shutdown_write: flow -> unit io
-  (** Close the [write] direction of the flow, flushing any buffered
-      data and causing future calls to [read] by the peer to return
-      [`Eof]. *)
-
-  val shutdown_read: flow -> unit io
-  (** Close the [read] direction of the flow, such that future calls
-      to [write] by the peer will return [`Eof] *)
 end
 
 (** {1 Copy stats} *)
