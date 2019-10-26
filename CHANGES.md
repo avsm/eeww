@@ -1,3 +1,7 @@
+## 0.1.3 (2019-10-26)
+
+* Duration.pp: don't emit trailing space
+
 ## 0.1.2 (2019-02-16)
 
 * move build system to dune
