@@ -112,19 +112,16 @@ let pp ppf t =
   let us = to_us left in
   let ns = Int64.(to_int (sub left (of_us us))) in
   let p = ref false in
+  let space () = if !p then Format.pp_print_space ppf () in
   if hours > 0 then
-    (p := true ;
-     Format.fprintf ppf "%d hours@ " hours) ;
+    (p := true ; Format.fprintf ppf "%d hours" hours) ;
   if (!p && (sec > 0 || ms > 0 || us > 0 || ns > 0)) || min > 0 then
-    (p := true ;
-     Format.fprintf ppf "%d minutes@ " min) ;
+    (space () ; p := true ; Format.fprintf ppf "%d minutes" min) ;
   if (!p && (ms > 0 || us > 0 || ns > 0)) || sec > 0 then
-    (p := true ;
-     Format.fprintf ppf "%d seconds@ " sec) ;
+    (space () ; p := true ; Format.fprintf ppf "%d seconds" sec) ;
   if (!p && (us > 0 || ns > 0)) || ms > 0 then
-    (p := true ;
-     Format.fprintf ppf "%d milliseconds@ " ms) ;
+    (space () ; p := true ; Format.fprintf ppf "%d milliseconds" ms) ;
   if (!p && ns > 0) || us > 0 then
-    Format.fprintf ppf "%d microseconds@ " us ;
+    (space () ; p := true ; Format.fprintf ppf "%d microseconds" us) ;
   if ns > 0 then
-    Format.fprintf ppf "%d nanoseconds@ " ns
+    (space () ; Format.fprintf ppf "%d nanoseconds" ns)
