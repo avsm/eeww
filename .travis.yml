@@ -6,16 +6,12 @@ services:
   - docker
 env:
   global:
-    - PINS="mirage-flow.2.0.0:. mirage-flow-combinators.2.0.0:. mirage-flow-unix.2.0.0:."
+    - PINS="mirage-flow:. mirage-flow-combinators:. mirage-flow-unix:."
     - DISTRO="alpine"
+    - REVDEPS=true
+    - TESTS=true
   matrix:
   - OCAML_VERSION=4.06 PACKAGE="mirage-flow-combinators"
-  - OCAML_VERSION=4.06 PACKAGE="mirage-flow-unix"
-  - OCAML_VERSION=4.07 PACKAGE="mirage-flow-combinators"
   - OCAML_VERSION=4.07 PACKAGE="mirage-flow-unix"
   - OCAML_VERSION=4.08 PACKAGE="mirage-flow"
-  - OCAML_VERSION=4.08 PACKAGE="mirage-flow-combinators"
-  - OCAML_VERSION=4.08 PACKAGE="mirage-flow-unix"
-  - OCAML_VERSION=4.09 PACKAGE="mirage-flow"
-  - OCAML_VERSION=4.09 PACKAGE="mirage-flow-combinators"
   - OCAML_VERSION=4.09 PACKAGE="mirage-flow-unix"
