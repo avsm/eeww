@@ -1,3 +1,7 @@
+### v2.0.1 (2019-11-04)
+
+* provide deprecated Mirage_kv_lwt for smooth transition (#45 @hannesm)
+
 ### v2.0.0 (2019-10-23)
 
 * mirage-flow uses Lwt.t and Cstruct.t directly (#43 @hannesm)
