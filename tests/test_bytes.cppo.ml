@@ -115,8 +115,8 @@ let test2 () =
   if big_endian
   then begin
     NE.set_int16 s 0 0x1234;
-    assert( BE.get_uint16 (to_t s) 0 = 0xFEDC );
-    assert( BE.get_uint16 (to_t s) 1 = 0xDC00 );
+    assert( BE.get_uint16 (to_t s) 0 = 0x1234 );
+    assert( BE.get_uint16 (to_t s) 1 = 0x3400 );
     assert( BE.get_uint16 (to_t s) 2 = 0 )
   end;
 
