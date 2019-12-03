@@ -11,7 +11,7 @@ build: [
 ]
 depends: [
   "ocaml" {>= "4.04.2"}
-  "dune" {>= "1.5.1"}
+  "dune" {>= "2.0.0"}
 ]
 synopsis: "Library containing the definition of S-expressions and some base converters"
 description: "
