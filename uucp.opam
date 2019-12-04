@@ -6,7 +6,7 @@ authors: [
 ]
 homepage: "https://erratique.ch/software/uucp"
 doc: "https://erratique.ch/software/uucp/doc/Uucp"
-dev-repo: "git+https://erratique.ch/repos/uucp.git"
+dev-repo: "git+https://github.com/dune-universe/uucp.git"
 bug-reports: "https://github.com/dbuenzli/uucp/issues"
 tags: [ "unicode" "text" "character" "org:erratique" ]
 license: "ISC"
@@ -21,3 +21,6 @@ build: [
  [ "dune" "subst" ] {pinned}
  [ "dune" "build" "-p" name "-j" jobs]
 ]
+url {
+  src: "git://github.com/dune-universe/uucp.git#duniverse-v12.0.0"
+}
