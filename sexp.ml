@@ -306,3 +306,38 @@ let message name fields =
       | _  -> List [ Atom fname; fsexp ] :: conv_fields rest
   in
   List (Atom name :: conv_fields fields)
+
+module Grammar = struct
+  include Grammar
+
+  module Builtin = struct
+    let unit_sexp_grammar = Inline (List [])
+    let bool_sexp_grammar = Inline (Atom Bool)
+    let string_sexp_grammar = Inline (Atom String)
+    let bytes_sexp_grammar = string_sexp_grammar
+    let char_sexp_grammar = Inline (Atom Char)
+    let int_sexp_grammar = Inline (Atom Int)
+    let float_sexp_grammar = Inline (Atom Float)
+    let int32_sexp_grammar = Inline (Atom Int)
+    let int64_sexp_grammar = Inline (Atom Int)
+    let nativeint_sexp_grammar = Inline (Atom Int)
+    let ref_sexp_grammar = Inline (Explicit_bind ([ "'a" ], Explicit_var 0))
+    let lazy_t_sexp_grammar = Inline (Explicit_bind ([ "'a" ], Explicit_var 0))
+    let option_sexp_grammar = Inline (Explicit_bind ([ "'a" ], Option (Explicit_var 0)))
+
+    let list_sexp_grammar =
+      Inline (Explicit_bind ([ "'a" ], List [ Many (Explicit_var 0) ]))
+    ;;
+
+    let array_sexp_grammar = list_sexp_grammar
+  end
+
+  let empty_sexp_grammar = Inline (Union [])
+  let opaque_sexp_grammar = empty_sexp_grammar
+  let fun_sexp_grammar = empty_sexp_grammar
+  let tuple2_sexp_grammar =
+    Inline
+      (Explicit_bind
+         ([ "'a"; "'b" ], List [ One (Explicit_var 0); One (Explicit_var 1) ]))
+  ;;
+end
