@@ -117,8 +117,5 @@ let empty_list_invalid_poly_var loc sexp =
   of_sexp_error (
     loc ^ "_of_sexp: the empty list is an invalid polymorphic variant") sexp
 
-let silly_type loc sexp =
-  of_sexp_error (loc ^ "_of_sexp: trying to convert a silly type") sexp
-
 let empty_type loc sexp =
   of_sexp_error (loc ^ "_of_sexp: trying to convert an empty type") sexp
