@@ -108,7 +108,7 @@ module Atom = struct
     | Float  (** An atom which parses as a {!float}. *)
     | Int  (** An atom which parses as an integer, such as {!int} or {!int64}. *)
     | This of { ignore_capitalization : bool; string : string }
-    (** Exactly that string, possibly modulo case. *)
+    (** Exactly that string, possibly modulo case in the first character. *)
 end
 
 (** A grammatical type which classifies sexps. Corresponds to a non-terminal in a
