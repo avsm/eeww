@@ -207,6 +207,12 @@ type t =
 and group =
   { gid : group_id
   ; generic_group : generic_group
+  ; origin : string
+  (** [origin] provides a human-readable hint as to where the type was defined.
+
+      For a globally unique identifier, use [gid] instead.
+
+      See [ppx/ppx_sexp_conv/test/expect/test_origin.ml] for examples. *)
   ; apply_implicit : t list
   }
 
