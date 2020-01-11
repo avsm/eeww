@@ -11,7 +11,7 @@
   common.ml
   common_401.ml)
  (action
-  (run %{bin:cppo} %{<} -o %{targets})))
+  (run %{bin:cppo} -V OCAML:%{ocaml_version} %{<} -o %{targets})))
 
 (rule
  (targets endianBytes.mli)
@@ -27,7 +27,7 @@
   common.ml
   common_401.ml)
  (action
-  (run %{bin:cppo} %{<} -o %{targets})))
+  (run %{bin:cppo} -V OCAML:%{ocaml_version} %{<} -o %{targets})))
 
 (rule
  (targets endianBigstring.mli)
