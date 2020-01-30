@@ -76,11 +76,11 @@ let pp_name ppf ucd =
   Gen.log " token count: %d@\n" (Hashtbl.length tok_index);
   Gen.log "  asserting"; Gen.assert_prop_map prop get;
   Gen.log ", generating@\n";
-  Gen.pp ppf "@[let name_toks : string array = [|";
+  Gen.pp ppf "@[<2>let name_toks : string array =@ @[<2>[|";
   List.iter (fun (_, t) -> Gen.pp ppf "%S;@," t) tok_list ;
-  Gen.pp ppf "|]@]@\n";
+  Gen.pp ppf "|]@]@]@\n@\n";
   Gen.pp ppf "open Uucp_tmap4bytes@\n";
-  Gen.pp ppf "@[let name_map : t = %a@]@\n" Uucp_tmap4bytes.dump m;
+  Gen.pp ppf "@[<2>let name_map : t =@ %a@]@\n@\n" Uucp_tmap4bytes.dump m;
   ()
 
 let pp_name_alias ppf ucd =

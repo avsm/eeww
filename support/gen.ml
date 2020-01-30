@@ -66,7 +66,8 @@ let pp_prop_cmap ppf prop pname ptype pp_prop ~default size_v =
   log "  asserting"; assert_prop_map prop (Uucp_cmap.get m);
   log ", generating@\n";
   pp ppf "open Uucp_cmap@\n";
-  pp ppf "@[let %s_map : %s t = %a@]@\n" pname ptype (Uucp_cmap.dump pp_prop) m;
+  pp ppf "@[<2>let %s_map : %s t =@ %a@]@\n@\n"
+         pname ptype (Uucp_cmap.dump pp_prop) m;
   ()
 
 let pp_prop_cmap_ucd ppf ucd prop pname ptype pp_prop ~default size_v =
@@ -103,7 +104,8 @@ let pp_prop_rmap ppf prop pname ptype pp_prop ~default size_v =
   log "  asserting"; assert_prop_map prop (Uucp_rmap.get m);
   log ", generating@\n";
   pp ppf "open Uucp_rmap@\n";
-  pp ppf "@[let %s_map : %s t = %a@]@\n" pname ptype (Uucp_rmap.dump pp_prop) m;
+  pp ppf "@[<2>let %s_map : %s t =@ %a@]@\n@\n"
+         pname ptype (Uucp_rmap.dump pp_prop) m;
   ()
 
 let pp_prop_rmap_ucd ppf ucd prop pname ptype pp_prop ~default size_v =
@@ -127,7 +129,8 @@ let pp_prop_tmap ppf prop pname ptype pp_prop ~default size_v =
   log "  asserting"; assert_prop_map prop get;
   log ", generating@\n";
   pp ppf "open Uucp_tmap@\n";
-  pp ppf "@[let %s_map : %s t = %a@]@\n" pname ptype (Uucp_tmap.dump pp_prop) m;
+  pp ppf "@[<2>let %s_map : %s t =@ %a@]@\n@\n"
+     pname ptype (Uucp_tmap.dump pp_prop) m;
   ()
 
 let pp_prop_tmap_ucd ppf ucd prop pname ptype pp_prop ~default size_v =
@@ -169,7 +172,8 @@ let pp_prop_tmapbool ppf prop pname =
   log ", generating@\n";
   let m = if use_fm then fm else tm in
   pp ppf "open Uucp_tmapbool@\n";
-  pp ppf "@[let %s_map = %a@]@\n" pname Uucp_tmapbool.dump m;
+  pp ppf "@[<2>let %s_map =@ %a@]@\n@\n"
+     pname Uucp_tmapbool.dump m;
   ()
 
 let pp_prop_tmapbool_ucd ppf ucd prop pname =
@@ -193,7 +197,8 @@ let pp_prop_tmapbyte ppf prop pname ~default default_str =
   log " asserting"; assert_prop_map prop get;
   log ", generating@\n";
   pp ppf "open Uucp_tmapbyte@\n";
-  pp ppf "@[let %s_map : t = %a@]@\n" pname Uucp_tmapbyte.dump m;
+  pp ppf "@[<2>let %s_map : t =@ %a@]@\n@\n"
+     pname Uucp_tmapbyte.dump m;
   ()
 
 let pp_prop_tmapbyte_ucd ppf ucd prop pname ~default =

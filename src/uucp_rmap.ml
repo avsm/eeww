@@ -65,20 +65,18 @@ let rec word_size v_size m =        (* value sharing not taken into account. *)
   in
   loop m.tree
 
+open Uucp_fmt
 let rec dump pp_v ppf m =
-  let pp = Format.fprintf in
   let rec dump_tree ppf = function
   | Rn (l, r, is, ie, v) ->
-      pp ppf "@[<4>Rn(%a,@,%a,@,0x%04X,@,0x%04X,@,%a)@]"
+      pf ppf "@[<4>Rn(%a,@,%a,@,0x%04X,@,0x%04X,@,%a)@]"
         dump_tree l dump_tree r is ie pp_v v
   | R (is, ie, v) ->
-      pp ppf "@[<3>R(0x%04X,@,0x%04X,@,%a)@]" is ie pp_v v
+      pf ppf "@[<3>R(0x%04X,@,0x%04X,@,%a)@]" is ie pp_v v
   | Empty ->
-      pp ppf "Empty"
+      pf ppf "Empty"
   in
-  pp ppf "@,{ default =@ %a;@, tree =@ " pp_v m.default;
-  dump_tree ppf m.tree;
-  pp ppf "@,}"
+  record ["default", pp_v; "tree", dump_tree] ppf m.default m.tree
 
 (*---------------------------------------------------------------------------
    Copyright (c) 2014 Daniel C. Bünzli
