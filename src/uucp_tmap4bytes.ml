@@ -42,10 +42,15 @@ let word_size m = match m.l0 with
     done;
     !size
 
+let iter_blobs i m = Array.(iter (iter i)) m.l0
+
 open Uucp_fmt
-let dump ppf m =
-  record ["default", string_X; "l0", string_XN |> array_N |> array]
+
+let dump_pp pp_v ppf m =
+  record ["default", string_X; "l0", pp_v |> array_N |> array]
          ppf m.default m.l0
+let pp_v = string_XN
+let dump = dump_pp pp_v
 
 (* Four bytes as an uint16 pair *)
 
