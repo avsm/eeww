@@ -19,20 +19,22 @@ let bitmask n =
   go 1 n - 1
 
 let rec int ?(bound = max_int) g =
-  if bound <= 1 then invalid_arg "bound smaller or equal 1 not supported" ;
-  let r =
-    if bound <= 256 then
-      int8 g
-    else if bound <= 65536 then
-      int16 g
-    else
-      match Sys.word_size with
-      | 32 -> Int32.to_int (int32 g)
-      | 64 -> Int64.to_int (int64 g)
-      | _ -> invalid_arg "unknown word size"
-  in
-  let r = r land bitmask (pred bound) in
-  if r < bound then r else int ~bound g
+  if bound <= 0 then invalid_arg "bound smaller or equal 0 not supported" ;
+  if bound = 1 then 0
+  else
+    let r =
+      if bound <= 256 then
+        int8 g
+      else if bound <= 65536 then
+        int16 g
+      else
+        match Sys.word_size with
+        | 32 -> Int32.to_int (int32 g)
+        | 64 -> Int64.to_int (int64 g)
+        | _ -> invalid_arg "unknown word size"
+    in
+    let r = r land bitmask (pred bound) in
+    if r < bound then r else int ~bound g
 
 let float ?(bound = 1.) g =
   if bound <= 0. then invalid_arg "bound smaller or equal 0 not supported" ;

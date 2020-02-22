@@ -25,7 +25,7 @@ val int64 : (int -> Cstruct.t) -> int64
 
 (** [int ~bound g] is [r], a random [int] between inclusive 0 and exclusive
     [bound] (defaults to [max_int]), using the generator [g].  [int] raises
-    [Invalid_argument] if the supplied [bound] is smaller or equal to 1.  *)
+    [Invalid_argument] if the supplied [bound] is smaller or equal to 0.  *)
 val int : ?bound:int -> (int -> Cstruct.t) -> int
 
 (** [float ~bound g] is [r], a random [float] between inclusive 0.0 and
