@@ -93,7 +93,7 @@ type generic_group_id = string
 type group_id = Lazy_group_id.t
 
 (** Variable names. These are used to improve readability of the printed grammars.
-    Internally, we use De Bruijn indices to represent variables; see [Implicit_var]
+    Internally, we use numerical indices to represent variables; see [Implicit_var]
     below. *)
 type var_name = string
 
@@ -121,12 +121,15 @@ type 't type_ =
   (** In [Bind ([ "a"; "b" ], Explicit_var 0)], [Explicit_var 0] is ["a"]. One must bind
       all available type variables: free variables are not permitted. *)
   | Explicit_var of int
-  (** De Bruijn indices for explicit type variables introduced by polymorphic
-      definitions. Bound by the nearest ancestral [Explicit_bind]. *)
+  (** Indices for type variables, e.g. ['a], introduced by polymorphic definitions.
+
+      Unlike de Bruijn indices, these are always bound by the nearest ancestral
+      [Explicit_bind]. *)
   | Grammar of 't  (** Embeds other types in a grammar. *)
   | Implicit_var of int
-  (** De Bruijn indices for implicit type variables introduced by referencing other
-      concrete types in scope. Bound by the [implicit_vars] of [generic_groups]. *)
+  (** Indices for type constructors, e.g. [int], in scope. Unlike de Bruijn indices, these
+      are always bound by the [implicit_vars] of the nearest enclosing [generic_groups].
+  *)
   | List of 't sequence_type
   (** A list of a certain form. Depending on the {!sequence_type}, this might
       correspond to an OCaml tuple, list, or embedded record. *)
