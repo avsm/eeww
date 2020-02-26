@@ -1,11 +1,10 @@
 
 let test ~hash ~ikm ?salt ?info ~l ~prk ~okm () =
-  let open Nocrypto.Uncommon.Cs in
-  let ikm = of_hex ikm
-  and salt = match salt with None -> None | Some x -> Some (of_hex x)
-  and info = match info with None -> None | Some x -> Some (of_hex x)
-  and prk = of_hex prk
-  and okm = of_hex okm
+  let ikm = Cstruct.of_hex ikm
+  and salt = match salt with None -> None | Some x -> Some (Cstruct.of_hex x)
+  and info = match info with None -> None | Some x -> Some (Cstruct.of_hex x)
+  and prk = Cstruct.of_hex prk
+  and okm = Cstruct.of_hex okm
   in
   (fun () ->
    let cprk = Hkdf.extract ~hash ?salt ikm in

@@ -18,10 +18,10 @@ module type S = sig
 end
 
 (** Given a Hash function, get the HKDF *)
-module Make (H : Nocrypto.Hash.S) : S
+module Make (H : Mirage_crypto.Hash.S) : S
 
 (** convenience [extract hash salt ikm] where the [hash] has to be provided explicitly *)
-val extract : hash:Nocrypto.Hash.hash -> ?salt:Cstruct.t -> Cstruct.t -> Cstruct.t
+val extract : hash:Mirage_crypto.Hash.hash -> ?salt:Cstruct.t -> Cstruct.t -> Cstruct.t
 
 (** convenience [expand hash prk info len] where the [hash] has to be provided explicitly *)
-val expand : hash:Nocrypto.Hash.hash -> prk:Cstruct.t -> ?info:Cstruct.t -> int -> Cstruct.t
+val expand : hash:Mirage_crypto.Hash.hash -> prk:Cstruct.t -> ?info:Cstruct.t -> int -> Cstruct.t

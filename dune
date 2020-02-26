@@ -2,7 +2,7 @@
   (name hkdf)
   (public_name hkdf)
   (modules hkdf)
-  (libraries cstruct nocrypto))
+  (libraries cstruct mirage-crypto))
 
 (test
   (name rfctests)

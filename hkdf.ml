@@ -4,7 +4,7 @@ module type S = sig
   val expand : prk:Cstruct.t -> ?info:Cstruct.t -> int -> Cstruct.t
 end
 
-module Make (H : Nocrypto.Hash.S) : S = struct
+module Make (H : Mirage_crypto.Hash.S) : S = struct
   let extract ?salt ikm =
     let key = match salt with
       | None -> Cstruct.create H.digest_size
@@ -33,11 +33,11 @@ module Make (H : Nocrypto.Hash.S) : S = struct
 end
 
 let extract ~hash ?salt ikm =
-  let module H = (val (Nocrypto.Hash.module_of hash)) in
+  let module H = (val (Mirage_crypto.Hash.module_of hash)) in
   let module HKDF = Make (H) in
   HKDF.extract ?salt ikm
 
 let expand ~hash ~prk ?info len =
-  let module H = (val (Nocrypto.Hash.module_of hash)) in
+  let module H = (val (Mirage_crypto.Hash.module_of hash)) in
   let module HKDF = Make (H) in
   HKDF.expand ~prk ?info len
