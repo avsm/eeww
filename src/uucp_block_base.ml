@@ -51,6 +51,7 @@ type t = [
   | `CJK_Ext_D
   | `CJK_Ext_E
   | `CJK_Ext_F
+  | `CJK_Ext_G
   | `CJK_Radicals_Sup
   | `CJK_Strokes
   | `CJK_Symbols
@@ -61,6 +62,7 @@ type t = [
   | `Cherokee
   | `Cherokee_Sup
   | `Chess_Symbols
+  | `Chorasmian
   | `Compat_Jamo
   | `Control_Pictures
   | `Coptic
@@ -83,6 +85,7 @@ type t = [
   | `Diacriticals_For_Symbols
   | `Diacriticals_Sup
   | `Dingbats
+  | `Dives_Akuru
   | `Dogra
   | `Domino
   | `Duployan
@@ -144,6 +147,7 @@ type t = [
   | `Katakana_Ext
   | `Kayah_Li
   | `Kharoshthi
+  | `Khitan_Small_Script
   | `Khmer
   | `Khmer_Symbols
   | `Khojki
@@ -163,6 +167,7 @@ type t = [
   | `Linear_B_Ideograms
   | `Linear_B_Syllabary
   | `Lisu
+  | `Lisu_Sup
   | `Lycian
   | `Lydian
   | `Mahajani
@@ -268,6 +273,7 @@ type t = [
   | `Sutton_SignWriting
   | `Syloti_Nagri
   | `Symbols_And_Pictographs_Ext_A
+  | `Symbols_For_Legacy_Computing
   | `Syriac
   | `Syriac_Sup
   | `Tagalog
@@ -282,6 +288,7 @@ type t = [
   | `Tamil_Sup
   | `Tangut
   | `Tangut_Components
+  | `Tangut_Sup
   | `Telugu
   | `Thaana
   | `Thai
@@ -299,6 +306,7 @@ type t = [
   | `Vertical_Forms
   | `Wancho
   | `Warang_Citi
+  | `Yezidi
   | `Yi_Radicals
   | `Yi_Syllables
   | `Yijing
@@ -352,6 +360,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `CJK_Ext_D -> "CJK_Ext_D"
   | `CJK_Ext_E -> "CJK_Ext_E"
   | `CJK_Ext_F -> "CJK_Ext_F"
+  | `CJK_Ext_G -> "CJK_Ext_G"
   | `CJK_Radicals_Sup -> "CJK_Radicals_Sup"
   | `CJK_Strokes -> "CJK_Strokes"
   | `CJK_Symbols -> "CJK_Symbols"
@@ -362,6 +371,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Cherokee -> "Cherokee"
   | `Cherokee_Sup -> "Cherokee_Sup"
   | `Chess_Symbols -> "Chess_Symbols"
+  | `Chorasmian -> "Chorasmian"
   | `Compat_Jamo -> "Compat_Jamo"
   | `Control_Pictures -> "Control_Pictures"
   | `Coptic -> "Coptic"
@@ -384,6 +394,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Diacriticals_For_Symbols -> "Diacriticals_For_Symbols"
   | `Diacriticals_Sup -> "Diacriticals_Sup"
   | `Dingbats -> "Dingbats"
+  | `Dives_Akuru -> "Dives_Akuru"
   | `Dogra -> "Dogra"
   | `Domino -> "Domino"
   | `Duployan -> "Duployan"
@@ -447,6 +458,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Katakana_Ext -> "Katakana_Ext"
   | `Kayah_Li -> "Kayah_Li"
   | `Kharoshthi -> "Kharoshthi"
+  | `Khitan_Small_Script -> "Khitan_Small_Script"
   | `Khmer -> "Khmer"
   | `Khmer_Symbols -> "Khmer_Symbols"
   | `Khojki -> "Khojki"
@@ -466,6 +478,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Linear_B_Ideograms -> "Linear_B_Ideograms"
   | `Linear_B_Syllabary -> "Linear_B_Syllabary"
   | `Lisu -> "Lisu"
+  | `Lisu_Sup -> "Lisu_Sup"
   | `Low_Surrogates -> "Low_Surrogates"
   | `Lycian -> "Lycian"
   | `Lydian -> "Lydian"
@@ -568,6 +581,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Sup_PUA_B -> "Sup_PUA_B"
   | `Sup_Punctuation -> "Sup_Punctuation"
   | `Sup_Symbols_And_Pictographs -> "Sup_Symbols_And_Pictographs"
+  | `Symbols_For_Legacy_Computing -> "Symbols_For_Legacy_Computing"
   | `Super_And_Sub -> "Super_And_Sub"
   | `Sutton_SignWriting -> "Sutton_SignWriting"
   | `Syloti_Nagri -> "Syloti_Nagri"
@@ -586,6 +600,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Tamil_Sup -> "Tamil_Sup"
   | `Tangut -> "Tangut"
   | `Tangut_Components -> "Tangut_Components"
+  | `Tangut_Sup -> "Tangut_Sup"
   | `Telugu -> "Telugu"
   | `Thaana -> "Thaana"
   | `Thai -> "Thai"
@@ -603,6 +618,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Vertical_Forms -> "Vertical_Forms"
   | `Wancho -> "Wancho"
   | `Warang_Citi -> "Warang_Citi"
+  | `Yezidi -> "Yezidi"
   | `Yi_Radicals -> "Yi_Radicals"
   | `Yi_Syllables -> "Yi_Syllables"
   | `Yijing -> "Yijing"

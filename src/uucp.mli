@@ -121,6 +121,7 @@ module Block : sig
     | `CJK_Ext_D
     | `CJK_Ext_E
     | `CJK_Ext_F
+    | `CJK_Ext_G
     | `CJK_Radicals_Sup
     | `CJK_Strokes
     | `CJK_Symbols
@@ -131,6 +132,7 @@ module Block : sig
     | `Cherokee
     | `Cherokee_Sup
     | `Chess_Symbols
+    | `Chorasmian
     | `Compat_Jamo
     | `Control_Pictures
     | `Coptic
@@ -153,6 +155,7 @@ module Block : sig
     | `Diacriticals_For_Symbols
     | `Diacriticals_Sup
     | `Dingbats
+    | `Dives_Akuru
     | `Dogra
     | `Domino
     | `Duployan
@@ -214,6 +217,7 @@ module Block : sig
     | `Katakana_Ext
     | `Kayah_Li
     | `Kharoshthi
+    | `Khitan_Small_Script
     | `Khmer
     | `Khmer_Symbols
     | `Khojki
@@ -233,6 +237,7 @@ module Block : sig
     | `Linear_B_Ideograms
     | `Linear_B_Syllabary
     | `Lisu
+    | `Lisu_Sup
     | `Lycian
     | `Lydian
     | `Mahajani
@@ -338,6 +343,7 @@ module Block : sig
     | `Sutton_SignWriting
     | `Syloti_Nagri
     | `Symbols_And_Pictographs_Ext_A
+    | `Symbols_For_Legacy_Computing
     | `Syriac
     | `Syriac_Sup
     | `Tagalog
@@ -352,6 +358,7 @@ module Block : sig
     | `Tamil_Sup
     | `Tangut
     | `Tangut_Components
+    | `Tangut_Sup
     | `Telugu
     | `Thaana
     | `Thai
@@ -369,6 +376,7 @@ module Block : sig
     | `Vertical_Forms
     | `Wancho
     | `Warang_Citi
+    | `Yezidi
     | `Yi_Radicals
     | `Yi_Syllables
     | `Yijing
@@ -1154,10 +1162,12 @@ module Script : sig
   | `Cari
   | `Cham
   | `Cher
+  | `Chrs
   | `Copt
   | `Cprt
   | `Cyrl
   | `Deva
+  | `Diak
   | `Dogr
   | `Dsrt
   | `Dupl
@@ -1194,6 +1204,7 @@ module Script : sig
   | `Khoj
   | `Knda
   | `Kthi
+  | `Kits
   | `Lana
   | `Laoo
   | `Latn
@@ -1281,6 +1292,7 @@ module Script : sig
   | `Wcho
   | `Xpeo
   | `Xsux
+  | `Yezi
   | `Yiii
   | `Zanb
   | `Zinh
