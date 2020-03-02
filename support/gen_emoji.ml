@@ -1,43 +1,23 @@
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 Daniel C. Bünzli. All rights reserved.
+   Copyright (c) 2020 The Uucp programmers. All rights reserved.
    Distributed under the ISC license, see terms at the end of the file.
    %%NAME%% %%VERSION%%
   ---------------------------------------------------------------------------*)
 
-(* Unicode version *)
+let pp_props ppf ucd =
+  let prop = Gen.pp_prop_tmapbool_ucd ppf ucd in
+  prop Uucd.emoji "emoji";
+  prop Uucd.emoji_presentation "emoji_presentation";
+  prop Uucd.emoji_modifier "emoji_modifier";
+  prop Uucd.emoji_modifier_base "emoji_modifier_base";
+  prop Uucd.emoji_component "emoji_component";
+  prop Uucd.extended_pictographic "extended_pictographic";
+  ()
 
-let unicode_version = "%%UNICODE_VERSION%%"
-
-(* Properties *)
-
-module Age = Uucp_age
-module Alpha = Uucp_alpha
-module Break = Uucp_break
-module Block = Uucp_block
-module Case = Uucp_case
-module Cjk = Uucp_cjk
-module Emoji = Uucp_emoji
-module Func = Uucp_func
-module Gc = Uucp_gc
-module Gen = Uucp_gen
-module Hangul = Uucp_hangul
-module Id = Uucp_id
-module Name = Uucp_name
-module Num = Uucp_num
-module Script = Uucp_script
-module White = Uucp_white
-
-(* Maps. Not part of the public API. *)
-
-module Cmap = Uucp_cmap
-module Rmap = Uucp_rmap
-module Tmap = Uucp_tmap
-module Tmapbool = Uucp_tmapbool
-module Tmapbyte = Uucp_tmapbyte
-module Tmap4bytes = Uucp_tmap4bytes
+let pp_mod ppf ucd = Gen.pp_mod pp_props ppf ucd
 
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 Daniel C. Bünzli
+   Copyright (c) 2020 The Uucp programmers
 
    Permission to use, copy, modify, and/or distribute this software for any
    purpose with or without fee is hereby granted, provided that the above

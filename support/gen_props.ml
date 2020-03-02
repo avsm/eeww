@@ -20,10 +20,12 @@ let ucd_or_die inf = try
       exit 1
 with Sys_error e -> Printf.eprintf "%s\n%!" e; exit 1
 
-let process inf age alpha block break case case_map case_fold case_nfkc cjk
-    func gc gen hangul id name num script white =
+let process
+    inf age alpha block break case case_map case_fold case_nfkc cjk emoji
+    func gc gen hangul id name num script white
+  =
   let inf = match inf with None -> "support/ucd.xml" | Some inf -> inf in
-  let ucd = (Gen.log "Loading Unicode character database.\n"; ucd_or_die inf) in
+  let ucd = (Gen.log "Loading Unicode character database.\n"; ucd_or_die inf)in
   let generate pp f ucd = match f with
   | None -> ()
   | Some fn ->
@@ -47,6 +49,7 @@ let process inf age alpha block break case case_map case_fold case_nfkc cjk
   generate Gen_case_fold.pp_mod case_fold ucd;
   generate Gen_case_nfkc.pp_mod case_nfkc ucd;
   generate Gen_cjk.pp_mod cjk ucd;
+  generate Gen_emoji.pp_mod emoji ucd;
   generate Gen_func.pp_mod func ucd;
   generate Gen_gc.pp_mod gc ucd;
   generate Gen_gen.pp_mod gen ucd;
@@ -79,6 +82,7 @@ let main () =
   let case_fold = ref None in
   let case_nfkc = ref None in
   let cjk = ref None in
+  let emoji = ref None in
   let func = ref None in
   let gc = ref None in
   let gen = ref None in
@@ -99,6 +103,7 @@ let main () =
     "-case-fold", set case_fold, "<FILE> Support for case folding";
     "-case-nfkc", set case_nfkc, "<FILE> Support for NFKC case folding";
     "-cjk", set cjk, "<FILE> Support for CJK properties";
+    "-emoji", set emoji, "<FILE> Support for emoji props";
     "-func", set func, "<FILE> Support for function and graph props";
     "-gc", set gc, "<FILE> Support for the general category property";
     "-gen", set gen, "<FILE> Support for general props";
@@ -111,7 +116,7 @@ let main () =
   in
   Arg.parse (Arg.align options) set_inf usage;
   process !inf !age !alpha !block !break !case !case_map !case_fold
-    !case_nfkc !cjk !func !gc !gen !hangul !id !name !num !script !white
+    !case_nfkc !cjk !emoji !func !gc !gen !hangul !id !name !num !script !white
 
 let () = main ()
 

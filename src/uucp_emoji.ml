@@ -1,43 +1,29 @@
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 Daniel C. Bünzli. All rights reserved.
+   Copyright (c) 2020 The Uucp programmers. All rights reserved.
    Distributed under the ISC license, see terms at the end of the file.
    %%NAME%% %%VERSION%%
   ---------------------------------------------------------------------------*)
 
-(* Unicode version *)
+let is_emoji u =
+  Uucp_tmapbool.get Uucp_emoji_data.emoji_map (Uchar.to_int u)
 
-let unicode_version = "%%UNICODE_VERSION%%"
+let is_emoji_presentation u =
+  Uucp_tmapbool.get Uucp_emoji_data.emoji_presentation_map (Uchar.to_int u)
 
-(* Properties *)
+let is_emoji_modifier u =
+  Uucp_tmapbool.get Uucp_emoji_data.emoji_modifier_map (Uchar.to_int u)
 
-module Age = Uucp_age
-module Alpha = Uucp_alpha
-module Break = Uucp_break
-module Block = Uucp_block
-module Case = Uucp_case
-module Cjk = Uucp_cjk
-module Emoji = Uucp_emoji
-module Func = Uucp_func
-module Gc = Uucp_gc
-module Gen = Uucp_gen
-module Hangul = Uucp_hangul
-module Id = Uucp_id
-module Name = Uucp_name
-module Num = Uucp_num
-module Script = Uucp_script
-module White = Uucp_white
+let is_emoji_modifier_base u =
+  Uucp_tmapbool.get Uucp_emoji_data.emoji_modifier_base_map (Uchar.to_int u)
 
-(* Maps. Not part of the public API. *)
+let is_emoji_component u =
+  Uucp_tmapbool.get Uucp_emoji_data.emoji_component_map (Uchar.to_int u)
 
-module Cmap = Uucp_cmap
-module Rmap = Uucp_rmap
-module Tmap = Uucp_tmap
-module Tmapbool = Uucp_tmapbool
-module Tmapbyte = Uucp_tmapbyte
-module Tmap4bytes = Uucp_tmap4bytes
+let is_extended_pictographic u =
+  Uucp_tmapbool.get Uucp_emoji_data.extended_pictographic_map (Uchar.to_int u)
 
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 Daniel C. Bünzli
+   Copyright (c) 2020 The Uucp programmers
 
    Permission to use, copy, modify, and/or distribute this software for any
    purpose with or without fee is hereby granted, provided that the above

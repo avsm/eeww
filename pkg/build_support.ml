@@ -34,6 +34,7 @@ let gen_props () =
          "-case-map" % "src/uucp_case_map_data.ml" %
          "-case-nfkc" % "src/uucp_case_nfkc_data.ml" %
          "-cjk" % "src/uucp_cjk_data.ml" %
+         "-emoji" % "src/uucp_emoji_data.ml" %
          "-func" % "src/uucp_func_data.ml" %
          "-gc" % "src/uucp_gc_data.ml" %
          "-gen" % "src/uucp_gen_data.ml" %
