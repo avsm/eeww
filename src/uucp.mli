@@ -43,7 +43,7 @@ module Age : sig
   (** The type for character age. *)
 
   val compare : t -> t -> int
-  (** [compare a a'] is [Pervasives.compare a a'] *)
+  (** [compare a a'] is [Stdlib.compare a a'] *)
 
   val pp : Format.formatter -> t -> unit
   (** [pp ppf a] prints an unspecified representation of [a] on [ppf]. *)
@@ -386,7 +386,7 @@ module Block : sig
       yet assigned to a block. *)
 
   val compare : t -> t -> int
-  (** [compare b b'] is [Pervasives.compare b b']. *)
+  (** [compare b b'] is [Stdlib.compare b b']. *)
 
   val pp : Format.formatter -> t -> unit
   (** [pp ppf b] prints an unspecified representation of [b] on [ppf]. *)
@@ -976,7 +976,7 @@ module Gc : sig
   (** The type for general categories. *)
 
   val compare : t -> t -> int
-  (** [compare c c'] is [Pervasives.compare s s']. *)
+  (** [compare c c'] is [Stdlib.compare s s']. *)
 
   val pp : Format.formatter -> t -> unit
   (** [pp ppf c] prints an unspecified representation of [c] on [ppf]. *)
@@ -1335,7 +1335,7 @@ module Script : sig
   (** The type for scripts. *)
 
   val compare : t -> t -> int
-  (** [compare s s'] is [Pervasives.compare s s']. *)
+  (** [compare s s'] is [Stdlib.compare s s']. *)
 
   val pp : Format.formatter -> t -> unit
   (** [pp ppf s] prints an unspecified representation of [s] on [ppf]. *)
@@ -1730,12 +1730,12 @@ end
     If you understood well the above section about
     {{!equivalence}equivalence and normalization} you should realise
     that blindly comparing UTF-8 encoded OCaml strings using
-    {!Pervasives.compare} won't bring you anywhere if you don't
+    {!Stdlib.compare} won't bring you anywhere if you don't
     normalize them before. The {!Uunf} module can be used for
     that. Remember that concatenating normalized strings does {b not}
     result in a normalized string.
 
-    Using {!Pervasives.compare} on {e normalized} UTF-8 encoded OCaml
+    Using {!Stdlib.compare} on {e normalized} UTF-8 encoded OCaml
     strings defines a total order on them that you can use with the
     {!Map} or {!Set} modules as long as you are not interested in the actual
     {e meaning} of the order.

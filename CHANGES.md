@@ -2,6 +2,7 @@
 
 - Reduce data size by improving structure sharing. Thanks to David Kaloper
   Meršinjak for the contribution.
+- Handle `Pervasives` deprecation.
 
 v12.0.0 2019-03-07 La Forclaz (VS)
 ----------------------------------

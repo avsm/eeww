@@ -6,7 +6,7 @@
 
 include Uucp_gc_base
 
-let compare = Pervasives.compare
+let compare = compare
 let general_category u =
   Uucp_rmap.get Uucp_gc_data.general_category_map (Uchar.to_int u)
 

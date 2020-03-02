@@ -6,7 +6,7 @@
 
 type t = [ `Unassigned | `Version of int * int ]
 
-let compare = Pervasives.compare
+let compare = compare
 let pp ppf = function
 | `Version (maj,min) -> Format.fprintf ppf "%d.%d" maj min
 | `Unassigned -> Format.fprintf ppf "unassigned"
