@@ -62,8 +62,8 @@ let word_size v_size m =            (* value sharing not taken into account. *)
   in
   loop m.tree
 
-open Uucp_fmt
 let rec dump pp_v ppf m =
+  let open Uucp_fmt in
   let rec dump_tree ppf = function
   | Cn (l, r, i, v) ->
       pf ppf "@[<4>Cn(%a,@,%a,@,0x%04X,@,%a)@]" dump_tree l dump_tree r i pp_v v

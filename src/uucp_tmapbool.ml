@@ -67,11 +67,11 @@ let word_size m = match m.l0 with
 
 let iter_blobs i m = Array.(iter (iter i)) m.l0
 
-open Uucp_fmt
-
 let dump_pp pp_v ppf m =
+  let open Uucp_fmt in
   record ["default", bool; "l0", pp_v |> array_N |> array] ppf m.default m.l0
-let pp_v = string_XN
+
+let pp_v = Uucp_fmt.string_XN
 let dump = dump_pp pp_v
 
 (*---------------------------------------------------------------------------

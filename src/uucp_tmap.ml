@@ -55,8 +55,8 @@ let word_size v_size m = match m.l0 with
     done;
     !size
 
-open Uucp_fmt
 let dump pp_v ppf m =
+  let open Uucp_fmt in
   record ["default", pp_v; "l0", pp_v |> array_N |> array_N |> array]
          ppf m.default m.l0
 

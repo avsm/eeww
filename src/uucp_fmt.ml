@@ -14,6 +14,7 @@ let string_X ppf s =
     pf ppf "\\x%02x" (Char.code s.[i])
   done;
   string ppf "\""; Format.pp_close_box ppf ()
+
 let string_XN ppf = function "" -> string ppf "snil" | x -> string_X ppf x
 let bool = Format.pp_print_bool
 let sp = Format.pp_print_space
@@ -22,6 +23,7 @@ let int = Format.pp_print_int
 let iter i ?(sep = sp) pp ppf x =
   let fst = ref true in
   i (fun v -> (if !fst then fst := false else sep ppf ()); pp ppf v) x
+
 let as_array i pp ppf = pf ppf "@[<2>[|%a|]@]" (iter i ~sep:semi pp)
 let array pp = as_array Array.iter pp
 let array_N pp ppf = function [||] -> string ppf "nil" | x -> array pp ppf x
@@ -29,15 +31,18 @@ let array_N pp ppf = function [||] -> string ppf "nil" | x -> array pp ppf x
 module R = struct
   type _ record =
   | [] : unit record
-  | (::) : (string * (Format.formatter -> 'a -> unit)) * 'b record -> ('a -> 'b) record
+  | (::) :
+      (string * (Format.formatter -> 'a -> unit)) * 'b record ->
+      ('a -> 'b) record
 end
+
 let record record ppf =
   let field name pp_v ppf v = pf ppf "@[<1>%s =@ %a@]" name pp_v v in
-  let rec go: type a. (unit -> unit) -> a R.record -> a = fun k -> function
+  let rec go : type a. (unit -> unit) -> a R.record -> a = fun k -> function
   | [] -> pf ppf "@[<2>{ %a }@]" (fun _ -> k) ()
   | [name, pp_v] ->
       fun v -> go (fun () -> k (); field name pp_v ppf v) []
-  | (name, pp_v)::record ->
+  | (name, pp_v) :: record ->
       fun v -> go (fun () -> k (); field name pp_v ppf v; semi ppf ()) record
   in
   go ignore record
