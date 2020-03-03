@@ -12,7 +12,6 @@ depends: [
  "ocamlfind" {build}
  "ocamlbuild" {build}
  "topkg" {build}
- "uchar"
  "uucd" {with-test} # dev really
  "uunf" {with-test}
  "uutf" {with-test}
