@@ -1478,13 +1478,13 @@ end
     ["U+%04X"]).  For example the code point bounds are expressed by
     U+0000 and U+10FFFF and the surrogate bounds by U+D800 and U+DFFF.
 
-    {2:assignements Interlude — what is assigned ?}
+    {2:assignments Interlude — what is assigned ?}
 
     Lots of the world's scripts are encoded in the standard. The
     {{:http://www.unicode.org/charts/}code charts} give a precise idea
     of the coverage.
 
-    In order to be sucessful Unicode decided to be inclusive and to
+    In order to be successful Unicode decided to be inclusive and to
     contain pre-existing international and national standards. For
     example the scalar values from U+0000 to U+007F correspond exactly
     to the code values of characters encoded by the US-ASCII standard,
@@ -1506,7 +1506,7 @@ end
     called Unicode normalization and we will talk about it later.
 
     Another issue is character spoofing. Many encoded characters
-    ressemble each other when displayed but have different scalar
+    resemble each other when displayed but have different scalar
     values and meaning. The
     {{:http://www.unicode.org/faq/security.html}Unicode Security FAQ}
     has more information and pointers about these issues.
@@ -1563,7 +1563,7 @@ end
     The following scalar values are useful to know:
     {ul
     {- U+FEFF, the byte order mark (BOM) character used to
-     detect endiannes on byte order sensitive UTFs.}
+     detect endianness on byte order sensitive UTFs.}
     {- U+FFFD, the replacement character. Can be used to: stand
       for unrepresentable characters when transcoding from
       another representation, indicate that something
@@ -1596,7 +1596,7 @@ end
        equivalent to the sequence "f", "i" (<U+0066, U+0069>). These
        two sequences are however not canonically equivalent.}}
 
-    Canonical equivalence is included in compatiblity equivalence: two
+    Canonical equivalence is included in compatibility equivalence: two
     canonically equivalent sequences are also compatibility
     equivalent, but the converse may not be true.
 
@@ -1682,7 +1682,7 @@ end
     That is you {b will need} to validate and most likely normalize them
     unless you:
     {ul
-    {- Escape their valid UTF-8 bytes explicitely. For example
+    {- Escape their valid UTF-8 bytes explicitly. For example
        ["\xF0\x9F\x90\xAB"] is the correct encoding of U+1F42B}
     {- Or use Unicode escapes (since OCaml 4.06). For example ["\u{1F42B}"]
        will UTF-8 encode the character U+1F42B in the string}}
@@ -1781,7 +1781,7 @@ end
     character database and [Uucp] to access their properties. Using
     {!White.is_white_space} will be future proof should a new
     character deemed white be added to the standard (both [Uucp] and
-    your progam will need a recompile though).
+    your program will need a recompile though).
 
     {2:transcode Transcoding}
 
