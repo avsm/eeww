@@ -10,11 +10,11 @@ let name u =
   let u = Uchar.to_int u in
   match Uucp_tmap4bytes.get_uint16_pair Uucp_name_data.name_map u with
   | 0, 0 -> ""
-  | p, 0 -> Printf.sprintf "%s%04X" Uucp_name_data.name_toks.(p) u
-  | 0, s -> Uucp_name_data.name_toks.(s)
-  | p, s ->
-      Printf.sprintf "%s %s"
-        Uucp_name_data.name_toks.(p) Uucp_name_data.name_toks.(s)
+  | l, 0 -> Uucp_name_data.name_toks.(l)
+  | 0, r -> Printf.sprintf "%s%04X" Uucp_name_data.name_toks.(r) u
+  | l, r ->
+      let ts = [Uucp_name_data.name_toks.(l); Uucp_name_data.name_toks.(r)] in
+      String.concat "" ts
 
 let name_alias u = Uucp_cmap.get Uucp_name_data.name_alias_map (Uchar.to_int u)
 

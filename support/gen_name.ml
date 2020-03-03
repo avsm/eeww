@@ -10,13 +10,13 @@
    one pointer per scalar value already uses around 8 Mo of memory
    ((0x10_FFFF - 0x07FF) * 8 / (1024 * 1024)).
 
-   For an efficient encoding of names we aribitrarily cut the name
-   property of a scalar value in two at the last space character
-   (U+0020). This results in two tokens that we index and to which we
-   assign a unique code; this allows to share long common prefixes
-   like "LATIN SMALL CAPITAL LETTER" among scalar values. We then use
-   a trie that maps scalar values to 4 bytes in string chunks (see
-   uucp_tmap4bytes.ml) and encode the two token codes as unsigned
+   For a more efficient encoding of names we cut the name property of
+   a scalar value in two trying to share the prefix with the name of
+   the two next scalar value. This results in two tokens that we index and
+   to which we assign a unique code; this allows to share long common
+   prefixes like "LATIN SMALL CAPITAL LETTER" among scalar values. We
+   then use a trie that maps scalar values to 4 bytes in string chunks
+   (see uucp_tmap4bytes.ml) and encode the two token codes as unsigned
    16-bit integers in these 4 bytes thereby avoiding having too many
    pointers.
 
@@ -32,17 +32,29 @@
    cost of a significant increase in the complexity of the
    encoding. *)
 
-let rcut c s =                                                  (* Again ... *)
-  try
-    let n = String.length s in
-    let i = String.rindex s c in
-    let left = String.sub s 0 i in
-    let right =
-      if i = n - 1 then "" else
-      String.sub s (i + 1) (n - i - 1)
-    in
-    left, right
-  with Not_found -> ("", s)
+let split_in_two_tokens ~other ~other' n =
+  let find_right_sp s = try String.rindex s ' ' with Not_found -> 0 in
+  let find_prefix_len s0 s1 =
+    let len_s0 = String.length s0 in
+    let len_s1 = String.length s1 in
+    let max_idx = if len_s0 < len_s1 then len_s0 - 1 else len_s1 -1 in
+    let rec loop i = if i > max_idx || s0.[i] <> s1.[i] then i else loop (i + 1)
+    in loop 0
+  in
+  let n_len = String.length n in
+  let cut_len = find_prefix_len other n in
+  let cut_len' = find_prefix_len other' n in
+  let cut_len = max cut_len cut_len' in
+  let cut_len = if cut_len < 4 then find_right_sp n else cut_len in
+  let cut_len =
+    (* This refinement makes slightly less tokens and space *)
+    if cut_len <> 0 &&  n.[cut_len - 1] = ' ' then cut_len - 1 else cut_len
+  in
+  String.sub n 0 cut_len, String.sub n cut_len (n_len - cut_len)
+
+let has_final_sharp s =
+  try ignore (String.index s '#' = String.length s - 1); true with
+  | Not_found -> false
 
 let name_prop ucd =
   let tok_index = Hashtbl.create 30_000 in
@@ -52,15 +64,27 @@ let name_prop ucd =
   in
   let prop u = match Gen.ucd_get ucd u Uucd.name with
   | `Name n ->
-      begin match rcut ' ' n with
-      | n, "" when n <> "" -> assert false
-      | p, s -> (get_tok_code p), (get_tok_code s)
-      end
+      assert (not (has_final_sharp n));
+      let u = Uchar.unsafe_of_int u in
+      let bound_succ u =
+        if Uchar.equal u Uchar.max then Uchar.max else Uchar.succ u
+      in
+      let u' = bound_succ u in
+      let u'' = bound_succ u' in
+      let other = match Gen.ucd_get ucd (Uchar.to_int u') Uucd.name with
+      | `Name n -> n | `Pattern n -> n
+      in
+      let other' = match Gen.ucd_get ucd (Uchar.to_int u'') Uucd.name with
+      | `Name n -> n | `Pattern n -> n
+      in
+      let l, r = split_in_two_tokens ~other ~other' n in
+      (* empty on the left is used for patterns so don't let this happen *)
+      let l, r = if l = "" then r, "" else l, r in
+      get_tok_code l, get_tok_code r
   | `Pattern n ->
-      begin match rcut '#' n with
-      | n, "" -> (get_tok_code n), (get_tok_code "")
-      | _ -> assert false
-      end
+      assert (has_final_sharp n);
+      (* empty on the left and non-empty on right implies pattern *)
+      get_tok_code "", get_tok_code (String.sub n 0 (String.length n - 1))
   in
   ignore (get_tok_code ""); (* assign code 0 to "" *)
   let default = (0, 0) in
@@ -73,7 +97,10 @@ let pp_name ppf ucd =
   let tok_list = List.sort compare tok_list in
   let size = Uucp_tmap4bytes.word_size m in
   Gen.log "  size: %a" Gen.pp_size size;
-  Gen.log " token count: %d@\n" (Hashtbl.length tok_index);
+  Gen.log " token count: %d token size: %a@\n"
+    (Hashtbl.length tok_index) Gen.pp_size
+    (String.length (String.concat "" (List.rev_map snd tok_list)) /
+     (Sys.word_size / 8));
   Gen.log "  asserting"; Gen.assert_prop_map prop get;
   Gen.log ", generating@\n";
   Gen.pp ppf "@[<2>let name_toks : string array =@ @[<2>[|";
