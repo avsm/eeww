@@ -235,6 +235,14 @@ let prop_tmap5bytes_uint20_pair prop default =
     Uucp_tmap5bytes.get_uint20_pair
     prop default
 
+let pp_tmap5byte ppf pname m =
+  pp ppf "open Uucp_tmap5bytes@\n";
+  let pp_v = intern Uucp_tmap5bytes.iter_blobs Uucp_tmap5bytes.pp_v ppf m in
+  pp ppf "@[<2>let %s_map : t =@ %a@]@\n@\n" pname
+    (Uucp_tmap5bytes.dump_pp pp_v) m;
+  ()
+
+
 (* Generate a module *)
 
 let pp_mod pp_mod ppf m =

@@ -49,7 +49,8 @@ let dump_pp pp_v ppf m =
   record ["default", string_X; "l0", pp_v |> array_N |> array]
     ppf m.default m.l0
 
-let dump = dump_pp Uucp_fmt.string_XN
+let pp_v = Uucp_fmt.string_XN
+let dump = dump_pp pp_v
 
 (* Five bytes as an uint20 pair *)
 

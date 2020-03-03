@@ -103,8 +103,7 @@ let pp_name ppf ucd =
   Gen.log "  asserting"; Gen.assert_prop_map prop get;
   Gen.log ", generating@\n";
   Gen.pp ppf "@[<2>let name_toks : string =@ %a@]@\n@\n" Uucp_fmt.string_X toks;
-  Gen.pp ppf "open Uucp_tmap5bytes@\n";
-  Gen.pp ppf "@[<2>let name_map : t =@ %a@]@\n@\n" Uucp_tmap5bytes.dump m;
+  Gen.pp_tmap5byte ppf "name" m;
   ()
 
 let pp_name_alias ppf ucd =
