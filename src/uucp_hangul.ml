@@ -1,5 +1,5 @@
 (*---------------------------------------------------------------------------
-   Copyright (c) 2018 The Uucp programmers. All rights reserved.
+   Copyright (c) 2018 The uucp programmers. All rights reserved.
    Distributed under the ISC license, see terms at the end of the file.
    %%NAME%% %%VERSION%%
   ---------------------------------------------------------------------------*)
@@ -10,7 +10,7 @@ let syllable_type u =
   Uucp_rmap.get Uucp_hangul_data.syllable_type_map (Uchar.to_int u)
 
 (*---------------------------------------------------------------------------
-   Copyright (c) 2018 The Uucp programmers
+   Copyright (c) 2018 The uucp programmers
 
    Permission to use, copy, modify, and/or distribute this software for any
    purpose with or without fee is hereby granted, provided that the above

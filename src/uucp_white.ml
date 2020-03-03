@@ -1,5 +1,5 @@
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 The Uucp programmers. All rights reserved.
+   Copyright (c) 2014 The uucp programmers. All rights reserved.
    Distributed under the ISC license, see terms at the end of the file.
    %%NAME%% %%VERSION%%
   ---------------------------------------------------------------------------*)
@@ -8,7 +8,7 @@ let is_white_space u =
   Uucp_tmapbool.get Uucp_white_data.white_space_map (Uchar.to_int u)
 
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 The Uucp programmers
+   Copyright (c) 2014 The uucp programmers
 
    Permission to use, copy, modify, and/or distribute this software for any
    purpose with or without fee is hereby granted, provided that the above

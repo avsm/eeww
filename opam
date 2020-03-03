@@ -1,6 +1,6 @@
 opam-version: "2.0"
 maintainer: "Daniel Bünzli <daniel.buenzl i@erratique.ch>"
-authors: [ "The Uucp programmers" ]
+authors: [ "The uucp programmers" ]
 homepage: "https://erratique.ch/software/uucp"
 doc: "https://erratique.ch/software/uucp/doc/Uucp"
 dev-repo: "git+https://erratique.ch/repos/uucp.git"

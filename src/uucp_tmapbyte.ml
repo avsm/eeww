@@ -1,5 +1,5 @@
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 The Uucp programmers. All rights reserved.
+   Copyright (c) 2014 The uucp programmers. All rights reserved.
    Distributed under the ISC license, see terms at the end of the file.
    %%NAME%% %%VERSION%%
   ---------------------------------------------------------------------------*)
@@ -64,7 +64,7 @@ let pp_v = Uucp_fmt.string_XN
 let dump = dump_pp pp_v
 
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 The Uucp programmers
+   Copyright (c) 2014 The uucp programmers
 
    Permission to use, copy, modify, and/or distribute this software for any
    purpose with or without fee is hereby granted, provided that the above

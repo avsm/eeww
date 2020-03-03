@@ -1,5 +1,5 @@
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 The Uucp programmers. All rights reserved.
+   Copyright (c) 2014 The uucp programmers. All rights reserved.
    Distributed under the ISC license, see terms at the end of the file.
    %%NAME%% %%VERSION%%
   ---------------------------------------------------------------------------*)
@@ -61,7 +61,7 @@ let dump pp_v ppf m =
          ppf m.default m.l0
 
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 The Uucp programmers
+   Copyright (c) 2014 The uucp programmers
 
    Permission to use, copy, modify, and/or distribute this software for any
    purpose with or without fee is hereby granted, provided that the above
