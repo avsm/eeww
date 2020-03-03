@@ -18,7 +18,7 @@ let block_prop ucd u = match Gen.ucd_get ucd u Uucd.block with
 let pp_block_prop ppf ucd =
   let size v = 0 in
   let prop u = block_prop ucd u in
-  Gen.pp_prop_rmap ppf prop "block" "Uucp_block_base.t" pp_block
+  Gen.pp_prop_rmap ~share:false ppf prop "block" "Uucp_block_base.t" pp_block
     ~default:`NB size
 
 let pp_blocks ppf ucd =

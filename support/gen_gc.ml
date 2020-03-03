@@ -7,7 +7,7 @@
 let pp_general_category ppf ucd =
   let size v = 0 in
   let pp_gc ppf v = Gen.pp ppf "`%a" Uucp_gc_base.pp v in
-  Gen.pp_prop_rmap_ucd ppf ucd
+  Gen.pp_prop_rmap_ucd ~share:false ppf ucd
     Uucd.general_category "general_category" "Uucp_gc_base.t"
     pp_gc ~default:`Cn size
 

@@ -27,7 +27,7 @@ let pp_sentence_break ppf ucd =
 let pp_east_asian_width ppf ucd =
   let size _ = 0 in
   let pp ppf w = Gen.pp ppf "`%a" Uucp_break_base.pp_east_asian_width w in
-  Gen.pp_prop_rmap_ucd ppf ucd
+  Gen.pp_prop_rmap_ucd ~share:false ppf ucd
     Uucd.east_asian_width "east_asian_width" "Uucp_break_base.east_asian_width"
     pp ~default:`N size
 

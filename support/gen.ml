@@ -112,7 +112,7 @@ let prop_find_ranges prop =
   in
   uchar_iter_ints add_u; (List.rev !ranges)
 
-let pp_prop_rmap ppf prop pname ptype pp_prop ~default size_v =
+let pp_prop_rmap ?(share = true) ppf prop pname ptype pp_prop ~default size_v =
   log "* %s property, binary tree range code point map@\n" pname;
   let m = Uucp_rmap.of_sorted_list default (prop_find_ranges prop) in
   let size = Uucp_rmap.word_size size_v m in
@@ -121,13 +121,17 @@ let pp_prop_rmap ppf prop pname ptype pp_prop ~default size_v =
   log "  asserting"; assert_prop_map prop (Uucp_rmap.get m);
   log ", generating@\n";
   pp ppf "open Uucp_rmap@\n";
+  let pp_prop =
+    if share then intern Uucp_rmap.iter_values pp_prop ppf m else
+    pp_prop
+  in
   pp ppf "@[<2>let %s_map : %s t =@ %a@]@\n@\n"
-         pname ptype (Uucp_rmap.dump pp_prop) m;
+    pname ptype (Uucp_rmap.dump pp_prop) m;
   ()
 
-let pp_prop_rmap_ucd ppf ucd prop pname ptype pp_prop ~default size_v =
+let pp_prop_rmap_ucd ?share ppf ucd prop pname ptype pp_prop ~default size_v =
   let prop u = ucd_get ucd u prop in
-  pp_prop_rmap ppf prop pname ptype pp_prop ~default size_v
+  pp_prop_rmap ?share ppf prop pname ptype pp_prop ~default size_v
 
 (* Generate Uucp_tmap.t values *)
 

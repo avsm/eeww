@@ -65,6 +65,14 @@ let rec word_size v_size m =        (* value sharing not taken into account. *)
   in
   loop m.tree
 
+let iter_values f m =
+  let rec loop f = function
+  | Empty -> ()
+  | R (_, _, v) -> f v
+  | Rn (l, r, _,  _, v) -> f v; loop f l; loop f r
+  in
+  f m.default; loop f m.tree
+
 let rec dump pp_v ppf m =
   let open Uucp_fmt in
   let rec dump_tree ppf = function

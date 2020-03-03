@@ -7,7 +7,7 @@
 let pp_numeric_type ppf ucd =
   let size v = 0 in
   let pp_ntype ppf t = Gen.pp ppf "`%a" Uucp_num_base.pp_numeric_type t in
-  Gen.pp_prop_rmap_ucd ppf ucd Uucd.numeric_type
+  Gen.pp_prop_rmap_ucd ~share:false ppf ucd Uucd.numeric_type
     "numeric_type" "Uucp_num_base.numeric_type" pp_ntype
     ~default:`None size
 

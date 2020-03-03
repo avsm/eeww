@@ -8,7 +8,7 @@ let pp_script_variant ppf s = Gen.pp ppf "`%a" Uucp_script_base.pp s
 
 let pp_script_prop ppf ucd =
   let size v = 0 in
-  Gen.pp_prop_rmap_ucd ppf ucd
+  Gen.pp_prop_rmap_ucd ~share:false ppf ucd
     Uucd.script "script" "Uucp_script_base.t" pp_script_variant
     ~default:`Zzzz size
 
