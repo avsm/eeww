@@ -226,13 +226,13 @@ let pp_code_prop_tmapbyte_ucd ppf ucd code prop pname ~default pp_prop =
   pp_prop_tmapbyte ppf prop pname ~default:(code default)
     (str "`%a" pp_prop default)
 
-(* Generate Uucp_tmap4bytes.t values. *)
+(* Generate Uucp_tmap5bytes.t values. *)
 
-let prop_tmap4bytes_uint16_pair prop default =
+let prop_tmap5bytes_uint20_pair prop default =
   prop_map
-    Uucp_tmap4bytes.create_uint16_pair
-    Uucp_tmap4bytes.set_uint16_pair
-    Uucp_tmap4bytes.get_uint16_pair
+    Uucp_tmap5bytes.create_uint20_pair
+    Uucp_tmap5bytes.set_uint20_pair
+    Uucp_tmap5bytes.get_uint20_pair
     prop default
 
 (* Generate a module *)

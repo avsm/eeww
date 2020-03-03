@@ -1890,18 +1890,6 @@ module Tmapbyte : sig
   val dump : Format.formatter -> t -> unit
 end
 
-module Tmap4bytes : sig
-  type t = { default : string; l0 : string array array; }
-  val nil : 'a array
-  val snil : string
-  val create : string -> t
-  val word_size : t -> int
-  val dump : Format.formatter -> t -> unit
-  val create_uint16_pair : int * int -> t
-  val get_uint16_pair : t -> int -> int * int
-  val set_uint16_pair : t -> int -> int * int -> unit
-end
-
 (**/**)
 
 (*---------------------------------------------------------------------------

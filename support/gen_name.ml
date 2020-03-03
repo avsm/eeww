@@ -12,25 +12,19 @@
 
    For a more efficient encoding of names we cut the name property of
    a scalar value in two trying to share the prefix with the name of
-   the two next scalar value. This results in two tokens that we index and
-   to which we assign a unique code; this allows to share long common
-   prefixes like "LATIN SMALL CAPITAL LETTER" among scalar values. We
-   then use a trie that maps scalar values to 4 bytes in string chunks
-   (see uucp_tmap4bytes.ml) and encode the two token codes as unsigned
-   16-bit integers in these 4 bytes thereby avoiding having too many
-   pointers.
+   the two next scalar value. This results in two tokens. Tokens are
+   stored uniquely in a large strings separated by \x00 bytes. To map
+   a scalar value to a name we use a trie that maps scalars values to
+   5 bytes stored as string chunks (see uucp_tmap5bytes.ml). These
+   five bytes encode two 20-bit unsigned integers which are the
+   offsets of the two tokens making up the name in the string of
+   tokens.
 
-   The lookup procedure simply gets the two 16-bit integers from the
-   trie map, looks up the corresponding tokens in a table and
+   The lookup procedure simply gets the two 20-bit integers from the
+   trie map, looks up the corresponding tokens in the string of tokens
    concatenates them to form the name. We also keep the pattern naming
    mechanism inherited from the UCD XML for CJK names (see prop in
-   pp_name below and Uucp_name.name).
-
-   We tried a misguided effort to encode the tokens using a 6-bit
-   encoding but this is pointless as the cumulated string size of the
-   tokens is only about ~265Ko. So this buys only ~65Ko but at the
-   cost of a significant increase in the complexity of the
-   encoding. *)
+   pp_name below and Uucp_name.name). *)
 
 let split_in_two_tokens ~other ~other' n =
   let find_right_sp s = try String.rindex s ' ' with Not_found -> 0 in
@@ -57,10 +51,17 @@ let has_final_sharp s =
   | Not_found -> false
 
 let name_prop ucd =
+  let tok_buffer = Buffer.create (1024 * 1024) in
   let tok_index = Hashtbl.create 30_000 in
-  let tok_code = ref (-1) in
-  let get_tok_code tok = try Hashtbl.find tok_index tok with
-  | Not_found -> incr tok_code; Hashtbl.add tok_index tok !tok_code; !tok_code
+  let tok_offset = ref 0 in
+  let get_tok_idx tok = try Hashtbl.find tok_index tok with
+  | Not_found ->
+      let offset = !tok_offset in
+      Hashtbl.add tok_index tok offset;
+      Buffer.add_string tok_buffer tok;
+      Buffer.add_char tok_buffer '\x00';
+      tok_offset := !tok_offset + String.length tok + 1;
+      offset
   in
   let prop u = match Gen.ucd_get ucd u Uucd.name with
   | `Name n ->
@@ -80,34 +81,30 @@ let name_prop ucd =
       let l, r = split_in_two_tokens ~other ~other' n in
       (* empty on the left is used for patterns so don't let this happen *)
       let l, r = if l = "" then r, "" else l, r in
-      get_tok_code l, get_tok_code r
+      get_tok_idx l, get_tok_idx r
   | `Pattern n ->
       assert (has_final_sharp n);
       (* empty on the left and non-empty on right implies pattern *)
-      get_tok_code "", get_tok_code (String.sub n 0 (String.length n - 1))
+      get_tok_idx "", get_tok_idx (String.sub n 0 (String.length n - 1))
   in
-  ignore (get_tok_code ""); (* assign code 0 to "" *)
+  ignore (get_tok_idx ""); (* assign idx 0 to "" *)
   let default = (0, 0) in
-  tok_index, prop, Gen.prop_tmap4bytes_uint16_pair prop default
+  Buffer.contents tok_buffer,
+  Hashtbl.length tok_index,
+  prop, Gen.prop_tmap5bytes_uint20_pair prop default
 
 let pp_name ppf ucd =
-  Gen.log "* name property, 4 bytes trie map and token table@\n";
-  let tok_index, prop, (m, get) = name_prop ucd in
-  let tok_list = Hashtbl.fold (fun t tc acc -> (tc, t) :: acc) tok_index [] in
-  let tok_list = List.sort compare tok_list in
-  let size = Uucp_tmap4bytes.word_size m in
+  Gen.log "* name property, 5 bytes trie map and token table@\n";
+  let toks, tok_count, prop, (m, get) = name_prop ucd in
+  let size = Uucp_tmap5bytes.word_size m in
   Gen.log "  size: %a" Gen.pp_size size;
-  Gen.log " token count: %d token size: %a@\n"
-    (Hashtbl.length tok_index) Gen.pp_size
-    (String.length (String.concat "" (List.rev_map snd tok_list)) /
-     (Sys.word_size / 8));
+  Gen.log " token count: %d tokens size: %a@\n"
+    tok_count Gen.pp_size (String.length toks / (Sys.word_size / 8));
   Gen.log "  asserting"; Gen.assert_prop_map prop get;
   Gen.log ", generating@\n";
-  Gen.pp ppf "@[<2>let name_toks : string array =@ @[<2>[|";
-  List.iter (fun (_, t) -> Gen.pp ppf "%S;@," t) tok_list ;
-  Gen.pp ppf "|]@]@]@\n@\n";
-  Gen.pp ppf "open Uucp_tmap4bytes@\n";
-  Gen.pp ppf "@[<2>let name_map : t =@ %a@]@\n@\n" Uucp_tmap4bytes.dump m;
+  Gen.pp ppf "@[<2>let name_toks : string =@ %a@]@\n@\n" Uucp_fmt.string_X toks;
+  Gen.pp ppf "open Uucp_tmap5bytes@\n";
+  Gen.pp ppf "@[<2>let name_map : t =@ %a@]@\n@\n" Uucp_tmap5bytes.dump m;
   ()
 
 let pp_name_alias ppf ucd =

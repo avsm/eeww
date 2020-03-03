@@ -34,7 +34,6 @@ module Rmap = Uucp_rmap
 module Tmap = Uucp_tmap
 module Tmapbool = Uucp_tmapbool
 module Tmapbyte = Uucp_tmapbyte
-module Tmap4bytes = Uucp_tmap4bytes
 
 (*---------------------------------------------------------------------------
    Copyright (c) 2014 The Uucp programmers
