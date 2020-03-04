@@ -1,5 +1,5 @@
 module Lazy_group_id = Lazy_group_id
-module Grammar = Grammar
+module Raw_grammar = Raw_grammar
 module Sexp = Sexp
 module Sexp_conv = Sexp_conv
 module Sexp_conv_error = Sexp_conv_error

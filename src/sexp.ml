@@ -12,7 +12,7 @@ type t = Atom of string | List of t list
 
 let sexp_of_t t = t
 let t_of_sexp t = t
-let t_sexp_grammar = Grammar.Inline Any
+let t_sexp_grammar = Raw_grammar.Inline Any
 
 let rec compare_list a b =
   match a, b with
@@ -308,8 +308,8 @@ let message name fields =
   in
   List (Atom name :: conv_fields fields)
 
-module Grammar = struct
-  include Grammar
+module Raw_grammar = struct
+  include Raw_grammar
 
   module Builtin = struct
     let unit_sexp_grammar = Inline (List [])

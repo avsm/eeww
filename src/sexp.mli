@@ -6,7 +6,7 @@ type t = Atom of string | List of t list
   creating a circular dependency *)
 val t_of_sexp : t -> t
 val sexp_of_t : t -> t
-val t_sexp_grammar : Grammar.t
+val t_sexp_grammar : Raw_grammar.t
 
 val equal : t -> t -> bool
 val compare : t -> t -> int
@@ -90,9 +90,9 @@ val to_string : t -> string
 val of_float_style : [ `Underscores | `No_underscores ] ref
 val of_int_style   : [ `Underscores | `No_underscores ] ref
 
-module Grammar : sig
+module Raw_grammar : sig
   include module type of struct
-    include Grammar
+    include Raw_grammar
   end
 
   module Builtin : sig
