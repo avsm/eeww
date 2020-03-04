@@ -1,0 +1,4 @@
+(library
+ (name osrelease)
+ (public_name osrelease)
+ (libraries bos astring))
