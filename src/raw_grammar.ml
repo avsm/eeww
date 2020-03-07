@@ -224,3 +224,7 @@ and generic_group =
   ; ggid : generic_group_id
   ; types : (type_name * t type_) list
   }
+
+module type Placeholder = sig
+  val t_sexp_grammar : t
+end

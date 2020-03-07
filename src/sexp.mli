@@ -117,6 +117,14 @@ module Raw_grammar : sig
   val opaque_sexp_grammar : t
   val fun_sexp_grammar : t
   val tuple2_sexp_grammar : t
+
+  (** [Placeholder.t_sexp_grammar] is valid for any type, but indicates that a more
+      specific grammar is coming. *)
+  module Placeholder : sig
+    module type S = Raw_grammar.Placeholder
+
+    val t_sexp_grammar : t
+  end
 end
 
 (*_ See the Jane Street Style Guide for an explanation of [Private] submodules:
