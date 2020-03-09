@@ -14,7 +14,7 @@ let to_int x =
   let max_int = of_int Stdlib.max_int in
   if compare zero x <= 0 && compare x max_int <= 0
   then to_int x (* XXX(dinosaure): can fit into 31 bits. *)
-  else invalid_arg "Optint.to_int: %ld can not fit into a 31 bits integer"
+  else invalid_arg "Optint.to_int: %ld can not fit into a 31 bits integer" x
 
 let of_int x =
   if x < 0
