@@ -8,20 +8,20 @@ let add a b = a + b
 let sub a b = a - b
 let mul a b = a * b
 
-let unsigned_compare n m =
+let _unsigned_compare n m =
   let open Nativeint in
   compare (sub n min_int) (sub m min_int)
 
-let unsigned_div n d =
+let _unsigned_div n d =
   let open Nativeint in
   if d < zero then
-    if unsigned_compare n d < 0 then zero else one
+    if _unsigned_compare n d < 0 then zero else one
   else
     let q = shift_left (div (shift_right_logical n 1) d) 1 in
     let r = sub n (mul q d) in
-    if unsigned_compare r d >= 0 then succ q else q
+    if _unsigned_compare r d >= 0 then succ q else q
 
-let div a b = Nativeint.(to_int (unsigned_div (of_int a) (of_int b)))
+let div a b = Nativeint.to_int (_unsigned_div (Nativeint.of_int a) (Nativeint.of_int b))
 let rem a b = a mod b
 let succ x = x + 1
 let pred x = x - 1
