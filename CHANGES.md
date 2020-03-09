@@ -1,3 +1,10 @@
+### v0.0.4 2020-03-09 Paris (France)
+
+- Fix 32bit backend where we miss to fully apply
+  an `invalid_arg`
+- Fix 64bit backend where `Native.unsigned_compare`
+  and `Nativeint.unsigned_div` exists (OCaml 4.08.0)
+
 ### v0.0.3 2010-09-12 Paris (France)
 
 - Avoid partial application of function (#2, @dinosaure)
