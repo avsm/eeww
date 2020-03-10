@@ -1,8 +1,10 @@
+v13.0.0 2020-03-10 La Forclaz (VS)
+----------------------------------
 
 - Unicode 13.0.0 support. Adds the `Emoji` module with the new emoji
   properties.
 - Reduce data size by improving structure sharing. Thanks to David Kaloper
-  Meršinjak for the contribution.
+  Meršinjak for the help.
 - Handle `Pervasives` deprecation.
 - Require OCaml >= 4.03.0
 

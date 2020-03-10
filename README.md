@@ -11,8 +11,6 @@ dependencies. It is distributed under the ISC license.
 [1]: http://www.unicode.org/reports/tr44/
 
 Home page: http://erratique.ch/software/uucp  
-Contact: Daniel Bünzli `<daniel.buenzl i@erratique.ch>`
-
 
 ## Installation
 
