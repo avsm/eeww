@@ -1,7 +1,6 @@
 (*---------------------------------------------------------------------------
    Copyright (c) 2017 The uucp programmers. All rights reserved.
    Distributed under the ISC license, see terms at the end of the file.
-   %%NAME%% %%VERSION%%
   ---------------------------------------------------------------------------*)
 
 let log_err s =

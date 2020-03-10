@@ -1,7 +1,6 @@
 (*---------------------------------------------------------------------------
    Copyright (c) 2018 The uucp programmers. All rights reserved.
    Distributed under the ISC license, see terms at the end of the file.
-   %%NAME%% %%VERSION%%
   ---------------------------------------------------------------------------*)
 
 let pp_syllable_type ppf ucd =

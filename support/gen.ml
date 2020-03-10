@@ -1,7 +1,6 @@
 (*---------------------------------------------------------------------------
    Copyright (c) 2014 The uucp programmers. All rights reserved.
    Distributed under the ISC license, see terms at the end of the file.
-   %%NAME%% %%VERSION%%
   ---------------------------------------------------------------------------*)
 
 let log fmt = Format.eprintf (fmt ^^ "%!")
@@ -254,9 +253,7 @@ let pp_mod pp_mod ppf m =
 "\
 (*---------------------------------------------------------------------------
    Copyright (c) 2020 The uucp programmers. All rights reserved.
-
    Distributed under the ISC license, see terms at the end of the file.
-   %%NAME%% %%VERSION%%
   ---------------------------------------------------------------------------*)
 
 (* WARNING do not edit. This file was automatically generated. *)
