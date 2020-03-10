@@ -37,6 +37,7 @@ end
 
 let record record ppf =
   let field name pp_v ppf v = pf ppf "@[<1>%s =@ %a@]" name pp_v v in
+  let open R in (* 4.03 compat *)
   let rec go : type a. (unit -> unit) -> a R.record -> a = fun k -> function
   | [] -> pf ppf "@[<2>{ %a }@]" (fun _ -> k) ()
   | [name, pp_v] ->
