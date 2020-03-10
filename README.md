@@ -33,8 +33,8 @@ the interfaces. It can be consulted [online][doc] or via `odig doc
 uucp`.
 
 [doc]: http://erratique.ch/software/uucp/doc/
-[intro]: http://erratique.ch/software/uucp/doc/Uucp.html#uminimal
-[tips]: http://erratique.ch/software/uucp/doc/Uucp.html#tips
+[intro]: http://erratique.ch/software/uucp/doc/unicode.html#minimal
+[tips]: http://erratique.ch/software/uucp/doc/unicode.html#tips
 
 
 ## Sample programs

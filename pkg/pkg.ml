@@ -13,7 +13,7 @@ let build_support () =
 
 let distrib =
   (* FIXME OPAMv2, move this to an x-unicode-version field in the opam file. *)
-  let watermarks = ("UNICODE_VERSION", `String "12.0.0") :: Pkg.watermarks in
+  let watermarks = ("UNICODE_VERSION", `String "13.0.0") :: Pkg.watermarks in
   let exclude_paths () = Pkg.exclude_paths () >>| fun ps -> "support" :: ps in
   Pkg.distrib ~watermarks ~massage:build_support ~exclude_paths ()
 
@@ -28,5 +28,7 @@ let () =
        Pkg.test "test/perf";
        Pkg.test "test/examples";
        Pkg.test "test/link_test";
+       Pkg.doc "doc/index.mld" ~dst:"odoc-pages/index.mld";
+       Pkg.doc "doc/unicode.mld" ~dst:"odoc-pages/unicode.mld";
        Pkg.doc "DEVEL.md";
        Pkg.doc "test/examples.ml"; ]
