@@ -1,8 +1,7 @@
 (* PBKDF1 *)
 let test_pbkdf1 ~hash ~password ~salt ~count ~dk_len ~dk =
-  let open Nocrypto.Uncommon.Cs in
-  let salt = of_hex salt
-  and dk = of_hex dk
+  let salt = Cstruct.of_hex salt
+  and dk = Cstruct.of_hex dk
   and password = Cstruct.of_string password in
   (fun () ->
      let edk = Pbkdf.pbkdf1 ~hash ~password ~salt ~count ~dk_len in
@@ -12,8 +11,7 @@ let test_pbkdf1 ~hash ~password ~salt ~count ~dk_len ~dk =
      Alcotest.check Alcotest.string "PBKDF1 test" sedk sdk)
 
 let test_pbkdf1_invalid_arg ~hash ~password ~salt ~count ~dk_len ~msg =
-  let open Nocrypto.Uncommon.Cs in
-  let salt = of_hex salt
+  let salt = Cstruct.of_hex salt
   and password = Cstruct.of_string password in
   (fun () ->
      Alcotest.check_raises
@@ -98,9 +96,8 @@ let pbkdf1_tests = [
 
 (* PBKDF2 *)
 let test_pbkdf2 ~prf ~password ~salt ~count ~dk_len ~dk =
-  let open Nocrypto.Uncommon.Cs in
-  let salt = of_hex salt
-  and dk = of_hex dk
+  let salt = Cstruct.of_hex salt
+  and dk = Cstruct.of_hex dk
   and password = Cstruct.of_string password
   in
   (fun () ->
@@ -111,7 +108,7 @@ let test_pbkdf2 ~prf ~password ~salt ~count ~dk_len ~dk =
      Alcotest.check Alcotest.string "PBKDF2 test" sedk sdk)
 
 let test_pbkdf2_invalid_arg ~prf ~password ~salt ~count ~dk_len ~msg () =
-  let salt = Nocrypto.Uncommon.Cs.of_hex salt
+  let salt = Cstruct.of_hex salt
   and password = Cstruct.of_string password
   in
   Alcotest.check_raises

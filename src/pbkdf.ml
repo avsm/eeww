@@ -1,6 +1,3 @@
-open Nocrypto
-open Uncommon
-
 module type S = sig
   val pbkdf1 : password:Cstruct.t -> salt:Cstruct.t -> count:int -> dk_len:int -> Cstruct.t
   val pbkdf2 : password:Cstruct.t -> salt:Cstruct.t -> count:int -> dk_len:int32 -> Cstruct.t
@@ -14,7 +11,7 @@ let cdiv x y =
   if y < 1 then raise Division_by_zero else
     if x > 0 then 1 + ((x - 1) / y) else 0 [@@inline]
 
-module Make (H: Hash.S) : S = struct
+module Make (H: Mirage_crypto.Hash.S) : S = struct
   let pbkdf1 ~password ~salt ~count ~dk_len =
     if Cstruct.len salt <> 8 then invalid_arg "salt should be 8 bytes"
     else if count <= 0 then invalid_arg "count must be a positive integer"
@@ -39,7 +36,7 @@ module Make (H: Hash.S) : S = struct
         let rec f u xor = function
             0 -> xor
           | j -> let u = H.hmac ~key:password u in
-            f u (Cs.xor xor u) (j - 1)
+            f u (Mirage_crypto.Uncommon.Cs.xor xor u) (j - 1)
         in
         let int_i = Cstruct.create 4 in
         Cstruct.BE.set_uint32 int_i 0 (Int32.of_int i);
@@ -54,11 +51,11 @@ module Make (H: Hash.S) : S = struct
 end
 
 let pbkdf1 ~hash ~password ~salt ~count ~dk_len =
-  let module H = (val (Hash.module_of hash)) in
+  let module H = (val (Mirage_crypto.Hash.module_of hash)) in
   let module PBKDF = Make (H) in
   PBKDF.pbkdf1 ~password ~salt ~count ~dk_len
 
 let pbkdf2 ~prf ~password ~salt ~count ~dk_len =
-  let module H = (val (Hash.module_of prf)) in
+  let module H = (val (Mirage_crypto.Hash.module_of prf)) in
   let module PBKDF = Make (H) in
   PBKDF.pbkdf2 ~password ~salt ~count ~dk_len

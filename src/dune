@@ -1,4 +1,4 @@
 (library
  (name pbkdf)
  (public_name pbkdf)
- (libraries nocrypto))
+ (libraries mirage-crypto))
