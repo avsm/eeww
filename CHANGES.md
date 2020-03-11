@@ -1,3 +1,7 @@
+# v1.0.4 (2020-03-11)
+
+* use mirage-crypto instead of nocrypto
+
 # 1.0.3 (2019-02-15)
 
 * move to dune
