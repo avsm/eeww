@@ -1,7 +1,6 @@
 (*---------------------------------------------------------------------------
-   Copyright (c) 2018 Daniel C. Bünzli. All rights reserved.
+   Copyright (c) 2018 The uucp programmers. All rights reserved.
    Distributed under the ISC license, see terms at the end of the file.
-   %%NAME%% %%VERSION%%
   ---------------------------------------------------------------------------*)
 
 type syllable_type = [ `L | `V | `T | `LV | `LVT | `NA ]
@@ -16,7 +15,7 @@ let pp_syllable_type ppf v = Format.fprintf ppf "%s" begin match v with
   end
 
 (*---------------------------------------------------------------------------
-   Copyright (c) 2018 Daniel C. Bünzli
+   Copyright (c) 2018 The uucp programmers
 
    Permission to use, copy, modify, and/or distribute this software for any
    purpose with or without fee is hereby granted, provided that the above

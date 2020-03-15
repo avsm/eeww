@@ -1,13 +1,12 @@
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 Daniel C. Bünzli. All rights reserved.
+   Copyright (c) 2014 The uucp programmers. All rights reserved.
    Distributed under the ISC license, see terms at the end of the file.
-   %%NAME%% %%VERSION%%
   ---------------------------------------------------------------------------*)
 
 let pp_general_category ppf ucd =
   let size v = 0 in
   let pp_gc ppf v = Gen.pp ppf "`%a" Uucp_gc_base.pp v in
-  Gen.pp_prop_rmap_ucd ppf ucd
+  Gen.pp_prop_rmap_ucd ~share:false ppf ucd
     Uucd.general_category "general_category" "Uucp_gc_base.t"
     pp_gc ~default:`Cn size
 
@@ -18,7 +17,7 @@ let pp_props ppf ucd =
 let pp_mod ppf ucd = Gen.pp_mod pp_props ppf ucd
 
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 Daniel C. Bünzli
+   Copyright (c) 2014 The uucp programmers
 
    Permission to use, copy, modify, and/or distribute this software for any
    purpose with or without fee is hereby granted, provided that the above

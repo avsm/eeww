@@ -1,40 +1,28 @@
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 Daniel C. Bünzli. All rights reserved.
+   Copyright (c) 2020 The uucp programmers. All rights reserved.
    Distributed under the ISC license, see terms at the end of the file.
-   %%NAME%% %%VERSION%%
   ---------------------------------------------------------------------------*)
 
-(* Binary tree uchar and uchar ranges maps. *)
+let is_emoji u =
+  Uucp_tmapbool.get Uucp_emoji_data.emoji_map (Uchar.to_int u)
 
-type 'a tree =
-  | Empty
-  | C of int * 'a
-  | R of int * int * 'a
-  | Cn of 'a tree * 'a tree * int * 'a
-  | Rn of 'a tree * 'a tree * int * int * 'a
+let is_emoji_presentation u =
+  Uucp_tmapbool.get Uucp_emoji_data.emoji_presentation_map (Uchar.to_int u)
 
-type 'a t = { default : 'a; tree : 'a tree }
+let is_emoji_modifier u =
+  Uucp_tmapbool.get Uucp_emoji_data.emoji_modifier_map (Uchar.to_int u)
 
-let get m cp =
-  let rec loop cp = function
-  | Rn (l, r, is, ie, v) ->
-      if cp < is then loop cp l else
-      if cp > ie then loop cp r else
-      v
-  | R (is, ie, v) ->
-      if is <= cp && cp <= ie then v else m.default
-  | Cn (l, r, i, v) ->
-      if cp < i then loop cp l else
-      if cp > i then loop cp r else
-      v
-  | C (i, v) ->
-      if cp = i then v else m.default
-  | Empty -> m.default
-  in
-  loop cp m.tree
+let is_emoji_modifier_base u =
+  Uucp_tmapbool.get Uucp_emoji_data.emoji_modifier_base_map (Uchar.to_int u)
+
+let is_emoji_component u =
+  Uucp_tmapbool.get Uucp_emoji_data.emoji_component_map (Uchar.to_int u)
+
+let is_extended_pictographic u =
+  Uucp_tmapbool.get Uucp_emoji_data.extended_pictographic_map (Uchar.to_int u)
 
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 Daniel C. Bünzli
+   Copyright (c) 2020 The uucp programmers
 
    Permission to use, copy, modify, and/or distribute this software for any
    purpose with or without fee is hereby granted, provided that the above

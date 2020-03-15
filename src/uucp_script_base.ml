@@ -1,7 +1,6 @@
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 Daniel C. Bünzli. All rights reserved.
+   Copyright (c) 2014 The uucp programmers. All rights reserved.
    Distributed under the ISC license, see terms at the end of the file.
-   %%NAME%% %%VERSION%%
   ---------------------------------------------------------------------------*)
 
 type t = [
@@ -28,10 +27,12 @@ type t = [
   | `Cari
   | `Cham
   | `Cher
+  | `Chrs
   | `Copt
   | `Cprt
   | `Cyrl
   | `Deva
+  | `Diak
   | `Dogr
   | `Dsrt
   | `Dupl
@@ -68,6 +69,7 @@ type t = [
   | `Khoj
   | `Knda
   | `Kthi
+  | `Kits
   | `Lana
   | `Laoo
   | `Latn
@@ -155,6 +157,7 @@ type t = [
   | `Wcho
   | `Xpeo
   | `Xsux
+  | `Yezi
   | `Yiii
   | `Zanb
   | `Zinh
@@ -186,10 +189,12 @@ let pp ppf s = Format.fprintf ppf "%s" begin match s with
   | `Cari -> "Cari"
   | `Cham -> "Cham"
   | `Cher -> "Cher"
+  | `Chrs -> "Chrs"
   | `Copt -> "Copt"
   | `Cprt -> "Cprt"
   | `Cyrl -> "Cyrl"
   | `Deva -> "Deva"
+  | `Diak -> "Diak"
   | `Dogr -> "Dogr"
   | `Dsrt -> "Dsrt"
   | `Dupl -> "Dupl"
@@ -226,6 +231,7 @@ let pp ppf s = Format.fprintf ppf "%s" begin match s with
   | `Khoj -> "Khoj"
   | `Knda -> "Knda"
   | `Kthi -> "Kthi"
+  | `Kits -> "Kits"
   | `Lana -> "Lana"
   | `Laoo -> "Laoo"
   | `Latn -> "Latn"
@@ -313,6 +319,7 @@ let pp ppf s = Format.fprintf ppf "%s" begin match s with
   | `Wcho -> "Wcho"
   | `Xpeo -> "Xpeo"
   | `Xsux -> "Xsux"
+  | `Yezi -> "Yezi"
   | `Yiii -> "Yiii"
   | `Zanb -> "Zanb"
   | `Zinh -> "Zinh"
@@ -321,7 +328,7 @@ let pp ppf s = Format.fprintf ppf "%s" begin match s with
   end
 
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 Daniel C. Bünzli
+   Copyright (c) 2014 The uucp programmers
 
    Permission to use, copy, modify, and/or distribute this software for any
    purpose with or without fee is hereby granted, provided that the above

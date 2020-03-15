@@ -1,7 +1,6 @@
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 Daniel C. Bünzli. All rights reserved.
+   Copyright (c) 2014 The uucp programmers. All rights reserved.
    Distributed under the ISC license, see terms at the end of the file.
-   %%NAME%% %%VERSION%%
   ---------------------------------------------------------------------------*)
 
 let pp_block ppf b = Gen.pp ppf "`%a" Uucp_block_base.pp b
@@ -18,7 +17,7 @@ let block_prop ucd u = match Gen.ucd_get ucd u Uucd.block with
 let pp_block_prop ppf ucd =
   let size v = 0 in
   let prop u = block_prop ucd u in
-  Gen.pp_prop_rmap ppf prop "block" "Uucp_block_base.t" pp_block
+  Gen.pp_prop_rmap ~share:false ppf prop "block" "Uucp_block_base.t" pp_block
     ~default:`NB size
 
 let pp_blocks ppf ucd =
@@ -42,7 +41,7 @@ let pp_props ppf ucd =
 let pp_mod ppf ucd = Gen.pp_mod pp_props ppf ucd
 
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 Daniel C. Bünzli
+   Copyright (c) 2014 The uucp programmers
 
    Permission to use, copy, modify, and/or distribute this software for any
    purpose with or without fee is hereby granted, provided that the above

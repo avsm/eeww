@@ -20,7 +20,9 @@ Uucp_case_nfkc_data
 Uucp_cjk
 Uucp_cjk_data
 Uucp_cmap
-Uucp_crmap
+Uucp_fmt
+Uucp_emoji
+Uucp_emoji_data
 Uucp_func
 Uucp_func_data
 Uucp_gc
@@ -44,7 +46,7 @@ Uucp_script
 Uucp_script_base
 Uucp_script_data
 Uucp_tmap
-Uucp_tmap4bytes
+Uucp_tmap5bytes
 Uucp_tmapbool
 Uucp_tmapbyte
 Uucp_white

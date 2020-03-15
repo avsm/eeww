@@ -16,6 +16,7 @@
    uucp_case_map_data.ml
    uucp_case_nfkc_data.ml
    uucp_cjk_data.ml
+   uucp_emoji_data.ml
    uucp_func_data.ml
    uucp_gc_data.ml
    uucp_gen_data.ml
@@ -37,6 +38,7 @@
          -case-map uucp_case_map_data.ml
          -case-nfkc uucp_case_nfkc_data.ml
          -cjk uucp_cjk_data.ml
+         -emoji uucp_emoji_data.ml
          -func uucp_func_data.ml
          -gc uucp_gc_data.ml
          -gen uucp_gen_data.ml

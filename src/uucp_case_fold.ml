@@ -1,7 +1,6 @@
 (*---------------------------------------------------------------------------
-   Copyright (c) 2013 Daniel C. Bünzli. All rights reserved.
+   Copyright (c) 2013 The uucp programmers. All rights reserved.
    Distributed under the ISC license, see terms at the end of the file.
-   %%NAME%% %%VERSION%%
   ---------------------------------------------------------------------------*)
 
 let untagged_get m u = match Uucp_tmap.get m u with
@@ -10,7 +9,7 @@ let untagged_get m u = match Uucp_tmap.get m u with
 let fold u = untagged_get Uucp_case_fold_data.fold_map_map (Uchar.to_int u)
 
 (*---------------------------------------------------------------------------
-   Copyright (c) 2013 Daniel C. Bünzli
+   Copyright (c) 2013 The uucp programmers
 
    Permission to use, copy, modify, and/or distribute this software for any
    purpose with or without fee is hereby granted, provided that the above

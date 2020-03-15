@@ -1,7 +1,6 @@
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 Daniel C. Bünzli. All rights reserved.
+   Copyright (c) 2014 The uucp programmers. All rights reserved.
    Distributed under the ISC license, see terms at the end of the file.
-   %%NAME%% %%VERSION%%
   ---------------------------------------------------------------------------*)
 
 (* Unicode version *)
@@ -16,6 +15,7 @@ module Break = Uucp_break
 module Block = Uucp_block
 module Case = Uucp_case
 module Cjk = Uucp_cjk
+module Emoji = Uucp_emoji
 module Func = Uucp_func
 module Gc = Uucp_gc
 module Gen = Uucp_gen
@@ -33,10 +33,9 @@ module Rmap = Uucp_rmap
 module Tmap = Uucp_tmap
 module Tmapbool = Uucp_tmapbool
 module Tmapbyte = Uucp_tmapbyte
-module Tmap4bytes = Uucp_tmap4bytes
 
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 Daniel C. Bünzli
+   Copyright (c) 2014 The uucp programmers
 
    Permission to use, copy, modify, and/or distribute this software for any
    purpose with or without fee is hereby granted, provided that the above

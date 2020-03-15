@@ -1,4 +1,5 @@
 (copy_files ../src/*_base.ml)
+(copy_files ../src/uucp_fmt.ml)
 (copy_files ../src/*_map.ml)
 (copy_files ../src/*_[crt]map*.ml)
 
@@ -15,7 +16,7 @@
  (mode promote)
  (action
    (progn
-     (run curl -OL http://www.unicode.org/Public/12.0.0/ucdxml/ucd.all.grouped.zip)
+     (run curl -OL http://www.unicode.org/Public/13.0.0/ucdxml/ucd.all.grouped.zip)
      (run unzip ucd.all.grouped.zip)
      (run mv ucd.all.grouped.xml ucd.xml)
      (run rm ucd.all.grouped.zip))))

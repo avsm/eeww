@@ -11,8 +11,6 @@ dependencies. It is distributed under the ISC license.
 [1]: http://www.unicode.org/reports/tr44/
 
 Home page: http://erratique.ch/software/uucp  
-Contact: Daniel Bünzli `<daniel.buenzl i@erratique.ch>`
-
 
 ## Installation
 
@@ -35,8 +33,8 @@ the interfaces. It can be consulted [online][doc] or via `odig doc
 uucp`.
 
 [doc]: http://erratique.ch/software/uucp/doc/
-[intro]: http://erratique.ch/software/uucp/doc/Uucp.html#uminimal
-[tips]: http://erratique.ch/software/uucp/doc/Uucp.html#tips
+[intro]: http://erratique.ch/software/uucp/doc/unicode.html#minimal
+[tips]: http://erratique.ch/software/uucp/doc/unicode.html#tips
 
 
 ## Sample programs
@@ -53,9 +51,3 @@ The resulting binaries are in `_build/test` :
 
 - `test.native` tests the library. Nothing should fail.
 - `perf.native` tests the performance of the library.
-
-## Authors
-
-* [Daniel C. Bünzli](http://erratique.ch), main developer.
-* David Kaloper Meršinjak, `Uucp.Break.tty_width_hint` function.
-

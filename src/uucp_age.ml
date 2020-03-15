@@ -1,12 +1,11 @@
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 Daniel C. Bünzli. All rights reserved.
+   Copyright (c) 2014 The uucp programmers. All rights reserved.
    Distributed under the ISC license, see terms at the end of the file.
-   %%NAME%% %%VERSION%%
   ---------------------------------------------------------------------------*)
 
 type t = [ `Unassigned | `Version of int * int ]
 
-let compare = Pervasives.compare
+let compare = compare
 let pp ppf = function
 | `Version (maj,min) -> Format.fprintf ppf "%d.%d" maj min
 | `Unassigned -> Format.fprintf ppf "unassigned"
@@ -14,7 +13,7 @@ let pp ppf = function
 let age u = Uucp_rmap.get Uucp_age_data.age_map (Uchar.to_int u)
 
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 Daniel C. Bünzli
+   Copyright (c) 2014 The uucp programmers
 
    Permission to use, copy, modify, and/or distribute this software for any
    purpose with or without fee is hereby granted, provided that the above

@@ -1,7 +1,6 @@
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 Daniel C. Bünzli. All rights reserved.
+   Copyright (c) 2014 The uucp programmers. All rights reserved.
    Distributed under the ISC license, see terms at the end of the file.
-   %%NAME%% %%VERSION%%
   ---------------------------------------------------------------------------*)
 
 (* Binary tree uchar ranges maps. *)
@@ -65,23 +64,29 @@ let rec word_size v_size m =        (* value sharing not taken into account. *)
   in
   loop m.tree
 
+let iter_values f m =
+  let rec loop f = function
+  | Empty -> ()
+  | R (_, _, v) -> f v
+  | Rn (l, r, _,  _, v) -> f v; loop f l; loop f r
+  in
+  f m.default; loop f m.tree
+
 let rec dump pp_v ppf m =
-  let pp = Format.fprintf in
+  let open Uucp_fmt in
   let rec dump_tree ppf = function
   | Rn (l, r, is, ie, v) ->
-      pp ppf "@[<4>Rn(%a,@,%a,@,0x%04X,@,0x%04X,@,%a)@]"
+      pf ppf "@[<4>Rn(%a,@,%a,@,0x%04X,@,0x%04X,@,%a)@]"
         dump_tree l dump_tree r is ie pp_v v
   | R (is, ie, v) ->
-      pp ppf "@[<3>R(0x%04X,@,0x%04X,@,%a)@]" is ie pp_v v
+      pf ppf "@[<3>R(0x%04X,@,0x%04X,@,%a)@]" is ie pp_v v
   | Empty ->
-      pp ppf "Empty"
+      pf ppf "Empty"
   in
-  pp ppf "@,{ default =@ %a;@, tree =@ " pp_v m.default;
-  dump_tree ppf m.tree;
-  pp ppf "@,}"
+  record ["default", pp_v; "tree", dump_tree] ppf m.default m.tree
 
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 Daniel C. Bünzli
+   Copyright (c) 2014 The uucp programmers
 
    Permission to use, copy, modify, and/or distribute this software for any
    purpose with or without fee is hereby granted, provided that the above

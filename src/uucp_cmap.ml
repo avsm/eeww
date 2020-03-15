@@ -1,7 +1,6 @@
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 Daniel C. Bünzli. All rights reserved.
+   Copyright (c) 2014 The uucp programmers. All rights reserved.
    Distributed under the ISC license, see terms at the end of the file.
-   %%NAME%% %%VERSION%%
   ---------------------------------------------------------------------------*)
 
 (* Binary tree uchar maps. *)
@@ -63,22 +62,20 @@ let word_size v_size m =            (* value sharing not taken into account. *)
   loop m.tree
 
 let rec dump pp_v ppf m =
-  let pp = Format.fprintf in
+  let open Uucp_fmt in
   let rec dump_tree ppf = function
   | Cn (l, r, i, v) ->
-      pp ppf "@[<4>Cn(%a,@,%a,@,0x%04X,@,%a)@]" dump_tree l dump_tree r i pp_v v
+      pf ppf "@[<4>Cn(%a,@,%a,@,0x%04X,@,%a)@]" dump_tree l dump_tree r i pp_v v
   | C (i, v) ->
-      pp ppf "@[<3>C(0x%04X,@,%a)@]" i pp_v v
+      pf ppf "@[<3>C(0x%04X,@,%a)@]" i pp_v v
   | Empty ->
-      pp ppf "Empty"
+      pf ppf "Empty"
   in
-  pp ppf "@,{ default =@ %a;@, tree =@ " pp_v m.default;
-  dump_tree ppf m.tree;
-  pp ppf "@,}"
+  record ["default", pp_v; "tree", dump_tree] ppf m.default m.tree
 
 
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 Daniel C. Bünzli
+   Copyright (c) 2014 The uucp programmers
 
    Permission to use, copy, modify, and/or distribute this software for any
    purpose with or without fee is hereby granted, provided that the above

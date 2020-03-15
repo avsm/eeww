@@ -1,7 +1,6 @@
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 Daniel C. Bünzli. All rights reserved.
+   Copyright (c) 2014 The uucp programmers. All rights reserved.
    Distributed under the ISC license, see terms at the end of the file.
-   %%NAME%% %%VERSION%%
   ---------------------------------------------------------------------------*)
 
 (** Unicode character properties.
@@ -9,12 +8,11 @@
     [Uucp] provides efficient access to a selection of character
     {{!props}properties} of the Unicode character database.
 
-    Consult a {{!uminimal}minimal Unicode introduction} and
-    {{!tips}tips} for Unicode processing in OCaml. Individual modules
-    have sample code related to the properties.
+    Consult {{!page-unicode}this page} for minimal Unicode
+    introduction and OCaml Unicode tips. Individual modules have
+    sample code related to the properties.
 
-    {e %%VERSION%% — Unicode version %%UNICODE_VERSION%% —
-       {{:%%PKG_HOMEPAGE%% }homepage}}
+    {e Unicode version %%UNICODE_VERSION%%}
 
     {3 References}
     {ul
@@ -43,7 +41,7 @@ module Age : sig
   (** The type for character age. *)
 
   val compare : t -> t -> int
-  (** [compare a a'] is [Pervasives.compare a a'] *)
+  (** [compare a a'] is [Stdlib.compare a a'] *)
 
   val pp : Format.formatter -> t -> unit
   (** [pp ppf a] prints an unspecified representation of [a] on [ppf]. *)
@@ -121,6 +119,7 @@ module Block : sig
     | `CJK_Ext_D
     | `CJK_Ext_E
     | `CJK_Ext_F
+    | `CJK_Ext_G
     | `CJK_Radicals_Sup
     | `CJK_Strokes
     | `CJK_Symbols
@@ -131,6 +130,7 @@ module Block : sig
     | `Cherokee
     | `Cherokee_Sup
     | `Chess_Symbols
+    | `Chorasmian
     | `Compat_Jamo
     | `Control_Pictures
     | `Coptic
@@ -153,6 +153,7 @@ module Block : sig
     | `Diacriticals_For_Symbols
     | `Diacriticals_Sup
     | `Dingbats
+    | `Dives_Akuru
     | `Dogra
     | `Domino
     | `Duployan
@@ -214,6 +215,7 @@ module Block : sig
     | `Katakana_Ext
     | `Kayah_Li
     | `Kharoshthi
+    | `Khitan_Small_Script
     | `Khmer
     | `Khmer_Symbols
     | `Khojki
@@ -233,6 +235,7 @@ module Block : sig
     | `Linear_B_Ideograms
     | `Linear_B_Syllabary
     | `Lisu
+    | `Lisu_Sup
     | `Lycian
     | `Lydian
     | `Mahajani
@@ -338,6 +341,7 @@ module Block : sig
     | `Sutton_SignWriting
     | `Syloti_Nagri
     | `Symbols_And_Pictographs_Ext_A
+    | `Symbols_For_Legacy_Computing
     | `Syriac
     | `Syriac_Sup
     | `Tagalog
@@ -352,6 +356,7 @@ module Block : sig
     | `Tamil_Sup
     | `Tangut
     | `Tangut_Components
+    | `Tangut_Sup
     | `Telugu
     | `Thaana
     | `Thai
@@ -369,6 +374,7 @@ module Block : sig
     | `Vertical_Forms
     | `Wancho
     | `Warang_Citi
+    | `Yezidi
     | `Yi_Radicals
     | `Yi_Syllables
     | `Yijing
@@ -378,7 +384,7 @@ module Block : sig
       yet assigned to a block. *)
 
   val compare : t -> t -> int
-  (** [compare b b'] is [Pervasives.compare b b']. *)
+  (** [compare b b'] is [Stdlib.compare b b']. *)
 
   val pp : Format.formatter -> t -> unit
   (** [pp ppf b] prints an unspecified representation of [b] on [ppf]. *)
@@ -862,6 +868,39 @@ module Cjk : sig
       Unified_Ideograph} property. *)
 end
 
+(** Emoji properties. *)
+module Emoji : sig
+
+  val is_emoji : Uchar.t -> bool
+  (** [is_emoji u] is [true] if [u] has the
+      {{:http://www.unicode.org/reports/tr44/#Emoji}Emoji} property. *)
+
+  val is_emoji_presentation : Uchar.t -> bool
+  (** [is_emoji_presentation u] is [true] if [u] has the
+      {{:http://www.unicode.org/reports/tr44/#Emoji_Presentation}
+      Emoji_Presentation} property. *)
+
+  val is_emoji_modifier : Uchar.t -> bool
+  (** [is_emoji_modifier u] is [true] if [u] has the
+      {{:http://www.unicode.org/reports/tr44/#Emoji_Modifier}
+      Emoji_Modifier} property. *)
+
+  val is_emoji_modifier_base : Uchar.t -> bool
+  (** [is_emoji_modifier u] is [true] if [u] has the
+      {{:http://www.unicode.org/reports/tr44/#Emoji_Modifier_Base}
+      Emoji_Modifier_Base} property. *)
+
+  val is_emoji_component : Uchar.t -> bool
+  (** [is_emoji_component u] is [true] if [u] has the
+      {{:http://www.unicode.org/reports/tr44/#Emoji_Component}
+      Emoji_Component} property. *)
+
+  val is_extended_pictographic : Uchar.t -> bool
+  (** [is_extended_pictographic u] is [true] if [u] has the
+      {{:http://www.unicode.org/reports/tr44/#Extended_Pictographic}
+      Extended_Pictographic} property. *)
+end
+
 (** Function and graphics properties. *)
 module Func : sig
 
@@ -935,7 +974,7 @@ module Gc : sig
   (** The type for general categories. *)
 
   val compare : t -> t -> int
-  (** [compare c c'] is [Pervasives.compare s s']. *)
+  (** [compare c c'] is [Stdlib.compare s s']. *)
 
   val pp : Format.formatter -> t -> unit
   (** [pp ppf c] prints an unspecified representation of [c] on [ppf]. *)
@@ -1154,10 +1193,12 @@ module Script : sig
   | `Cari
   | `Cham
   | `Cher
+  | `Chrs
   | `Copt
   | `Cprt
   | `Cyrl
   | `Deva
+  | `Diak
   | `Dogr
   | `Dsrt
   | `Dupl
@@ -1194,6 +1235,7 @@ module Script : sig
   | `Khoj
   | `Knda
   | `Kthi
+  | `Kits
   | `Lana
   | `Laoo
   | `Latn
@@ -1281,6 +1323,7 @@ module Script : sig
   | `Wcho
   | `Xpeo
   | `Xsux
+  | `Yezi
   | `Yiii
   | `Zanb
   | `Zinh
@@ -1290,7 +1333,7 @@ module Script : sig
   (** The type for scripts. *)
 
   val compare : t -> t -> int
-  (** [compare s s'] is [Pervasives.compare s s']. *)
+  (** [compare s s'] is [Stdlib.compare s s']. *)
 
   val pp : Format.formatter -> t -> unit
   (** [pp ppf s] prints an unspecified representation of [s] on [ppf]. *)
@@ -1378,410 +1421,6 @@ end
        {{:http://www.unicode.org/reports/tr44/#Property_Index_Table}this
        table.}}} *)
 
-(** {1:uminimal Minimal Unicode introduction}
-
-    {2:characters Characters — if they exist}
-
-    The purpose of Unicode is to have a universal way of representing
-    characters of writing systems known to the world in computer
-    systems. Defining the notion of character is a very complicated
-    question with both philosophical and political implications. To
-    side step these issues, we only talk about characters from a
-    programmer's point of view and simply say that the purpose of
-    Unicode is to assign meaning to the integers of a well-defined
-    integer range.
-
-    This range is called the Unicode {e codespace}, it spans from
-    [0x0000] to [0x10FFFF] and its boundaries are cast in
-    stone. Members of this range are called Unicode {e code points}.
-    Note that an OCaml [int] value can represent them on both 32- and
-    64-bit platforms.
-
-    There's a lot of (non-exclusive)
-    {{:http://www.unicode.org/glossary/}terminology} predicates that
-    can be applied to code points. I will only mention the most useful
-    ones here.
-
-    First there are the {e reserved} or {e unassigned} code points,
-    those are the integers to which the standard doesn't assign any
-    meaning {e yet}. They are reserved for future assignment and may
-    become meaningful in newer versions of the standard. Be aware that
-    once a code point has been assigned (aka as {e encoded}) by the
-    standard most of its properties may never change again, see the
-    {{:http://www.unicode.org/policies/stability_policy.html}stability
-    policy} for details.
-
-    A very important subset of code points are the Unicode {e scalar
-    values}, these are the code points that belong to the ranges
-    [0x0000]…[0xD7FF] and [0xE000]…[0x10FFFF]. This is the complete
-    Unicode codespace minus the range [0xD800]…[0xDFFF] of so called
-    {e surrogate} code points, a hack to be able to encode all scalar
-    values in UTF-16 (more on that below).
-
-    Scalar values are what I call, by a {b total abuse of
-    terminology}, the Unicode characters; it is what a proper [uchar]
-    type should represent. From a programmer's point of view they are
-    the sole integers you will have to deal with during processing and
-    the only code points that you are allowed to serialize and
-    deserialize to valid Unicode byte sequences. Since OCaml 4.03 the
-    standard library defines an {!Uchar.t} type to represent them.
-
-    Unicode uses a standard notation to denote code points in running
-    text. A code point is expressed as U+n where {e n} is four to six
-    uppercase hexadecimal digits with leading zeros omitted unless the
-    code point has fewer than four digits (in [printf] words
-    ["U+%04X"]).  For example the code point bounds are expressed by
-    U+0000 and U+10FFFF and the surrogate bounds by U+D800 and U+DFFF.
-
-    {2:assignements Interlude — what is assigned ?}
-
-    Lots of the world's scripts are encoded in the standard. The
-    {{:http://www.unicode.org/charts/}code charts} give a precise idea
-    of the coverage.
-
-    In order to be sucessful Unicode decided to be inclusive and to
-    contain pre-existing international and national standards. For
-    example the scalar values from U+0000 to U+007F correspond exactly
-    to the code values of characters encoded by the US-ASCII standard,
-    while those from U+0000 to U+00FF correspond exactly to the code
-    values of ISO-8859-1 (latin1). Many other standard are injected
-    into the codespace but their map to Unicode scalar values may not be
-    as straightforward as the two examples given above.
-
-    One thing to be aware of is that because of the inclusive nature
-    of the standard the same abstract character may be represented in
-    more than one way by the standard. A simple example is the latin
-    character "é", which can either be represented by the single
-    scalar value U+00E9 or by the {e sequence} of scalar values
-    <U+0065, U+0301> that is a latin small letter "e" followed by the
-    combining acute accent "´". This non uniqueness of representation
-    is problematic, for example whenever you want to test sequences of
-    scalar values for equality. Unicode solves this by defining
-    equivalence classes between sequences of scalar values, this is
-    called Unicode normalization and we will talk about it later.
-
-    Another issue is character spoofing. Many encoded characters
-    ressemble each other when displayed but have different scalar
-    values and meaning. The
-    {{:http://www.unicode.org/faq/security.html}Unicode Security FAQ}
-    has more information and pointers about these issues.
-
-    {2:serializing Serializing integers — UTF-X}
-
-    There is more than one way of representing a large integer as a
-    sequence of bytes. The Unicode standard defines seven {e encoding
-    schemes}, also known as Unicode transformation formats (UTF), that
-    precisely define how to encode and decode {e scalar values} — take
-    note, scalar values, {b not code points} — as byte sequences.
-
-    {ul
-    {- UTF-8, a scalar value is represented by a sequence of one
-       to 4 bytes. One of the valuable property of UTF-8 is that
-       it is compatible with the encoding of US-ASCII: the one byte
-       sequences are solely used for encoding the 128 scalar
-       value U+0000 to U+007F which correspond exactly to the US-ASCII code
-       values. Any scalar value stricly greater than U+007F will use more than
-       one byte.}
-    {- UTF-16BE, a scalar value is either represented by one
-       16 bit big-endian integer if its scalar value fits or by
-       two surrogate code points encoded as 16 bit big-endian integers (how
-       exactly is beyond the scope of this introduction).}
-    {- UTF-16LE is like UTF-16BE but uses little-endian encoded integers.}
-    {- UTF-16 is either UTF-16BE or UTF-16LE. The endianness is
-       determined by looking at the two initial bytes of the data
-       stream:
-       {ol
-       {- If they encode a byte order mark character (BOM,
-       U+FEFF) they will be either [(0xFF,0xFE)], indicating
-       UTF-16LE, or [(0xFE,0xFF)] indicating UTF-16BE.}
-       {- Otherwise UTF-16BE is assumed.}}}
-    {- UTF-32BE, a scalar value is represented by one 32 bit big-endian
-       integer.}
-    {- UTF-32LE is like UTF-32BE but uses little-endian encoded integers.}
-    {- UTF-32 is either UTF-32BE or UTF-32LE, using the same
-       byte order mark mechanism as UTF-16, looking at the four initial
-       bytes of the data stream.}}
-
-    The cost of using one representation over the other depends on the
-    character usage. For example UTF-8 is fine for latin scripts but
-    wasteful for east-asian scripts, while the converse is true for UTF-16.
-    I never saw any usage of UTF-32 on disk or wires, it is very wasteful.
-    However, in memory, UTF-32 has the advantage that characters become
-    directly indexable.
-
-    For more information see the
-    {{:http://www.unicode.org/faq/utf_bom.html}Unicode UTF-8, UTF-16,
-    UTF-32 and BOM FAQ}.
-
-    {2 Interlude — Useful scalar values}
-
-    The following scalar values are useful to know:
-    {ul
-    {- U+FEFF, the byte order mark (BOM) character used to
-     detect endiannes on byte order sensitive UTFs.}
-    {- U+FFFD, the replacement character. Can be used to: stand
-      for unrepresentable characters when transcoding from
-      another representation, indicate that something
-      was lost in best-effort UTF decoders, etc.}
-    {- U+1F42B, the emoji bactrian camel (🐫, since Unicode 6.0.0).}}
-
-    {2:equivalence Equivalence and normalization}
-
-    We mentioned above that concrete textual data may be represented by
-    more than one sequence of scalar values. Latin letters with
-    diacritics are a simple example of that. In order to be able to
-    test two sequences of scalar values for equality we should be able
-    to ignore these differences. The easiest way to do so is to convert
-    them to a normal form where these differences are removed and then
-    use binary equality to test them.
-
-    However first we need to define a notion of equality between
-    sequences. Unicode defines two of them, which one to use depends
-    on your processing context.
-    {ul
-    {- {e Canonical} equivalence. Equivalent
-       sequences should display and and be interpreted the
-       same way when printed. For example the sequence
-       "B", "Ä" (<U+0042, U+00C4>) is
-       canonically equivalent to "B", "A", "¨" (<U+0042, U+0041, U+0308>).}
-    {- {e Compatibility} equivalence. Equivalent sequences
-       may have format differences in display and may be interpreted
-       differently in some contexts. For example the sequence made
-       of the latin small ligature fi "ﬁ" (<U+FB01>) is compatibility
-       equivalent to the sequence "f", "i" (<U+0066, U+0069>). These
-       two sequences are however not canonically equivalent.}}
-
-    Canonical equivalence is included in compatiblity equivalence: two
-    canonically equivalent sequences are also compatibility
-    equivalent, but the converse may not be true.
-
-    A normal form is a function mapping a sequence of scalar values to
-    a sequence of scalar values. The Unicode standard defines four
-    different normal forms, the one to use depends on the equivalence
-    you want and your processing context:
-    {ul
-    {- Normalization form D (NFD). Removes any canonical difference
-       and decomposes characters. For example the sequence "é"
-       (<U+00E9>) will normalize to the sequence "e", "´" (<U+0065,
-       U+0301>.)}
-    {- Normalization form C (NFC). Removes any canonical difference
-       and composes characters. For example the sequence "e", "´"
-       (<U+0065, U+0301>) will normalize to the sequence "é"
-       (<U+00E9>)}
-    {- Normalization form KD (NFKD). Removes canonical and compatibility
-       differences and decomposes characters.}
-    {- Normalization form KC (NFKC). Removes canonical and compatibility
-       differences and composes characters.}}
-
-    Once you have two sequences in a known normal form you can compare
-    them using binary equality. If the normal form is NFD or NFC,
-    binary equality will entail canonical equivalence of the
-    sequences. If the normal form is NFKC or NFKD equality will entail
-    compatibility equivalence of the sequences. Note that normal forms
-    are {b not} closed under concatenation: if you concatenate two
-    sequence of scalar values you have to renormalize the result.
-
-    For more information about normalization, see the
-    {{:http://www.unicode.org/faq/normalization.html}Normalization FAQ}.
-
-    {2:collation Collation — sorting in alphabetical order}
-
-    Normalisation forms allow to define a total order between
-    sequences of scalar values using binary comparison. However this
-    order is purely arbitrary. It has no meaning because the magnitude
-    of a scalar value has, in general, no meaning. The process of
-    ordering sequences of scalar values in a standard order like
-    alphabetical order is called {e collation}. Unicode defines a
-    customizable algorithm to order two sequences of scalar values in
-    a meaningful way, the Unicode collation algorithm. For more
-    information and further pointers see the
-    {{:http://www.unicode.org/faq/collation.html}Unicode Collation
-    FAQ}.
-
-    {1:tips Biased tips for OCaml programs and libraries}
-
-    {ul
-    {- {!uchartype}}
-    {- {!utf_8_strings}}
-    {- {!utf_8_ascii}}
-    {- {!eqcmpnorm}}
-    {- {!boundaries}}
-    {- {!readline}}
-    {- {!alphasort}}
-    {- {!noranges}}
-    {- {!transcode}}
-    {- {!ppcp}}
-    {- {!ocamllibs}}}
-
-    {2:uchartype Unicode characters (scalar values) as {!Uchar.t} values.}
-
-    Since OCaml 4.03 the standard library defines the {!Uchar.t} type
-    which represents {{!characters}Unicode scalar values}. Support for
-    previous OCaml versions is provided by the
-    {{:https://github.com/ocaml/uchar}[uchar]} OPAM/ocamlfind compatibility
-    package.
-
-    {2:utf_8_strings Unicode text as UTF-8 encoded OCaml strings}
-
-    For most OCaml programs it will be entirely sufficient to deal
-    with Unicode by just treating the byte sequence of regular OCaml
-    [string]s as {b valid} UTF-8 encoded data.
-
-    Many libraries will already return Unicode text under this
-    representation. Besides latin1 identifiers having been deprecated
-    in OCaml 4.01, UTF-8 encoding your sources allows you to write
-    UTF-8 encoded string literals directly in your programs. Be aware
-    though that as far as OCaml's compiler is concerned these are just
-    sequences of bytes and you can't trust these strings to be valid
-    UTF-8 as they depend on how correctly your editor encodes them.
-    That is you {b will need} to validate and most likely normalize them
-    unless you:
-    {ul
-    {- Escape their valid UTF-8 bytes explicitely. For example
-       ["\xF0\x9F\x90\xAB"] is the correct encoding of U+1F42B}
-    {- Or use Unicode escapes (since OCaml 4.06). For example ["\u{1F42B}"]
-       will UTF-8 encode the character U+1F42B in the string}}
-
-
-    Checking the validity of UTF-8 strings should only be performed at
-    the boundaries of your program: on your string literals, on data
-    input or on the results of untrusted libraries (be careful, some
-    libraries like Yojson will happily return invalid UTF-8
-    strings). This allows you to only deal with valid UTF-8 throughout
-    your program and avoid redundant validity checks, internally or on
-    output. The following properties of UTF-8 are useful to remember:
-    {ul
-    {- UTF-8 validity is closed under string concatenation:
-       concatenating two valid UTF-8 strings results in a valid UTF-8
-       string.}
-    {- Splitting a valid UTF-8 encoded string at UTF-8
-       encoded US-ASCII scalar values (i.e. at any byte < 128) will
-       result in valid UTF-8 encoded substrings.}}
-    For checking validity or recoding the other UTF encoding schemes
-    into UTF-8 encoded OCaml [strings], the {!Uutf} module can be
-    used. It will also be useful if you need to fold over the scalar
-    values of your UTF-8 encoded strings, or build new UTF-8 strings
-    from scalar values via {!Buffer.t} values. Support for the latter
-    is however present in the OCaml {!Buffer} module since OCaml 4.06.
-
-    {2:utf_8_ascii UTF-8 and ASCII}
-
-    As mentioned in {!serializing}, each of the 128 US-ASCII characters is
-    represented by its own US-ASCII byte representation in UTF-8. So
-    if you want to look for an US-ASCII character in an UTF-8 encoded
-    string, you can just scan the bytes.  But beware on the nature of
-    your data and the algorithm you need to implement. For example to
-    detect spaces in the string, looking for the US-ASCII space U+0020
-    may not be sufficient, there are a lot of other space characters
-    like the no break space U+00A0 that are beyond the US-ASCII
-    repertoire. Folding over the scalar values with {!Uutf} and
-    checking them with {!White.is_white_space} is a better idea. Same
-    holds for line breaks, see for example {!Uutf.nln} and
-    {!Uutf.readlines} for more information about these issues.
-
-    {2:eqcmpnorm Equate, compare and normalize UTF-8 encoded
-     OCaml strings}
-
-    If you understood well the above section about
-    {{!equivalence}equivalence and normalization} you should realise
-    that blindly comparing UTF-8 encoded OCaml strings using
-    {!Pervasives.compare} won't bring you anywhere if you don't
-    normalize them before. The {!Uunf} module can be used for
-    that. Remember that concatenating normalized strings does {b not}
-    result in a normalized string.
-
-    Using {!Pervasives.compare} on {e normalized} UTF-8 encoded OCaml
-    strings defines a total order on them that you can use with the
-    {!Map} or {!Set} modules as long as you are not interested in the actual
-    {e meaning} of the order.
-
-    For case insensitive equality have a look at the
-    {{!Case.caselesseq}sample code} of the {!Case} module.
-
-    {2:alphasort Sort strings alphabetically}
-
-    The only solution at the moment for collating strings is to use
-    {{:https://github.com/yoriyuki/Camomile}Camomile} but be aware
-    that it supports only Unicode 3.2 character data so don't be
-    surprised if newer scripts don't order correctly.  The official
-    collation data also has been significantly tweaked since then.
-
-    {2:boundaries Find user-perceived character, word, sentence and line
-     boundaries in Unicode text.}
-
-    The {!Uuseg} module implements the
-    {{:http://www.unicode.org/reports/tr29/} Unicode text segmentation
-    algorithms} to find user-perceived character, word and sentence
-    boundaries in Unicode text. It also provides an implementation of
-    the {{:http://www.unicode.org/reports/tr14/}Unicode Line Breaking
-    Algorithm} to find line breaks and line break opportunities.
-
-    Among other things the {!Uuseg_string} module uses these
-    algorithms to provide OCaml standard library {{!Format}formatters}
-    for best-effort formatting of UTF-8 encoded strings.
-
-    {2:readline Unicode readline}
-
-    A [readline] function as mandated by the Unicode standard is available
-    in {{!Uutf.readline}[Uutf]'s sample code}.
-
-    {2:noranges Range processing}
-
-    Forget about trying to process Unicode characters using hard coded
-    ranges of scalar values like it was possible to do with
-    US-ASCII. The Unicode standard is not closed, it is evolving, new
-    characters are being assigned. This makes it impossible to derive
-    properties based simply on their integer value or position in
-    ranges of characters. That's the reason why we have the Unicode
-    character database and [Uucp] to access their properties. Using
-    {!White.is_white_space} will be future proof should a new
-    character deemed white be added to the standard (both [Uucp] and
-    your progam will need a recompile though).
-
-    {2:transcode Transcoding}
-
-    Transcoding from legacy encodings to Unicode may be quite
-    involved, use {{:https://github.com/yoriyuki/Camomile}Camomile} if
-    you need to do that.  There is however one translation that is
-    very easy and direct: it is the one from ISO 8859-1 also known as
-    latin1, the default encoding of OCaml [char]s. latin1 having been
-    encoded in Unicode in the range of scalar values U+0000 to U+00FF
-    which corresponds to latin1 code value, the translation is
-    trivial, it is the identity:
-{[
-let char_to_scalar_value c = Char.code c
-let char_of_scalar_value s =
-    if s > 255 then invalid_arg "" (* can't represent *) else
-    Char.chr s
-]}
-
-    {2:ppcp Pretty-printing code points in ASCII}
-
-    ["U+%04X"] is an OCaml formatting string for printing an US-ASCII
-    representation of an Unicode code point according to the
-    standards' notational conventions. This is what the
-    {!Fmt.Dump.uchar} formatter does for {!Uchar.t} values.
-
-    {2:ocamllibs Writing OCaml libraries}
-
-    If you write a library that deals with textual data, you should,
-    unless technically impossible, always interact with the client of
-    the library using Unicode. If there are other encodings involved
-    transcode them to/from Unicode so that the client needs only to
-    deal with Unicode, the burden of dealing with the encoding mess
-    has to be on the library, not the client.
-
-    In this case there is no absolute need to depend on an Unicode
-    text data structure, just use {b valid} UTF-8 encoded data as
-    OCaml [string]s and the standard library {!Uchar.t} type.
-
-    Specify clearly in the documentation that all the [string]s
-    returned by or given to the library must be valid UTF-8 encoded
-    data. This validity contract is important for performance reasons:
-    it allows both the client and the library to trust the string and
-    forgo redundant validity checks. Remember that concatenating valid
-    UTF-8 strings results in valid UTF-8 string. *)
-
 (**/**)
 
 (* Warning this is not part of the public API and subject
@@ -1845,22 +1484,10 @@ module Tmapbyte : sig
   val dump : Format.formatter -> t -> unit
 end
 
-module Tmap4bytes : sig
-  type t = { default : string; l0 : string array array; }
-  val nil : 'a array
-  val snil : string
-  val create : string -> t
-  val word_size : t -> int
-  val dump : Format.formatter -> t -> unit
-  val create_uint16_pair : int * int -> t
-  val get_uint16_pair : t -> int -> int * int
-  val set_uint16_pair : t -> int -> int * int -> unit
-end
-
 (**/**)
 
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 Daniel C. Bünzli
+   Copyright (c) 2014 The uucp programmers
 
    Permission to use, copy, modify, and/or distribute this software for any
    purpose with or without fee is hereby granted, provided that the above

@@ -1,7 +1,6 @@
 (*---------------------------------------------------------------------------
-   Copyright (c) 2017 Daniel C. Bünzli. All rights reserved.
+   Copyright (c) 2017 The uucp programmers. All rights reserved.
    Distributed under the ISC license, see terms at the end of the file.
-   %%NAME%% %%VERSION%%
   ---------------------------------------------------------------------------*)
 
 let log_err s =
@@ -277,6 +276,13 @@ let all_keys = [
   `P "IDS_Trinary_Operator", str_bool Uucp.Cjk.is_ids_tri_op;
   `P "Radical", str_bool Uucp.Cjk.is_radical;
   `P "Unified_Ideograph", str_bool Uucp.Cjk.is_unified_ideograph;
+  (* Emoji *)
+  `P "Emoji", str_bool Uucp.Emoji.is_emoji;
+  `P "Emoji_Presentation", str_bool Uucp.Emoji.is_emoji_presentation;
+  `P "Emoji_Modifier", str_bool Uucp.Emoji.is_emoji_modifier;
+  `P "Emoji_Modifier_Base", str_bool Uucp.Emoji.is_emoji_modifier_base;
+  `P "Emoji_Component", str_bool Uucp.Emoji.is_emoji_component;
+  `P "Extended_Pictographic", str_bool Uucp.Emoji.is_extended_pictographic;
   (* Func *)
   `P "Dash", str_bool Uucp.Func.is_dash;
   `P "Diacritic", str_bool Uucp.Func.is_diacritic;
@@ -333,7 +339,8 @@ let compare_key (k0, _) (k1, _) = match k0, k1 with
 | (`P k0 | `N k0 | `H k0), (`P k1 | `N k1 | `H k1) -> compare k0 k1
 
 let eq_key k (k', _) = match k' with
-| `P k' | `N k' | `H k' -> String.(compare (lowercase k) (lowercase k') = 0)
+| `P k' | `N k' | `H k' ->
+    String.(compare (lowercase_ascii k) (lowercase_ascii k') = 0)
 
 let exist_key k = List.exists (eq_key k) all_keys
 let find_key k = List.find (eq_key k) all_keys
@@ -369,6 +376,10 @@ let case_keys =
 let cjk_keys =
   [ "Ideographic"; "IDS_Binary_Operator"; "IDS_Trinary_Operator"; "Radical";
     "Unified_Ideograph" ]
+
+let emoji_keys =
+  [ "Emoji"; "Emoji_Presentation"; "Emoji_Modifier"; "Emoji_Modifier_Base";
+    "Emoji_Component"; "Extended_Pictographic" ]
 
 let id_keys =
   [ "ID_Start"; "ID_Continue"; "XID_Start"; "XID_Continue"; "Pattern_Syntax";
@@ -464,6 +475,10 @@ let keys =
     let doc = "Output values of Unicode CJK keys." in
     Arg.(value & flag & info ["cjk"] ~doc)
   in
+  let emoji =
+    let doc = "Output values of Unicode emoji keys." in
+    Arg.(value & flag & info ["emoji"] ~doc)
+  in
   let id =
     let doc = "Output values of Unicode identifier keys." in
     Arg.(value & flag & info ["id"] ~doc)
@@ -477,17 +492,18 @@ let keys =
     in
     Arg.(value & opt_all string [] & info ["k"; "key"] ~doc ~docv:"KEY")
   in
-  let choose all default case cjk id num keys = match all with
+  let choose all default case cjk emoji id num keys = match all with
   | true -> List.sort compare (List.map key_id all_keys)
   | false ->
       let keys = if num then num_keys @ keys else keys in
       let keys = if id then id_keys @ keys else keys in
       let keys = if cjk then cjk_keys @ keys else keys in
+      let keys = if emoji then emoji_keys @ keys else keys in
       let keys = if case then case_keys @ keys else keys in
       let keys = if default then default_keys @ keys else keys in
       if keys = [] then default_keys else keys
   in
-  Term.(const choose $ all $ default $ case $ cjk $ id $ num $ keys)
+  Term.(const choose $ all $ default $ case $ cjk $ emoji $ id $ num $ keys)
 
 let uspec =
   let doc = "The character specification. See CHARACTER SPECIFICATION
@@ -573,7 +589,7 @@ let ucharinfo =
 let () = Term.(exit_status @@ eval ucharinfo)
 
 (*---------------------------------------------------------------------------
-   Copyright (c) 2017 Daniel C. Bünzli
+   Copyright (c) 2017 The uucp programmers
 
    Permission to use, copy, modify, and/or distribute this software for any
    purpose with or without fee is hereby granted, provided that the above

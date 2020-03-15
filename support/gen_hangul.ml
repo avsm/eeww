@@ -1,13 +1,12 @@
 (*---------------------------------------------------------------------------
-   Copyright (c) 2018 Daniel C. Bünzli. All rights reserved.
+   Copyright (c) 2018 The uucp programmers. All rights reserved.
    Distributed under the ISC license, see terms at the end of the file.
-   %%NAME%% %%VERSION%%
   ---------------------------------------------------------------------------*)
 
 let pp_syllable_type ppf ucd =
   let size v = 0 in
   let pp_stype ppf t = Gen.pp ppf "`%a" Uucp_hangul_base.pp_syllable_type t in
-  Gen.pp_prop_rmap_ucd ppf ucd Uucd.hangul_syllable_type
+  Gen.pp_prop_rmap_ucd ~share:false ppf ucd Uucd.hangul_syllable_type
     "syllable_type" "Uucp_hangul_base.syllable_type" pp_stype
     ~default:`NA size
 
@@ -18,7 +17,7 @@ let pp_props ppf ucd =
 let pp_mod ppf ucd = Gen.pp_mod pp_props ppf ucd
 
 (*---------------------------------------------------------------------------
-   Copyright (c) 2018 Daniel C. Bünzli
+   Copyright (c) 2018 The uucp programmers
 
    Permission to use, copy, modify, and/or distribute this software for any
    purpose with or without fee is hereby granted, provided that the above

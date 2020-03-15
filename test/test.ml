@@ -1,7 +1,6 @@
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 Daniel C. Bünzli. All rights reserved.
+   Copyright (c) 2014 The uucp programmers. All rights reserved.
    Distributed under the ISC license, see terms at the end of the file.
-   %%NAME%% %%VERSION%%
   ---------------------------------------------------------------------------*)
 
 (* Tests the properties against the XML Unicode character database. *)
@@ -110,6 +109,19 @@ let assert_cjk ucd =
   prop "unified_ideograph" Uucd.unified_ideograph Uucp.Cjk.is_unified_ideograph;
   ()
 
+let assert_emoji ucd =
+  let prop fname ucd_p p = prop ucd "Uucd.Emoji" fname (ucd_get ucd_p) p in
+  prop "is_emoji" Uucd.emoji Uucp.Emoji.is_emoji;
+  prop "is_emoji_presentation"
+    Uucd.emoji_presentation Uucp.Emoji.is_emoji_presentation;
+  prop "is_emoji_modifier" Uucd.emoji_modifier Uucp.Emoji.is_emoji_modifier;
+  prop "is_emoji_modifier_base"
+    Uucd.emoji_modifier_base Uucp.Emoji.is_emoji_modifier_base;
+  prop "is_emoji_component" Uucd.emoji_component Uucp.Emoji.is_emoji_component;
+  prop "is_extended_pictographic"
+    Uucd.extended_pictographic Uucp.Emoji.is_extended_pictographic;
+  ()
+
 let assert_func ucd =
   let prop fname ucd_p p = prop ucd "Uucd.Func" fname (ucd_get ucd_p) p in
   prop "is_dash" Uucd.dash Uucp.Func.is_dash;
@@ -210,6 +222,7 @@ let test inf mods =
   if do_assert `Break  then assert_break ucd;
   if do_assert `Case   then assert_case ucd;
   if do_assert `Cjk    then assert_cjk ucd;
+  if do_assert `Emoji  then assert_emoji ucd;
   if do_assert `Func   then assert_func ucd;
   if do_assert `Gc     then assert_gc ucd;
   if do_assert `Gen    then assert_gen ucd;
@@ -244,6 +257,7 @@ let main () =
     "-break",  add `Break,  " assert the Break module";
     "-case",   add `Case,   " assert the Case module";
     "-cjk",    add `Cjk,    " assert the CJK module";
+    "-emoji",  add `Emoji,  " assert the Emoji module";
     "-func",   add `Func,   " assert the Func module";
     "-gc",     add `Gc,     " assert the Gc module";
     "-gen",    add `Gen,    " assert the Gen module";
@@ -260,7 +274,7 @@ let main () =
 let () = main ()
 
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 Daniel C. Bünzli
+   Copyright (c) 2014 The uucp programmers
 
    Permission to use, copy, modify, and/or distribute this software for any
    purpose with or without fee is hereby granted, provided that the above

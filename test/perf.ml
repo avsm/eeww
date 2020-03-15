@@ -1,7 +1,6 @@
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 Daniel C. Bünzli. All rights reserved.
+   Copyright (c) 2014 The uucp programmers. All rights reserved.
    Distributed under the ISC license, see terms at the end of the file.
-   %%NAME%% %%VERSION%%
   ---------------------------------------------------------------------------*)
 
 (* Reapeatedly looks up properties for the whole character set. *)
@@ -62,6 +61,16 @@ let lookup_cjk count =
   prop "ids_tri_op" Uucp.Cjk.is_ids_tri_op;
   prop "radical" Uucp.Cjk.is_radical;
   prop "unified_ideograph" Uucp.Cjk.is_unified_ideograph;
+  ()
+
+let lookup_emoji count =
+  let prop fname p = prop count "Uucp.Emoji" fname p in
+  prop "is_emoji" Uucp.Emoji.is_emoji;
+  prop "is_emoji_presentation" Uucp.Emoji.is_emoji_presentation;
+  prop "is_emoji_modifier" Uucp.Emoji.is_emoji_modifier;
+  prop "is_emoji_modifier_base" Uucp.Emoji.is_emoji_modifier_base;
+  prop "is_emoji_component" Uucp.Emoji.is_emoji_component;
+  prop "is_extended_pictographic" Uucp.Emoji.is_emoji_component;
   ()
 
 let lookup_func count =
@@ -140,6 +149,7 @@ let lookup count mods =
   if do_lookup `Break  then lookup_break count;
   if do_lookup `Case   then lookup_case count;
   if do_lookup `Cjk    then lookup_cjk count;
+  if do_lookup `Emoji  then lookup_emoji count;
   if do_lookup `Func   then lookup_func count;
   if do_lookup `Gc     then lookup_gc count;
   if do_lookup `Gen    then lookup_gen count;
@@ -171,6 +181,7 @@ let main () =
     "-break",  add `Break, " test the Break module";
     "-case",   add `Case, " test the Case module";
     "-cjk",    add `Cjk, " test the CJK module";
+    "-emoji",  add `Emoji, " test the Emoji module";
     "-func",   add `Func, " test the Func module";
     "-gc",     add `Gc, " test the Gc module";
     "-gen",    add `Gen, " test the Gen module";
@@ -187,7 +198,7 @@ let main () =
 let () = main ()
 
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 Daniel C. Bünzli
+   Copyright (c) 2014 The uucp programmers
 
    Permission to use, copy, modify, and/or distribute this software for any
    purpose with or without fee is hereby granted, provided that the above

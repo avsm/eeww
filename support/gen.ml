@@ -1,7 +1,6 @@
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 Daniel C. Bünzli. All rights reserved.
+   Copyright (c) 2014 The uucp programmers. All rights reserved.
    Distributed under the ISC license, see terms at the end of the file.
-   %%NAME%% %%VERSION%%
   ---------------------------------------------------------------------------*)
 
 let log fmt = Format.eprintf (fmt ^^ "%!")
@@ -50,6 +49,23 @@ let prop_map create set get prop default =
   let add_u u = set m u (prop u) in
   uchar_iter_ints add_u; m, (get m)
 
+(* Structure sharing *)
+
+let intern (type a) ?eqh iter pp_v ppf x =
+  let module H = Hashtbl.Make (struct
+    type t = a
+    let equal, hash = match eqh with Some fg -> fg | _ -> (=), Hashtbl.hash
+  end) in
+  let t = H.create 23 and n = ref 0 in
+  x |> iter (fun v -> if not (H.mem t v) then begin
+    let name = str "v%03d" !n in
+    H.add t v name; incr n;
+    pp ppf "@[<2>let %s =@ %a@]@\n" name pp_v v
+  end);
+  (fun ppf v -> match H.find_opt t v with
+  | Some name -> pp ppf "%s" name
+  | None -> pp_v ppf v)
+
 (* Generate Uucp_cmap.t values *)
 
 let prop_cmap ~default prop =
@@ -66,7 +82,8 @@ let pp_prop_cmap ppf prop pname ptype pp_prop ~default size_v =
   log "  asserting"; assert_prop_map prop (Uucp_cmap.get m);
   log ", generating@\n";
   pp ppf "open Uucp_cmap@\n";
-  pp ppf "@[let %s_map : %s t = %a@]@\n" pname ptype (Uucp_cmap.dump pp_prop) m;
+  pp ppf "@[<2>let %s_map : %s t =@ %a@]@\n@\n"
+         pname ptype (Uucp_cmap.dump pp_prop) m;
   ()
 
 let pp_prop_cmap_ucd ppf ucd prop pname ptype pp_prop ~default size_v =
@@ -94,7 +111,7 @@ let prop_find_ranges prop =
   in
   uchar_iter_ints add_u; (List.rev !ranges)
 
-let pp_prop_rmap ppf prop pname ptype pp_prop ~default size_v =
+let pp_prop_rmap ?(share = true) ppf prop pname ptype pp_prop ~default size_v =
   log "* %s property, binary tree range code point map@\n" pname;
   let m = Uucp_rmap.of_sorted_list default (prop_find_ranges prop) in
   let size = Uucp_rmap.word_size size_v m in
@@ -103,12 +120,17 @@ let pp_prop_rmap ppf prop pname ptype pp_prop ~default size_v =
   log "  asserting"; assert_prop_map prop (Uucp_rmap.get m);
   log ", generating@\n";
   pp ppf "open Uucp_rmap@\n";
-  pp ppf "@[let %s_map : %s t = %a@]@\n" pname ptype (Uucp_rmap.dump pp_prop) m;
+  let pp_prop =
+    if share then intern Uucp_rmap.iter_values pp_prop ppf m else
+    pp_prop
+  in
+  pp ppf "@[<2>let %s_map : %s t =@ %a@]@\n@\n"
+    pname ptype (Uucp_rmap.dump pp_prop) m;
   ()
 
-let pp_prop_rmap_ucd ppf ucd prop pname ptype pp_prop ~default size_v =
+let pp_prop_rmap_ucd ?share ppf ucd prop pname ptype pp_prop ~default size_v =
   let prop u = ucd_get ucd u prop in
-  pp_prop_rmap ppf prop pname ptype pp_prop ~default size_v
+  pp_prop_rmap ?share ppf prop pname ptype pp_prop ~default size_v
 
 (* Generate Uucp_tmap.t values *)
 
@@ -127,7 +149,7 @@ let pp_prop_tmap ppf prop pname ptype pp_prop ~default size_v =
   log "  asserting"; assert_prop_map prop get;
   log ", generating@\n";
   pp ppf "open Uucp_tmap@\n";
-  pp ppf "@[let %s_map : %s t = %a@]@\n" pname ptype (Uucp_tmap.dump pp_prop) m;
+  pp ppf "@[<2>let %s_map : %s t =@ %a@]@\n@\n" pname ptype (Uucp_tmap.dump pp_prop) m;
   ()
 
 let pp_prop_tmap_ucd ppf ucd prop pname ptype pp_prop ~default size_v =
@@ -169,7 +191,8 @@ let pp_prop_tmapbool ppf prop pname =
   log ", generating@\n";
   let m = if use_fm then fm else tm in
   pp ppf "open Uucp_tmapbool@\n";
-  pp ppf "@[let %s_map = %a@]@\n" pname Uucp_tmapbool.dump m;
+  let pp_v = intern Uucp_tmapbool.iter_blobs Uucp_tmapbool.pp_v ppf m in
+  pp ppf "@[<2>let %s_map =@ %a@]@\n@\n" pname (Uucp_tmapbool.dump_pp pp_v) m;
   ()
 
 let pp_prop_tmapbool_ucd ppf ucd prop pname =
@@ -193,7 +216,8 @@ let pp_prop_tmapbyte ppf prop pname ~default default_str =
   log " asserting"; assert_prop_map prop get;
   log ", generating@\n";
   pp ppf "open Uucp_tmapbyte@\n";
-  pp ppf "@[let %s_map : t = %a@]@\n" pname Uucp_tmapbyte.dump m;
+  let pp_v = intern Uucp_tmapbyte.iter_blobs Uucp_tmapbyte.pp_v ppf m in
+  pp ppf "@[<2>let %s_map : t =@ %a@]@\n@\n" pname (Uucp_tmapbyte.dump_pp pp_v) m;
   ()
 
 let pp_prop_tmapbyte_ucd ppf ucd prop pname ~default =
@@ -205,14 +229,22 @@ let pp_code_prop_tmapbyte_ucd ppf ucd code prop pname ~default pp_prop =
   pp_prop_tmapbyte ppf prop pname ~default:(code default)
     (str "`%a" pp_prop default)
 
-(* Generate Uucp_tmap4bytes.t values. *)
+(* Generate Uucp_tmap5bytes.t values. *)
 
-let prop_tmap4bytes_uint16_pair prop default =
+let prop_tmap5bytes_uint20_pair prop default =
   prop_map
-    Uucp_tmap4bytes.create_uint16_pair
-    Uucp_tmap4bytes.set_uint16_pair
-    Uucp_tmap4bytes.get_uint16_pair
+    Uucp_tmap5bytes.create_uint20_pair
+    Uucp_tmap5bytes.set_uint20_pair
+    Uucp_tmap5bytes.get_uint20_pair
     prop default
+
+let pp_tmap5byte ppf pname m =
+  pp ppf "open Uucp_tmap5bytes@\n";
+  let pp_v = intern Uucp_tmap5bytes.iter_blobs Uucp_tmap5bytes.pp_v ppf m in
+  pp ppf "@[<2>let %s_map : t =@ %a@]@\n@\n" pname
+    (Uucp_tmap5bytes.dump_pp pp_v) m;
+  ()
+
 
 (* Generate a module *)
 
@@ -220,16 +252,14 @@ let pp_mod pp_mod ppf m =
   pp ppf
 "\
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 Daniel C. Bünzli. All rights reserved.
-
+   Copyright (c) 2020 The uucp programmers. All rights reserved.
    Distributed under the ISC license, see terms at the end of the file.
-   %%NAME%% %%VERSION%%
   ---------------------------------------------------------------------------*)
 
 (* WARNING do not edit. This file was automatically generated. *)
 @\n@[%a@]@\n
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 Daniel C. Bünzli
+   Copyright (c) 2020 The uucp programmers
 
    Permission to use, copy, modify, and/or distribute this software for any
    purpose with or without fee is hereby granted, provided that the above
@@ -246,7 +276,7 @@ let pp_mod pp_mod ppf m =
 " pp_mod m
 
 (*---------------------------------------------------------------------------
-   Copyright (c) 2014 Daniel C. Bünzli
+   Copyright (c) 2014 The uucp programmers
 
    Permission to use, copy, modify, and/or distribute this software for any
    purpose with or without fee is hereby granted, provided that the above
