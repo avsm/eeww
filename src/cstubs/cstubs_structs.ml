@@ -5,6 +5,8 @@
  * See the file LICENSE for details.
  *)
 
+[@@@warning "-9-27"]
+
 open Ctypes
 
 module type TYPE =
@@ -40,6 +42,7 @@ let cepilogue = [
   "}";
   ]
 let mlprologue = [
+  "[@@@warning \"-9-27\"]";
   "include Ctypes";
   "let lift x = x";
   "open Ctypes_static";

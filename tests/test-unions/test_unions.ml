@@ -10,7 +10,7 @@ open Ctypes
 open Unsigned
 
 
-let testlib = Dl.(dlopen ~filename:"clib/libtest_functions.so" ~flags:[RTLD_NOW])
+let testlib = Dl.(dlopen ~filename:"../clib/dlltest_functions_stubs.so" ~flags:[RTLD_NOW])
 
 
 (* 
@@ -246,8 +246,8 @@ let test_adding_fields_through_views _ =
   let module M = struct
     let union_u = union "union_u"
     let u = typedef union_u "u"
-    let x = field u "x" int
-    let y = field u "y" float
+    let _x = field u "x" int
+    let _y = field u "y" float
     let () = seal u
   end in ()
 

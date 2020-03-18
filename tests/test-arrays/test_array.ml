@@ -9,7 +9,8 @@ open OUnit2
 open Ctypes
 
 
-let testlib = Dl.(dlopen ~filename:"clib/libtest_functions.so" ~flags:[RTLD_NOW])
+(* TODO not needed anymore?
+ * let testlib = Dl.(dlopen ~filename:"clib/libtest_functions.so" ~flags:[RTLD_NOW]) *)
 
 
 (*
@@ -47,7 +48,7 @@ let test_multidimensional_arrays _ =
 
   (* three dimensions *)
   let three = Array.make (array 2 (array 5 float)) 10 in
-  let float = Pervasives.float in
+  let float = Stdlib.float in
 
   for i = 0 to 9 do
     for j = 0 to 1 do

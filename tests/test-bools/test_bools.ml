@@ -6,14 +6,11 @@
  *)
 
 open OUnit2
-open Ctypes
-
 
 module Common_tests(S : Cstubs.FOREIGN with type 'a result = 'a
                                         and type 'a return = 'a) =
 struct
   module M = Functions.Common(S)
-  open M
 
   (*
     Test passing bool values.

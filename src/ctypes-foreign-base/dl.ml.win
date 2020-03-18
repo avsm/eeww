@@ -3,6 +3,8 @@
  * See the file LICENSE for details.
  *)
 
+[@@@warning "-37"]
+
 type library
 
 type dlsym_ret =
@@ -82,7 +84,7 @@ let dlopen ?filename ~flags =
           else
             x
         in
-        let ls = String.lowercase s in
+        let ls = String.lowercase_ascii s in
         let s' =
           if Filename.check_suffix ls ".so" ||
             Filename.check_suffix ls ".dylib"

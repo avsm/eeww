@@ -5,6 +5,7 @@
  * See the file LICENSE for details.
  *)
 
+[@@@warning "-33-35"]
 open Ctypes
 open OUnit2
 open Foreign
@@ -136,7 +137,7 @@ let test_register_thread _ =
       else if Hashtbl.length htl_res <> succ n_threads then
         false
       else
-        Hashtbl.fold ( fun k v ac ->
+        Hashtbl.fold ( fun _k v ac ->
             if v = n_callback then ac else false
           ) htl_res true
     in

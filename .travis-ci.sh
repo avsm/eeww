@@ -1,3 +1,4 @@
+echo travis_fold:start:prepare
 ANDROID_REPOSITORY=git://github.com/whitequark/opam-cross-android
 export OCAMLFINDFLAGS
 
@@ -12,15 +13,12 @@ install_on_linux () {
   sudo apt-get update -qq
   if test $use_opam; then
       sudo apt-get install -qq opam
-      opam init
-      opam update
-      opam switch create -q $OCAML_VERSION
+      opam init --compiler=$OCAML_COMPILER
   else
-      sudo apt-get install -qq ocaml ocaml-native-compilers camlp4-extra opam
+      sudo apt-get install -qq ocaml ocaml-native-compilers opam
       opam init
-      opam update
   fi
-  eval `opam config env`
+  eval `opam env`
 }
 
 install_on_osx () {
@@ -30,9 +28,8 @@ install_on_osx () {
   brew update
   brew reinstall ocaml
   brew install libffi opam
-  opam init
-  opam switch install ocaml-base-compiler.$OCAML_VERSION
-  eval `opam config env` 
+  opam init --compiler=$OCAML_COMPILER
+  eval `opam env` 
 }
 
 install_android_toolchain () {
@@ -51,8 +48,9 @@ install_android_toolchain () {
 }
 
 export OPAMYES=1
-export OPAMVERBOSE=1
 
+echo travis_fold:end:prepare
+echo travis_fold:start:install
 echo $TRAVIS_OS_NAME
 case $ANDROID in
   true) install_android_toolchain ;;
@@ -61,6 +59,7 @@ case $ANDROID in
        linux) install_on_linux ;;
      esac
 esac
+echo travis_fold:end:install
 
 echo OCaml version
 ocaml -version
@@ -68,27 +67,30 @@ echo OPAM versions
 opam --version
 opam --git-version
 
+echo travis_fold:start:install-coverage
 # Optional dependencies for coverage testing
 if test $COVERAGE -a $TRAVIS_OS_NAME != osx ; then
     opam install bisect_ppx ocveralls
 fi
+echo travis_fold:end:install-coverage
 
-# Optional dependencies for Xen build
-opam install mirage-xen || echo "Mirage not installable, so not testing Xen build."
 
-opam pin add -n ctypes $(pwd)
+export OPAMVERBOSE=1
+echo travis_fold:start:build
+opam pin add -n .
+opam upgrade 
 if test $ANDROID; then
 	opam install --yes ctypes
 else
 	opam install --build-test --yes ctypes
 fi
+echo travis_fold:end:build
 
-# Check that the inverted stubs package builds with this release
-opam pin add -n ctypes-inverted-stubs-example https://github.com/yallop/ocaml-ctypes-inverted-stubs-example.git 
-if test ! $ANDROID && test ! $COVERAGE && opam install --show-actions ctypes-inverted-stubs-example; then
-    opam install --build-test --yes ctypes-inverted-stubs-example
-else
-    echo "Pinning the inverted stubs example failed, probably due to OCaml version incompatibility"
-fi
-
+# TODO Check that the inverted stubs package builds with this release
+#opam pin add -n ctypes-inverted-stubs-example https://github.com/yallop/ocaml-ctypes-inverted-stubs-example.git 
+#if test ! $ANDROID && test ! $COVERAGE && opam install --show-actions ctypes-inverted-stubs-example; then
+#    opam install --build-test --yes ctypes-inverted-stubs-example
+#else
+#    echo "Pinning the inverted stubs example failed, probably due to OCaml version incompatibility"
+#fi
 

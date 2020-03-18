@@ -6,7 +6,6 @@
  *)
 
 open OUnit2
-open Ctypes
 
 let flts = 
   [
@@ -167,7 +166,7 @@ let test_complex _ =
       assert_bool name (chk_complex ?prec (opc a) (to_complex (opl (of_complex a))))
     ) cplx
   in
-  let assert_chkf ?prec name opc opl = 
+  let assert_chkf name opc opl = 
     List.iter (fun a -> 
       let open ComplexL in
       assert_bool name (chk_float (opc a) (LDouble.to_float (opl (of_complex a))))

@@ -3,9 +3,7 @@
  * See the file LICENSE for details.
  *)
 
-open Ctypes
 open OUnit2
-open Foreign
 
 (*
  *  Using the closure API of libffi is error prone due to differences

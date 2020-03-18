@@ -5,8 +5,9 @@
  * See the file LICENSE for details.
  *)
 
+[@@@warning "-9"]
+
 open OUnit2
-open Ctypes
 open Foreign
 
 

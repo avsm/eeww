@@ -8,6 +8,7 @@
 open OUnit2
 open Ctypes
 
+[@@@warning "-3-35"]
 
 module Common_tests(S : Cstubs.FOREIGN with type 'a result = 'a
                                         and type 'a return = 'a) =

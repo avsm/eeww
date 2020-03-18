@@ -5,6 +5,8 @@
  * See the file LICENSE for details.
  *)
 
+[@@@warning "-9-32"]
+
 open Ctypes
 
 type fts_info =
@@ -35,7 +37,7 @@ let fts_info_of_int = function
   | 11 -> FTS_NSOK
   | 12 -> FTS_SL
   | 13 -> FTS_SLNONE
-  | _  -> invalid_arg "fts_info"
+  | n  -> invalid_arg ("fts_info: " ^ (string_of_int n))
 
 type fts_open_option =
     FTS_COMFOLLOW

@@ -8,7 +8,6 @@
 open OUnit2
 open Ctypes
 open Unsigned
-open Foreign
 
 module Common_tests(S : Cstubs.FOREIGN with type 'a result = 'a
                                         and type 'a return = 'a) =

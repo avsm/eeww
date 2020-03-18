@@ -5,9 +5,7 @@
  * See the file LICENSE for details.
  *)
 
-open Ctypes
 open OUnit2
-open Foreign
 
 
 module Common_tests(S : Cstubs.FOREIGN with type 'a result = 'a
