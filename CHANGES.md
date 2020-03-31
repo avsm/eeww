@@ -1,4 +1,8 @@
-# Unreleased
+# 1.1.0 (2020-03-31)
+
+* Port to mirage-crypto (thanks to @hannesm)
+
+# 1.0.0 (2019-04-12)
 
 * Move to dune
 * Upgrade to opam 2.0
