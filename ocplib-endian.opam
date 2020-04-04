@@ -11,7 +11,7 @@ maintainer: "pierre.chambart@ocamlpro.com"
 authors: "Pierre Chambart"
 homepage: "https://github.com/OCamlPro/ocplib-endian"
 bug-reports: "https://github.com/OCamlPro/ocplib-endian/issues"
-doc: "http://ocamlpro.github.io/ocplib-endian/"
+doc: "https://ocamlpro.github.io/ocplib-endian/ocplib-endian/"
 depends: [
   "base-bytes"
   "ocaml" {>= "4.02.3"}
