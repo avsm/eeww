@@ -1,6 +1,9 @@
 1.1
 ---
 
+* Add the OPAM support for building the documentation
+* Use the correct bytes_set primitive for OCaml >= 4.07.0
+  (issue #21 fixed in #22 @hhugo)
 * Fix tests on big endian architectures
   (issue #20 reported by @TC01 and @olafhering)
 * Fix documentation typo (@bobot)
