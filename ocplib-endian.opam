@@ -11,6 +11,7 @@ maintainer: "pierre.chambart@ocamlpro.com"
 authors: "Pierre Chambart"
 homepage: "https://github.com/OCamlPro/ocplib-endian"
 bug-reports: "https://github.com/OCamlPro/ocplib-endian/issues"
+doc: "http://ocamlpro.github.io/ocplib-endian/"
 depends: [
   "base-bytes"
   "ocaml" {>= "4.02.3"}
@@ -18,8 +19,10 @@ depends: [
   "dune" {build & >= "1.0"}
 ]
 build: [
-  ["dune" "build" "-p" name "-j" jobs]
-  ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+  ["dune" "build" "-p" name "-j" jobs
+   "@install"
+   "@runtest" {with-test}
+   "@doc" {with-doc}]
 ]
 dev-repo: "git+https://github.com/OCamlPro/ocplib-endian.git"
 url {
