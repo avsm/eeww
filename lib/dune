@@ -1,4 +1,5 @@
 (library
  (name osrelease)
  (public_name osrelease)
- (libraries bos astring))
+ (preprocess (pps ppx_sexp_conv))
+ (libraries bos astring sexplib))
