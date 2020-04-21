@@ -39,6 +39,12 @@ let unexpected_stag loc sexp =
 
 (* Errors concerning records *)
 
+let record_sexp_bool_with_payload loc sexp =
+  let msg =
+    loc ^
+    "_of_sexp: record conversion: a [sexp.bool] field was given a payload." in
+  of_sexp_error msg sexp
+
 let record_only_pairs_expected loc sexp =
   let msg =
     loc ^
