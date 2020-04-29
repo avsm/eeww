@@ -55,10 +55,10 @@ let tty_width_hint =
   | 0x2028 | 0x2029 -> 1
   (* Euro-centric fast path: does not intersect branches below. *)
   | u when u <= 0x02FF -> 1
-  (* Wide east-asian. *)
-  | u when (let w = eaw u in w = `W || w = `F) -> 2
-  (* Non-spacing, unless stated otherwise. *)
+  (* Non-spacing. *)
   | u when (let c = gc u in c = `Mn || c = `Me || c = `Cf) -> 0
+  (* Wide east-asian; intersects non-spacing. *)
+  | u when (let w = eaw u in w = `W || w = `F) -> 2
   (* or else. *)
   | _ -> 1
 
