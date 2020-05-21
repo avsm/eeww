@@ -332,12 +332,6 @@ module Private = struct
         (Explicit_bind
            ([ "'a"; "'b" ], List [ One (Explicit_var 0); One (Explicit_var 1) ]))
     ;;
-
-    module Placeholder = struct
-      module type S = Raw_grammar.Placeholder
-
-      let t_sexp_grammar = Inline Any
-    end
   end
 end
 
