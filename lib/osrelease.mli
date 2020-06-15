@@ -23,11 +23,12 @@ module Arch : sig
     | `Ppc64 of [ `Be | `Le ]
     | `Unknown of string
     | `X86_32
-    | `X86_64 ] [@@deriving sexp]
+    | `X86_64 ]
+  [@@deriving sexp]
 
-  val to_opam_string : t -> string
+  val to_string : t -> string
 
-  val of_opam_string : string -> t
+  val of_string : string -> t
 
   val pp : Format.formatter -> t -> unit
 
@@ -43,11 +44,12 @@ module OS : sig
     | `MacOS
     | `OpenBSD
     | `Unknown of string
-    | `Win32 ] [@@deriving sexp]
+    | `Win32 ]
+  [@@deriving sexp]
 
-  val to_opam_string : t -> string
+  val to_string : t -> string
 
-  val of_opam_string : string -> t
+  val of_string : string -> t
 
   val pp : Format.formatter -> t -> unit
 
@@ -69,7 +71,8 @@ module Distro : sig
     | `OracleLinux
     | `Other of string
     | `RHEL
-    | `Ubuntu ] [@@deriving sexp]
+    | `Ubuntu ]
+  [@@deriving sexp]
 
   type macos = [ `Homebrew | `MacPorts | `None ] [@@deriving sexp]
 
@@ -79,15 +82,16 @@ module Distro : sig
     [ `Linux of linux
     | `MacOS of macos
     | `Other of string
-    | `Windows of windows ] [@@deriving sexp]
+    | `Windows of windows ]
+  [@@deriving sexp]
 
-  val linux_to_opam_string : linux -> string
+  val linux_to_string : linux -> string
 
-  val macos_to_opam_string : macos -> string
+  val macos_to_string : macos -> string
 
-  val windows_to_opam_string : windows -> string
+  val windows_to_string : windows -> string
 
-  val to_opam_string : t -> string
+  val to_string : t -> string
 
   val pp : Format.formatter -> t -> unit
 

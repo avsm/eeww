@@ -32,9 +32,10 @@ module Arch = struct
     | `Ppc64 of [ `Le | `Be ]
     | `Arm32 of [ `Armv5 | `Armv6 | `Earmv6 | `Armv7 | `Earmv7 ]
     | `Aarch64
-    | `Unknown of string ] [@@deriving sexp]
+    | `Unknown of string ]
+  [@@deriving sexp]
 
-  let to_opam_string (x : t) =
+  let to_string (x : t) =
     match x with
     | `X86_32 -> "x86_32"
     | `X86_64 -> "amd64"
@@ -45,9 +46,9 @@ module Arch = struct
     | `Aarch64 -> "arm64"
     | `Unknown v -> v
 
-  let pp fmt v = Format.pp_print_string fmt (to_opam_string v)
+  let pp fmt v = Format.pp_print_string fmt (to_string v)
 
-  let of_opam_string v : t =
+  let of_string v : t =
     match String.Ascii.lowercase v with
     | "x86" | "i386" | "i586" | "i686" -> `X86_32
     | "powerpc" | "ppc" | "ppcle" -> `Ppc32
@@ -63,7 +64,7 @@ module Arch = struct
 
   let v () =
     match Sys.os_type with
-    | "Unix" | "Cygwin" -> uname "-m" |> of_opam_string
+    | "Unix" | "Cygwin" -> uname "-m" |> of_string
     | "Win32" when Sys.word_size = 32 (* TODO WoW64? *) -> `X86_32
     | "Win32" -> `X86_64
     | v -> `Unknown v
@@ -78,9 +79,10 @@ module OS = struct
     | `FreeBSD
     | `OpenBSD
     | `DragonFly
-    | `Unknown of string ] [@@deriving sexp]
+    | `Unknown of string ]
+  [@@deriving sexp]
 
-  let to_opam_string (v : t) =
+  let to_string (v : t) =
     match v with
     | `Linux -> "linux"
     | `MacOS -> "macos"
@@ -91,7 +93,7 @@ module OS = struct
     | `DragonFly -> "dragonfly"
     | `Unknown v -> v
 
-  let of_opam_string v : t =
+  let of_string v : t =
     match String.Ascii.lowercase v with
     | "darwin" | "osx" -> `MacOS
     | "linux" -> `Linux
@@ -102,12 +104,12 @@ module OS = struct
     | "dragonfly" -> `DragonFly
     | v -> `Unknown v
 
-  let pp fmt v = Format.pp_print_string fmt (to_opam_string v)
+  let pp fmt v = Format.pp_print_string fmt (to_string v)
 
   let v () =
     match Sys.os_type with
-    | "Unix" -> uname "-s" |> of_opam_string
-    | v -> of_opam_string v
+    | "Unix" -> uname "-s" |> of_string
+    | v -> of_string v
 end
 
 module Distro = struct
@@ -125,7 +127,8 @@ module Distro = struct
     | `Ubuntu
     | `OpenSUSE
     | `Android
-    | `Other of string ] [@@deriving sexp]
+    | `Other of string ]
+  [@@deriving sexp]
 
   type macos = [ `Homebrew | `MacPorts | `None ] [@@deriving sexp]
 
@@ -135,9 +138,10 @@ module Distro = struct
     [ `Linux of linux
     | `MacOS of macos
     | `Windows of windows
-    | `Other of string ] [@@deriving sexp]
+    | `Other of string ]
+  [@@deriving sexp]
 
-  let linux_to_opam_string (x : linux) =
+  let linux_to_string (x : linux) =
     match x with
     | `Alpine -> "alpine"
     | `Android -> "android"
@@ -154,23 +158,23 @@ module Distro = struct
     | `RHEL -> "rhel"
     | `Ubuntu -> "ubuntu"
 
-  let macos_to_opam_string (x : macos) =
+  let macos_to_string (x : macos) =
     match x with
     | `Homebrew -> "homebrew"
     | `MacPorts -> "macports"
     | `None -> "macos"
 
-  let windows_to_opam_string (x : windows) =
+  let windows_to_string (x : windows) =
     match x with `Cygwin -> "cygwin" | `None -> "windows"
 
-  let to_opam_string (x : t) =
+  let to_string (x : t) =
     match x with
-    | `Linux v -> linux_to_opam_string v
-    | `MacOS v -> macos_to_opam_string v
+    | `Linux v -> linux_to_string v
+    | `MacOS v -> macos_to_string v
     | `Other v -> v
-    | `Windows v -> windows_to_opam_string v
+    | `Windows v -> windows_to_string v
 
-  let pp fmt v = Format.pp_print_string fmt (to_opam_string v)
+  let pp fmt v = Format.pp_print_string fmt (to_string v)
 
   let android_release =
     lazy
@@ -212,7 +216,7 @@ module Distro = struct
     | None -> (
         let cmd = Cmd.(v "lsb_release" % "-i" % "-s") in
         Bos.OS.Cmd.(run_out cmd |> to_string) |> function
-        | Ok v -> Ok (Some v)
+        | Ok v -> Ok (Some (String.Ascii.lowercase v))
         | Error _ -> (
             let issue =
               find_first_file
@@ -229,7 +233,7 @@ module Distro = struct
                 Bos.OS.File.read (Fpath.v f) >>= fun v ->
                 match Scanf.sscanf v " %s " (fun x -> x) with
                 | "" -> Ok None
-                | v -> Ok (Some v)
+                | v -> Ok (Some (String.Ascii.lowercase v))
                 | exception Not_found -> Ok None ) ) )
 
   let v () : (t, [ `Msg of string ]) result =
