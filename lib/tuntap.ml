@@ -76,13 +76,15 @@ module Struct_ifaddrs = struct
     let open Opt in
     match t.sa_family with
     | 0 ->
-      let addr = t.addr >|= fun v -> (V4.of_octets_exn v) in
-      let nmask = t.mask >|= fun v -> (V4.of_octets_exn v) in
-      Some (t.name, `V4 ((run addr), V4.Prefix.(of_netmask (run nmask) (run addr))))
+      let address = run (t.addr >|= fun v -> V4.of_octets_exn v)
+      and netmask = run (t.mask >|= fun v -> V4.of_octets_exn v)
+      in
+      Some (t.name, `V4 (V4.Prefix.of_netmask_exn ~netmask ~address))
     | 1 ->
-      let addr = t.addr >|= fun v -> (V6.of_octets_exn v) in
-      let nmask = t.mask >|= fun v -> (V6.of_octets_exn v) in
-      Some (t.name, `V6 ((run addr), V6.Prefix.(of_netmask (run nmask) (run addr))))
+      let address = run (t.addr >|= fun v -> V6.of_octets_exn v)
+      and netmask = run (t.mask >|= fun v -> V6.of_octets_exn v)
+      in
+      Some (t.name, `V6 (V6.Prefix.of_netmask_exn ~netmask ~address))
     | _ -> None
 end
 
