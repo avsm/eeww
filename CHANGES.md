@@ -1,3 +1,11 @@
+## v2.0.0 (2020-06-18)
+
+* Adapt to ipaddr 5.0.0 interface (#35 @hannesm)
+* Since Ipaddr.Prefix.t now contain both IP address and netmask, the functions
+  `getifaddrs{,_v4,_v6}`, `addrs_of_ifname`, and `{v4,v6}_of_ifname` no longer
+  return Ipaddr.{V4,V6}.t * Ipaddr.{V4,V6}.Prefix.t, but only the latter part
+  (#35 @hannesm)
+
 ## v1.8.1 (2019-07-14)
 
 * Use ipaddr.4.0.0 interface (#33 @avsm)
