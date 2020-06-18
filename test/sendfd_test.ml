@@ -2,13 +2,8 @@ open Printf
 open Lwt
 open Lwt_unix
 
-let mk_iovs () =
-  let length = 4096 in
-  let buffer = Bytes.unsafe_to_string (Bytes.create length) in
-  [io_vector ~buffer ~offset:0 ~length]
-
 let child socket =
-  let io_vectors = mk_iovs () in
+  let io_vectors = IO_vectors.create () in
   handle_unix_error (fun () -> recv_msg ~socket ~io_vectors) ()
   >>= fun (_, fds) ->
   printf "received %d fds\n" (List.length fds);
@@ -18,7 +13,7 @@ let parent socket =
   (* open tun *)
   let fd, name = Tuntap.opentun ~devname:"tap0" () in
   printf "parent open: %s\n" name;
-  let io_vectors = mk_iovs () in
+  let io_vectors = IO_vectors.create () in
   handle_unix_error (fun () -> send_msg ~socket ~io_vectors ~fds:[fd]) ()
   >>= fun _ ->
   printf "parent sent\n";
