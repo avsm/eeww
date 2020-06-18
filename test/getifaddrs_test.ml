@@ -4,10 +4,8 @@ open Ipaddr
 let () =
   let addrs = getifaddrs () in
   List.iter (function
-      | n, `V4 (a, p) ->
-        Printf.printf "%s -> %s/%d\n"
-          n (V4.to_string a) (V4.Prefix.bits p)
-      | n, `V6 (a, p) ->
-        Printf.printf "%s -> %s/%d\n"
-          n (V6.to_string a) (V6.Prefix.bits p)
+      | n, `V4 cidr ->
+        Printf.printf "%s -> %s\n" n (V4.Prefix.to_string cidr)
+      | n, `V6 cidr ->
+        Printf.printf "%s -> %s\n" n (V6.Prefix.to_string cidr)
     ) addrs

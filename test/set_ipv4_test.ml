@@ -11,10 +11,8 @@ let test_setipv4 ipv4 netmask _ctx =
   let iface_addr = List.hd @@ v4_of_ifname devname in
   assert_equal
     ~msg:(Printf.sprintf "%s %s" (V4.to_string ipv4) (V4.Prefix.to_string netmask))
-    ~printer:(function (a, m) ->
-        Printf.sprintf "%s %s" (V4.to_string a) (V4.Prefix.to_string m)
-      )
-    (ipv4, netmask) iface_addr;
+    ~printer:(fun cidr -> Printf.sprintf "%s" (V4.Prefix.to_string cidr))
+    netmask iface_addr;
   Unix.close fd
 
 let suite = "Test IPv4" >:::
