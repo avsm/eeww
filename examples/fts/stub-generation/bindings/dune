@@ -2,6 +2,4 @@
  (name fts_stubs)
  (wrapped false)
  (modules_without_implementation fts)
- (libraries
-  ctypes
-  ctypes-foreign))
+ (libraries ctypes ctypes-foreign))
