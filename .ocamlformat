@@ -1,1 +1,4 @@
-version=0.15
+version=0.15.0
+profile=ocamlformat
+parse-docstrings = true
+wrap-comments = true

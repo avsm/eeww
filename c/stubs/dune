@@ -1,0 +1,16 @@
+(env
+ (dev
+  (flags
+   (:standard -warn-error -A))))
+
+(library
+ (name kqueue_stubs)
+ (public_name kqueue.stubs)
+ (libraries kqueue_types ctypes.stubs))
+
+(rule
+ (targets kqueue_generated_types.ml)
+ (action
+  (with-stdout-to
+   %{targets}
+   (run ../stubgen/generate_kqueue_types_ocaml))))
