@@ -1,0 +1,9 @@
+(env
+ (dev
+  (flags
+   (:standard -warn-error -A))))
+
+(library
+ (name kqueue_types)
+ (public_name kqueue.types)
+ (libraries ctypes.stubs))
