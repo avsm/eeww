@@ -9,8 +9,23 @@
  (libraries kqueue_types ctypes.stubs))
 
 (rule
+ (targets generate_kqueue_types.c)
+ (action
+  (with-stdout-to
+   %{targets}
+   (run ../stubgen/generate_kqueue_types.exe))))
+
+(rule
+ (targets generate_kqueue_types_ocaml)
+ (deps
+  (:c_code ./generate_kqueue_types.c))
+ (action
+  (run %{ocaml-config:c_compiler} -I %{lib:ctypes:} -I
+    %{ocaml-config:standard_library} -o %{targets} %{c_code})))
+
+(rule
  (targets kqueue_generated_types.ml)
  (action
   (with-stdout-to
    %{targets}
-   (run ../stubgen/generate_kqueue_types_ocaml))))
+   (run ./generate_kqueue_types_ocaml))))

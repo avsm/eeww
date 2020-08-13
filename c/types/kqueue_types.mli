@@ -16,7 +16,7 @@ module Definition (T : Cstubs.Types.TYPE) : sig
 
     val t : t T.typ
 
-    val ident : (Unix.file_descr, t) T.field
+    val ident : (int, t) T.field
 
     val filter : (int, t) T.field
 

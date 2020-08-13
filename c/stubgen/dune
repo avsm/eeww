@@ -3,17 +3,12 @@
  (modules generate_kqueue_types)
  (libraries kqueue_types))
 
-(rule
- (targets generate_kqueue_types.c)
- (action
-  (with-stdout-to
-   %{targets}
-   (run ./generate_kqueue_types.exe))))
+(executable
+ (name generate_kqueue_stubs_c)
+ (modules generate_kqueue_stubs_c)
+ (libraries kqueue_stubs))
 
-(rule
- (targets generate_kqueue_types_ocaml)
- (deps
-  (:c_code ./generate_kqueue_types.c))
- (action
-  (run %{ocaml-config:c_compiler} -I %{lib:ctypes:} -I
-    %{ocaml-config:standard_library} -o %{targets} %{c_code})))
+(executable
+ (name generate_kqueue_stubs_ml)
+ (modules generate_kqueue_stubs_ml)
+ (libraries kqueue_stubs))

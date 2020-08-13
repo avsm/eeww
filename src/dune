@@ -1,0 +1,22 @@
+(library
+ (name kqueue)
+ (flags :standard -w -9-27-32-34)
+ (foreign_stubs
+  (language c)
+  (flags -Werror -Wall -pedantic -Wunused)
+  (names kqueue_generated_stubs))
+ (libraries kqueue_stubs ctypes ctypes.stubs))
+
+(rule
+ (targets kqueue_generated_stubs.ml)
+ (action
+  (with-stdout-to
+   %{targets}
+   (run ../c/stubgen/generate_kqueue_stubs_ml.exe kqueue_stubs))))
+
+(rule
+ (targets kqueue_generated_stubs.c)
+ (action
+  (with-stdout-to
+   %{targets}
+   (run ../c/stubgen/generate_kqueue_stubs_c.exe kqueue_stubs))))

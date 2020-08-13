@@ -1,10 +1,3 @@
-let unsafe_fd_to_int : Unix.file_descr -> int = Obj.magic
-
-let unsafe_int_to_fd : int -> Unix.file_descr = Obj.magic
-
-let file_descr =
-  Ctypes.view ~read:unsafe_int_to_fd ~write:unsafe_fd_to_int Ctypes.int
-
 module Definition (T : Cstubs.Types.TYPE) = struct
   open Ctypes
   open T
@@ -26,7 +19,7 @@ module Definition (T : Cstubs.Types.TYPE) = struct
 
     let t : t typ = structure "kevent"
 
-    let ident = field t "ident" (lift_typ file_descr)
+    let ident = field t "ident" int
 
     let filter = field t "filter" short
 
