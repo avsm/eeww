@@ -6,7 +6,29 @@
   (flags -Werror -Wall -pedantic -Wunused)
   (names kqueue_generated_stubs))
  (preprocess (pps ppx_sexp_conv))
- (libraries kqueue_stubs ctypes ctypes.stubs sexplib0))
+ (libraries kqueue_stubs kqueue_constants ctypes ctypes.stubs sexplib0))
+
+(rule
+ (targets generate_kqueue_constants.c)
+ (action
+  (with-stdout-to
+   %{targets}
+   (run ../c/stubgen/generate_kqueue_constants.exe))))
+
+(rule
+ (targets generate_kqueue_constants_ocaml)
+ (deps
+  (:c_code ./generate_kqueue_constants.c))
+ (action
+  (run %{ocaml-config:c_compiler} -I %{lib:ctypes:} -I
+    %{ocaml-config:standard_library} -o %{targets} %{c_code})))
+
+(rule
+ (targets kqueue_generated_constants.ml)
+ (action
+  (with-stdout-to
+   %{targets}
+   (run ./generate_kqueue_constants_ocaml))))
 
 (rule
  (targets kqueue_generated_stubs.ml)

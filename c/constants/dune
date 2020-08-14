@@ -4,6 +4,6 @@
    (:standard -warn-error -A))))
 
 (library
- (name kqueue_types)
- (public_name kqueue.types)
+ (name kqueue_constants)
+ (public_name kqueue.constants)
  (libraries ctypes.stubs))
