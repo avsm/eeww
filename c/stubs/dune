@@ -7,4 +7,3 @@
  (name kqueue_stubs)
  (public_name kqueue.stubs)
  (libraries ctypes.stubs))
-
