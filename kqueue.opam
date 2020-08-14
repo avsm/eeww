@@ -9,6 +9,8 @@ depends: [
   "dune" {>= "2.6"}
   "ocaml" {>= "4.08"}
   "ctypes"
+  "sexplib0"
+  "ppx_sexp_conv"
 ]
 build: [
   ["dune" "subst"] {pinned}

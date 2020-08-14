@@ -18,4 +18,6 @@
  (depends
   (ocaml
    (>= 4.08))
-  ctypes))
+  ctypes
+  sexplib0
+  ppx_sexp_conv))
