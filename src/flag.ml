@@ -12,7 +12,9 @@ type t =
   | Clear
   | EOF
   | Error
-[@@deriving sexp]
+
+let all =
+  [Add; Enable; Disable; Dispatch; Delete; Receipt; Oneshot; Clear; EOF; Error]
 
 let to_uint = function
   | Add ->
@@ -35,3 +37,15 @@ let to_uint = function
       C.ev_eof
   | Error ->
       C.ev_error
+
+let flags_to_uint flags =
+  List.fold_left
+    (fun acc flag -> Unsigned.UInt16.logor acc (to_uint flag))
+    Unsigned.UInt16.zero flags
+
+let flags_of_uint flags =
+  List.filter
+    (fun flag ->
+      let uint = to_uint flag in
+      Unsigned.UInt16.logand uint flags = uint)
+    all

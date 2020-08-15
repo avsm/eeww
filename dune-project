@@ -19,5 +19,4 @@
   (ocaml
    (>= 4.08))
   ctypes
-  sexplib0
-  ppx_sexp_conv))
+  ))

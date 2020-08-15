@@ -1,7 +1,6 @@
 open Import
-open Sexplib0.Sexp_conv
 
-type t = {sec: int64; nsec: int64} [@@deriving sexp]
+type t = {sec: int64; nsec: int64}
 
 let sec t = t.sec
 

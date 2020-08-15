@@ -1,5 +1,5 @@
 module Timespec : sig
-  type t [@@deriving sexp]
+  type t
 
   val sec : t -> int64
 
@@ -20,7 +20,8 @@ module Flag : sig
     | Clear
     | EOF
     | Error
-  [@@deriving sexp]
+
+  val all : t list
 end
 
 type t

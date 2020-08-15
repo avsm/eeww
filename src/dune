@@ -5,9 +5,7 @@
   (language c)
   (flags -Werror -Wall -pedantic -Wunused)
   (names kqueue_generated_stubs))
- (preprocess
-  (pps ppx_sexp_conv))
- (libraries kqueue_stubs kqueue_constants ctypes ctypes.stubs sexplib0 unix))
+ (libraries kqueue_stubs kqueue_constants ctypes ctypes.stubs unix))
 
 (rule
  (targets generate_kqueue_constants.c)
