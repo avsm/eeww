@@ -22,6 +22,10 @@ module Flag : sig
     | Error
 
   val all : t list
+
+  val flags_to_uint : t list -> Unsigned.UInt16.t
+
+  val flags_of_uint : Unsigned.UInt16.t -> t list
 end
 
 type t

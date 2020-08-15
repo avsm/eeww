@@ -19,4 +19,6 @@
   (ocaml
    (>= 4.08))
   ctypes
-  ))
+  (base_quickcheck :with-test)
+  (ppx_base :with-test)
+  (ppx_assert :with-test)))
