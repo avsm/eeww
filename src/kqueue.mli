@@ -1,5 +1,7 @@
+module Bindings : module type of Kqueue_stubs.Definition (Kqueue_generated_stubs)
+
 module Timespec : sig
-  type t
+  type t = Bindings.Timespec.t
 
   val sec : t -> int64
 
@@ -8,51 +10,38 @@ module Timespec : sig
   val make : sec:int64 -> nsec:int64 -> t
 end
 
-module Flag : sig
-  type t =
-    | Add
-    | Enable
-    | Disable
-    | Dispatch
-    | Delete
-    | Receipt
-    | Oneshot
-    | Clear
-    | EOF
-    | Error
-
-  val all : t list
-
-  val flags_to_uint : t list -> Unsigned.UInt16.t
-
-  val flags_of_uint : Unsigned.UInt16.t -> t list
-end
-
 module Kevent : sig
-  type t
+  type t = Bindings.Kevent.t
 
   val make :
-       ident:int
+       ident:Ctypes.Uintptr.t
     -> filter:int
-    -> flags:Flag.t list
-    -> fflags:int
-    -> data:int
-    -> udata:int
+    -> flags:Unsigned.uint16
+    -> fflags:Unsigned.uint32
+    -> data:Ctypes.Intptr.t
+    -> udata:Ctypes.Uintptr.t
     -> t
 
-  val ident : t -> int
+  val ident : t -> Ctypes.Uintptr.t
 
   val filter : t -> int
 
-  val flags : t -> Flag.t list
+  val flags : t -> Unsigned.uint16
 
-  val fflags : t -> int
+  val fflags : t -> Unsigned.uint32
 
-  val data : t -> int
+  val data : t -> Ctypes.Intptr.t
 
-  val udata : t -> int
+  val udata : t -> Ctypes.Uintptr.t
 end
 
 type t
 
 val kqueue : unit -> t
+
+val kevent :
+     ?timeout:Timespec.t
+  -> t
+  -> Kevent.t Ctypes_static.carray
+  -> Kevent.t Ctypes_static.carray
+  -> int

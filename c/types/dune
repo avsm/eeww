@@ -1,0 +1,16 @@
+(env
+ (dev
+  (flags
+   (:standard -warn-error -A))))
+
+(library
+ (name kqueue_types)
+ (public_name kqueue.types)
+ (libraries ctypes.stubs kqueue.constants))
+
+(rule
+ (targets kqueue_generated_constants.ml)
+ (action
+  (with-stdout-to
+   %{targets}
+   (run ../stubgen/generate_kqueue_constants_ocaml))))

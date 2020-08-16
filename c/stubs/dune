@@ -6,4 +6,11 @@
 (library
  (name kqueue_stubs)
  (public_name kqueue.stubs)
- (libraries ctypes.stubs))
+ (libraries ctypes.stubs kqueue.types))
+
+(rule
+ (targets kqueue_generated_types.ml)
+ (action
+  (with-stdout-to
+   %{targets}
+   (run ../stubgen/generate_kqueue_types_ocaml))))

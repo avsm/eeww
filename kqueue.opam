@@ -9,9 +9,6 @@ depends: [
   "dune" {>= "2.6"}
   "ocaml" {>= "4.08"}
   "ctypes"
-  "base_quickcheck" {with-test}
-  "ppx_base" {with-test}
-  "ppx_assert" {with-test}
 ]
 build: [
   ["dune" "subst"] {pinned}

@@ -1,5 +1,4 @@
 module Definition (T : Cstubs.Types.TYPE) = struct
-  open Ctypes
   open T
 
   (* flags *)
@@ -40,8 +39,33 @@ module Definition (T : Cstubs.Types.TYPE) = struct
 
   let evfilt_user = constant "EVFILT_USER" short
 
-  (* let evfilt_machport = constant "EVFILT_MACHPORT" short *)
   let evfilt_fs = constant "EVFILT_FS" short
 
-  (* let evfilt_vm = constant "EVFILT_VM" short *)
+  let note_attrib = constant "NOTE_ATTRIB" uint32_t
+
+  let note_delete = constant "NOTE_DELETE" uint32_t
+
+  let note_extend = constant "NOTE_EXTEND" uint32_t
+
+  let note_link = constant "NOTE_LINK" uint32_t
+
+  let note_rename = constant "NOTE_RENAME" uint32_t
+
+  let note_revoke = constant "NOTE_REVOKE" uint32_t
+
+  let note_write = constant "NOTE_WRITE" uint32_t
+
+  let note_lowat = constant "NOTE_LOWAT" uint32_t
+
+  let note_exit = constant "NOTE_EXIT" uint32_t
+
+  let note_fork = constant "NOTE_FORK" uint32_t
+
+  let note_exec = constant "NOTE_EXEC" uint32_t
+
+  let note_seconds = constant "NOTE_SECONDS" uint32_t
+
+  let note_useconds = constant "NOTE_USECONDS" uint32_t
+
+  let note_nseconds = constant "NOTE_NSECONDS" uint32_t
 end

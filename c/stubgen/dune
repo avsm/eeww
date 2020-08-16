@@ -1,14 +1,49 @@
 (executable
  (name generate_kqueue_constants)
  (modules generate_kqueue_constants)
- (libraries kqueue_constants))
+ (libraries kqueue.constants))
+
+(rule
+ (targets generate_kqueue_constants.c)
+ (action
+  (with-stdout-to
+   %{targets}
+   (run ./generate_kqueue_constants.exe))))
+
+(rule
+ (targets generate_kqueue_constants_ocaml)
+ (deps
+  (:c_code ./generate_kqueue_constants.c))
+ (action
+  (run %{ocaml-config:c_compiler} -I %{lib:ctypes:} -I
+    %{ocaml-config:standard_library} -o %{targets} %{c_code})))
+
+(executable
+ (name generate_kqueue_types)
+ (modules generate_kqueue_types)
+ (libraries kqueue.types))
+
+(rule
+ (targets generate_kqueue_types.c)
+ (action
+  (with-stdout-to
+   %{targets}
+   (run ./generate_kqueue_types.exe))))
+
+(rule
+ (targets generate_kqueue_types_ocaml)
+ (deps
+  (:c_code ./generate_kqueue_types.c))
+ (action
+  (run %{ocaml-config:c_compiler} -I %{lib:ctypes:} -I
+    %{ocaml-config:standard_library} -o %{targets} %{c_code})))
 
 (executable
  (name generate_kqueue_stubs_c)
  (modules generate_kqueue_stubs_c)
- (libraries kqueue_stubs))
+ (libraries kqueue.stubs))
 
 (executable
  (name generate_kqueue_stubs_ml)
  (modules generate_kqueue_stubs_ml)
- (libraries kqueue_stubs))
+ (libraries kqueue.stubs))
