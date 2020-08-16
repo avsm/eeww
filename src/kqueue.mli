@@ -42,6 +42,6 @@ val kqueue : unit -> t
 val kevent :
      ?timeout:Timespec.t
   -> t
-  -> Kevent.t Ctypes_static.carray
-  -> Kevent.t Ctypes_static.carray
+  -> changelist:Kevent.t Ctypes_static.carray
+  -> eventlist:Kevent.t Ctypes_static.carray
   -> int

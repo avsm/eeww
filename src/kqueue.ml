@@ -60,7 +60,7 @@ type t = int
 
 let kqueue () = Bindings.kqueue ()
 
-let kevent ?timeout q changelist eventlist =
+let kevent ?timeout q ~changelist ~eventlist =
   let open Ctypes in
   let timespec =
     match timeout with

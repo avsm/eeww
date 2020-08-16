@@ -1,0 +1,3 @@
+(executables
+ (names timer)
+ (libraries kqueue))
