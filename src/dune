@@ -53,8 +53,8 @@ let modules_in_4_02 =
 let missing_modules =
   if version < (4, 07) then
     ["Stdlib"]
-  else if version < (4, 10) then
-    (* For OCaml 4.07-4.09 incl. this solves the problem of being unable to
+  else if version < (4, 11) then
+    (* For OCaml 4.07-4.10 incl. this solves the problem of being unable to
        generate empty .cmxa files on MSVC by duplicating the Pervasives module
        (and updating its deprecation warning not to refer to this library! *)
     ["Pervasives"]
