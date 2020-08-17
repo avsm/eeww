@@ -1,5 +1,6 @@
 (library
  (name kqueue)
+ (public_name kqueue)
  (flags :standard -w -9-27-32-34)
  (foreign_stubs
   (language c)
