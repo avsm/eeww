@@ -58,6 +58,8 @@ end
 
 type t = int
 
+let to_int t = t
+
 let kqueue () = Bindings.kqueue ()
 
 let kevent ?timeout q ~changelist ~eventlist =

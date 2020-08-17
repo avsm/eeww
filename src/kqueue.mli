@@ -37,6 +37,8 @@ end
 
 type t
 
+val to_int : t -> int
+
 val kqueue : unit -> t
 
 val kevent :
