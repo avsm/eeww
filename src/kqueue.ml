@@ -1,5 +1,70 @@
 module Bindings = Kqueue_stubs.Definition (Kqueue_generated_stubs)
 
+type error =
+  [ `ENOMEM
+  | `EMFILE
+  | `ENFILE
+  | `EACCES
+  | `EFAULT
+  | `EBADF
+  | `EINTR
+  | `EINVAL
+  | `ENOENT
+  | `ESRCH
+  | `UNKNOWN of int ]
+
+let to_unix_error = function
+  | `ENOMEM ->
+      Unix.ENOMEM
+  | `EMFILE ->
+      Unix.EMFILE
+  | `ENFILE ->
+      Unix.ENFILE
+  | `EACCES ->
+      Unix.EACCES
+  | `EFAULT ->
+      Unix.EFAULT
+  | `EBADF ->
+      Unix.EBADF
+  | `EINTR ->
+      Unix.EINTR
+  | `EINVAL ->
+      Unix.EINVAL
+  | `ENOENT ->
+      Unix.ENOENT
+  | `ESRCH ->
+      Unix.ESRCH
+  | `UNKNOWN i ->
+      Unix.EUNKNOWNERR i
+
+let error_message e = Unix.error_message (to_unix_error e)
+
+let of_c_error e =
+  let open Bindings in
+  match e with
+  | e when e = enomem ->
+      `ENOMEM
+  | e when e = emfile ->
+      `EMFILE
+  | e when e = enfile ->
+      `ENFILE
+  | e when e = eacces ->
+      `EACCES
+  | e when e = efault ->
+      `EFAULT
+  | e when e = ebadf ->
+      `EBADF
+  | e when e = eintr ->
+      `EINTR
+  | e when e = einval ->
+      `EINVAL
+  | e when e = enoent ->
+      `ENOENT
+  | e when e = esrch ->
+      `ESRCH
+  | e ->
+      `UNKNOWN e
+
 let setf = Ctypes.setf
 
 let getf = Ctypes.getf
@@ -58,9 +123,16 @@ end
 
 type t = int
 
-let to_int t = t
+let kqueue () =
+  let q, err = Bindings.kqueue () in
+  if q = -1 then Error (of_c_error (Signed.SInt.to_int err)) else Ok q
 
-let kqueue () = Bindings.kqueue ()
+let kqueue_exn () =
+  match kqueue () with
+  | Ok q ->
+      q
+  | Error e ->
+      raise (Unix.Unix_error (to_unix_error e, "kqueue", ""))
 
 let kevent ?timeout q ~changelist ~eventlist =
   let open Ctypes in
@@ -71,5 +143,15 @@ let kevent ?timeout q ~changelist ~eventlist =
     | None ->
         coerce (ptr void) (ptr Bindings.Timespec.t) null
   in
-  Bindings.kevent q (CArray.start changelist) (CArray.length changelist)
-    (CArray.start eventlist) (CArray.length eventlist) timespec
+  let res, err =
+    Bindings.kevent q (CArray.start changelist) (CArray.length changelist)
+      (CArray.start eventlist) (CArray.length eventlist) timespec
+  in
+  if res = -1 then Error (of_c_error (Signed.SInt.to_int err)) else Ok res
+
+let kevent_exn ?timeout q ~changelist ~eventlist =
+  match kevent ?timeout q ~changelist ~eventlist with
+  | Ok res ->
+      res
+  | Error e ->
+      raise (Unix.Unix_error (to_unix_error e, "kevent", ""))

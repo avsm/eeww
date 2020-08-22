@@ -1,6 +1,27 @@
 module Definition (T : Cstubs.Types.TYPE) = struct
   open T
 
+  (* errors *)
+  let enomem = constant "ENOMEM" int
+
+  let emfile = constant "EMFILE" int
+
+  let enfile = constant "ENFILE" int
+
+  let eacces = constant "EACCES" int
+
+  let efault = constant "EFAULT" int
+
+  let ebadf = constant "EBADF" int
+
+  let eintr = constant "EINTR" int
+
+  let einval = constant "EINVAL" int
+
+  let enoent = constant "ENOENT" int
+
+  let esrch = constant "ESRCH" int
+
   (* flags *)
   let ev_add = constant "EV_ADD" uint16_t
 

@@ -31,11 +31,10 @@ let run q =
        have any events to process. We can use the optional ?timeout param to
        have kevent return after the timeout period even if there are no events
        to report. *)
-    let n = kevent q ~changelist:(CArray.make Bindings.Kevent.t 0) ~eventlist in
+    let n =
+      kevent_exn q ~changelist:(CArray.make Bindings.Kevent.t 0) ~eventlist
+    in
     match n with
-    | -1 ->
-        prerr_endline "Error during kevent" ;
-        exit 1
     | 0 ->
         print_endline "Timeout reached" ;
         aux ()
@@ -55,17 +54,15 @@ let make_ev ident time =
     ~udata:Uintptr.zero
 
 let () =
-  let q = kqueue () in
+  let q = kqueue_exn () in
   let events = [make_ev 2 1; make_ev 3 5] in
   (* initilize 2 timer events and attach them to kqueue. changelist is a list of
      events to register with kqueue. eventlist is the array that will be filled
      by kqueue with events that are read from kqueue. Setting eventlist to 0
      ensures that kevent returns immediately without waiting for any output
      events/timeout. *)
-  let res =
-    kevent q
-      ~changelist:(CArray.of_list Bindings.Kevent.t events)
-      ~eventlist:(CArray.make Bindings.Kevent.t 0)
-  in
-  assert (res = 0) ;
+  ignore
+    (kevent_exn q
+       ~changelist:(CArray.of_list Bindings.Kevent.t events)
+       ~eventlist:(CArray.make Bindings.Kevent.t 0)) ;
   run q
