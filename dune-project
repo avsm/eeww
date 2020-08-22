@@ -11,10 +11,14 @@
 
 (maintainers "Anurag Soni <anurag@sonianurag.com>")
 
+(documentation https://anuragsoni.github.io/kqueue-ml)
+
 (license BSD-3-clause)
 
 (package
  (name kqueue)
+ (synopsis "OCaml bindings for kqueue event notification interface")
+ (tags (kqueue))
  (depends
   (ocaml
    (>= 4.08))
