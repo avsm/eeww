@@ -5,7 +5,7 @@
 (generate_opam_files true)
 
 (source
- (github anuragsoni/kqueue))
+ (github anuragsoni/kqueue-ml))
 
 (authors "Anurag Soni")
 

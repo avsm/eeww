@@ -5,9 +5,9 @@ maintainer: ["Anurag Soni <anurag@sonianurag.com>"]
 authors: ["Anurag Soni"]
 license: "BSD-3-clause"
 tags: ["kqueue"]
-homepage: "https://github.com/anuragsoni/kqueue"
+homepage: "https://github.com/anuragsoni/kqueue-ml"
 doc: "https://anuragsoni.github.io/kqueue-ml"
-bug-reports: "https://github.com/anuragsoni/kqueue/issues"
+bug-reports: "https://github.com/anuragsoni/kqueue-ml/issues"
 depends: [
   "dune" {>= "2.6"}
   "ocaml" {>= "4.08"}
@@ -27,5 +27,5 @@ build: [
     "@doc" {with-doc}
   ]
 ]
-dev-repo: "git+https://github.com/anuragsoni/kqueue.git"
+dev-repo: "git+https://github.com/anuragsoni/kqueue-ml.git"
 available: [os = "macos" | os = "freebsd" ]
