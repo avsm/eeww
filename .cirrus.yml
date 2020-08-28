@@ -1,0 +1,16 @@
+freebsd_instance:
+  image_family: freebsd-12-1
+
+freebsd_task:
+  env:
+    matrix:
+      - OCAML_VERSION: 4.09.0
+      - OCAML_VERSION: 4.11.0
+  pkg_install_script: pkg install -y ocaml-opam gmake pkgconf
+  ocaml_script: opam init -a --comp=$OCAML_VERSION
+  dependencies_script: |
+    export OPAMYES=true
+    opam exec -- opam pin add kqueue.dev -n .
+    opam exec -- opam install -t . --deps-only
+  build_script: opam exec -- dune build
+  test_script: opam exec -- dune exec -- ./example/oneshot_timer.exe
