@@ -83,9 +83,9 @@ type label = string
 type generic_group_id = string
 type group_id = Lazy_group_id.t
 
-(** Variable names. These are used to improve readability of the printed grammars.
-    Internally, we use numerical indices to represent variables; see [Implicit_var]
-    below. *)
+(** Variable and type constructor names. These are used to improve readability of the
+    printed grammars. Internally, we use numerical indices to represent variables; see
+    [Tyvar_index] and [Tycon_index] below. *)
 type var_name = string
 
 type type_name = string
@@ -93,34 +93,35 @@ type type_name = string
 (** A grammatical type which classifies atoms. *)
 module Atom = struct
   type t =
-    | String  (** Any atom. *)
-    | Bool  (** One of [true], [false], [True], or [False]. *)
-    | Char  (** A single-character atom. *)
-    | Float  (** An atom which parses as a {!float}. *)
-    | Int  (** An atom which parses as an integer, such as {!int} or {!int64}. *)
-    | This of { ignore_capitalization : bool; string : string }
-    (** Exactly that string, possibly modulo case in the first character. *)
+    | String (** Any atom. *)
+    | Bool (** One of [true], [false], [True], or [False]. *)
+    | Char (** A single-character atom. *)
+    | Float (** An atom which parses as a {!float}. *)
+    | Int (** An atom which parses as an integer, such as {!int} or {!int64}. *)
+    | This of
+        { ignore_capitalization : bool
+        ; string : string
+        } (** Exactly that string, possibly modulo case in the first character. *)
 end
 
 (** A grammatical type which classifies sexps. Corresponds to a non-terminal in a
     context-free grammar. *)
 type 't type_ =
-  | Any  (** Any list or atom. *)
-  | Apply of 't type_ * 't type_ list  (** Assign types to (explicit) type variables. *)
-  | Atom of Atom.t  (** An atom, in particular one of the given {!Atom.t}. *)
-  | Explicit_bind of var_name list * 't type_
-  (** In [Bind ([ "a"; "b" ], Explicit_var 0)], [Explicit_var 0] is ["a"]. One must bind
-      all available type variables: free variables are not permitted. *)
-  | Explicit_var of int
+  | Any (** Any list or atom. *)
+  | Tyvar_instantiate of 't type_ * 't type_ list (** Assign types to type variables. *)
+  | Atom of Atom.t (** An atom, in particular one of the given {!Atom.t}. *)
+  | Tyvar_parameterize of var_name list * 't type_
+  (** In [Tyvar_parameterize ([ "a"; "b" ], Tyvar_index 0)], [Tyvar_index 0] is ["a"]. One
+      must bind all available type variables: free variables are not permitted. *)
+  | Tyvar_index of int
   (** Indices for type variables, e.g. ['a], introduced by polymorphic definitions.
 
       Unlike de Bruijn indices, these are always bound by the nearest ancestral
-      [Explicit_bind]. *)
-  | Grammar of 't  (** Embeds other types in a grammar. *)
-  | Implicit_var of int
+      [Tyvar_parameterize]. *)
+  | Grammar of 't (** Embeds other types in a grammar. *)
+  | Tycon_index of int
   (** Indices for type constructors, e.g. [int], in scope. Unlike de Bruijn indices, these
-      are always bound by the [implicit_vars] of the nearest enclosing [generic_groups].
-  *)
+      are always bound by the [tycon_names] of the nearest enclosing [generic_groups]. *)
   | List of 't sequence_type
   (** A list of a certain form. Depending on the {!sequence_type}, this might
       correspond to an OCaml tuple, list, or embedded record. *)
@@ -139,7 +140,7 @@ type 't type_ =
 
       One useful special case is [Union []], the empty type. This is occasionally
       generated for things such as abstract types. *)
-  | Variant of 't variant_type  (** A sexp which matches the given {!variant_type}. *)
+  | Variant of 't variant_type (** A sexp which matches the given {!variant_type}. *)
 
 (** A grammatical type which classifies sequences of sexps. Here, a "sequence" may mean
     either a list on its own or, say, the sexps following a constructor in a list
@@ -153,9 +154,9 @@ and 't sequence_type = 't component list
 
 (** Part of a sequence of sexps. *)
 and 't component =
-  | One of 't type_  (** Exactly one sexp of the given type. *)
-  | Optional of 't type_  (** One sexp of the given type, or nothing at all. *)
-  | Many of 't type_  (** Any number of sexps, each of the given type. *)
+  | One of 't type_ (** Exactly one sexp of the given type. *)
+  | Optional of 't type_ (** One sexp of the given type, or nothing at all. *)
+  | Many of 't type_ (** Any number of sexps, each of the given type. *)
   | Fields of 't record_type
   (** A succession of lists, collectively defining a record of the given {!record_type}.
       The fields may appear in any order. The number of lists is not necessarily fixed,
@@ -182,13 +183,13 @@ and 't variant_type =
 (** A collection of field definitions specifying a record type. Consists only of an
     association list from labels to fields. *)
 and 't record_type =
-  { allow_extra_fields: bool
-  ; fields: (label * 't field) list
+  { allow_extra_fields : bool
+  ; fields : (label * 't field) list
   }
 
 (** A field in a record. *)
 and 't field =
-  { optional : bool  (** If true, the field is optional. *)
+  { optional : bool (** If true, the field is optional. *)
   ; args : 't sequence_type
   (** A sequence type which the arguments to the field must match. An empty sequence is
       permissible but would not be generated for any OCaml type. *)
@@ -207,11 +208,11 @@ and group =
       For a globally unique identifier, use [gid] instead.
 
       See [ppx/ppx_sexp_conv/test/expect/test_origin.ml] for examples. *)
-  ; apply_implicit : t list
+  ; instantiate_tycons : t list
   }
 
 and generic_group =
-  { implicit_vars : var_name list
+  { tycon_names : var_name list
   ; ggid : generic_group_id
   ; types : (type_name * t type_) list
   }

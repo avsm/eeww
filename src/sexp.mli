@@ -1,13 +1,14 @@
 (** Type of S-expressions *)
 
-type t = Atom of string | List of t list
+type t =
+  | Atom of string
+  | List of t list
 
 (*_ We don't use [@@deriving sexp] as this would generated references to [Sexplib],
   creating a circular dependency *)
 val t_of_sexp : t -> t
 val sexp_of_t : t -> t
 val t_sexp_grammar : Raw_grammar.t
-
 val equal : t -> t -> bool
 val compare : t -> t -> int
 
@@ -76,7 +77,7 @@ val pp : Format.formatter -> t -> unit
     string in human readable form with indentation level [indent].
 
     @param indent default = [!default_indent] *)
-val to_string_hum : ?indent : int -> t -> string
+val to_string_hum : ?indent:int -> t -> string
 
 (** [to_string_mach sexp] converts S-expression [sexp] to a string in
     machine readable (i.e. most compact) form. *)
@@ -88,12 +89,12 @@ val to_string : t -> string
 (** {1 Styles} *)
 
 val of_float_style : [ `Underscores | `No_underscores ] ref
-val of_int_style   : [ `Underscores | `No_underscores ] ref
+val of_int_style : [ `Underscores | `No_underscores ] ref
+
 (*_ See the Jane Street Style Guide for an explanation of [Private] submodules:
 
   https://opensource.janestreet.com/standards/#private-submodules *)
 module Private : sig
-
   (*_ exported for downstream tools *)
   module Raw_grammar : sig
     include module type of struct
@@ -127,21 +128,19 @@ module Private : sig
   (*_ Exported for sexplib *)
 
   val size : t -> int * int
-
   val buffer : unit -> Buffer.t
+  val to_buffer : buf:Buffer.t -> t -> unit
+  val to_buffer_hum : buf:Buffer.t -> ?indent:int -> t -> unit
+  val to_buffer_mach : buf:Buffer.t -> t -> unit
 
-  val to_buffer      : buf:Buffer.t ->                t -> unit
-  val to_buffer_hum  : buf:Buffer.t -> ?indent:int -> t -> unit
-  val to_buffer_mach : buf:Buffer.t ->                t -> unit
   val to_buffer_gen
-    :  buf : 'buffer
-    -> add_char : ('buffer -> char -> unit)
-    -> add_string : ('buffer -> string -> unit)
+    :  buf:'buffer
+    -> add_char:('buffer -> char -> unit)
+    -> add_string:('buffer -> string -> unit)
     -> t
     -> unit
 
   val mach_maybe_esc_str : string -> string
   val must_escape : string -> bool
   val esc_str : string -> string
-
 end
