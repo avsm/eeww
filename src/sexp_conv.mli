@@ -255,6 +255,16 @@ val fun_of_sexp : Sexp.t -> 'a
     [Printexc] will be used to generate an atomic S-expression. *)
 val sexp_of_exn : exn -> Sexp.t
 
+(** Converts an exception to a string via sexp, falling back to [Printexc.to_string] if no
+    sexp conversion is registered for this exception.
+
+    This is different from [Printexc.to_string] in that it additionally uses the sexp
+    converters registered with [~printexc:false]. Another difference is that the behavior
+    of [Printexc] can be overridden with [Printexc.register], but here we always try sexp
+    conversion first.
+*)
+val printexc_prefer_sexp : exn -> string
+
 (** [sexp_of_exn_opt exc] converts exception [exc] to [Some sexp].
     If no suitable converter is found, [None] is returned instead. *)
 val sexp_of_exn_opt : exn -> Sexp.t option
@@ -272,7 +282,12 @@ module Exn_converter : sig
       case for some standard ones e.g. [Sys_error].
 
       @param finalise default = [true] *)
-  val add : ?finalise:bool -> extension_constructor -> (exn -> Sexp.t) -> unit
+  val add
+    :  ?printexc:bool
+    -> ?finalise:bool
+    -> extension_constructor
+    -> (exn -> Sexp.t)
+    -> unit
 
   module For_unit_tests_only : sig
     val size : unit -> int

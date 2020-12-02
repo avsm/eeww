@@ -107,8 +107,16 @@ module Exn_converter = struct
     end
   end
 
+  module Registration = struct
+    type t =
+      { sexp_of_exn : exn -> Sexp.t
+      ; (* If [printexc = true] then this sexp converter is used for Printexc.to_string *)
+        printexc : bool
+      }
+  end
+
   let exn_id_map
-    : (Obj.Extension_constructor.t, exn -> Sexp.t) Ephemeron.K1.t Exn_ids.t ref
+    : (Obj.Extension_constructor.t, Registration.t) Ephemeron.K1.t Exn_ids.t ref
     =
     ref Exn_ids.empty
   ;;
@@ -127,12 +135,12 @@ module Exn_converter = struct
 
   (* Ephemerons are used so that [sexp_of_exn] closure don't keep the
      extension_constructor live. *)
-  let add ?(finalise = true) extension_constructor sexp_of_exn =
+  let add ?(printexc = true) ?(finalise = true) extension_constructor sexp_of_exn =
     let id = Obj.Extension_constructor.id extension_constructor in
     let rec loop () =
       let old_exn_id_map = !exn_id_map in
       let ephe = Ephemeron.K1.create () in
-      Ephemeron.K1.set_data ephe sexp_of_exn;
+      Ephemeron.K1.set_data ephe ({ sexp_of_exn; printexc } : Registration.t);
       Ephemeron.K1.set_key ephe extension_constructor;
       let new_exn_id_map = Exn_ids.add old_exn_id_map ~key:id ~data:ephe in
       (* This trick avoids mutexes and should be fairly efficient *)
@@ -154,14 +162,17 @@ module Exn_converter = struct
     add ?finalise (Obj.Extension_constructor.of_val exn) sexp_of_exn
   ;;
 
-  let find_auto exn =
+  let find_auto ~for_printexc exn =
     let id = Obj.Extension_constructor.id (Obj.Extension_constructor.of_val exn) in
     match Exn_ids.find id !exn_id_map with
     | exception Not_found -> None
     | ephe ->
       (match Ephemeron.K1.get_data ephe with
        | None -> None
-       | Some sexp_of_exn -> Some (sexp_of_exn exn))
+       | Some { sexp_of_exn; printexc } ->
+         (match for_printexc, printexc with
+          | false, _ | _, true -> Some (sexp_of_exn exn)
+          | true, false -> None))
   ;;
 
   module For_unit_tests_only = struct
@@ -174,7 +185,8 @@ module Exn_converter = struct
   end
 end
 
-let sexp_of_exn_opt exn = Exn_converter.find_auto exn
+let sexp_of_exn_opt_for_printexc exn = Exn_converter.find_auto ~for_printexc:true exn
+let sexp_of_exn_opt exn = Exn_converter.find_auto ~for_printexc:false exn
 
 let sexp_of_exn exn =
   match sexp_of_exn_opt exn with
@@ -190,9 +202,15 @@ let exn_to_string e = Sexp.to_string_hum (sexp_of_exn e)
    registered, which is what we want. *)
 let () =
   Printexc.register_printer (fun exn ->
-    match sexp_of_exn_opt exn with
+    match sexp_of_exn_opt_for_printexc exn with
     | None -> None
     | Some sexp -> Some (Sexp.to_string_hum ~indent:2 sexp))
+;;
+
+let printexc_prefer_sexp exn =
+  match sexp_of_exn_opt exn with
+  | None -> Printexc.to_string exn
+  | Some sexp -> Sexp.to_string_hum ~indent:2 sexp
 ;;
 
 (* Conversion of S-expressions to OCaml-values *)
@@ -371,7 +389,7 @@ let get_flc_error name (file, line, chr) = Atom (sprintf "%s %s:%d:%d" name file
 let () =
   List.iter
     ~f:(fun (extension_constructor, handler) ->
-      Exn_converter.add ~finalise:false extension_constructor handler)
+      Exn_converter.add ~printexc:false ~finalise:false extension_constructor handler)
     [ ( [%extension_constructor Assert_failure]
       , function
         | Assert_failure arg -> get_flc_error "Assert_failure" arg
@@ -448,7 +466,14 @@ let () =
       , function
         | Sys.Break -> Atom "Sys.Break"
         | _ -> assert false )
-    ; ( [%extension_constructor Of_sexp_error]
+    ]
+;;
+
+let () =
+  List.iter
+    ~f:(fun (extension_constructor, handler) ->
+      Exn_converter.add ~printexc:true ~finalise:false extension_constructor handler)
+    [ ( [%extension_constructor Of_sexp_error]
       , function
         | Of_sexp_error (exc, sexp) ->
           List [ Atom "Sexplib.Conv.Of_sexp_error"; sexp_of_exn exc; sexp ]
