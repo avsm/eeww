@@ -7,7 +7,6 @@ dev-repo: "git+https://github.com/ocaml/stdlib-shims.git"
 bug-reports: "https://github.com/ocaml/stdlib-shims/issues"
 tags: ["stdlib" "compatibility" "org:ocaml"]
 license: ["typeof OCaml system"]
-available: [  ]
 depends: [
   "dune"
   "ocaml" {>= "4.02.3"}
