@@ -9,14 +9,11 @@ bug-reports: "http://github.com/dbuenzli/hmap/issues"
 tags: ["data-structure" "org:erratique"]
 available: [ ocaml-version >= "4.02.0"]
 depends: [
-  "ocamlfind" {build}
-  "ocamlbuild" {build}
+  "dune" { >= "2.0.0" }
+  "ocaml" { >= "4.02.0" }
 ]
 depopts: [  ]
 build:
 [
-  [ "ocaml" "pkg/git.ml" ]
-  [ "ocaml" "pkg/build.ml" "native=%{ocaml-native}%"
-                           "native-dynlink=%{ocaml-native-dynlink}%"
- ]
+  [ "dune" "build" "-p" name ]
 ]

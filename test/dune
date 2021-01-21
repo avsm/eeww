@@ -1,0 +1,8 @@
+(executable
+ (name test)
+ (libraries hmap))
+
+(rule 
+ (alias runtest)
+ (action (run ./test.exe)))
+ 
