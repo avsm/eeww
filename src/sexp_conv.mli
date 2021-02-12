@@ -248,6 +248,12 @@ val opaque_of_sexp : Sexp.t -> 'a
     convert an S-expression to a function. *)
 val fun_of_sexp : Sexp.t -> 'a
 
+(** Sexp Grammars *)
+
+include module type of struct
+  include Sexp_conv_grammar
+end
+
 (** Exception converters *)
 
 (** [sexp_of_exn exc] converts exception [exc] to an S-expression.

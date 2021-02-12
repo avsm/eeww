@@ -382,6 +382,10 @@ let opaque_of_sexp sexp =
 
 let fun_of_sexp sexp = of_sexp_error "fun_of_sexp: cannot convert function values" sexp
 
+(* Sexp Grammars *)
+
+include Sexp_conv_grammar
+
 (* Registering default exception printers *)
 
 let get_flc_error name (file, line, chr) = Atom (sprintf "%s %s:%d:%d" name file line chr)
