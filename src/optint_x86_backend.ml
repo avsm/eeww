@@ -3,6 +3,9 @@ include Int32
 external of_int32 : int32 -> t = "%identity"
 external to_int32 : t -> int32 = "%identity"
 
+let to_int64 = Int64.of_int32
+let of_int64 = Int64.to_int32
+
 let pp ppf (x:t) = Format.fprintf ppf "%ld" x
 
 let bit_sign = 0x40000000l

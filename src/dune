@@ -1,12 +1,29 @@
 (rule
- (targets optint.ml optint.mli)
- (deps    (:select select/select.ml)
-          int_x64_backend.ml int_x86_backend.ml
-          int_x64_backend.mli int_x86_backend.mli)
- (action  (run %{ocaml} %{select}
-            --x64 %{arch_sixtyfour} -o optint)))
+ (with-stdout-to selected_suffix
+  (run %{ocaml} %{dep:select_suffix.ml} --x64 %{arch_sixtyfour})))
+
+(rule (copy# optint%{read:selected_suffix} optint.ml))
+(rule (copy# int63%{read:selected_suffix} int63.ml))
+(rule (copy integer_interface.mli optint.mli))
+(rule (copy integer_interface.mli int63.mli))
 
 (library
- (modules     optint)
+ (modules     optint int63)
+ (wrapped     false)
  (name        optint)
  (public_name optint))
+
+;; Export the emulated versions of Int63, which should run on any platform.
+;; This allows developers on 64-bit platforms to compile and use the emulated
+;; forms.
+
+(rule (copy# optint_x86_backend.ml optint_emul.ml))
+(rule (copy# int63_x86_backend.ml int63_emul.ml))
+(rule (copy integer_interface.mli int63_emul.mli))
+(rule (copy integer_interface.mli optint_emul.mli))
+
+(library
+ (name optint_emul)
+ (wrapped false)
+ (public_name optint.emul)
+ (modules optint_emul int63_emul))
