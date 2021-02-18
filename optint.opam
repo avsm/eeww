@@ -22,5 +22,6 @@ depends: [
   "ocaml" {>= "4.07.0"}
   "dune"
   "crowbar" {with-test}
+  "monolith" {with-test}
   "fmt" {with-test}
 ]

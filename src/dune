@@ -13,17 +13,14 @@
  (name        optint)
  (public_name optint))
 
-;; Export the emulated versions of Int63, which should run on any platform.
-;; This allows developers on 64-bit platforms to compile and use the emulated
-;; forms.
+;; Export the boxed version of Int63, which should run on any platform. This
+;; allows developers on 64-bit platforms to compile and use this version,
+;; for instance in order to test it.
 
-(rule (copy# optint_x86_backend.ml optint_emul.ml))
-(rule (copy# int63_x86_backend.ml int63_emul.ml))
-(rule (copy integer_interface.mli int63_emul.mli))
-(rule (copy integer_interface.mli optint_emul.mli))
+(rule (copy# int63_x86_backend.ml int63_boxed.ml))
+(rule (copy integer_interface.mli int63_boxed.mli))
 
 (library
- (name optint_emul)
- (wrapped false)
- (public_name optint.emul)
- (modules optint_emul int63_emul))
+ (name int63_boxed)
+ (public_name optint.int63_boxed)
+ (modules int63_boxed))

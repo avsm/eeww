@@ -1,8 +1,18 @@
 (executable
  (name fuzz)
+ (modules fuzz)
  (libraries fmt crowbar optint))
 
 (alias
  (name runtest)
  (deps (:fuzz fuzz.exe))
  (action (run %{fuzz})))
+
+(executable
+ (name fuzz_int63)
+ (modules fuzz_int63)
+ (libraries monolith optint optint.int63_boxed))
+
+(alias
+ (name fuzz_int63)
+ (action (run %{exe:fuzz_int63.exe})))
