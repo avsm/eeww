@@ -6,7 +6,6 @@ env:
   global:
   - PINS="optint.dev:."
   matrix:
-  - PACKAGE="optint" OCAML_VERSION=4.07 TESTS=true
   - PACKAGE="optint" OCAML_VERSION=4.08 TESTS=true
   - PACKAGE="optint" OCAML_VERSION=4.09 TESTS=true
   - PACKAGE="optint" OCAML_VERSION=4.10 TESTS=true
