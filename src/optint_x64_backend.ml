@@ -49,22 +49,20 @@ let to_string x = string_of_int x
 let compare : int -> int -> int = fun a b -> a - b
 let equal : int -> int -> bool = fun a b -> a = b
 
-let bit_sign = 0x80000000
-let without_bit_sign (x:int32) = if x >= 0l then x else Int32.logand x (Int32.lognot 0x80000000l)
-
 let invalid_arg fmt = Format.kasprintf invalid_arg fmt
 
 let to_int32 x =
   let truncated = x land 0xffffffff in
-  if x <> truncated
-  then invalid_arg "Optint.to_int32: %d can not fit into a 32 bits integer" x
-  else Int32.of_int truncated
+  if x = truncated then Int32.of_int truncated
+  else if compare 0 x > 0 && (x lsr 31) = 0xffffffff
+  then Int32.(logor 0x80000000l (of_int (x land 0x7fffffff)))
+  else invalid_arg "Optint.to_int32: %d can not fit into a 32 bits integer" x
 
 let of_int32 x =
   if x < 0l
   then
-    let x = without_bit_sign x in
-    (Int32.to_int x) lor bit_sign (* XXX(dinosaure): keep bit sign into the same position. *)
+    let x = Int32.logand x 0x7fffffffl in
+    0x7fffffff80000000 lor (Int32.to_int x)
   else Int32.to_int x
 
 let pp ppf (x:t) = Format.fprintf ppf "%d" x
