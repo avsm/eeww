@@ -136,6 +136,16 @@ val equal : t -> t -> bool
 val pp : Format.formatter -> t -> unit
 (** The pretty-printer for {!t}. *)
 
+(** {2 Encoding functions}
+
+    Efficient fixed-length big-endian encoding functions for {!t} integers: *)
+
+val encode : bytes -> off:int -> t -> unit
+val decode : string -> off:int -> t
+
+val encoded_size : int
+(** The number of bytes in the {{!encode}encoded} form of {!t}. *)
+
 module Infix : sig
   val ( + ) : t -> t -> t
 

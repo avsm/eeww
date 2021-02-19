@@ -69,6 +69,22 @@ let of_int32 x =
 
 let pp ppf (x:t) = Format.fprintf ppf "%d" x
 
+let encoded_size = 4
+
+external set_32 : bytes -> int -> int32 -> unit = "%caml_bytes_set32u"
+external get_32 : string -> int -> int32 = "%caml_string_get32"
+external swap32 : int32 -> int32 = "%bswap_int32"
+
+let encode buf ~off t =
+  let t = to_int32 t in
+  let t = if not Sys.big_endian then swap32 t else t in
+  set_32 buf off t
+
+let decode buf ~off =
+  let t = get_32 buf off in
+  let t = if not Sys.big_endian then swap32 t else t in
+  of_int32 t
+
 module Infix = struct
   let ( + ) a b = add a b
   let ( - ) a b = sub a b

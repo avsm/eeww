@@ -23,6 +23,30 @@ struct
   module R = Reference
   module C = Candidate
 
+  let encoded_string : (string, string) spec =
+    let check_valid r c =
+      let exception Incorrect_length of string in
+      let exception Different of string * string in
+      if not (String.length c = R.encoded_size) then raise (Incorrect_length c);
+      if not (String.equal r c) then raise (Different (r, c))
+    in
+    declare_abstract_type
+      ~check:(fun r -> (check_valid r, document (PPrint.string r)))
+      ()
+
+  module Wrap = struct
+    let pp f x =
+      f Format.str_formatter x;
+      Format.flush_str_formatter ()
+
+    let encode f x =
+      let buf = Bytes.create R.encoded_size in
+      f buf ~off:0 x;
+      Bytes.unsafe_to_string buf
+
+    let decode f s = f s ~off:0
+  end
+
   let run t fuel =
     let endo = t ^> t in
     let binop = t ^> t ^> t in
@@ -62,6 +86,13 @@ struct
     declare "to_int32" (t ^> int32) R.to_int32 C.to_int32;
     declare "to_float" (t ^> float) R.to_float C.to_float;
     declare "to_string" (t ^> string) R.to_string C.to_string;
+
+    declare "pp" (t ^> string) (Wrap.pp R.pp) (Wrap.pp C.pp);
+    declare "encoded_size" int R.encoded_size C.encoded_size;
+    declare "encode" (t ^> encoded_string) (Wrap.encode R.encode)
+      (Wrap.encode C.encode);
+    declare "decode" (encoded_string ^> t) (Wrap.decode R.decode)
+      (Wrap.decode C.decode);
 
     main fuel
 end

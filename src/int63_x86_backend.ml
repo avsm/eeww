@@ -91,6 +91,22 @@ let of_string_opt x = try Some (of_string x) with _ -> None
 
 let pp ppf x = Format.fprintf ppf "%Ld" (Conv.unwrap x)
 
+let encoded_size = 8
+
+external set_64 : bytes -> int -> int64 -> unit = "%caml_bytes_set64u"
+external get_64 : string -> int -> int64 = "%caml_string_get64"
+external swap64 : int64 -> int64 = "%bswap_int64"
+
+let encode buf ~off t =
+  let t = to_int64 t in
+  let t = if not Sys.big_endian then swap64 t else t in
+  set_64 buf off t
+
+let decode buf ~off =
+  let t = get_64 buf off in
+  let t = if not Sys.big_endian then swap64 t else t in
+  of_int64 t
+
 module Infix = struct
   let ( + ) a b = add a b
   let ( - ) a b = sub a b
