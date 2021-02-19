@@ -8,7 +8,7 @@ type t =
   creating a circular dependency *)
 val t_of_sexp : t -> t
 val sexp_of_t : t -> t
-val t_sexp_grammar : Raw_grammar.t
+val t_sexp_grammar : t Raw_grammar.t
 val equal : t -> t -> bool
 val compare : t -> t -> int
 

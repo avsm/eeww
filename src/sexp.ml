@@ -15,7 +15,7 @@ type t =
 
 let sexp_of_t t = t
 let t_of_sexp t = t
-let t_sexp_grammar = Raw_grammar.Inline Any
+let t_sexp_grammar : t Raw_grammar.t = { untyped = Any "Sexp.t" }
 
 let rec compare_list a b =
   match a, b with
