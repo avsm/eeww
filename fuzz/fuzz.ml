@@ -123,4 +123,4 @@ let () =
   let a = Optint.to_int a in
   let b = Int32.to_int b in
 
-  Crowbar.check_eq ~pp:Fmt.int ~eq:(=) ~cmp:compare (a land 0xffffffff) (b land 0xffffffff)
+  Crowbar.check_eq ~pp:Fmt.int ~eq:(=) ~cmp:compare (a land 0x7fffffff) (b land 0x7fffffff)
