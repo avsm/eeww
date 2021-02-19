@@ -1,13 +1,13 @@
 language: c
 install:
-  - wget https://raw.githubusercontent.com/ocaml/ocaml-travisci-skeleton/master/.travis-opam.sh
+  - wget https://raw.githubusercontent.com/ocaml/ocaml-ci-scripts/master/.travis-opam.sh
 script: bash -ex .travis-opam.sh
-sudo: true
 env:
   global:
-  - PINS="crowbar:https://github.com/stedolan/crowbar.git"
+  - PINS="optint.dev:."
   matrix:
-  - PACKAGE="optint" OCAML_VERSION=4.07 OPAM_SWITCH=4.07.0 TESTS=true
-  - PACKAGE="optint" OCAML_VERSION=4.08 OPAM_SWITCH=4.08.0 TESTS=true
-  - PACKAGE="optint" OCAML_VERSION=4.09 OPAM_SWITCH=4.09.0 TESTS=true
-  - PACKAGE="optint" OCAML_VERSION=4.10 OPAM_SWITCH=4.10.0 TESTS=true
+  - PACKAGE="optint" OCAML_VERSION=4.07 TESTS=true
+  - PACKAGE="optint" OCAML_VERSION=4.08 TESTS=true
+  - PACKAGE="optint" OCAML_VERSION=4.09 TESTS=true
+  - PACKAGE="optint" OCAML_VERSION=4.10 TESTS=true
+  - PACKAGE="optint" OCAML_VERSION=4.11 TESTS=true
