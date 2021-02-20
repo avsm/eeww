@@ -39,6 +39,8 @@ let shift_right a n = a asr n
 let shift_right_logical a n = a lsr n
 external of_int : int -> t = "%identity"
 external to_int : t -> int = "%identity"
+let to_int64 = Stdlib.Int64.of_int
+let of_int64 = Stdlib.Int64.to_int
 let of_float x = int_of_float x
 let to_float x = (* allocation *) float_of_int x
 let of_string x = int_of_string x
@@ -47,25 +49,39 @@ let to_string x = string_of_int x
 let compare : int -> int -> int = fun a b -> a - b
 let equal : int -> int -> bool = fun a b -> a = b
 
-let bit_sign = 0x80000000
-let without_bit_sign (x:int32) = if x >= 0l then x else Int32.logand x (Int32.lognot 0x80000000l)
-
 let invalid_arg fmt = Format.kasprintf invalid_arg fmt
 
 let to_int32 x =
   let truncated = x land 0xffffffff in
-  if x <> truncated
-  then invalid_arg "Optint.to_int32: %d can not fit into a 32 bits integer" x
-  else Int32.of_int truncated
+  if x = truncated then Int32.of_int truncated
+  else if compare 0 x > 0 && (x lsr 31) = 0xffffffff
+  then Int32.(logor 0x80000000l (of_int (x land 0x7fffffff)))
+  else invalid_arg "Optint.to_int32: %d can not fit into a 32 bits integer" x
 
 let of_int32 x =
   if x < 0l
   then
-    let x = without_bit_sign x in
-    (Int32.to_int x) lor bit_sign (* XXX(dinosaure): keep bit sign into the same position. *)
+    let x = Int32.logand x 0x7fffffffl in
+    0x7fffffff80000000 lor (Int32.to_int x)
   else Int32.to_int x
 
 let pp ppf (x:t) = Format.fprintf ppf "%d" x
+
+let encoded_size = 4
+
+external set_32 : bytes -> int -> int32 -> unit = "%caml_bytes_set32u"
+external get_32 : string -> int -> int32 = "%caml_string_get32"
+external swap32 : int32 -> int32 = "%bswap_int32"
+
+let encode buf ~off t =
+  let t = to_int32 t in
+  let t = if not Sys.big_endian then swap32 t else t in
+  set_32 buf off t
+
+let decode buf ~off =
+  let t = get_32 buf off in
+  let t = if not Sys.big_endian then swap32 t else t in
+  of_int32 t
 
 module Infix = struct
   let ( + ) a b = add a b

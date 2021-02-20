@@ -1,19 +1,41 @@
-Optint - Abstract type on integer between x64 and x86 architecture
+Optint - Abstract integer types between x64 and x86 architectures
 ==================================================================
 
-This library provide one module `Optint` which use internally an `int` if you
-are in a x64 architecture or an `int32` (boxed value) if you are in a x86
-architecture. This module is __really__ unsafe and does not care some details
-(like the sign bit) for any cast.
+This library provides two new integer types, `Optint.t` and `Int63.t`, which
+guarantee efficient representation on x64 architectures and provide a
+best-effort boxed representation on x86 architectures.
 
 ## Goal
 
-The main difference between an `int` and an `int32` is the second is boxed.
-About performance this is not the best. However, you can not ensure to be in an
-x64 architecture where you can use directly an `int` instead an `int32` (and
-improve performance).
+The standard `Int32.t` and `Int64.t` types provided by the standard library have
+the same heap-allocated representation on all architectures. This consistent
+representation has costs in both memory and run-time performance.
 
-So, this library provide an abstraction about a real `int32`. In a x64
-architecture, internally, we use a `int` and in a x86 architecture, we use a
-`int32`. By this way, we ensure to have in any platform 32 free bits in
-`Optint.t`.
+On 64-bit architectures, it's often more efficient to use the native `Int.t`
+directly, and fallback to the boxed representations on 32-bit architectures.
+This library provides types to do exactly this: 
+
+- `Optint.t`: an integer containing _at least_ 32 bits. On 64-bit machines, this
+  is an immediate integer; on 32-bit machines, it is a boxed 32-bit value. The
+  overflow behaviour is platform-dependent.
+  
+- `Int63.t`: an integer containing _exactly_ 63 bits. On 64-bit machines, this
+  is an immediate integer; on 32-bit machines, it is a boxed 64-bit integer that
+  is wrapped to provide 63-bit two's complement semantics. The two
+  implementations are observationally equivalent, modulo use of `Marshal` and
+  `Obj`.
+
+In summary:
+
+| Integer type         | x86 representation  | x64 representation  | Semantics          |
+| --                   | --                  | --                  | --                 |
+| `Stdlib.Int.t`       | 31-bit immediate ✅ | 63-bit immediate ✅ | Always immediate   |
+| `Stdlib.Nativeint.t` | 64-bit boxed ❌     | 32-bit boxed ❌     | Exactly word size  |
+| `Stdlib.Int32.t`     | 32-bit boxed ❌     | 32-bit boxed ❌     | Exactly 32 bits    |
+| `Stdlib.Int64.t`     | 64-bit boxed ❌     | 64-bit boxed ❌     | Exactly 64 bits    |
+| `Optint.t` (_new_)   | 32-bit boxed ❌     | 63-bit immediate ✅ | _At least_ 32 bits |
+| `Int63.t` (_new_)    | 64-bit boxed ❌     | 63-bit immediate ✅ | Exactly 63 bits    |
+
+These new types are safe and well-tested, but their architecture-dependent
+implementation makes them unsuitable for use with the `Marshal` module. Use the
+provided encode and decode functions instead.
