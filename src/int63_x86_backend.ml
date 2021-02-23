@@ -26,6 +26,8 @@ include (Int64 : sig
   val compare : t -> t -> int
 end)
 
+let invalid_arg fmt = Format.kasprintf invalid_arg fmt
+
 module Conv : sig
   val wrap_exn : int64 -> t      (* Raises if the [int64] has its topmost bit set. *)
   val wrap_modulo : int64 -> t   (* Discards the topmost bit of the [int64]. *)
@@ -90,6 +92,30 @@ let of_string x = Conv.wrap_exn (Int64.of_string x)
 let of_string_opt x = try Some (of_string x) with _ -> None
 
 let pp ppf x = Format.fprintf ppf "%Ld" (Conv.unwrap x)
+
+let to_unsigned_int x =
+  let max_int = of_int Stdlib.max_int in
+  if compare zero x <= 0 && compare x max_int <= 0
+  then to_int x
+  else invalid_arg "Int63.to_unsigned_int: %Lx can not fit into a 31 bits unsigned integer" x
+
+let without_bit_sign (x:int) = if x >= 0 then x else x land (lnot 0x40000000)
+
+let of_unsigned_int x =
+  if x < 0
+  then logor 0x40000000L (of_int (without_bit_sign x))
+  else of_int x
+
+let to_unsigned_int32 x =
+  let max_int = of_int32 Int32.max_int in
+  if compare zero x <= 0 && compare x max_int <= 0
+  then to_int32 x
+  else invalid_arg "Int63.to_unsigned_int32: %Lx can not fit into a 32 bits unsigned integer" x
+
+let of_unsigned_int32 x =
+  if x < 0l
+  then logor 0x80000000L (of_int32 (Int32.logand x (Int32.lognot 0x80000000l)))
+  else of_int32 x
 
 let encoded_size = 8
 

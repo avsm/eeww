@@ -146,6 +146,11 @@ val decode : string -> off:int -> t
 val encoded_size : int
 (** The number of bytes in the {{!encode}encoded} form of {!t}. *)
 
+val to_unsigned_int32 : t -> int32
+val of_unsigned_int32 : int32 -> t
+val to_unsigned_int : t -> int
+val of_unsigned_int : int -> t
+
 module Infix : sig
   val ( + ) : t -> t -> t
 

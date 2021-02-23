@@ -1,7 +1,9 @@
 include Int32
 
 external of_int32 : int32 -> t = "%identity"
+external of_unsigned_int32 : int32 -> t = "%identity"
 external to_int32 : t -> int32 = "%identity"
+external to_unsigned_int32 : t -> int32 = "%identity"
 
 let to_int64 = Int64.of_int32
 let of_int64 = Int64.to_int32
@@ -12,21 +14,43 @@ let without_bit_sign (x:int) = if x >= 0 then x else x land (lnot 0x40000000)
 
 let invalid_arg fmt = Format.kasprintf invalid_arg fmt
 
+(* XXX(dinosaure): the diff between [to_int] and [to_unsigned_int]
+ * is about the sign-bit [0x40000000][int]/[0x80000000][int32].
+ *
+ * For [to_int], we ensure for a negative number that we use only
+ * [0x3fffffff][int32] bits two most significant bits are set to [1].
+ * In that case, it safes to cast the [int32] to and [int] (31 bits).
+ *
+ * For [to_unsigned_int], we don't want to interpret if the value is
+ * negative or positive. However, if the number can be interpreted as a
+ * negative nnumber, due to the two's complement layout, we are sure
+ * to lost, at least, the most significant bit which is a part of unsigned
+ * [int32]. So we are able to only accept "positive" numbers.
+ *
+ * NOTE: we trust on the two's complement! *)
+
 let to_int x =
   let max_int = of_int Stdlib.max_int in
   if compare zero x <= 0 && compare x max_int <= 0
-  then to_int x (* XXX(dinosaure): can fit into 31 bits. *)
-  else if compare zero x > 0 && Int32.logand 0x40000000l x <> 0l
-  then
-    let x = Int32.logand x 0x7fffffffl in to_int x
-    (* XXX(dinosaure): the bit before the sign-bit is free. *)
+  then to_int x (* XXX(dinosaure): positive and can fit into a 31-bit integer. *)
+  else if compare zero x > 0 && Int32.logand 0xC0000000l x = 0xC0000000l
+  then let x = Int32.logand x 0x7fffffffl in to_int x
   else invalid_arg "Optint.to_int: %lx can not fit into a 31 bits integer" x
+
+let to_unsigned_int x =
+  let max_int = of_int Stdlib.max_int in
+  if compare zero x <= 0 && compare x max_int <= 0
+  then to_int x
+  else invalid_arg "Optint.to_unsigned_int: %lx can not fit into a 31 bits unsigned integer" x
 
 let of_int x =
   if x < 0
-  then
-    let x = without_bit_sign x in
-    logor 0xc0000000l (of_int x) (* XXX(dinosaure): keep sign bit into the same position. *)
+  then logor 0xC0000000l (of_int (without_bit_sign x))
+  else of_int x
+
+let of_unsigned_int x =
+  if x < 0
+  then logor 0x40000000l (of_int (without_bit_sign x))
   else of_int x
 
 let encoded_size = 4
