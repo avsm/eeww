@@ -1,3 +1,15 @@
+### v0.0.5 2021-02-22 Paris (France)
+
+- Update the README.md (@CraigFe, #9)
+- Add a representation of 63-bit integers (@CraigFe, #9)
+- Allow to compile fuzzers on 32-bit architectures (@dinosaure, #9)
+- Add encode / decode functions for integers (@CraigFe, #9)
+- Fix `optint` about sign and cast on all architectures (@dinosaure, #9)
+- **breaking changes**, rename and handle properly sign-bit:
+  `{of,to}_int` become `{of,to}_unsigned_int`
+  `{of,to}_int32` become `{of,to}_unsigned_int32`
+  Previous functions handle sign-bit correctly
+
 ### v0.0.4 2020-03-09 Paris (France)
 
 - Fix 32bit backend where we miss to fully apply

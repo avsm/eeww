@@ -38,7 +38,9 @@ let shift_left a n = a lsl n
 let shift_right a n = a asr n
 let shift_right_logical a n = a lsr n
 external of_int : int -> t = "%identity"
+external of_unsigned_int : int -> t = "%identity"
 external to_int : t -> int = "%identity"
+external to_unsigned_int : t -> int = "%identity"
 let to_int64 = Stdlib.Int64.of_int
 let of_int64 = Stdlib.Int64.to_int
 let of_float x = int_of_float x
@@ -58,11 +60,24 @@ let to_int32 x =
   then Int32.(logor 0x80000000l (of_int (x land 0x7fffffff)))
   else invalid_arg "Optint.to_int32: %d can not fit into a 32 bits integer" x
 
+let to_unsigned_int32 x =
+  let truncated = x land 0xffffffff in
+  if x <> truncated
+  then invalid_arg "Optint.to_unsigned_int32: %d can not fit into a 32 bits integer" x
+  else Int32.of_int truncated
+
 let of_int32 x =
   if x < 0l
   then
     let x = Int32.logand x 0x7fffffffl in
     0x7fffffff80000000 lor (Int32.to_int x)
+  else Int32.to_int x
+
+let of_unsigned_int32 x =
+  if x < 0l
+  then
+    let x = Int32.logand x (Int32.lognot 0x80000000l) in
+    (Int32.to_int x) lor 0x80000000
   else Int32.to_int x
 
 let pp ppf (x:t) = Format.fprintf ppf "%d" x
