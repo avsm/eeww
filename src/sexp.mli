@@ -8,7 +8,7 @@ type t =
   creating a circular dependency *)
 val t_of_sexp : t -> t
 val sexp_of_t : t -> t
-val t_sexp_grammar : t Raw_grammar.t
+val t_sexp_grammar : t Sexp_grammar.t
 val equal : t -> t -> bool
 val compare : t -> t -> int
 
@@ -95,9 +95,6 @@ val of_int_style : [ `Underscores | `No_underscores ] ref
 
   https://opensource.janestreet.com/standards/#private-submodules *)
 module Private : sig
-  (*_ exported for downstream tools *)
-  module Raw_grammar = Raw_grammar
-
   (*_ Exported for sexplib *)
 
   val size : t -> int * int
