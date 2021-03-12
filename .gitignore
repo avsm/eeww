@@ -1,0 +1,5 @@
+*.txt
+_build
+.vscode
+_opam
+.merlin

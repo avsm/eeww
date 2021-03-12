@@ -1,0 +1,6 @@
+(library
+ (name dispatch)
+ (public_name dispatch)
+ (foreign_stubs
+  (language c)
+  (names dispatch_stubs)))

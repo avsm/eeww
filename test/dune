@@ -1,0 +1,21 @@
+(library
+ (name dispatchcp_lib)
+ (modules dispatchcp_lib)
+ (libraries dispatch unix cmdliner))
+
+(executable
+ (name dispatchcp)
+ (modules dispatchcp)
+ (libraries cmdliner dispatchcp_lib fmt logs logs.cli logs.fmt fmt.tty
+   fmt.cli))
+
+(library
+ (name lwtcp_lib)
+ (modules lwtcp_lib)
+ (libraries lwt logs.cli logs.fmt fmt.tty fmt.cli fmt lwt.unix unix cmdliner))
+
+(executable
+ (name cptest)
+ (modules cptest)
+ (libraries dispatchcp_lib lwtcp_lib dispatch bos bechamel notty.unix
+   bechamel-notty))
