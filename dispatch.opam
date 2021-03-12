@@ -9,6 +9,9 @@ homepage: "https://github.com/patricoferris/ocaml-dispatch"
 bug-reports: "https://github.com/patricoferris/ocaml-dispatch/issues"
 depends: [
   "dune" {>= "2.7"}
+  "logs" {with-test}
+  "fmt" {with-test}
+  "cmdliner" {with-test}
   "odoc" {with-doc}
 ]
 build: [

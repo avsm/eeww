@@ -16,4 +16,8 @@
 (package
  (name dispatch)
  (synopsis "OCaml bindings for Apple's Grand Central Dispatch")
- (description "Bindings for Apple's Grand Central Dispatch."))
+ (description "Bindings for Apple's Grand Central Dispatch.")
+ (depends
+  (logs :with-test)
+  (fmt :with-test)
+  (cmdliner :with-test)))

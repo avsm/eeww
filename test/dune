@@ -19,3 +19,16 @@
  (modules cptest)
  (libraries dispatchcp_lib lwtcp_lib dispatch bos bechamel notty.unix
    bechamel-notty))
+
+(rule
+ (alias runtest)
+ (deps text.txt dispatchcp.exe)
+ (targets text2.txt)
+ (action
+  (progn
+   (run ./dispatchcp.exe text.txt text2.txt))))
+
+(rule
+ (alias runtest)
+ (action
+  (diff text.txt text2.txt)))
