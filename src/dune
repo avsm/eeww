@@ -1,11 +1,14 @@
+(executable (name select) (modules select))
+
 (rule
- (with-stdout-to selected_suffix
-  (run %{ocaml} %{dep:select_suffix.ml} --sixtyfour %{arch_sixtyfour})))
+ (targets selected_suffix selected_type)
+ (action
+  (run %{exe:select.exe} --sixtyfour %{arch_sixtyfour})))
 
 (rule (copy# optint%{read:selected_suffix} optint.ml))
 (rule (copy# int63%{read:selected_suffix} int63.ml))
-(rule (copy integer_interface.mli optint.mli))
-(rule (copy integer_interface.mli int63.mli))
+(rule (with-stdout-to optint.mli (progn (cat selected_type) (cat integer_interface.mli))))
+(rule (with-stdout-to int63.mli (progn (cat selected_type) (cat integer_interface.mli))))
 
 (library
  (modules     optint int63)
@@ -18,7 +21,7 @@
 ;; for instance in order to test it.
 
 (rule (copy# int63_32_backend.ml int63_boxed.ml))
-(rule (copy integer_interface.mli int63_boxed.mli))
+(rule (with-stdout-to int63_boxed.mli (progn (echo "type t") (cat integer_interface.mli))))
 
 (library
  (name int63_boxed)

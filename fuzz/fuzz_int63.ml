@@ -16,7 +16,7 @@ let int32 =
 let float = deconstructible PPrintOCaml.float
 let string = deconstructible PPrint.string
 
-module type INTEGER = module type of Int63
+module type INTEGER = module type of Int63_boxed
 
 module Fuzz_integer_equivalence (Reference : INTEGER) (Candidate : INTEGER) =
 struct

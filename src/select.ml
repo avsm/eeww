@@ -1,5 +1,10 @@
 let invalid_arg fmt = Format.ksprintf (fun s -> invalid_arg s) fmt
 
+let write_to_file ~path str =
+  let oc = open_out path in
+  output_string oc str;
+  close_out oc
+
 let () =
   let is_64bit =
     let usage () = invalid_arg "%s --sixtyfour (true|false)" Sys.argv.(0) in
@@ -10,5 +15,10 @@ let () =
     | _ -> usage ()
     | exception _ -> usage ()
   in
-  let suffix = if is_64bit then "_64_backend.ml" else "_32_backend.ml" in
-  print_string suffix
+  let suffix, type_ =
+    match is_64bit with
+    | true -> "_64_backend.ml", "type t [@@immediate64]"
+    | false -> "_32_backend.ml", "type t"
+  in
+  write_to_file ~path:"selected_suffix" suffix;
+  write_to_file ~path:"selected_type" type_

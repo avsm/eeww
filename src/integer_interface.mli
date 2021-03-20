@@ -1,4 +1,4 @@
-type t
+(* Type [t] will be injected by a [dune] rule. *)
 
 val zero : t
 (** Integer 0. *)
