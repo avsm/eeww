@@ -6,11 +6,11 @@ homepage:     "https://github.com/mirage/optint"
 bug-reports:  "https://github.com/mirage/optint/issues"
 dev-repo:     "git+https://github.com/mirage/optint.git"
 doc:          "https://mirage.github.io/optint/"
-synopsis:     "Abstract type on integer between x64 and x86 architecture"
+synopsis:     "Efficient integer types on 64-bit architectures"
 description: """
-This library provide an abstract type which represents at least a 32-bits integer.
-On x64, this library use a native unboxed integer (63 bits).
-On x86, this library use a boxed int32.
+This library provides two new integer types, `Optint.t` and `Int63.t`, which
+guarantee efficient representation on 64-bit architectures and provide a
+best-effort boxed representation on 32-bit architectures.
 
 Implementation depends on target architecture.
 """
