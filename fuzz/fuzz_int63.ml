@@ -4,9 +4,8 @@ let int = le Int.max_int
 
 let int32 =
   let gen_random =
-    Random.self_init ();
     let open Int32 in
-    let bits () = of_int (Random.bits ()) in
+    let bits () = of_int (Gen.bits ()) in
     fun () -> logxor (bits ()) (shift_left (bits ()) 30)
   in
   let pos = easily_constructible gen_random PPrintOCaml.int32 in
