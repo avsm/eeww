@@ -47,3 +47,9 @@ module Int63 = struct
 end
 
 include Optint
+
+module Private = struct
+  module type S = Integer_interface.S
+
+  module Int63_boxed = Int63_emul
+end

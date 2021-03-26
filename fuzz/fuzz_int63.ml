@@ -16,7 +16,7 @@ let int32 =
 let float = deconstructible PPrintOCaml.float
 let string = deconstructible PPrint.string
 
-module type INTEGER = module type of Int63_boxed
+module type INTEGER = Optint.Private.S
 
 module Fuzz_integer_equivalence (Reference : INTEGER) (Candidate : INTEGER) =
 struct
@@ -97,8 +97,10 @@ struct
     main fuel
 end
 
-module Int63_equiv = Fuzz_integer_equivalence (Int63) (Int63_boxed)
+module Reference = Optint.Int63
+module Candidate = Optint.Private.Int63_boxed
+module Int63_equiv = Fuzz_integer_equivalence (Reference) (Candidate)
 
 let () =
-  let t : (Int63.t, Int63_boxed.t) spec = declare_abstract_type () in
+  let t : (Reference.t, Candidate.t) spec = declare_abstract_type () in
   Int63_equiv.run t 5
