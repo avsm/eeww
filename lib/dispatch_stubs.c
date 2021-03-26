@@ -10,36 +10,129 @@
 #include <caml/unixsupport.h>
 #include <caml/threads.h>
 #include <string.h>
+#include <pthread.h>
 
-#define Queue_val(v) (*((struct dispatch_queue_s **)Data_custom_val(v)))
-#define Channel_val(v) (*((struct dispatch_io_s **)Data_custom_val(v)))
-#define Group_val(v) (*((struct dispatch_group_s **)Data_custom_val(v)))
-#define Data_val(v) (*((struct dispatch_data_s **)Data_custom_val(v)))
+#define DEBUG 1
 
-// Main functions
+#define Queue_val(v) (*((dispatch_queue_t *)Data_custom_val(v)))
+#define Channel_val(v) (*((dispatch_io_t *)Data_custom_val(v)))
+#define Group_val(v) (*((dispatch_group_t *)Data_custom_val(v)))
+#define Data_val(v) (*((dispatch_data_t *)Data_custom_val(v)))
+
+value *make_callback(value v_fun)
+{
+  value *m_fun = (value *)caml_stat_alloc(sizeof(v_fun));
+  *m_fun = v_fun;
+  caml_register_generational_global_root(&(*m_fun));
+  return m_fun;
+}
+
+void free_callback(value *v_fun)
+{
+  caml_remove_generational_global_root(&(*v_fun));
+  caml_stat_free(v_fun);
+}
+
 value ocaml_dispatch_async(value v_queue, value v_fun)
 {
   CAMLparam2(v_queue, v_fun);
+  value *m_fun = make_callback(v_fun);
   dispatch_queue_t queue = Queue_val(v_queue);
+  // caml_release_runtime_system(); not sure why this doesn't need to be called?
   dispatch_async(queue, ^{
-    caml_acquire_runtime_system();
-    caml_callback(v_fun, Val_unit);
-    caml_release_runtime_system();
+    int res = caml_c_thread_register();
+    if (res)
+      caml_acquire_runtime_system();
+
+    caml_callback(*m_fun, Val_unit);
+    free_callback(m_fun);
+
+    if (res)
+    {
+      caml_release_runtime_system();
+      caml_c_thread_unregister();
+    }
+    return;
   });
-  return (Val_unit);
+  CAMLreturn(Val_unit);
 }
 
 value ocaml_dispatch_sync(value v_queue, value v_fun)
 {
   CAMLparam2(v_queue, v_fun);
+  value *m_fun = make_callback(v_fun);
   dispatch_queue_t queue = Queue_val(v_queue);
+  caml_release_runtime_system();
   dispatch_sync(queue, ^{
-    caml_callback(v_fun, Val_unit);
+    int res = caml_c_thread_register();
+
+    if (res)
+      caml_acquire_runtime_system();
+
+    caml_callback(*m_fun, Val_unit);
+
+    if (res)
+    {
+      caml_release_runtime_system();
+      caml_c_thread_unregister();
+    }
+    return;
   });
-  return (Val_unit);
+  CAMLreturn(Val_unit);
 }
 
-// Time
+// ~~~ Queues ~~~
+
+static struct custom_operations queue_ops = {
+    "dispatch.queue",
+    custom_finalize_default,
+    custom_compare_default,
+    custom_hash_default,
+    custom_serialize_default,
+    custom_deserialize_default,
+    custom_compare_ext_default,
+    custom_fixed_length_default,
+};
+
+value ocaml_dispath_queue_finalise(value v_queue)
+{
+  CAMLparam1(v_queue);
+  dispatch_queue_t q = Queue_val(v_queue);
+  if (q)
+  {
+    dispatch_release(q);
+    caml_remove_global_root(&v_queue);
+    Queue_val(v_queue) = NULL;
+  }
+  CAMLreturn(Val_unit);
+}
+
+value ocaml_dispatch_queue_create(value v_typ, value v_unit)
+{
+  CAMLparam2(v_typ, v_unit);
+  CAMLlocal1(v_queue);
+  dispatch_queue_t queue;
+
+  if (Val_int(0) == v_typ)
+  {
+    // Serial queue
+    queue = dispatch_queue_create("caml.queue.create.serial", DISPATCH_QUEUE_SERIAL);
+  }
+  else
+  {
+    // Concurrent queue
+    queue = dispatch_queue_create("caml.queue.create.concurrent", DISPATCH_QUEUE_CONCURRENT);
+  }
+
+  // So we control the releasing of the queue
+  dispatch_retain(queue);
+  v_queue = caml_alloc_custom(&queue_ops, sizeof(dispatch_queue_t), 0, 1);
+  caml_register_global_root(&v_queue); // Might not be necessary...
+  Queue_val(v_queue) = queue;
+  CAMLreturn(v_queue);
+}
+
+// ~~~ Time ~~~
 
 value ocaml_dispatch_now(value unit)
 {
@@ -53,7 +146,7 @@ value ocaml_dispatch_forever(value unit)
   CAMLreturn(Int_val(DISPATCH_TIME_FOREVER));
 }
 
-// Groups
+// ~~~ Groups ~~~
 
 static struct custom_operations group_ops = {
     "dispatch.group",
@@ -71,7 +164,7 @@ value ocaml_dispatch_group_create(value unit)
   CAMLparam1(unit);
   dispatch_group_t group = dispatch_group_create();
 
-  value v_group = caml_alloc_custom_mem(&group_ops, sizeof(dispatch_group_t *), sizeof(dispatch_group_t));
+  value v_group = caml_alloc_custom(&queue_ops, sizeof(dispatch_group_t), 0, 1);
   Group_val(v_group) = group;
 
   CAMLreturn(v_group);
@@ -81,7 +174,15 @@ value ocaml_dispatch_group_wait(value v_group, value v_time)
 {
   CAMLparam2(v_group, v_time);
   CAMLlocal1(v_res);
-  int v = dispatch_group_wait(Group_val(v_group), Val_int(v_time));
+  value *g = caml_stat_alloc(sizeof(dispatch_group_t));
+  *g = v_group;
+  caml_register_generational_global_root(&(*g));
+  value *t = caml_stat_alloc(sizeof(dispatch_group_t));
+  *t = v_time;
+  caml_register_generational_global_root(&(*t));
+
+  caml_release_runtime_system();
+  int v = dispatch_group_wait(Group_val(*g), Val_int(*t));
   if (v != 0)
   {
     v_res = 3;
@@ -90,6 +191,12 @@ value ocaml_dispatch_group_wait(value v_group, value v_time)
   {
     v_res = 1;
   }
+
+  caml_remove_generational_global_root(g);
+  caml_remove_generational_global_root(t);
+  caml_stat_free(g);
+  caml_stat_free(t);
+  caml_acquire_runtime_system();
   CAMLreturn(v_res);
 }
 
@@ -107,7 +214,7 @@ value ocaml_dispatch_group_leave(value v_group)
   CAMLreturn(Val_unit);
 }
 
-// Data
+// ~~~ Data ~~~
 
 value ocaml_dispatch_data_create(value v_ba)
 {
@@ -117,7 +224,7 @@ value ocaml_dispatch_data_create(value v_ba)
       DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0);
   dispatch_data_t empty = dispatch_data_create(Caml_ba_data_val(v_ba), Int_val((Caml_ba_array_val(v_ba))->dim[0]), queue, DISPATCH_DATA_DESTRUCTOR_DEFAULT);
 
-  v_empty = caml_alloc_custom_mem(&group_ops, sizeof(dispatch_data_t *), sizeof(dispatch_data_t));
+  v_empty = caml_alloc_custom(&queue_ops, sizeof(dispatch_data_t), 0, 1);
   Data_val(v_empty) = empty;
 
   CAMLreturn(v_empty);
@@ -128,7 +235,7 @@ value ocaml_dispatch_data_empty(value unit)
   CAMLparam1(unit);
   CAMLlocal1(v_empty);
   dispatch_data_t empty = dispatch_data_empty;
-  v_empty = caml_alloc_custom_mem(&group_ops, sizeof(dispatch_data_t *), sizeof(dispatch_data_t));
+  v_empty = caml_alloc_custom(&queue_ops, sizeof(dispatch_data_t), 0, 1);
   Data_val(v_empty) = empty;
 
   CAMLreturn(v_empty);
@@ -143,22 +250,22 @@ value ocaml_dispatch_data_size(value v_data)
 value ocaml_dispatch_data_apply(value v_f, value v_data)
 {
   CAMLparam2(v_f, v_data);
+  value *m_f = make_callback(v_f);
   dispatch_data_t data = Data_val(v_data);
-  __block value res;
   dispatch_data_apply(data, ^(dispatch_data_t region, size_t offset, const void *buffer, size_t size) {
-    value data = caml_alloc_custom_mem(&group_ops, sizeof(dispatch_data_t *), sizeof(dispatch_data_t));
-    Data_val(data) = region;
-    res = caml_callback_exn(v_f, data);
-    // caml_free(data); or somthing...
+    value d = caml_alloc_custom(&queue_ops, sizeof(dispatch_data_t), 0, 1);
+    Data_val(d) = region;
+    caml_callback_exn(*m_f, d);
+    free_callback(m_f);
     return (_Bool) true;
   });
-  CAMLreturn(res);
+  CAMLreturn(Val_unit);
 }
 
-// Queues
+// ~~ Input/Output ~~~
 
-static struct custom_operations queue_ops = {
-    "dispatch.queue",
+static struct custom_operations io_ops = {
+    "dispatch.io",
     custom_finalize_default,
     custom_compare_default,
     custom_hash_default,
@@ -168,54 +275,6 @@ static struct custom_operations queue_ops = {
     custom_fixed_length_default,
 };
 
-value ocaml_dispatch_get_main_queue(value unit)
-{
-  CAMLparam1(unit);
-  CAMLlocal1(v_queue);
-  dispatch_queue_t main_q = dispatch_get_main_queue();
-
-  v_queue = caml_alloc_custom(&queue_ops, sizeof(dispatch_queue_t), 0, 1);
-  Queue_val(v_queue) = main_q;
-
-  CAMLreturn(v_queue);
-}
-
-value ocaml_dispatch_get_global_queue(value unit)
-{
-  CAMLparam1(unit);
-  CAMLlocal1(v_queue);
-  dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-
-  v_queue = caml_alloc_custom_mem(&queue_ops, sizeof(dispatch_queue_t *), sizeof(dispatch_queue_t));
-  Queue_val(v_queue) = queue;
-
-  CAMLreturn(v_queue);
-}
-
-value ocaml_dispatch_queue_create(value typ, value unit)
-{
-  CAMLparam1(typ);
-  CAMLlocal1(v_queue);
-  dispatch_queue_t queue = NULL;
-
-  if (Val_int(0) == typ)
-  {
-    // Serial queue
-    queue = dispatch_queue_create("OCaml", DISPATCH_QUEUE_SERIAL);
-  }
-  else
-  {
-    // Concurrent queue
-    queue = dispatch_queue_create("OCaml", DISPATCH_QUEUE_CONCURRENT);
-  }
-
-  v_queue = caml_alloc_custom_mem(&queue_ops, sizeof(dispatch_queue_t *), sizeof(dispatch_queue_t));
-  Queue_val(v_queue) = queue;
-
-  CAMLreturn(v_queue);
-}
-
-// IO
 value ocaml_dispatch_io_create(value v_typ, value v_fd, value v_queue)
 {
   CAMLparam3(v_typ, v_fd, v_queue);
@@ -232,7 +291,6 @@ value ocaml_dispatch_io_create(value v_typ, value v_fd, value v_queue)
   }
 
   dispatch_fd_t fd = Int_val(v_fd);
-
   dispatch_io_t channel = dispatch_io_create(typ, fd, Queue_val(v_queue), ^(int error) {
     if (error)
     {
@@ -241,53 +299,91 @@ value ocaml_dispatch_io_create(value v_typ, value v_fd, value v_queue)
     close(fd);
   });
 
-  v_channel = caml_alloc_custom_mem(&queue_ops, sizeof(dispatch_io_t *), sizeof(dispatch_io_t));
+  v_channel = caml_alloc_custom(&io_ops, sizeof(dispatch_io_t), 0, 1);
   Channel_val(v_channel) = channel;
 
   CAMLreturn(v_channel);
 }
 
-value ocaml_dispatch_read(value v_queue, value v_channel, value v_length, value v_offset, value v_g, value v_d)
+value ocaml_dispatch_with_read(value v_queue, value v_channel, value v_g, value v_f, value v_err)
 {
-  CAMLparam5(v_queue, v_g, v_channel, v_offset, v_length);
-  CAMLxparam1(v_d);
-  dispatch_queue_t queue = Queue_val(v_queue);
-  __block dispatch_data_t d = dispatch_data_empty;
-  dispatch_group_t g = Group_val(v_g);
-  dispatch_group_enter(g);
-  dispatch_io_read(Channel_val(v_channel), Int_val(v_offset), SIZE_MAX, queue, ^(bool done, dispatch_data_t data, int error) {
-    if (error)
-      return;
+  CAMLparam5(v_queue, v_g, v_channel, v_f, v_err);
+  // Allocate everything the thread is going to need
+  value *m_fun = make_callback(v_f);
+  value *m_err = make_callback(v_err);
 
-    d = dispatch_data_create_concat(d, data);
-    Data_val(v_d) = d;
+  dispatch_queue_t queue = Queue_val(v_queue);
+  dispatch_group_t g = Group_val(v_g);
+
+  dispatch_group_enter(g);
+  dispatch_io_read(Channel_val(v_channel), 0, SIZE_MAX, queue, ^(bool done, dispatch_data_t data, int error) {
+    int res = caml_c_thread_register();
+
+    if (res)
+      caml_acquire_runtime_system();
+
+    if (error)
+    {
+      caml_callback(*m_err, Val_unit);
+      dispatch_group_leave(g);
+      free_callback(m_err);
+      free_callback(m_fun);
+      caml_c_thread_unregister();
+      caml_release_runtime_system();
+      return;
+    }
+
+    if (data)
+    {
+      CAMLlocal1(v_data);
+      v_data = caml_alloc_custom(&queue_ops, sizeof(dispatch_data_t), 0, 1);
+      Data_val(v_data) = data;
+      caml_callback(*m_fun, v_data);
+    }
 
     if (done)
+    {
+      free_callback(m_err);
+      free_callback(m_fun);
       dispatch_group_leave(g);
+    }
 
+    if (res)
+    {
+      caml_release_runtime_system();
+      caml_c_thread_unregister();
+    }
     return;
   });
-
   CAMLreturn(Val_unit);
 }
 
-value ocaml_dispatch_read_bytecode(value *argv, int argn)
-{
-  return ocaml_dispatch_read(argv[0], argv[1], argv[2], argv[3],
-                             argv[4], argv[5]);
-}
+// value ocaml_dispatch_read_bytecode(value *argv, int argn)
+// {
+//   return ocaml_dispatch_read(argv[0], argv[1], argv[2], argv[3],
+//                              argv[4], argv[5]);
+// }
 
 value ocaml_dispatch_write(value v_queue, value v_channel, value v_offset, value v_g, value v_d)
 {
   CAMLparam5(v_queue, v_g, v_channel, v_offset, v_d);
   dispatch_queue_t queue = Queue_val(v_queue);
-  dispatch_data_t d = Data_val(v_d);
   dispatch_group_t g = Group_val(v_g);
+
   dispatch_group_enter(g);
-  dispatch_io_write(Channel_val(v_channel), Int_val(v_offset), d, queue, ^(bool done, dispatch_data_t data, int error) {
+  dispatch_io_write(Channel_val(v_channel), Int_val(v_offset), Data_val(v_d), queue, ^(bool done, dispatch_data_t data, int error) {
+    int res = caml_c_thread_register();
+    if (res)
+      caml_acquire_runtime_system();
+
     if (error)
     {
       printf("Error(%i)\n", error);
+      if (res)
+      {
+        caml_release_runtime_system();
+        caml_c_thread_unregister();
+      }
       return;
     }
 
@@ -296,9 +392,13 @@ value ocaml_dispatch_write(value v_queue, value v_channel, value v_offset, value
       dispatch_group_leave(g);
     }
 
+    if (res)
+    {
+      caml_release_runtime_system();
+      caml_c_thread_unregister();
+    }
     return;
   });
-
   CAMLreturn(Val_unit);
 }
 

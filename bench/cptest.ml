@@ -11,9 +11,9 @@ let fill_file_with_random ~count dst =
   let count = Fmt.strf "count=%d" count in
   Cmd.(v "dd" % "if=/dev/urandom" % ofile % "bs=27k" % count) |> OS.Cmd.run
 
-let block_size = 32 * 1024 * 1024 / 2
+let block_size = 32 * 1024
 let queue_depth = 64
-let count = 50000
+let count = 1000
 
 let run_cp_test impl ~block_size ~queue_depth count =
   let fname_in = Fmt.strf "cptest-%d.in" count in
@@ -23,8 +23,8 @@ let run_cp_test impl ~block_size ~queue_depth count =
   >>= fun () ->
   impl block_size queue_depth fname_in fname_out ();
   (* TODO check they are the same file *)
-  (* at_exit (fun () -> try Sys.remove fname_in with _ -> ()); *)
-  (* Sys.remove fname_out; *)
+  at_exit (fun () -> try Sys.remove fname_in with _ -> ());
+  Sys.remove fname_out;
   Ok ()
 
 open Bechamel
@@ -34,25 +34,25 @@ let run_test impl ~block_size ~queue_depth count =
   Staged.stage @@ fun () -> run_cp_test impl ~block_size ~queue_depth count
 
 let test_size impl =
-  Test.make_indexed ~name:"size" ~fmt:"%s %d" ~args:[ 10000 ]
+  Test.make_indexed ~name:"size" ~fmt:"%s %d" ~args:[ 1000; 10000; 50000 ]
     (run_test impl ~block_size ~queue_depth)
 
 (* let test_queue_depth impl =
   Test.make_indexed ~name:"queue_depth" ~fmt:"%s %d" ~args:[ 1; 32; 64 ]
-    (fun queue_depth -> run_test impl ~block_size ~queue_depth count)
+    (fun queue_depth -> run_test impl ~block_size ~queue_depth count) *)
 
 let test_block_size impl =
   Test.make_indexed ~name:"block_size" ~fmt:"%s %d"
     ~args:[ 1024; 32 * 1024; 128 * 1024 ] (fun block_size ->
-      run_test impl ~block_size ~queue_depth count) *)
+      run_test impl ~block_size ~queue_depth count)
 
 let dispatchcp_test =
   Test.make_grouped ~name:"dispatchcp_alloc"
-    (List.map (fun l -> l Dispatchcp_lib.run_cp) [ test_size ])
+    (List.map (fun l -> l Dispatchcp_lib.run_cp) [ test_size; test_block_size ])
 
 let lwt_bytes_test =
   Test.make_grouped ~name:"lwt_bytes"
-    (List.map (fun l -> l Lwtcp_lib.run_cp) [ test_size ])
+    (List.map (fun l -> l Lwtcp_lib.run_cp) [ test_size; test_block_size ])
 
 let test = Test.make_grouped ~name:"cp" [ lwt_bytes_test; dispatchcp_test ]
 
@@ -64,7 +64,7 @@ let benchmark () =
     Instance.[ minor_allocated; major_allocated; monotonic_clock ]
   in
   let cfg =
-    Benchmark.cfg ~limit:5000 ~quota:(Time.second 0.5) ~kde:(Some 1000) ()
+    Benchmark.cfg ~limit:1 ~quota:(Time.second 0.5) ~kde:(Some 1000) ()
   in
   let raw_results = Benchmark.all cfg instances test in
   let results =

@@ -1,5 +1,8 @@
 name: Tests for dispatch
-on: [push, pull_request]
+on: 
+  push:
+    branches: [ main ]
+  pull_request: {}
 jobs:
   test:
     strategy:
@@ -13,10 +16,12 @@ jobs:
       with:
         ocaml-version: ${{ matrix.ocaml-version }}
     - name: Pinning Package
-      run: opam pin add -yn dispatch.dev './'
+      run: opam pin add -yn dispatch.dev './' && opam pin add -yn dispatch-bench.dev './'
     - name: Packages
-      run: opam depext -yt dispatch.dev
+      run: opam depext -yt dispatch.dev && opam depext -yt dispatch-bench.dev
     - name: Dependencies
       run: opam install -t -y . --deps-only
     - name: Building, Installing and Testing
       run: opam exec -- dune build @install @runtest
+    - name: File copying test
+      run: opam exec -- dune exec ./bench/cptest.exe

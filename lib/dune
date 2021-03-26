@@ -1,6 +1,20 @@
 (library
  (name dispatch)
  (public_name dispatch)
+ (c_library_flags
+  (:include c_library_flags.sexp))
+ (flags
+  (:standard -thread))
+ (libraries threads)
  (foreign_stubs
   (language c)
+  (flags
+   (:standard -O -g -std=c99 -pedantic-errors -Wsign-compare -Wshadow
+     -Wno-unguarded-availability-new -mmacosx-version-min=10.10 -x
+     objective-c))
   (names dispatch_stubs)))
+
+(rule
+ (targets c_flags.sexp c_library_flags.sexp)
+ (action
+  (run ./config/discover.exe)))
