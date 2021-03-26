@@ -1,47 +1,53 @@
-module type Immediate = sig
-  type t [@@immediate]
-end
+(** Extraction of [Stdlib.Sys.Immediate64] for pre-4.10 compatibility.
 
-module type Boxed = sig
-  type t
-end
+    For soundness of the [@@immediate64] annotation, we ensure to use the boxed
+    representation only when not on 64-bit platforms, but we need to use The
+    Force to convince the type system of this fact. *)
+module Immediate64 = struct
+  module type Non_immediate = sig
+    type t
+  end
 
-module Immediate64 (Immediate : Immediate) (Boxed : Boxed) = struct
-  type t [@@immediate64]
-  type 'a repr = Immediate : Immediate.t repr | Boxed : Boxed.t repr
+  module type Immediate = sig
+    type t [@@immediate]
+  end
 
-  let repr =
-    (* For soundness of the [@@immediate64] annotation, we ensure to use the
-       boxed representation only when not on 64-bit platforms, but we need to
-       use The Force to convince the type system of this fact. *)
-    match Sys.word_size with
-    | 64 -> (Obj.magic Immediate : t repr)
-    | 32 -> (Obj.magic Boxed : t repr)
-    | n -> Format.kasprintf failwith "Unknown word size: %d" n
+  module Make (Immediate : Immediate) (Non_immediate : Non_immediate) = struct
+    type t [@@immediate64]
+
+    type 'a repr =
+      | Immediate : Immediate.t repr
+      | Non_immediate : Non_immediate.t repr
+
+    external magic : _ repr -> t repr = "%identity"
+
+    let repr =
+      if Sys.word_size = 64 then magic Immediate else magic Non_immediate
+  end
 end
 
 module Optint = struct
-  include Immediate64 (Optint_native) (Optint_emul)
+  include Immediate64.Make (Optint_native) (Optint_emul)
 
   module type S = Integer_interface.S with type t := t
 
   let impl : (module S) =
     match repr with
     | Immediate -> (module Optint_native : S)
-    | Boxed -> (module Optint_emul : S)
+    | Non_immediate -> (module Optint_emul : S)
 
   include (val impl : S)
 end
 
 module Int63 = struct
-  include Immediate64 (Int63_native) (Int63_emul)
+  include Immediate64.Make (Int63_native) (Int63_emul)
 
   module type S = Integer_interface.S with type t := t
 
   let impl : (module S) =
     match repr with
     | Immediate -> (module Int63_native : S)
-    | Boxed -> (module Int63_emul : S)
+    | Non_immediate -> (module Int63_emul : S)
 
   include (val impl : S)
 end
