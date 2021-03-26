@@ -1,29 +1,3 @@
-(executable (name select) (modules select))
-
-(rule
- (targets selected_suffix selected_type)
- (action
-  (run %{exe:select.exe} --sixtyfour %{arch_sixtyfour})))
-
-(rule (copy# optint%{read:selected_suffix} optint.ml))
-(rule (copy# int63%{read:selected_suffix} int63.ml))
-(rule (with-stdout-to optint.mli (progn (cat selected_type) (cat integer_interface.mli))))
-(rule (with-stdout-to int63.mli (progn (cat selected_type) (cat integer_interface.mli))))
-
 (library
- (modules     optint int63)
- (wrapped     false)
- (name        optint)
+ (name optint)
  (public_name optint))
-
-;; Export the boxed version of Int63, which should run on any platform. This
-;; allows developers on 64-bit platforms to compile and use this version,
-;; for instance in order to test it.
-
-(rule (copy# int63_32_backend.ml int63_boxed.ml))
-(rule (with-stdout-to int63_boxed.mli (progn (echo "type t") (cat integer_interface.mli))))
-
-(library
- (name int63_boxed)
- (public_name optint.int63_boxed)
- (modules int63_boxed))
