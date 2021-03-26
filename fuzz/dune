@@ -11,7 +11,7 @@
 (executable
  (name fuzz_int63)
  (modules fuzz_int63)
- (libraries monolith optint optint.int63_boxed))
+ (libraries monolith optint))
 
 (alias
  (name fuzz_int63)

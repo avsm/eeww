@@ -43,18 +43,22 @@ external of_unsigned_int : int -> t = "%identity"
 
 let invalid_arg fmt = Format.kasprintf invalid_arg fmt
 
-let to_unsigned_int32 x =
-  let truncated = x land 0xffffffff in
-  if x <> truncated
-  then invalid_arg "Int63.to_unsigned_int32: %d can not fit into a 32 bits integer" x
-  else Int32.of_int truncated
-  
-let of_unsigned_int32 x =
-  if x < 0l
-  then
-    let x = Int32.logand x (Int32.lognot 0x80000000l) in
-    (Int32.to_int x) lor 0x80000000
-  else Int32.to_int x
+let to_unsigned_int32 =
+  let uint32_mask = (0xffff lsl 16) lor 0xffff in
+  fun x ->
+    let truncated = x land uint32_mask in
+    if x <> truncated
+    then invalid_arg "Int63.to_unsigned_int32: %d can not fit into a 32 bits integer" x
+    else Int32.of_int truncated
+
+let of_unsigned_int32 =
+  let int32_sign_mask = 1 lsl 31 in
+  let int32_sign_maskl = 0x80000000l in
+  fun x ->
+    if x < 0l then
+      let x = Int32.logand x (Int32.lognot int32_sign_maskl) in
+      Int32.to_int x lor int32_sign_mask
+    else Int32.to_int x
 
 let encoded_size = 8
 

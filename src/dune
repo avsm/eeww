@@ -1,26 +1,3 @@
-(rule
- (with-stdout-to selected_suffix
-  (run %{ocaml} %{dep:select_suffix.ml} --sixtyfour %{arch_sixtyfour})))
-
-(rule (copy# optint%{read:selected_suffix} optint.ml))
-(rule (copy# int63%{read:selected_suffix} int63.ml))
-(rule (copy integer_interface.mli optint.mli))
-(rule (copy integer_interface.mli int63.mli))
-
 (library
- (modules     optint int63)
- (wrapped     false)
- (name        optint)
+ (name optint)
  (public_name optint))
-
-;; Export the boxed version of Int63, which should run on any platform. This
-;; allows developers on 64-bit platforms to compile and use this version,
-;; for instance in order to test it.
-
-(rule (copy# int63_32_backend.ml int63_boxed.ml))
-(rule (copy integer_interface.mli int63_boxed.mli))
-
-(library
- (name int63_boxed)
- (public_name optint.int63_boxed)
- (modules int63_boxed))

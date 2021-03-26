@@ -1,3 +1,8 @@
+### Unreleased
+
+- Annotate integer types with `[@@immediate64]` (@CraigFe, #13)
+- Move unwrapped module `Int63` to `Optint.Int63` (@CraigFe, #13)
+
 ### v0.0.5 2021-02-22 Paris (France)
 
 - Update the README.md (@CraigFe, #9)

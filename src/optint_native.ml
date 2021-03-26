@@ -53,31 +53,39 @@ let equal : int -> int -> bool = fun a b -> a = b
 
 let invalid_arg fmt = Format.kasprintf invalid_arg fmt
 
+let uint32_max = (0xffff lsl 16) lor 0xffff
+let int32_sign_maskl = 0x80000000l
+let int32_sign_mask = 1 lsl 31
+let int32_maxl = 0x7fffffffl
+let int32_max = 0x7fffffff
+
 let to_int32 x =
-  let truncated = x land 0xffffffff in
+  let truncated = x land uint32_max in
   if x = truncated then Int32.of_int truncated
-  else if compare 0 x > 0 && (x lsr 31) = 0xffffffff
-  then Int32.(logor 0x80000000l (of_int (x land 0x7fffffff)))
+  else if compare 0 x > 0 && (x lsr 31) = uint32_max
+  then Int32.(logor int32_sign_maskl (of_int (x land int32_max)))
   else invalid_arg "Optint.to_int32: %d can not fit into a 32 bits integer" x
 
 let to_unsigned_int32 x =
-  let truncated = x land 0xffffffff in
+  let truncated = x land uint32_max in
   if x <> truncated
   then invalid_arg "Optint.to_unsigned_int32: %d can not fit into a 32 bits integer" x
   else Int32.of_int truncated
 
-let of_int32 x =
-  if x < 0l
-  then
-    let x = Int32.logand x 0x7fffffffl in
-    0x7fffffff80000000 lor (Int32.to_int x)
-  else Int32.to_int x
+let of_int32 =
+  let negative_int32_mask = (int32_max lsl 32) lor int32_sign_mask in
+  fun x ->
+    if x < 0l
+    then
+      let x = Int32.logand x int32_maxl in
+      negative_int32_mask lor (Int32.to_int x)
+    else Int32.to_int x
 
 let of_unsigned_int32 x =
   if x < 0l
   then
-    let x = Int32.logand x (Int32.lognot 0x80000000l) in
-    (Int32.to_int x) lor 0x80000000
+    let x = Int32.logand x (Int32.lognot int32_sign_maskl) in
+    (Int32.to_int x) lor int32_sign_mask
   else Int32.to_int x
 
 let pp ppf (x:t) = Format.fprintf ppf "%d" x
