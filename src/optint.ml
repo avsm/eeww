@@ -58,4 +58,15 @@ module Private = struct
   module type S = Integer_interface.S
 
   module Int63_boxed = Int63_emul
+
+  module Conditional = struct
+    type ('t, 'u, 'v) t =
+      | True : ('t, 't, _) t (** therefore ['t] = ['u] *)
+      | False : ('t, _, 't) t (** therefore ['t] = ['v] *)
+  end
+
+  let int63_is_immediate : (Int63.t, int, Int63_boxed.t) Conditional.t =
+    match Int63.repr with
+    | Immediate -> True
+    | Non_immediate -> False
 end
