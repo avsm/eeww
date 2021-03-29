@@ -1,4 +1,8 @@
 (** Extraction of [Stdlib.Sys.Immediate64] for pre-4.10 compatibility.
+    [Immediate64] was originally authored by Jeremie Dimino <jeremie@dimino.org>,
+    and is licensed along with the OCaml compiler system under LGPLv2. See the
+    {{:https://github.com/ocaml/ocaml/blob/trunk/LICENSE} compiler license} for
+    details.
 
     For soundness of the [@@immediate64] annotation, we ensure to use the boxed
     representation only when not on 64-bit platforms, but we need to use The
