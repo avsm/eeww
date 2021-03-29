@@ -1,19 +1,19 @@
-module Optint : sig
-  type t [@@immediate64]
+type t [@@immediate64]
+(** The type of integers with {i at least} 32 bits.
+    For 63-bit integers, see {!Int63}. *)
 
-  include Integer_interface.S with type t := t
-  (** @inline *)
-end
+include Integer_interface.S with type t := t
+(** @inline *)
+
+(** {1 Other modules} *)
 
 module Int63 : sig
   type t [@@immediate64]
+  (** The type of integers with exactly 63-bits. *)
 
   include Integer_interface.S with type t := t
   (** @inline *)
 end
-
-include module type of Optint
-(** @inline *)
 
 (** Utilities with no stability guarantee, exposed for internal use. *)
 module Private : sig
