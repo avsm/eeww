@@ -43,6 +43,12 @@ module Optint = struct
   include (val impl : S)
 end
 
+module Conditional = struct
+  type ('t, 'u, 'v) t =
+    | True : ('t, 't, _) t (** therefore ['t] = ['u] *)
+    | False : ('t, _, 't) t (** therefore ['t] = ['v] *)
+end
+
 module Int63 = struct
   include Immediate64.Make (Int63_native) (Int63_emul)
 
@@ -54,12 +60,13 @@ module Int63 = struct
     | Non_immediate -> (module Int63_emul : S)
 
   include (val impl : S)
+
+  module Boxed = Int63_emul
+
+  let is_immediate : (t, int, Boxed.t) Conditional.t =
+    match repr with
+    | Immediate -> True
+    | Non_immediate -> False
 end
 
 include Optint
-
-module Private = struct
-  module type S = Integer_interface.S
-
-  module Int63_boxed = Int63_emul
-end

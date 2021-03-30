@@ -15,7 +15,7 @@ let int32 =
 let float = deconstructible PPrintOCaml.float
 let string = deconstructible PPrint.string
 
-module type INTEGER = Optint.Private.S
+module type INTEGER = module type of Optint.Int63.Boxed
 
 module Fuzz_integer_equivalence (Reference : INTEGER) (Candidate : INTEGER) =
 struct
@@ -97,7 +97,7 @@ struct
 end
 
 module Reference = Optint.Int63
-module Candidate = Optint.Private.Int63_boxed
+module Candidate = Optint.Int63.Boxed
 module Int63_equiv = Fuzz_integer_equivalence (Reference) (Candidate)
 
 let () =

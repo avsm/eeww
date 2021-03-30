@@ -13,6 +13,12 @@
  (modules fuzz_int63)
  (libraries monolith optint))
 
+;; Ensure that [fuzz_int63] compiles in tests
+(alias
+ (name runtest)
+ (deps fuzz_int63.exe)
+ (action progn))
+
 (alias
  (name fuzz_int63)
  (action (run %{exe:fuzz_int63.exe})))
