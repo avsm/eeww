@@ -1,3 +1,7 @@
+## 0.2.0 (2021-08-04)
+
+* Revise Duration.pp to print in a more concise way
+
 ## 0.1.3 (2019-10-26)
 
 * Duration.pp: don't emit trailing space

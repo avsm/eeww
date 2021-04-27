@@ -43,13 +43,17 @@ let of_hour h =
     invalid_arg "out of range" ;
   Int64.mul hour h
 
+let day = Int64.mul 24L hour
+
 let of_day d =
   if d < 0 then
     invalid_arg "negative" ;
   let d = Int64.of_int d in
   if Int64.compare d 0x341FFL = 1 then
     invalid_arg "out of range" ;
-  Int64.mul (Int64.mul 24L hour) d
+  Int64.mul day d
+
+let year = Int64.mul 8766L hour
 
 let of_year y =
   if y < 0 then
@@ -57,7 +61,7 @@ let of_year y =
   let y = Int64.of_int y in
   if Int64.compare y 0x248L = 1 then
     invalid_arg "out of range" ;
-  Int64.mul (Int64.mul 8766L hour) y
+  Int64.mul year y
 
 let of_f f =
   if f < 0. then
@@ -96,32 +100,46 @@ let to_min t = to_int t 60_000_000_000L
 
 let to_hour t = to_int t hour
 
-let to_day t = to_int t (Int64.mul 24L hour)
+let to_day t = to_int t day
 
-let to_year t = to_int t (Int64.mul 8766L hour)
+let to_year t = to_int t year
 
-let pp ppf t =
-  let hours = to_hour t in
-  let left = Int64.rem t hour in
-  let min = to_min left in
-  let left = Int64.sub left (of_min min) in
-  let sec = to_sec left in
-  let left = Int64.sub left (of_sec sec) in
+let fields t =
+  let sec = to_sec t in
+  let left = Int64.sub t (of_sec sec) in
   let ms = to_ms left in
   let left = Int64.sub left (of_ms ms) in
   let us = to_us left in
   let ns = Int64.(to_int (sub left (of_us us))) in
-  let p = ref false in
-  let space () = if !p then Format.pp_print_space ppf () in
-  if hours > 0 then
-    (p := true ; Format.fprintf ppf "%d hours" hours) ;
-  if (!p && (sec > 0 || ms > 0 || us > 0 || ns > 0)) || min > 0 then
-    (space () ; p := true ; Format.fprintf ppf "%d minutes" min) ;
-  if (!p && (ms > 0 || us > 0 || ns > 0)) || sec > 0 then
-    (space () ; p := true ; Format.fprintf ppf "%d seconds" sec) ;
-  if (!p && (us > 0 || ns > 0)) || ms > 0 then
-    (space () ; p := true ; Format.fprintf ppf "%d milliseconds" ms) ;
-  if (!p && ns > 0) || us > 0 then
-    (space () ; p := true ; Format.fprintf ppf "%d microseconds" us) ;
-  if ns > 0 then
-    (space () ; Format.fprintf ppf "%d nanoseconds" ns)
+  (sec, ms, us, ns)
+
+let pp ppf t =
+  let min = to_min t in
+  if min > 0 then
+    let y = to_year t in
+    let left = Int64.rem t year in
+    let d = to_day left in
+    let left = Int64.rem left day in
+    if y > 0 then
+      Format.fprintf ppf "%da%dd" y d
+    else
+      let h = to_hour left in
+      let left = Int64.rem left hour in
+      if d > 0 then
+        Format.fprintf ppf "%dd%02dh" d h
+      else
+        let min = to_min left in
+        let left = Int64.sub t (of_min min) in
+        let sec = to_sec left in
+        if h > 0 then
+          Format.fprintf ppf "%dh%02dm" h min
+        else (* if m > 0 then *)
+          Format.fprintf ppf "%dm%02ds" min sec
+  else (* below one minute *)
+    let s, ms, us, ns = fields t in
+    if s > 0 then
+      Format.fprintf ppf "%d.%03ds" s ms
+    else if ms > 0 then
+      Format.fprintf ppf "%d.%03dms" ms us
+    else (* if us > 0 then *)
+      Format.fprintf ppf "%d.%03dus" us ns

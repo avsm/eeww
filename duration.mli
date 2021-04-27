@@ -14,7 +14,7 @@
 (** The type for a duration, exposed as an int64 to provide interoperability. *)
 type t = int64
 
-(** [pp ppf t] prints the duration. *)
+(** [pp ppf t] prints the duration in a concise way. *)
 val pp : Format.formatter -> t -> unit
 
 (** [of_us us] are the microseconds in nanoseconds. *)
