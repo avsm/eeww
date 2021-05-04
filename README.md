@@ -1,1 +1,2 @@
-# vector
+# Resizable arrays for OCaml
+

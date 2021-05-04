@@ -1,0 +1,8 @@
+(library
+ (public_name vector)
+ (modules vector))
+
+(test
+ (name test)
+ (modules test)
+ (libraries vector))

@@ -1,0 +1,19 @@
+opam-version: "2.0"
+maintainer: "Jean-Christophe.Filliatre@lri.fr"
+authors: "Jean-Christophe Filliâtre"
+synopsis: "Resizable Arrays"
+description: "aka vectors, dynamic arrays, growable arrays"
+license: "LGPL-2.1"
+homepage: "https://github.com/backtracking/vector"
+doc: "https://backtracking.github.io/vector"
+bug-reports: "https://github.com/backtracking/vector/issues"
+depends: [
+  "ocaml"
+  "dune" {>= "2.0.0"}
+]
+build: [
+  ["dune" "subst"] {pinned}
+  ["dune" "build" "-p" name "-j" jobs]
+  ["dune" "runtest" "-p" name] {with-test}
+]
+dev-repo: "git+https://github.com/backtracking/vector.git"
