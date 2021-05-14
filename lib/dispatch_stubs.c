@@ -222,7 +222,7 @@ value ocaml_dispatch_data_create(value v_ba)
   CAMLlocal1(v_empty);
   dispatch_queue_t queue = dispatch_get_global_queue(
       DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0);
-  dispatch_data_t empty = dispatch_data_create(Caml_ba_data_val(v_ba), Int_val((Caml_ba_array_val(v_ba))->dim[0]), queue, DISPATCH_DATA_DESTRUCTOR_DEFAULT);
+  dispatch_data_t empty = dispatch_data_create(Caml_ba_data_val(v_ba), (Caml_ba_array_val(v_ba))->dim[0], queue, DISPATCH_DATA_DESTRUCTOR_DEFAULT);
 
   v_empty = caml_alloc_custom(&queue_ops, sizeof(dispatch_data_t), 0, 1);
   Data_val(v_empty) = empty;
