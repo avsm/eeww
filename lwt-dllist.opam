@@ -15,7 +15,7 @@ build: [
  ["dune" "build" "-p" name "-j" jobs]
  ["dune" "runtest" "-p" name "-j" jobs] {with-test}
 ]
-dev-repo: "git+https://github.com/ocsigen/lwt.git"
+dev-repo: "git+https://github.com/mirage/lwt-dllist.git"
 synopsis: "Mutable doubly-linked list with Lwt iterators"
 description: """
 A sequence is an object holding a list of elements which support
