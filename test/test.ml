@@ -96,7 +96,7 @@ let run_test_suite : suite -> ((string * outcome) list) Lwt.t = fun suite ->
     (outcome_to_character Skipped).[0]
     |> String.make (List.length outcomes)
     |> print_string;
-    Pervasives.flush stdout;
+    flush stdout;
 
     Lwt.return outcomes
 
@@ -104,7 +104,7 @@ let run_test_suite : suite -> ((string * outcome) list) Lwt.t = fun suite ->
     suite.suite_tests |> Lwt_list.map_s begin fun test ->
       Lwt.bind (run_test test) (fun outcome ->
       outcome |> outcome_to_character |> print_string;
-      Pervasives.flush stdout;
+      flush stdout;
       Lwt.return (test.test_name, outcome))
     end
 
@@ -189,10 +189,10 @@ let run library_name suites =
       Lwt.bind (run_test_suite suite) begin fun outcomes ->
         if not (outcomes_all_ok outcomes) then begin
           print_newline ();
-          Pervasives.flush stdout;
+          flush stdout;
           Printf.eprintf "Failures in test suite '%s':\n" suite.suite_name;
           show_failures outcomes;
-          Pervasives.exit 1
+          exit 1
         end
         else
           loop_over_suites

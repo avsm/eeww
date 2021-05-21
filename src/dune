@@ -1,5 +1,4 @@
 (library
  (name lwt_dllist)
- (synopsis "Mutable doubly-linked list with Lwt iterators")
- (public_name lwt-dllist)
- (libraries lwt))
+ (synopsis "Mutable doubly-linked list")
+ (public_name lwt-dllist))
