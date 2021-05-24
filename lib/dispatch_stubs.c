@@ -107,6 +107,36 @@ value ocaml_dispath_queue_finalise(value v_queue)
   CAMLreturn(Val_unit);
 }
 
+value ocaml_dispatch_get_main_queue(value v_unit) {
+  CAMLparam1(v_unit);
+  CAMLlocal1(v_queue);
+  dispatch_queue_t queue = dispatch_get_main_queue();
+  v_queue = caml_alloc_custom(&queue_ops, sizeof(dispatch_queue_t), 0, 1);
+  Queue_val(v_queue) = queue;
+  CAMLreturn(v_queue);
+}
+
+value ocaml_dispatch_get_global_queue(value v_qos) {
+  CAMLparam1(v_qos);
+  CAMLlocal1(v_queue);
+  intptr_t ident;
+
+  if (v_qos == 1) {
+    ident = QOS_CLASS_USER_INTERACTIVE;
+  } else if (v_qos == 3) {
+    ident = QOS_CLASS_USER_INITIATED;
+  } else if (v_qos == 5) {
+    ident = QOS_CLASS_UTILITY;
+  } else {  
+    ident = QOS_CLASS_BACKGROUND;
+  }
+
+  dispatch_queue_t queue = dispatch_get_global_queue(ident, 0);
+  v_queue = caml_alloc_custom(&queue_ops, sizeof(dispatch_queue_t), 0, 1);
+  Queue_val(v_queue) = queue;
+  CAMLreturn(v_queue);
+}
+
 value ocaml_dispatch_queue_create(value v_typ, value v_unit)
 {
   CAMLparam2(v_typ, v_unit);
