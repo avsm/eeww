@@ -1,0 +1,21 @@
+(library
+ (name network)
+ (public_name network)
+ (c_library_flags -framework Network)
+ (libraries dispatch)
+ (foreign_stubs
+  (language c)
+  (flags
+   (:standard
+    -O
+    -g
+    -std=c99
+    -pedantic-errors
+    -Wsign-compare
+    -Wshadow
+    -Wno-unguarded-availability-new
+    -Wc11-extensions
+    -mmacosx-version-min=10.14
+    -x
+    objective-c))
+  (names network_stubs)))

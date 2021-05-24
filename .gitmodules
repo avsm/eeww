@@ -1,0 +1,3 @@
+[submodule "ocaml-dispatch"]
+	path = ocaml-dispatch
+	url = https://github.com/patricoferris/ocaml-dispatch.git
