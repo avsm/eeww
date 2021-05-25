@@ -10,3 +10,7 @@
  (alias runtest)
  (action
   (diff ./text.txt ./text2.txt)))
+
+(test
+ (name main)
+ (libraries dispatch))
