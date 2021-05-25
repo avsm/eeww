@@ -1,4 +1,5 @@
 module Queue = Queue
+module Block = Block
 module Io = Io
 module Group = Group
 module Data = Data

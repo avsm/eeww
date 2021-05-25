@@ -1,4 +1,5 @@
 #include <dispatch/dispatch.h>
+#include <block.h>
 #include <caml/alloc.h>
 #include <caml/bigarray.h>
 #include <caml/callback.h>
@@ -18,6 +19,7 @@
 #define Channel_val(v) (*((dispatch_io_t *)Data_custom_val(v)))
 #define Group_val(v) (*((dispatch_group_t *)Data_custom_val(v)))
 #define Data_val(v) (*((dispatch_data_t *)Data_custom_val(v)))
+#define Block_val(v) (*((dispatch_block_t *)Data_custom_val(v)))
 
 value *make_callback(value v_fun)
 {
@@ -31,6 +33,49 @@ void free_callback(value *v_fun)
 {
   caml_remove_generational_global_root(&(*v_fun));
   caml_stat_free(v_fun);
+}
+
+// ~~~Block~~~
+static struct custom_operations block_ops = {
+    "dispatch.block",
+    custom_finalize_default,
+    custom_compare_default,
+    custom_hash_default,
+    custom_serialize_default,
+    custom_deserialize_default,
+    custom_compare_ext_default,
+    custom_fixed_length_default,
+};
+
+// TODO: not convinced by this code... have to unregister callback!
+value ocaml_dispatch_block_create(value v_thunk) {
+  CAMLparam1(v_thunk);
+  CAMLlocal1(v_block);
+  value *m_thunk = make_callback(v_thunk);
+  dispatch_block_t block = ^{
+    caml_callback(*m_thunk, Val_unit);
+  };
+  v_block = caml_alloc_custom(&block_ops, sizeof(dispatch_block_t), 0, 1);
+  Block_val(v_block) = Block_copy(block);
+  CAMLreturn(v_block);
+}
+
+value ocaml_dispatch_block_destroy(value v_block) {
+  CAMLparam1(v_block);
+
+  dispatch_block_t block = Block_val(v_block);
+  Block_release(block);
+
+  CAMLreturn(Val_unit);
+}
+
+value ocaml_dispatch_block_exec(value v_block) {
+  CAMLparam1(v_block);
+
+  dispatch_block_t block = Block_val(v_block);
+  block();
+  
+  CAMLreturn(Val_unit);
 }
 
 value ocaml_dispatch_async(value v_queue, value v_fun)
@@ -82,7 +127,6 @@ value ocaml_dispatch_sync(value v_queue, value v_fun)
 }
 
 // ~~~ Queues ~~~
-
 static struct custom_operations queue_ops = {
     "dispatch.queue",
     custom_finalize_default,
