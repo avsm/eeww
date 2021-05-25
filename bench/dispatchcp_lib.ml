@@ -5,18 +5,20 @@ let copy_file block_size _queue_depth in_path out_path () =
   let in_fd = Unix.(openfile in_path [ O_RDONLY ] 0) in
   let read_io = Dispatch.Io.(create Stream in_fd serial) in
   let group = Dispatch.Group.create () in
+  Dispatch.Group.enter group;
   let write_group = Dispatch.Group.create () in
   let out_fd = Unix.(openfile out_path [ O_RDWR; O_CREAT; O_TRUNC ] 0o775) in
   let write_io = Dispatch.Io.(create Stream out_fd serial) in
   (* Set high-water mark for low memory consumption... I think... *)
   Dispatch.Io.set_high_water read_io block_size;
-  Dispatch.Io.with_read serial read_io group
-    ~f:(fun data ->
+  Dispatch.Io.with_read ~off:0 ~length:max_int ~queue:serial
+    ~f:(fun ~err:_ ~finished data ->
       if Dispatch.Data.size data > 0 then
         Dispatch.Data.apply
           (fun data -> Dispatch.Io.write serial write_io 0 write_group data)
-          data)
-    ~err:(fun () -> print_endline "Oh no!");
+          data;
+      if finished then Dispatch.Group.leave group)
+    read_io;
   Dispatch.(Group.wait group @@ Time.forever ()) |> ignore;
   Dispatch.(Group.wait write_group @@ Time.forever ()) |> ignore
 
