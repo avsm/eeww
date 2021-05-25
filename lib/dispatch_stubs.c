@@ -35,6 +35,14 @@ void free_callback(value *v_fun)
   caml_stat_free(v_fun);
 }
 
+// ~~~Functions~~~
+value ocaml_dispatch_main(value v_unit) {
+  CAMLparam1(v_unit);
+  // Won't return
+  dispatch_main();
+  CAMLreturn(Val_unit);
+}
+
 // ~~~Block~~~
 static struct custom_operations block_ops = {
     "dispatch.block",
