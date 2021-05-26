@@ -158,6 +158,10 @@ val blit : 'a t -> int -> 'a t -> int -> int -> unit
    designate a valid subvector of [v1], or if [o2] and [len] do not
    designate a valid subvector of [v2]. *)
 
+val swap_contents : 'a t -> 'a t -> unit
+(** [Vector.swap_contents v1 v2] exchanges the contents of vectors [v1]
+    and [v2] in constant time. *)
+
 val to_list : 'a t -> 'a list
 (** [Vector.to_list a] returns the list of all the elements of [a]. *)
 
