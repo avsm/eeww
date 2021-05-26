@@ -399,7 +399,11 @@ value ocaml_dispatch_io_handler(value *handler, bool done, dispatch_data_t data,
   CAMLparam0();
   CAMLlocal1(v_data);
   v_data = caml_alloc_custom(&queue_ops, sizeof(dispatch_data_t), 0, 1);
-  Data_val(v_data) = data;
+  if (data != NULL) {
+    Data_val(v_data) = data;
+  } else {
+    Data_val(v_data) = dispatch_data_empty;
+  }
   caml_callback3(*handler, Val_int(error), value_of_bool(done), v_data);
   CAMLreturn(Val_unit);
 }
@@ -417,8 +421,7 @@ value ocaml_dispatch_with_read(value v_channel, value v_off, value v_len, value 
     if (res)
       caml_acquire_runtime_system();
     
-    if (data != NULL) 
-      ocaml_dispatch_io_handler(m_handler, done, data, error);
+    ocaml_dispatch_io_handler(m_handler, done, data, error);
 
     if (done) {
       free_callback(m_handler);
@@ -440,7 +443,6 @@ value ocaml_dispatch_with_write(value v_channel, value v_off, value v_data, valu
   // Allocate everything the thread is going to need
   value *m_handler = make_callback(v_handler);
   dispatch_queue_t queue = Queue_val(v_queue);
-
   dispatch_io_write(Channel_val(v_channel), Val_int(v_off), Data_val(v_data), queue, ^(bool done, dispatch_data_t data, int error) {
     int res = caml_c_thread_register();
 

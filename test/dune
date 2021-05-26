@@ -1,3 +1,5 @@
+; Copying File
+
 (rule
  (alias runtest)
  (deps text.txt ../bench/dispatchcp.exe)
@@ -10,6 +12,25 @@
  (alias runtest)
  (action
   (diff ./text.txt ./text2.txt)))
+
+; Cat-ing File 
+
+(rule
+ (alias runtest)
+ (deps text.txt ../bench/dispatchcat.exe)
+ (targets text3.txt)
+ (action
+  (progn
+   (with-stdout-to
+    text3.txt
+    (run ../bench/dispatchcat.exe ./text.txt)))))
+
+(rule
+ (alias runtest)
+ (action
+  (diff ./text.txt ./text3.txt)))
+
+; Testing random parts of the API
 
 (test
  (name main)
