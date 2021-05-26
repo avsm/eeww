@@ -45,3 +45,13 @@ let () =
   for i = 1000 downto 0 do resize v i done;
   for _ = 1 to 1000 do resize v (Random.int 10_000) done;
   ()
+
+(* swap_contents *)
+
+let () =
+  let odd = [ 1; 3; 5 ] and even = [ 2; 4 ] in
+  let init_odd = of_list ~dummy:0 odd
+  and init_even = of_list ~dummy:0 even in
+  swap_contents init_odd init_even;
+  assert (to_list init_odd = even);
+  assert (to_list init_even = odd)

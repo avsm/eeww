@@ -14,7 +14,7 @@
 (**************************************************************************)
 
 type 'a t = {
-          dummy: 'a;
+  mutable dummy: 'a;
   mutable size:  int;
   mutable data:  'a array; (* 0 <= size <= Array.length data *)
 }
@@ -128,6 +128,17 @@ let blit a1 ofs1 a2 ofs2 len =
     for i = 0 to len - 1 do
       unsafe_set a2 (ofs2 + i) (unsafe_get a1 (ofs1 + i))
     done
+
+let swap_contents a b =
+  let tmp_dummy = a.dummy
+  and tmp_size = a.size
+  and tmp_data = a.data in
+  a.dummy <- b.dummy;
+  a.size <- b.size;
+  a.data <- b.data;
+  b.dummy <- tmp_dummy;
+  b.size <- tmp_size;
+  b.data <- tmp_data
 
 let iter f a =
   for i = 0 to length a - 1 do f (unsafe_get a i) done
