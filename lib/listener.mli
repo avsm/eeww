@@ -20,3 +20,17 @@ val start : t -> unit
 
 val cancel : t -> unit
 (** [cancel t] stopos [t] listening for inbound connections *)
+
+val retain : t -> unit
+
+val release : t -> unit
+
+module State : sig
+  type t = Invalid | Waiting | Preparing | Ready | Failed | Cancelled
+
+  type handler = t -> Error.t -> unit
+end
+
+val set_state_changed_handler : handler:State.handler -> t -> unit
+
+val set_new_connection_handler : handler:(Connection.t -> unit) -> t -> unit
