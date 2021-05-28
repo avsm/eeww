@@ -23,6 +23,126 @@
 #define Params_val(v) (*((nw_parameters_t *)Data_custom_val(v)))
 #define Listener_val(v) (*((nw_listener_t *)Data_custom_val(v)))
 #define Connection_val(v) (*((nw_connection_t *)Data_custom_val(v)))
+#define Endpoint_val(v) (*((nw_endpoint_t *)Data_custom_val(v)))
+
+value error_to_value(nw_error_t error) {
+  // TODO: Fix
+  return (Val_int(0));
+}
+
+// ~~~Connection~~~
+static struct custom_operations connection_ops = {
+    "network.connection",
+    custom_finalize_default,
+    custom_compare_default,
+    custom_hash_default,
+    custom_serialize_default,
+    custom_deserialize_default,
+    custom_compare_ext_default,
+    custom_fixed_length_default,
+};
+
+value ocaml_network_connection_create(value v_endpoint, value v_params) {
+  CAMLparam2(v_endpoint, v_params);
+  CAMLlocal1(v_connection);
+  nw_connection_t connection = nw_connection_create(Endpoint_val(v_endpoint), Params_val(v_params));
+  v_connection = caml_alloc_custom(&connection_ops, sizeof(nw_connection_t), 0, 1);
+  Connection_val(v_connection) = connection;
+  CAMLreturn(v_connection);
+}
+
+value ocaml_network_connection_set_queue(value v_queue, value v_connection) {
+  CAMLparam2(v_queue, v_connection);
+  nw_connection_set_queue(Connection_val(v_connection), Queue_val(v_queue));
+  CAMLreturn(Val_unit);
+}
+
+value ocaml_network_connection_retain(value v_connection) {
+  CAMLparam1(v_connection);
+  nw_retain(Connection_val(v_connection));
+  CAMLreturn(Val_unit);
+}
+
+value ocaml_network_connection_start(value v_connection) {
+  CAMLparam1(v_connection);
+  nw_connection_start(Connection_val(v_connection));
+  CAMLreturn(Val_unit);
+}
+
+value ocaml_network_connection_cancel(value v_connection) {
+  CAMLparam1(v_connection);
+  nw_connection_cancel(Connection_val(v_connection));
+  CAMLreturn(Val_unit);
+}
+
+value state_to_value(nw_connection_state_t state) {
+  // Think this is correct...
+  return (Val_int(state));
+}
+
+value ocaml_network_connection_set_state_changed_handler(value v_handler, value v_connection) {
+  CAMLparam1(v_connection);
+  nw_connection_set_state_changed_handler(Connection_val(v_connection), ^(nw_connection_state_t state, nw_error_t error) {
+    int res = caml_c_thread_register();
+    if (res)
+      caml_acquire_runtime_system();
+
+    caml_callback2(v_handler, state_to_value(state), error_to_value(error));
+
+    if (res)
+    {
+      caml_release_runtime_system();
+      caml_c_thread_unregister();
+    }
+    return;
+  });
+  CAMLreturn(Val_unit);
+}
+
+value ocaml_network_connection_receive(value v_min, value v_max, value v_comp, value v_conn) {
+  CAMLparam4(v_min, v_max, v_comp, v_conn);
+  nw_connection_receive(Connection_val(v_conn), 1, UINT32_MAX, 
+    ^(dispatch_data_t data, nw_content_context_t context, bool is_complete, nw_error_t receive_error) {
+      int res = caml_c_thread_register();
+      if (res)
+        caml_acquire_runtime_system();
+
+      CAMLlocal1(v_data);
+      v_data = caml_alloc_custom(&connection_ops, sizeof(dispatch_data_t), 0, 1);
+      Data_val(v_data) = data;
+      value args[4];
+      args[0] = v_data;
+      args[1] = Val_unit; // TODO: Pass context
+      args[2] = Val_bool(is_complete);
+      args[3] = Val_unit; // TODO: Pass error
+      caml_callbackN(v_comp, 4, args);
+      
+      if (res)
+      {
+        caml_release_runtime_system();
+        caml_c_thread_unregister();
+      }
+  });
+  CAMLreturn(Val_unit);
+}
+
+value ocaml_network_connection_send(value v_d, value v_ctx, value v_bool, value v_comp, value v_conn) {
+  CAMLparam5(v_d, v_ctx, v_bool, v_comp, v_conn);
+  nw_connection_send(Connection_val(v_conn), Data_val(v_d), NW_CONNECTION_DEFAULT_MESSAGE_CONTEXT, Bool_val(v_bool),
+    ^(nw_error_t receive_error) {
+      int res = caml_c_thread_register();
+      if (res)
+        caml_acquire_runtime_system();
+      caml_callback(v_comp, Val_unit); // pass err
+      if (res)
+      {
+        caml_release_runtime_system();
+        caml_c_thread_unregister();
+      }
+      return;
+    });
+  CAMLreturn(Val_unit);
+}
 
 // ~~~ Listeners ~~~
 static struct custom_operations listener_ops = {
@@ -66,6 +186,60 @@ value ocaml_network_listener_create_with_connection(value v_conn, value v_params
   CAMLreturn(v_listen);
 }
 
+value ocaml_network_listener_get_port(value v_listener) {
+  CAMLparam1(v_listener);
+  nw_listener_t listener = Listener_val(v_listener);
+  uint16_t port = nw_listener_get_port(listener);
+  printf("%i\n", port);
+  CAMLreturn(Val_int(port));
+}
+
+value ocaml_network_listener_start(value v_listener) {
+  CAMLparam1(v_listener);
+  nw_listener_t listener = Listener_val(v_listener);
+  nw_listener_start(listener);
+  CAMLreturn(Val_unit);
+}
+
+value ocaml_network_listener_retain(value v_listener) {
+  CAMLparam1(v_listener);
+  nw_listener_t listener = Listener_val(v_listener);
+  nw_retain(listener);
+  CAMLreturn(Val_unit);
+}
+
+value ocaml_network_listener_release(value v_listener) {
+  CAMLparam1(v_listener);
+  nw_listener_t listener = Listener_val(v_listener);
+  nw_release(listener);
+  CAMLreturn(Val_unit);
+}
+
+value listener_state_to_value(nw_listener_state_t state) {
+  // Think this is correct...
+  return (Val_int(state));
+}
+
+value ocaml_network_listener_set_state_changed_handler(value v_handler, value v_listener) {
+  CAMLparam2(v_handler, v_listener);
+  nw_listener_set_state_changed_handler(Listener_val(v_listener), ^(nw_listener_state_t state, nw_error_t error) {
+    caml_callback2(v_handler, listener_state_to_value(state), error_to_value(error));
+  });
+  CAMLreturn(Val_unit);
+}
+
+value ocaml_network_listener_set_new_connection_handler(value v_handler, value v_listener) {
+  CAMLparam2(v_handler, v_listener);
+  nw_listener_set_new_connection_handler(Listener_val(v_listener), ^(nw_connection_t connection) {
+    CAMLlocal1(v_connection);
+    v_connection = caml_alloc_custom(&connection_ops, sizeof(nw_connection_t), 0, 1);
+    Connection_val(v_connection) = connection;
+    caml_callback_exn(v_handler, v_connection);
+  });
+  CAMLreturn(Val_unit);
+}
+
+
 // ~~~Parameters~~~
 static struct custom_operations parameters_ops = {
     "network.parameters",
@@ -85,4 +259,48 @@ value ocaml_network_parameters_create(value v_unit) {
   v_params = caml_alloc_custom(&parameters_ops, sizeof(nw_parameters_t), 0, 1);
   Params_val(v_params) = params;
   CAMLreturn(v_params);
+}
+
+value ocaml_network_parameters_create_tcp(value v_unit) {
+  CAMLparam1(v_unit);
+	nw_parameters_configure_protocol_block_t configure_tls = NW_PARAMETERS_DISABLE_PROTOCOL;
+  nw_parameters_t params = nw_parameters_create_secure_tcp(configure_tls, NW_PARAMETERS_DEFAULT_CONFIGURATION);
+  CAMLlocal1(v_params);
+  v_params = caml_alloc_custom(&parameters_ops, sizeof(nw_parameters_t), 0, 1);
+  Params_val(v_params) = params;
+  nw_retain(params);
+  CAMLreturn(v_params);
+}
+
+value ocaml_network_parameters_set_local_endpoint(value v_params, value v_endpoint) {
+  CAMLparam2(v_params, v_endpoint);
+  nw_parameters_set_local_endpoint(Params_val(v_params), Endpoint_val(v_endpoint));
+  CAMLreturn(Val_unit);
+}
+
+// ~~~Endpoints~~~
+static struct custom_operations endpoint_ops = {
+    "network.endpoint",
+    custom_finalize_default,
+    custom_compare_default,
+    custom_hash_default,
+    custom_serialize_default,
+    custom_deserialize_default,
+    custom_compare_ext_default,
+    custom_fixed_length_default,
+};
+
+value ocaml_network_endpoint_create_host(value v_hostname, value v_port) {
+  CAMLparam2(v_hostname, v_port);
+  CAMLlocal1(v_endpoint);
+  nw_endpoint_t endpoint = nw_endpoint_create_host(String_val(v_hostname), String_val(v_port));
+  v_endpoint = caml_alloc_custom(&endpoint_ops, sizeof(nw_endpoint_t), 0, 1);
+  Endpoint_val(v_endpoint) = endpoint;
+  CAMLreturn(v_endpoint);
+}
+
+value ocaml_network_endpoint_release(value v_endpoint) {
+  CAMLparam1(v_endpoint);
+  nw_release(Endpoint_val(v_endpoint));
+  CAMLreturn(Val_unit);
 }
