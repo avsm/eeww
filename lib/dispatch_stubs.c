@@ -337,6 +337,17 @@ value ocaml_dispatch_data_size(value v_data)
   CAMLreturn(Val_int(dispatch_data_get_size(Data_val(v_data))));
 }
 
+value ocaml_dispatch_concat(value v_d1, value v_d2)
+{
+  // Free these?
+  CAMLparam2(v_d1, v_d2);
+  CAMLlocal1(v_d3);
+  dispatch_data_t d3 = dispatch_data_create_concat(Data_val(v_d1), Data_val(v_d2));
+  v_d3 = caml_alloc_custom(&queue_ops, sizeof(dispatch_data_t), 0, 1);
+  Data_val(v_d3) = d3;
+  CAMLreturn(v_d3);
+}
+
 value ocaml_dispatch_data_apply(value v_f, value v_data)
 {
   CAMLparam2(v_f, v_data);
@@ -346,9 +357,9 @@ value ocaml_dispatch_data_apply(value v_f, value v_data)
     value d = caml_alloc_custom(&queue_ops, sizeof(dispatch_data_t), 0, 1);
     Data_val(d) = region;
     caml_callback_exn(*m_f, d);
-    free_callback(m_f);
     return (_Bool) true;
   });
+  free_callback(m_f);
   CAMLreturn(Val_unit);
 }
 
