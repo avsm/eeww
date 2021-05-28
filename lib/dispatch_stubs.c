@@ -47,7 +47,8 @@ value value_of_bool(bool b) {
 // ~~~Functions~~~
 value ocaml_dispatch_main(value v_unit) {
   CAMLparam1(v_unit);
-  // Won't return
+  // Hmmm... seems we need this, but is it okay given dispatch_main never returns?!
+  caml_release_runtime_system();
   dispatch_main();
   CAMLreturn(Val_unit);
 }
@@ -87,10 +88,19 @@ value ocaml_dispatch_block_destroy(value v_block) {
 }
 
 value ocaml_dispatch_block_exec(value v_block) {
+  int res = caml_c_thread_register();
+    if (res)
+      caml_acquire_runtime_system();
+  
   CAMLparam1(v_block);
 
   dispatch_block_t block = Block_val(v_block);
-  block();
+  
+  if (res)
+    {
+      caml_release_runtime_system();
+      caml_c_thread_unregister();
+    }
   
   CAMLreturn(Val_unit);
 }
