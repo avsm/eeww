@@ -34,4 +34,4 @@
 
 (test
  (name main)
- (libraries dispatch))
+ (libraries cstruct dispatch))
