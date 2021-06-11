@@ -6,15 +6,8 @@
 (executable
  (name dispatchcp)
  (modules dispatchcp)
- (libraries
-  cmdliner
-  dispatchcp_lib
-  fmt
-  logs
-  logs.cli
-  logs.fmt
-  fmt.tty
-  fmt.cli))
+ (libraries cmdliner dispatchcp_lib fmt logs logs.cli logs.fmt fmt.tty
+   fmt.cli))
 
 (executable
  (name dispatchcat)
@@ -36,11 +29,5 @@
  (public_name dispatch-bench)
  (package dispatch-bench)
  (modules cptest)
- (libraries
-  dispatchcp_lib
-  lwtcp_lib
-  dispatch
-  bos
-  bechamel
-  notty.unix
-  bechamel-notty))
+ (libraries dispatchcp_lib lwtcp_lib dispatch bos bechamel notty.unix
+   bechamel-notty))

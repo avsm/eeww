@@ -137,19 +137,20 @@ value ocaml_dispatch_sync(value v_queue, value v_fun)
   caml_release_runtime_system();
   dispatch_sync(queue, ^{
     int res = caml_c_thread_register();
-
-    if (res)
-      caml_acquire_runtime_system();
+    // printf("RES %i\n", res);
+    caml_acquire_runtime_system();
 
     caml_callback(*m_fun, Val_unit);
 
+    caml_release_runtime_system();
+    
     if (res)
     {
-      caml_release_runtime_system();
       caml_c_thread_unregister();
     }
     return;
   });
+  caml_acquire_runtime_system();
   CAMLreturn(Val_unit);
 }
 
