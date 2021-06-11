@@ -22,3 +22,9 @@ val apply : (t -> unit) -> t -> unit
 val concat : t -> t -> t 
 (** [concat t1 t2] creates a new [t3] by concating [t1] and [t2] -- note the data of [t3]
     is non-contiguous so this operation should be fast *)
+
+val to_buff : offset:int -> int -> t -> buff 
+(** [to_buff t] returns the data as a {! buff} *)
+
+val sub : int -> int -> t -> t 
+(** [sub off len t] returns a new data object consisting of a portion of another's memory region *)

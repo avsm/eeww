@@ -330,6 +330,38 @@ value ocaml_dispatch_data_create(value v_ba)
   CAMLreturn(v_empty);
 }
 
+value ocaml_dispatch_data_to_ba(value v_off, value v_len, value v_data) {
+  CAMLparam3(v_off, v_len, v_data);
+  dispatch_data_t dispersed_data = Data_val(v_data);
+  // Copies all of the segments to one contiguous one
+  const void *buff = NULL;
+  size_t size = 0;
+  dispatch_data_t data = dispatch_data_create_map(dispersed_data, &buff, &size);
+  // Copy contents of buff into the big array 
+  void *dest = caml_stat_alloc(size);
+  void *copy = memcpy(dest, buff, size);
+
+  CAMLlocal1(v_ba);
+  long dims[1];
+  dims[0] = size;
+  // Is this right?
+  v_ba = caml_ba_alloc(CAML_BA_CHAR | CAML_BA_C_LAYOUT, 1, copy, dims);
+
+  CAMLreturn(v_ba);
+}
+
+value ocaml_dispatch_data_sub(value v_off, value v_len, value v_data) {
+  CAMLparam3(v_off, v_len, v_data);
+  CAMLlocal1(v_new_data);
+
+  dispatch_data_t new_data = dispatch_data_create_subrange(Data_val(v_data), Int_val(v_off), Int_val(v_len));
+
+  v_new_data = caml_alloc_custom(&queue_ops, sizeof(dispatch_data_t), 0, 1);
+  Data_val(v_new_data) = new_data;
+
+  CAMLreturn(v_new_data);
+}
+
 value ocaml_dispatch_data_empty(value unit)
 {
   CAMLparam1(unit);
