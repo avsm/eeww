@@ -31,7 +31,9 @@
   (diff ./text.txt ./text3.txt)))
 
 ; Testing random parts of the API
+; running in byte mode seems to hit different code paths
 
 (test
  (name main)
+ (modes byte)
  (libraries dispatch))

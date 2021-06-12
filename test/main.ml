@@ -1,4 +1,10 @@
-let () =
+(* GC Tests *)
+let queue () =
+  let q = Dispatch.Queue.create () in
+  Dispatch.async q (fun () -> print_endline "Hello");
+  Dispatch.sync q (fun () -> print_endline "World")
+
+let random () =
   let group = Dispatch.Group.create () in
   Dispatch.Group.enter group;
   Dispatch.Group.leave group;
@@ -8,7 +14,8 @@ let () =
   Dispatch.Block.exec block1;
   Dispatch.Block.exec block2
 
-(* let d1 = Dispatch.Data.create (Cstruct.to_bigarray (Cstruct.of_string "hello1")) in
-   let d2 = Dispatch.Data.create (Cstruct.to_bigarray (Cstruct.of_string "hello2")) in
-   let d3 = Dispatch.Data.concat d1 d2 in
-   Dispatch.Data.apply (fun d -> print_int (Dispatch.Data.size d)) d3 *)
+let main () =
+  queue ();
+  random ()
+
+let () = main ()
