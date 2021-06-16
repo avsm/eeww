@@ -5,6 +5,7 @@ let cat ~group fd =
   let io = Dispatch.Io.create Stream fd queue in
   let stdout = Dispatch.Io.create Stream Unix.stdout queue in
   Dispatch.Group.enter group;
+  Dispatch.Io.set_high_water io (1024 * 64);
   Dispatch.Io.with_read ~off:0 ~length:max_int ~queue
     ~f:(fun ~err:_ ~finished data ->
       if finished then Dispatch.Group.leave group
@@ -16,8 +17,11 @@ let cat ~group fd =
     io
 
 let () =
-  let fname = Sys.argv.(1) in
   let group = Dispatch.Group.create () in
-  let fd = Unix.(openfile fname [ O_RDONLY ]) 0 in
+  let fd = 
+    if Array.length Sys.argv > 1
+    then Unix.(openfile Sys.argv.(1) [ O_RDONLY ]) 0
+    else Unix.stdin 
+  in
   cat ~group fd;
   Dispatch.(Group.wait group (Time.forever ()) |> ignore)

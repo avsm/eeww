@@ -30,6 +30,23 @@
  (action
   (diff ./text.txt ./text3.txt)))
 
+; C cat-ing file
+
+(rule
+ (alias runtest)
+ (deps text.txt ../bench/cat)
+ (targets text4.txt)
+ (action
+  (progn
+   (with-stdout-to
+    text4.txt
+    (run ../bench/cat ./text.txt)))))
+
+(rule
+ (alias runtest)
+ (action
+  (diff ./text.txt ./text4.txt)))
+
 ; Testing random parts of the API
 ; running in byte mode seems to hit different code paths
 

@@ -31,3 +31,9 @@
  (modules cptest)
  (libraries dispatchcp_lib lwtcp_lib dispatch bos bechamel notty.unix
    bechamel-notty))
+
+(rule
+ (alias default)
+ (deps cat.c)
+ (targets cat)
+ (action (run gcc -O3 -o cat cat.c)))
