@@ -58,63 +58,26 @@ Next a copy function, for every `read` of data we also `write` that data out.
 val cp : Dispatch.Io.t -> Dispatch.Io.t -> unit -> Dispatch.Group.t = <fun>
 ```
 
-Next we run the function using the `dune-project` and printing to standard out.
+Next we run the function using the `LICENSE.md` and printing to standard out.
 
 ```ocaml
 # let () = 
-    let in_io = Dispatch.Io.create Stream (Unix.(openfile "dune-project" [ O_RDONLY ]) 0) q in 
+    let in_io = Dispatch.Io.create Stream (Unix.(openfile "LICENSE.md" [ O_RDONLY ]) 0) q in 
     let out_io = Dispatch.Io.create Stream Unix.stdout q in
       with_group (cp in_io out_io)
-(lang dune 2.7)
-
-(name dispatch)
-
-(generate_opam_files true)
-
-(source
- (github patricoferris/ocaml-dispatch))
-
-(license ISC)
-
-(authors "Patrick Ferris")
-
-(maintainers "pf341@patricoferris.com")
-
-(package
- (name dispatch)
- (synopsis "OCaml bindings for Apple's Grand Central Dispatch")
- (description "Bindings for Apple's Grand Central Dispatch.")
- (depends
-  (dune-configurator
-   (>= 2.7.1))
-  (logs :with-test)
-  (mdx :with-test)
-  (fmt :with-test)
-  (cmdliner :with-test)))
-
-(package
- (name dispatch-bench)
- (synopsis "Small benchmarks for GCD")
- (description
-  "A package for testing various GCD programs and counter parts written in other libraries.")
- (depends
-  (notty
-   (>= 0.2.2))
-  (lwt
-   (>= 5.4.0))
-  (logs
-   (>= 0.7.0))
-  (fmt
-   (>= 0.8.9))
-  (cmdliner
-   (>= 1.0.4))
-  (bos
-   (>= 0.2.0))
-  (bechamel-notty
-   (>= 0.1.0))
-  (bechamel
-   (>= 0.1.0))
-  dispatch))
-
-(using mdx 0.1)
+/*
+ * Copyright (C) 2020-2021 Patrick Ferris
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
 ```
