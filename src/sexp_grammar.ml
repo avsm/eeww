@@ -11,7 +11,7 @@
     [[@@deriving sexp_grammar]] wraps grammars in the [Lazy] constructor as needed.
 
     This type may change over time as our needs for expressive grammars change. We will
-    attempt to make changes backward-compatible, or at least provide a resonable upgrade
+    attempt to make changes backward-compatible, or at least provide a reasonable upgrade
     path. *)
 
 [@@@warning "-30"] (* allow duplicate field names *)
@@ -24,10 +24,9 @@ type grammar =
   | Integer (** accepts any atom matching ocaml integer syntax, regardless of bit width *)
   | Float (** accepts any atom matching ocaml float syntax *)
   | String (** accepts any atom *)
-  | Enum of enum (** accepts any one of a set of specific atoms *)
   | Option of grammar (** accepts an option, both [None] vs [Some _] and [()] vs [(_)]. *)
   | List of list_grammar (** accepts a list *)
-  | Variant of variant (** accepts a list with contents specified by a leading atom *)
+  | Variant of variant (** accepts clauses keyed by a leading or sole atom *)
   | Union of grammar list (** accepts a sexp if any of the listed grammars accepts it *)
   | Tyvar of string
   (** Name of a type variable, e.g. [Tyvar "a"] for ['a]. Only meaningful when the body of
@@ -119,24 +118,25 @@ and name_kind =
   | Capitalized
   (** used for regular variants, strings compared modulo case of the first character *)
 
-(** Grammar of enumerations. Accepts any of the [names] as an atom, modulo [name_kind]. *)
-and enum =
-  { name_kind : name_kind
-  ; names : string list
-  }
-
 (** Grammar of variants. Accepts any sexp matching one of the clauses. *)
 and variant =
   { name_kind : name_kind
   ; clauses : clause list
   }
 
-(** Grammar of a single variant clause. Accepts a list headed by [name] as an atom, modulo
-    the variant's [name_kind], with tail specified by [args]. *)
+(** Grammar of a single variant clause. Accepts sexps based on the [clause_kind]. *)
 and clause =
   { name : string
-  ; args : list_grammar
+  ; clause_kind : clause_kind
   }
+
+(** Grammar of a single variant clause's contents. [Atom_clause] accepts an atom matching
+    the clause's name. [List_clause] accepts a list whose head is an atom matching the
+    clause's name and whose tail matches [args]. The clause's name is matched modulo the
+    variant's [name_kind]. *)
+and clause_kind =
+  | Atom_clause
+  | List_clause of { args : list_grammar }
 
 (** Grammar of a record. Accepts any list of sexps specifying each of the fields,
     regardless of order. If [allow_extra_fields] is specified, ignores sexps with names
