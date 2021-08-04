@@ -157,7 +157,7 @@ let of_strings_exn xs =
   in
   let t = Array.of_list labels in
   if check t then t
-  else invalid_arg "invalid host name"
+  else invalid_arg "invalid domain name"
 
 let of_strings xs =
   try Ok (of_strings_exn xs) with
