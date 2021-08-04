@@ -1,29 +1,32 @@
 
 type t = int64
 
-let of_us m =
-  if m < 0 then
+let of_us_64 m =
+  if m < 0L then
     invalid_arg "negative" ;
-  let m = Int64.of_int m in
   if Int64.compare m 0x4189374BC6A7EDL = 1 then
     invalid_arg "out of range" ;
   Int64.mul 1_000L m
 
-let of_ms m =
-  if m < 0 then
+let of_us m = of_us_64 (Int64.of_int m)
+
+let of_ms_64 m =
+  if m < 0L then
     invalid_arg "negative" ;
-  let m = Int64.of_int m in
   if Int64.compare m 0x10C6F7A0B5EDL = 1 then
     invalid_arg "out of range" ;
   Int64.mul 1_000_000L m
 
-let of_sec s =
-  if s < 0 then
+let of_ms m = of_ms_64 (Int64.of_int m)
+
+let of_sec_64 s =
+  if s < 0L then
     invalid_arg "negative" ;
-  let s = Int64.of_int s in
   if Int64.compare s 0x44B82FA09L = 1 then
     invalid_arg "out of range" ;
   Int64.mul 1_000_000_000L s
+
+let of_sec m = of_sec_64 (Int64.of_int m)
 
 let of_min m =
   if m < 0 then
@@ -68,10 +71,10 @@ let of_f f =
     invalid_arg "negative" ;
   if f > 18446744073.709549 then
     invalid_arg "out of range" ;
-  let s = int_of_float f in
-  let rem = f -. (float_of_int s) in
+  let s = Int64.of_float f in
+  let rem = f -. (Int64.to_float s) in
   let ns = Int64.of_float (rem *. 1_000_000_000.) in
-  Int64.(add (mul 1_000_000_000L (of_int s)) ns)
+  Int64.(add (mul 1_000_000_000L s) ns)
 
 let to_f t =
   let pl =
@@ -83,16 +86,28 @@ let to_f t =
   let ns = Int64.to_float t in
   (ns +. pl) /. 1_000_000_000.
 
-let to_int t d =
-  let f c = Int64.(to_int (div c d)) in
+let to_int64 t d =
+  let f c = Int64.div c d in
   if t < 0L then
-    f (Int64.add t Int64.min_int) + f Int64.max_int + 1
+    Int64.(add (f (Int64.add t Int64.min_int)) (add (f Int64.max_int) 1L))
   else
     f t
 
+let to_int t d =
+  let r = to_int64 t d in
+  if r > Int64.of_int max_int then
+    invalid_arg "value too big for this platform" ;
+  Int64.to_int r
+
+let to_us_64 t = to_int64 t 1_000L
+
 let to_us t = to_int t 1_000L
 
+let to_ms_64 t = to_int64 t 1_000_000L
+
 let to_ms t = to_int t 1_000_000L
+
+let to_sec_64 t = to_int64 t 1_000_000_000L
 
 let to_sec t = to_int t 1_000_000_000L
 
@@ -105,12 +120,12 @@ let to_day t = to_int t day
 let to_year t = to_int t year
 
 let fields t =
-  let sec = to_sec t in
-  let left = Int64.sub t (of_sec sec) in
-  let ms = to_ms left in
-  let left = Int64.sub left (of_ms ms) in
-  let us = to_us left in
-  let ns = Int64.(to_int (sub left (of_us us))) in
+  let sec = to_sec_64 t in
+  let left = Int64.sub t (of_sec_64 sec) in
+  let ms = to_ms_64 left in
+  let left = Int64.sub left (of_ms_64 ms) in
+  let us = to_us_64 left in
+  let ns = Int64.(sub left (of_us_64 us)) in
   (sec, ms, us, ns)
 
 let pp ppf t =
@@ -137,9 +152,9 @@ let pp ppf t =
           Format.fprintf ppf "%dm%02ds" min sec
   else (* below one minute *)
     let s, ms, us, ns = fields t in
-    if s > 0 then
-      Format.fprintf ppf "%d.%03ds" s ms
-    else if ms > 0 then
-      Format.fprintf ppf "%d.%03dms" ms us
+    if s > 0L then
+      Format.fprintf ppf "%Ld.%03Lds" s ms
+    else if ms > 0L then
+      Format.fprintf ppf "%Ld.%03Ldms" ms us
     else (* if us > 0 then *)
-      Format.fprintf ppf "%d.%03dus" us ns
+      Format.fprintf ppf "%Ld.%03Ldus" us ns
