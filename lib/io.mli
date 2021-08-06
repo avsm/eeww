@@ -8,7 +8,7 @@ type typ =
           file offset to read *)
 
 val create : typ -> Unix.file_descr -> Queue.t -> t
-(** Create a new channel of a particular [typ] from a [Unix.file_descr] *)
+(** Create a new channel of a particular [typ] from a path *)
 
 (* val read : Queue.t -> t -> int -> int -> Group.t -> Data.t -> unit *)
 
@@ -32,3 +32,10 @@ val with_write :
 val write : Queue.t -> t -> int -> Group.t -> Data.t -> unit
 val set_high_water : t -> int -> unit
 val set_low_water : t -> int -> unit
+
+(* TODO: Make close flags a parameter *)
+val close : t -> unit
+(** [close io] closes the [io] channel and stops any in-progress reads and writes *)
+
+
+

@@ -419,6 +419,13 @@ static struct custom_operations io_ops = {
     custom_fixed_length_default,
 };
 
+value ocaml_dispatch_io_close(value v_channel)
+{
+  CAMLparam1(v_channel);
+  dispatch_io_close(Channel_val(v_channel), DISPATCH_IO_STOP);
+  CAMLreturn(Val_unit);
+}
+
 value ocaml_dispatch_io_create(value v_typ, value v_fd, value v_queue)
 {
   CAMLparam3(v_typ, v_fd, v_queue);
