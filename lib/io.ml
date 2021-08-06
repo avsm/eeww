@@ -6,6 +6,9 @@ type handler = err:err -> finished:bool -> Data.t -> unit
 external dispatch_io_create : typ -> Unix.file_descr -> Queue.t -> t
   = "ocaml_dispatch_io_create"
 
+external dispatch_io_close : t -> unit
+  = "ocaml_dispatch_io_close"
+
 external dispatch_with_read :
   t -> int -> int -> Queue.t -> (int -> bool -> Data.t -> unit) -> unit
   = "ocaml_dispatch_with_read"
@@ -24,6 +27,8 @@ external dispatch_set_low_water : t -> int -> unit
   = "ocaml_dispatch_set_low_water"
 
 let create typ fd q = dispatch_io_create typ fd q
+
+let close t = dispatch_io_close t
 
 let with_read ~f ~off ~length ~queue channel =
   let f' err finished data = f ~err ~finished data in
