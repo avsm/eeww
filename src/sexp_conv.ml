@@ -6,12 +6,6 @@ open MoreLabels
 open Printf
 open Sexp
 
-type sexp_bool = bool
-type 'a sexp_option = 'a option
-type 'a sexp_list = 'a list
-type 'a sexp_array = 'a array
-type 'a sexp_opaque = 'a
-
 (* Conversion of OCaml-values to S-expressions *)
 external format_float : string -> float -> string = "caml_format_float"
 
