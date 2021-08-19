@@ -8,8 +8,7 @@
   (language c)
   (flags
    (:standard -O -g -std=c99 -pedantic-errors -Wsign-compare -Wshadow
-     -Wno-unguarded-availability-new -Wc11-extensions
-     -mmacosx-version-min=10.10 -x objective-c))
+     -Wno-unguarded-availability-new -Wc11-extensions -x objective-c))
   (names dispatch_stubs)))
 
 (rule
