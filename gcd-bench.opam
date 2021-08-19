@@ -18,7 +18,7 @@ depends: [
   "bos" {>= "0.2.0"}
   "bechamel-notty" {>= "0.1.0"}
   "bechamel" {>= "0.1.0"}
-  "dispatch"
+  "gcd"
   "odoc" {with-doc}
 ]
 build: [
