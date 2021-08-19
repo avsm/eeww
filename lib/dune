@@ -1,6 +1,6 @@
 (library
  (name dispatch)
- (public_name dispatch)
+ (public_name gcd)
  (c_library_flags
   (:include c_library_flags.sexp))
  (libraries threads bigarray)

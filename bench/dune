@@ -1,7 +1,7 @@
 (library
  (name dispatchcp_lib)
  (modules dispatchcp_lib)
- (libraries dispatch unix cmdliner))
+ (libraries gcd unix cmdliner))
 
 (executable
  (name dispatchcp)
@@ -26,8 +26,8 @@
 
 (executable
  (name cptest)
- (public_name dispatch-bench)
- (package dispatch-bench)
+ (public_name gcd-bench)
+ (package gcd-bench)
  (modules cptest)
  (libraries dispatchcp_lib lwtcp_lib dispatch bos bechamel notty.unix
    bechamel-notty))

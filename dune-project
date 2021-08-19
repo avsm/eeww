@@ -1,6 +1,6 @@
 (lang dune 2.7)
 
-(name dispatch)
+(name gcd)
 
 (generate_opam_files true)
 
@@ -14,7 +14,7 @@
 (maintainers "pf341@patricoferris.com")
 
 (package
- (name dispatch)
+ (name gcd)
  (synopsis "OCaml bindings for Apple's Grand Central Dispatch")
  (description "Bindings for Apple's Grand Central Dispatch.")
  (depends
@@ -26,7 +26,7 @@
   (cmdliner :with-test)))
 
 (package
- (name dispatch-bench)
+ (name gcd-bench)
  (synopsis "Small benchmarks for GCD")
  (description
   "A package for testing various GCD programs and counter parts written in other libraries.")
@@ -47,6 +47,6 @@
    (>= 0.1.0))
   (bechamel
    (>= 0.1.0))
-  dispatch))
+  gcd))
 
 (using mdx 0.1)
