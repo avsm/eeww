@@ -9,7 +9,7 @@ This project is heavily influenced by [ocaml-uring](https://github.com/ocaml-mul
 ## Usage
 
 ```ocaml
-# #require "dispatch"
+# #require "gcd"
 ```
 
 GCD uses queues to handle asynchronous and concurrent code. Pushing items of work to a queue and adding a handler to be called upon completion typically on a different thread.
