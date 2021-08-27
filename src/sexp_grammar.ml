@@ -28,6 +28,8 @@ type grammar =
   | List of list_grammar (** accepts a list *)
   | Variant of variant (** accepts clauses keyed by a leading or sole atom *)
   | Union of grammar list (** accepts a sexp if any of the listed grammars accepts it *)
+  | Tagged of grammar with_tag
+  (** annotates a grammar with a client-specific key/value pair *)
   | Tyvar of string
   (** Name of a type variable, e.g. [Tyvar "a"] for ['a]. Only meaningful when the body of
       the innermost enclosing [defn] defines a corresponding type variable. *)
@@ -112,16 +114,18 @@ and list_grammar =
   | Many of grammar (** accepts zero or more sexps, each matching the given grammar *)
   | Fields of record (** accepts sexps representing fields of a record *)
 
-(** String equality for names of enums and variant tags. *)
-and name_kind =
-  | Any_case (** used for polymorphic variants, strings compared as ASCII *)
-  | Capitalized
-  (** used for regular variants, strings compared modulo case of the first character *)
+(** Case sensitivity options for names of variant constructors. *)
+and case_sensitivity =
+  | Case_insensitive (** Comparison is case insensitive. Used for custom parsers. *)
+  | Case_sensitive (** Comparison is case sensitive. Used for polymorphic variants. *)
+  | Case_sensitive_except_first_character
+  (** Comparison is case insensitive for the first character and case sensitive afterward.
+      Used for regular variants. *)
 
 (** Grammar of variants. Accepts any sexp matching one of the clauses. *)
 and variant =
-  { name_kind : name_kind
-  ; clauses : clause list
+  { case_sensitivity : case_sensitivity
+  ; clauses : clause with_tag_list list
   }
 
 (** Grammar of a single variant clause. Accepts sexps based on the [clause_kind]. *)
@@ -143,7 +147,7 @@ and clause_kind =
     not found in [fields]. *)
 and record =
   { allow_extra_fields : bool
-  ; fields : field list
+  ; fields : field with_tag_list list
   }
 
 (** Grammar of a record field. A field must show up exactly once in a record if
@@ -154,6 +158,17 @@ and field =
   ; required : bool
   ; args : list_grammar
   }
+
+(** Grammar tagged with client-specific key/value pair. *)
+and 'a with_tag =
+  { key : string
+  ; value : Sexp.t
+  ; grammar : 'a
+  }
+
+and 'a with_tag_list =
+  | Tag of 'a with_tag_list with_tag
+  | No_tag of 'a
 
 (** Grammar of a recursive type definition. Names the [tycon] being defined, and the
     [tyvars] it takes as parameters. Specifies the [grammar] of the [tycon]. The grammar
@@ -171,3 +186,6 @@ and defn =
 type _ t = { untyped : grammar } [@@unboxed]
 
 let coerce (type a b) ({ untyped = _ } as t : a t) : b t = t
+
+(** This reserved key is used for all tags generated from doc comments. *)
+let doc_comment_tag = "sexp_grammar.doc_comment"

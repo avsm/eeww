@@ -10,6 +10,7 @@ val float_sexp_grammar : float Sexp_grammar.t
 val int32_sexp_grammar : int32 Sexp_grammar.t
 val int64_sexp_grammar : int64 Sexp_grammar.t
 val nativeint_sexp_grammar : nativeint Sexp_grammar.t
+val sexp_t_sexp_grammar : Sexp.t Sexp_grammar.t
 val ref_sexp_grammar : 'a Sexp_grammar.t -> 'a ref Sexp_grammar.t
 val lazy_t_sexp_grammar : 'a Sexp_grammar.t -> 'a lazy_t Sexp_grammar.t
 val option_sexp_grammar : 'a Sexp_grammar.t -> 'a option Sexp_grammar.t
