@@ -1135,7 +1135,7 @@ module Num : sig
       property. *)
 
   val is_hex_digit : Uchar.t -> bool
-  (** [is_ascii_hex_digit u] is [true] if [u] has the
+  (** [is_hex_digit u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#Hex_Digit}Hex_Digit}
       property. *)
 
