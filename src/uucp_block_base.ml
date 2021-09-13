@@ -16,6 +16,7 @@ type t = [
   | `Ancient_Symbols
   | `Arabic
   | `Arabic_Ext_A
+  | `Arabic_Ext_B
   | `Arabic_Math
   | `Arabic_PF_A
   | `Arabic_PF_B
@@ -71,6 +72,7 @@ type t = [
   | `Cuneiform_Numbers
   | `Currency_Symbols
   | `Cypriot_Syllabary
+  | `Cypro_Minoan
   | `Cyrillic
   | `Cyrillic_Ext_A
   | `Cyrillic_Ext_B
@@ -101,6 +103,7 @@ type t = [
   | `Ethiopic
   | `Ethiopic_Ext
   | `Ethiopic_Ext_A
+  | `Ethiopic_Ext_B
   | `Ethiopic_Sup
   | `Geometric_Shapes
   | `Geometric_Shapes_Ext
@@ -138,6 +141,7 @@ type t = [
   | `Javanese
   | `Kaithi
   | `Kana_Ext_A
+  | `Kana_Ext_B
   | `Kana_Sup
   | `Kanbun
   | `Kangxi
@@ -159,6 +163,8 @@ type t = [
   | `Latin_Ext_C
   | `Latin_Ext_D
   | `Latin_Ext_E
+  | `Latin_Ext_F
+  | `Latin_Ext_G
   | `Lepcha
   | `Letterlike_Symbols
   | `Limbu
@@ -224,6 +230,7 @@ type t = [
   | `Old_Sogdian
   | `Old_South_Arabian
   | `Old_Turkic
+  | `Old_Uyghur
   | `Oriya
   | `Ornamental_Dingbats
   | `Osage
@@ -285,6 +292,7 @@ type t = [
   | `Takri
   | `Tamil
   | `Tamil_Sup
+  | `Tangsa
   | `Tangut
   | `Tangut_Components
   | `Tangut_Sup
@@ -294,15 +302,18 @@ type t = [
   | `Tibetan
   | `Tifinagh
   | `Tirhuta
+  | `Toto
   | `Transport_And_Map
   | `UCAS
   | `UCAS_Ext
+  | `UCAS_Ext_A
   | `Ugaritic
   | `VS
   | `VS_Sup
   | `Vai
   | `Vedic_Ext
   | `Vertical_Forms
+  | `Vithkuqi
   | `Wancho
   | `Warang_Citi
   | `Yezidi
@@ -310,6 +321,7 @@ type t = [
   | `Yi_Syllables
   | `Yijing
   | `Zanabazar_Square
+  | `Znamenny_Music
 ]
 
 let pp ppf b = Format.fprintf ppf "%s" begin match b with
@@ -325,6 +337,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Ancient_Symbols -> "Ancient_Symbols"
   | `Arabic -> "Arabic"
   | `Arabic_Ext_A -> "Arabic_Ext_A"
+  | `Arabic_Ext_B -> "Arabic_Ext_B"
   | `Arabic_Math -> "Arabic_Math"
   | `Arabic_PF_A -> "Arabic_PF_A"
   | `Arabic_PF_B -> "Arabic_PF_B"
@@ -380,6 +393,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Cuneiform_Numbers -> "Cuneiform_Numbers"
   | `Currency_Symbols -> "Currency_Symbols"
   | `Cypriot_Syllabary -> "Cypriot_Syllabary"
+  | `Cypro_Minoan -> "Cypro_Minoan"
   | `Cyrillic -> "Cyrillic"
   | `Cyrillic_Ext_A -> "Cyrillic_Ext_A"
   | `Cyrillic_Ext_B -> "Cyrillic_Ext_B"
@@ -410,6 +424,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Ethiopic -> "Ethiopic"
   | `Ethiopic_Ext -> "Ethiopic_Ext"
   | `Ethiopic_Ext_A -> "Ethiopic_Ext_A"
+  | `Ethiopic_Ext_B -> "Ethiopic_Ext_B"
   | `Ethiopic_Sup -> "Ethiopic_Sup"
   | `Geometric_Shapes -> "Geometric_Shapes"
   | `Geometric_Shapes_Ext -> "Geometric_Shapes_Ext"
@@ -449,6 +464,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Javanese -> "Javanese"
   | `Kaithi -> "Kaithi"
   | `Kana_Ext_A -> "Kana_Ext_A"
+  | `Kana_Ext_B -> "Kana_Ext_B"
   | `Kana_Sup -> "Kana_Sup"
   | `Kanbun -> "Kanbun"
   | `Kangxi -> "Kangxi"
@@ -470,6 +486,8 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Latin_Ext_C -> "Latin_Ext_C"
   | `Latin_Ext_D -> "Latin_Ext_D"
   | `Latin_Ext_E -> "Latin_Ext_E"
+  | `Latin_Ext_F -> "Latin_Ext_F"
+  | `Latin_Ext_G -> "Latin_Ext_G"
   | `Lepcha -> "Lepcha"
   | `Letterlike_Symbols -> "Letterlike_Symbols"
   | `Limbu -> "Limbu"
@@ -536,6 +554,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Old_Sogdian -> "Old_Sogdian"
   | `Old_South_Arabian -> "Old_South_Arabian"
   | `Old_Turkic -> "Old_Turkic"
+  | `Old_Uyghur -> "Old_Uyghur"
   | `Oriya -> "Oriya"
   | `Ornamental_Dingbats -> "Ornamental_Dingbats"
   | `Osage -> "Osage"
@@ -597,6 +616,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Takri -> "Takri"
   | `Tamil -> "Tamil"
   | `Tamil_Sup -> "Tamil_Sup"
+  | `Tangsa -> "Tangsa"
   | `Tangut -> "Tangut"
   | `Tangut_Components -> "Tangut_Components"
   | `Tangut_Sup -> "Tangut_Sup"
@@ -606,15 +626,18 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Tibetan -> "Tibetan"
   | `Tifinagh -> "Tifinagh"
   | `Tirhuta -> "Tirhuta"
+  | `Toto -> "Toto"
   | `Transport_And_Map -> "Transport_And_Map"
   | `UCAS -> "UCAS"
   | `UCAS_Ext -> "UCAS_Ext"
+  | `UCAS_Ext_A -> "UCAS_Ext_A"
   | `Ugaritic -> "Ugaritic"
   | `VS -> "VS"
   | `VS_Sup -> "VS_Sup"
   | `Vai -> "Vai"
   | `Vedic_Ext -> "Vedic_Ext"
   | `Vertical_Forms -> "Vertical_Forms"
+  | `Vithkuqi -> "Vithkuqi"
   | `Wancho -> "Wancho"
   | `Warang_Citi -> "Warang_Citi"
   | `Yezidi -> "Yezidi"
@@ -622,6 +645,7 @@ let pp ppf b = Format.fprintf ppf "%s" begin match b with
   | `Yi_Syllables -> "Yi_Syllables"
   | `Yijing -> "Yijing"
   | `Zanabazar_Square -> "Zanabazar_Square"
+  | `Znamenny_Music -> "Znamenny_Music"
   end
 
 (*---------------------------------------------------------------------------

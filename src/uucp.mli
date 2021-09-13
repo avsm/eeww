@@ -85,6 +85,7 @@ module Block : sig
     | `Ancient_Symbols
     | `Arabic
     | `Arabic_Ext_A
+    | `Arabic_Ext_B
     | `Arabic_Math
     | `Arabic_PF_A
     | `Arabic_PF_B
@@ -140,6 +141,7 @@ module Block : sig
     | `Cuneiform_Numbers
     | `Currency_Symbols
     | `Cypriot_Syllabary
+    | `Cypro_Minoan
     | `Cyrillic
     | `Cyrillic_Ext_A
     | `Cyrillic_Ext_B
@@ -170,6 +172,7 @@ module Block : sig
     | `Ethiopic
     | `Ethiopic_Ext
     | `Ethiopic_Ext_A
+    | `Ethiopic_Ext_B
     | `Ethiopic_Sup
     | `Geometric_Shapes
     | `Geometric_Shapes_Ext
@@ -207,6 +210,7 @@ module Block : sig
     | `Javanese
     | `Kaithi
     | `Kana_Ext_A
+    | `Kana_Ext_B
     | `Kana_Sup
     | `Kanbun
     | `Kangxi
@@ -228,6 +232,8 @@ module Block : sig
     | `Latin_Ext_C
     | `Latin_Ext_D
     | `Latin_Ext_E
+    | `Latin_Ext_F
+    | `Latin_Ext_G
     | `Lepcha
     | `Letterlike_Symbols
     | `Limbu
@@ -293,6 +299,7 @@ module Block : sig
     | `Old_Sogdian
     | `Old_South_Arabian
     | `Old_Turkic
+    | `Old_Uyghur
     | `Oriya
     | `Ornamental_Dingbats
     | `Osage
@@ -354,6 +361,7 @@ module Block : sig
     | `Takri
     | `Tamil
     | `Tamil_Sup
+    | `Tangsa
     | `Tangut
     | `Tangut_Components
     | `Tangut_Sup
@@ -363,15 +371,18 @@ module Block : sig
     | `Tibetan
     | `Tifinagh
     | `Tirhuta
+    | `Toto
     | `Transport_And_Map
     | `UCAS
     | `UCAS_Ext
+    | `UCAS_Ext_A
     | `Ugaritic
     | `VS
     | `VS_Sup
     | `Vai
     | `Vedic_Ext
     | `Vertical_Forms
+    | `Vithkuqi
     | `Wancho
     | `Warang_Citi
     | `Yezidi
@@ -379,6 +390,7 @@ module Block : sig
     | `Yi_Syllables
     | `Yijing
     | `Zanabazar_Square
+    | `Znamenny_Music
   ]
   (** The type for blocks. The value [`NB] is for characters that are not
       yet assigned to a block. *)
@@ -1195,6 +1207,7 @@ module Script : sig
   | `Cher
   | `Chrs
   | `Copt
+  | `Cpmn
   | `Cprt
   | `Cyrl
   | `Deva
@@ -1274,6 +1287,7 @@ module Script : sig
   | `Orya
   | `Osge
   | `Osma
+  | `Ougr
   | `Palm
   | `Pauc
   | `Perm
@@ -1317,8 +1331,11 @@ module Script : sig
   | `Thai
   | `Tibt
   | `Tirh
+  | `Tnsa
+  | `Toto
   | `Ugar
   | `Vaii
+  | `Vith
   | `Wara
   | `Wcho
   | `Xpeo

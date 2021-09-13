@@ -29,6 +29,7 @@ type t = [
   | `Cher
   | `Chrs
   | `Copt
+  | `Cpmn
   | `Cprt
   | `Cyrl
   | `Deva
@@ -108,6 +109,7 @@ type t = [
   | `Orya
   | `Osge
   | `Osma
+  | `Ougr
   | `Palm
   | `Pauc
   | `Perm
@@ -151,8 +153,11 @@ type t = [
   | `Thai
   | `Tibt
   | `Tirh
+  | `Tnsa
+  | `Toto
   | `Ugar
   | `Vaii
+  | `Vith
   | `Wara
   | `Wcho
   | `Xpeo
@@ -191,6 +196,7 @@ let pp ppf s = Format.fprintf ppf "%s" begin match s with
   | `Cher -> "Cher"
   | `Chrs -> "Chrs"
   | `Copt -> "Copt"
+  | `Cpmn -> "Cpmn"
   | `Cprt -> "Cprt"
   | `Cyrl -> "Cyrl"
   | `Deva -> "Deva"
@@ -270,6 +276,7 @@ let pp ppf s = Format.fprintf ppf "%s" begin match s with
   | `Orya -> "Orya"
   | `Osge -> "Osge"
   | `Osma -> "Osma"
+  | `Ougr -> "Ougr"
   | `Palm -> "Palm"
   | `Pauc -> "Pauc"
   | `Perm -> "Perm"
@@ -313,8 +320,11 @@ let pp ppf s = Format.fprintf ppf "%s" begin match s with
   | `Thai -> "Thai"
   | `Tibt -> "Tibt"
   | `Tirh -> "Tirh"
+  | `Tnsa -> "Tnsa"
+  | `Toto -> "Toto"
   | `Ugar -> "Ugar"
   | `Vaii -> "Vaii"
+  | `Vith -> "Vith"
   | `Wara -> "Wara"
   | `Wcho -> "Wcho"
   | `Xpeo -> "Xpeo"
