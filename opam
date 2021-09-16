@@ -1,4 +1,5 @@
 opam-version: "2.0"
+name: "uucp"
 synopsis: """Unicode character properties for OCaml"""
 maintainer: ["Daniel Bünzli <daniel.buenzl i@erratique.ch>"]
 authors: ["The uucp programmers"]

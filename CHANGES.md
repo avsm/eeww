@@ -1,3 +1,10 @@
+v14.0.0 2021-09-17 Zagreb
+-------------------------
+
+- Unicode 14.0.0 support.
+- Tweak `Uucp.Break.tty_width_hint` (09d2186). Thanks to David Kaloper
+  Meršinjak.
+
 v13.0.0 2020-03-10 La Forclaz (VS)
 ----------------------------------
 
