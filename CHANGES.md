@@ -1,10 +1,22 @@
+## ctypes 0.19.1
+
+* Fix use of CAMLdrop in generated code  
+  https://github.com/ocamllabs/ocaml-ctypes/pull/680
+
+## ctypes 0.19.0
+
+* Drop compatibility with 4.02, and improve compatibility with Multicore OCaml  
+  https://github.com/ocamllabs/ocaml-ctypes/pull/673
+
+Thanks to Kate Deplaix (@kit-ty-kate) for contributing to this release.
+
 ## ctypes 0.18.0
 
 * Remove the `Unix` dependency by using `bigarray-compat`  
   https://github.com/ocamllabs/ocaml-ctypes/pull/660
 
 * Remove the threaded/unthreaded split in ctypes-foreign  
-  https://github.com/ocamllabs/ocaml-ctypes/pull/654
+  https://github.com/ocamllabs/ocaml-ctypes/pull/651
 
 * Eliminate some `const` warnings in generated code  
   https://github.com/ocamllabs/ocaml-ctypes/pull/646  
