@@ -16,7 +16,7 @@ let tuple_of_size_n_expected loc n sexp =
 (* Errors concerning sum types *)
 
 let stag_no_args loc sexp =
-  of_sexp_error (loc ^ "_of_sexp: sum tag does not take arguments") sexp
+  of_sexp_error (loc ^ "_of_sexp: this constructor does not take arguments") sexp
 ;;
 
 let stag_incorrect_n_args loc tag sexp =
@@ -25,18 +25,20 @@ let stag_incorrect_n_args loc tag sexp =
 ;;
 
 let stag_takes_args loc sexp =
-  of_sexp_error (loc ^ "_of_sexp: sum tag must be a structured value") sexp
+  of_sexp_error (loc ^ "_of_sexp: this constructor requires arguments") sexp
 ;;
 
 let nested_list_invalid_sum loc sexp =
-  of_sexp_error (loc ^ "_of_sexp: a nested list is an invalid sum") sexp
+  of_sexp_error (loc ^ "_of_sexp: expected a variant type, saw a nested list") sexp
 ;;
 
 let empty_list_invalid_sum loc sexp =
-  of_sexp_error (loc ^ "_of_sexp: the empty list is an invalid sum") sexp
+  of_sexp_error (loc ^ "_of_sexp: expected a variant type, saw an empty list") sexp
 ;;
 
-let unexpected_stag loc sexp = of_sexp_error (loc ^ "_of_sexp: unexpected sum tag") sexp
+let unexpected_stag loc sexp =
+  of_sexp_error (loc ^ "_of_sexp: unexpected variant constructor") sexp
+;;
 
 (* Errors concerning records *)
 
