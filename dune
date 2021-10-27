@@ -2,7 +2,7 @@
   (name domain_name)
   (public_name domain-name)
   (modules domain_name)
-  (libraries fmt astring))
+  (libraries astring))
 
 (test
   (name tests)

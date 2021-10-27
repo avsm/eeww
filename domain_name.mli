@@ -234,7 +234,7 @@ val to_strings : ?trailing:bool -> 'a t -> string list
 
 (** {2 Pretty printer} *)
 
-val pp : 'a t Fmt.t
+val pp : Format.formatter -> 'a t -> unit
 (** [pp ppf t] pretty prints the domain name [t] on [ppf]. *)
 
 (**/**)

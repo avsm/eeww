@@ -181,9 +181,7 @@ let canonical t =
   let str = to_string t in
   of_string_exn (String.Ascii.lowercase str)
 
-(*BISECT-IGNORE-BEGIN*)
-let pp ppf xs = Fmt.string ppf (to_string xs)
-(*BISECT-IGNORE-END*)
+let pp ppf xs = Format.pp_print_string ppf (to_string xs)
 
 let compare_label a b =
   String.compare (String.Ascii.lowercase a) (String.Ascii.lowercase b)
