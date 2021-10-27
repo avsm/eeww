@@ -1,3 +1,7 @@
+## v0.3.1 (2021-10-27)
+
+* remove fmt and astring dependency
+
 ## v0.3.0 (2019-07-08)
 
 * all optional ?back arguments are now ?rev
