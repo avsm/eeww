@@ -8,7 +8,6 @@ bug-reports: "https://github.com/hannesm/domain-name/issues"
 depends: [
   "ocaml" {>= "4.04.2"}
   "dune" {build}
-  "astring"
   "alcotest" {with-test}
 ]
 build: [
