@@ -1,4 +1,4 @@
-### v3.0.0
+### v3.0.0 (2021-11-14)
 
 - Remove Mirage_flow_lwt module
 - Require fmt 0.8.7, cstruct 6.0.0 and avoid deprecated functions
