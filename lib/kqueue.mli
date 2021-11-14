@@ -3,6 +3,7 @@ type t
 module Flag : sig
   type t
 
+  val pp : Format.formatter -> t -> unit
   val ( + ) : t -> t -> int
   val is_subset : t -> of_:t -> bool
   val ev_add : t
@@ -20,6 +21,7 @@ type event =
   | `Write
   ]
 
+val pp_event : Format.formatter -> event -> unit
 val kqueue : changelist_size:int -> t
 val add : t -> Unix.file_descr -> event -> unit
 val wait : t -> ms:int -> [ `Ok | `Timeout ]

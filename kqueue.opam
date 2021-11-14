@@ -10,6 +10,7 @@ doc: "https://anuragsoni.github.io/kqueue-ml"
 bug-reports: "https://github.com/anuragsoni/kqueue-ml/issues"
 depends: [
   "dune" {>= "2.9"}
+  "ppx_expect" {with-test}
   "ocaml" {>= "4.11"}
   "odoc" {with-doc}
 ]

@@ -20,5 +20,6 @@
  (synopsis "OCaml bindings for kqueue event notification interface")
  (tags (kqueue))
  (depends
+  (ppx_expect :with-test)
   (ocaml
    (>= 4.11))))

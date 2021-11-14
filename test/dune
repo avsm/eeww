@@ -1,0 +1,6 @@
+(library
+ (name kqueue_test)
+ (inline_tests)
+ (libraries kqueue)
+ (preprocess
+  (pps ppx_expect)))

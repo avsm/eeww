@@ -75,6 +75,31 @@ module Flag = struct
   external ev_error : unit -> int = "kqueue_flag_ev_error"
 
   let ev_error = ev_error ()
+
+  let known =
+    [ ev_add, "EV_ADD"
+    ; ev_enable, "EV_ENABLE"
+    ; ev_disable, "EV_DISABLE"
+    ; ev_delete, "EV_DELETE"
+    ; ev_oneshot, "EV_ONESHOT"
+    ; ev_clear, "EV_CLEAR"
+    ; ev_eof, "EV_EOF"
+    ; ev_error, "EV_ERROR"
+    ]
+  ;;
+
+  let pp fmt t =
+    let known_flags =
+      List.filter_map
+        (fun (k, label) -> if is_subset k ~of_:t then Some label else None)
+        known
+    in
+    Format.pp_print_list
+      ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
+      Format.pp_print_string
+      fmt
+      known_flags
+  ;;
 end
 
 module Kevent = struct
@@ -141,6 +166,15 @@ type event =
   [ `Read
   | `Write
   ]
+
+let pp_event fmt t =
+  let label =
+    match t with
+    | `Read -> "read"
+    | `Write -> "write"
+  in
+  Format.pp_print_string fmt label
+;;
 
 let event_to_filter = function
   | `Read -> Filter.evfilt_read
