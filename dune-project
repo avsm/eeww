@@ -1,4 +1,4 @@
-(lang dune 2.6)
+(lang dune 2.9)
 
 (name kqueue)
 
@@ -20,7 +20,5 @@
  (synopsis "OCaml bindings for kqueue event notification interface")
  (tags (kqueue))
  (depends
-  core_kernel
-  ppx_jane
   (ocaml
    (>= 4.11))))

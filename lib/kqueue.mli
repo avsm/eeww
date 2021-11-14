@@ -1,10 +1,10 @@
-open Core_kernel
-
-type t [@@deriving sexp_of]
+type t
 
 module Flag : sig
-  include Flags.S
+  type t
 
+  val ( + ) : t -> t -> int
+  val is_subset : t -> of_:t -> bool
   val ev_add : t
   val ev_enable : t
   val ev_disable : t
@@ -21,7 +21,7 @@ type event =
   ]
 
 val kqueue : changelist_size:int -> t
-val add : t -> Caml_unix.file_descr -> event -> unit
-val wait : t -> Time_ns.Span.t -> [ `Ok | `Timeout ]
-val iter_ready : t -> f:(Caml_unix.file_descr -> Flag.t -> event -> unit) -> unit
+val add : t -> Unix.file_descr -> event -> unit
+val wait : t -> ms:int -> [ `Ok | `Timeout ]
+val iter_ready : t -> f:(Unix.file_descr -> Flag.t -> event -> unit) -> unit
 val close : t -> unit
