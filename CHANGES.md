@@ -1,10 +1,10 @@
 ### v3.0.0 (2021-11-14)
 
-- Remove Mirage_flow_lwt module
-- Require fmt 0.8.7, cstruct 6.0.0 and avoid deprecated functions
-- Compatibility with alcotest 1.4 (eta expansion of Alcotest.fail)
+- Remove Mirage_flow_lwt module (#47 @hannesm)
+- Require fmt 0.8.7, cstruct 6.0.0 and avoid deprecated functions (#47 @hannesm)
+- Compatibility with alcotest 1.4 (eta expansion of Alcotest.fail) (#47 @hannesm)
 - Mirage_flow_combinators.forward has an additional unit argument to avoid
-  unerasable optional argument warning
+  unerasable optional argument warning (#47 @hannesm)
 
 ### v2.0.1 (2019-11-04)
 
