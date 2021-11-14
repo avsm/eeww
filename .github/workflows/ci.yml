@@ -1,5 +1,9 @@
-name: KqueueCI
+name: Test kqueue-ml
 on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
   pull_request:
     branches:
       - main
@@ -10,17 +14,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ocaml-version: ['4.11.0', '4.10.1', '4.08.1' ]
+        ocaml-version:
+          - 4.13.x
     steps:
       - uses: actions/checkout@v2
-      - uses: avsm/setup-ocaml@v1
+      - uses: ocaml/setup-ocaml@v2
         with:
-          ocaml-version: ${{ matrix.ocaml-version }}
+          ocaml-compiler: ${{ matrix.ocaml-version }}
       - name: Install dependencies
         run: |
           opam pin add kqueue.dev -n .
-          opam depext -yt kqueue
           opam install -t . --deps-only
       - name: Build
         run: |
-          opam exec -- dune exec -- ./example/oneshot_timer.exe
+          opam exec -- dune build @install

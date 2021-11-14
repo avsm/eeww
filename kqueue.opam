@@ -10,8 +10,9 @@ doc: "https://anuragsoni.github.io/kqueue-ml"
 bug-reports: "https://github.com/anuragsoni/kqueue-ml/issues"
 depends: [
   "dune" {>= "2.6"}
-  "ocaml" {>= "4.08"}
-  "ctypes"
+  "core_kernel"
+  "ppx_jane"
+  "ocaml" {>= "4.11"}
 ]
 build: [
   ["dune" "subst"] {pinned}
@@ -28,4 +29,3 @@ build: [
   ]
 ]
 dev-repo: "git+https://github.com/anuragsoni/kqueue-ml.git"
-available: [os = "macos" | os = "freebsd" ]

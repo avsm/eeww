@@ -20,6 +20,7 @@
  (synopsis "OCaml bindings for kqueue event notification interface")
  (tags (kqueue))
  (depends
+  core_kernel
+  ppx_jane
   (ocaml
-   (>= 4.08))
-  ctypes))
+   (>= 4.11))))

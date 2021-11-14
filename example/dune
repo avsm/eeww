@@ -1,3 +1,5 @@
-(executables
- (names timer echo_server oneshot_timer)
- (libraries kqueue))
+(executable
+ (name ping_pong)
+ (preprocess
+  (pps ppx_jane))
+ (libraries kqueue core core.bigstring_unix core_kernel.bounded_int_table))
