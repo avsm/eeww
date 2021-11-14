@@ -21,7 +21,7 @@ let pp_buf ppf buf = Fmt.string ppf (Cstruct.to_string buf)
 let eq_buf b1 b2 = Cstruct.to_string b1 = Cstruct.to_string b2
 
 let cstruct = Alcotest.testable pp_buf eq_buf
-let fail fmt = Fmt.kstrf Alcotest.fail fmt
+let fail fmt = Fmt.kstr (fun s -> Alcotest.fail s) fmt
 
 let check_buffer = Alcotest.(check cstruct)
 let check_buffers = Alcotest.(check @@ list cstruct)

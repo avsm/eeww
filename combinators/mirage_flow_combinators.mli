@@ -157,8 +157,8 @@ val create: (module Mirage_flow.S with type flow = 'a) -> 'a -> string -> t
 val pp: t Fmt.t
 (** [pp] is the pretty-printer for IO flows. *)
 
-val forward: ?verbose:bool -> src:t -> dst:t -> unit Lwt.t
-(** [forward ?verbose ~src ~dst] forwards writes from [src] to
+val forward: ?verbose:bool -> src:t -> dst:t -> unit -> unit Lwt.t
+(** [forward ?verbose ~src ~dst ()] forwards writes from [src] to
     [dst]. Block until either [src] or [dst] is closed. If [verbose]
     is set (by default it is not), show the full flow contents in the debug
     messages. *)
