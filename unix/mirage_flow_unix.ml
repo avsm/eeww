@@ -27,7 +27,7 @@ module Make (F: Mirage_flow.S) = struct
       if len = 0
       then Lwt.return 0
       else
-        let available = Cstruct.len !frag in
+        let available = Cstruct.length !frag in
         if available = 0 then begin
           F.read t >>= function
           | Ok (`Data b) ->
@@ -35,7 +35,7 @@ module Make (F: Mirage_flow.S) = struct
             aux buf ofs len
           | Ok `Eof -> Lwt.return 0
           | Error e ->
-            Lwt.fail_with @@ Fmt.strf "Lwt_io_flow.reader: %a" F.pp_error e
+            Lwt.fail_with @@ Fmt.str "Lwt_io_flow.reader: %a" F.pp_error e
         end else begin
           let n = min available len in
           Cstruct.blit !frag 0 (Cstruct.of_bigarray buf) ofs n;
@@ -50,7 +50,7 @@ module Make (F: Mirage_flow.S) = struct
     | Ok ()          -> Lwt.return len
     | Error `Closed  -> Lwt.return 0
     | Error e        ->
-      Lwt.fail_with @@ Fmt.strf "Lwt_io_flow.writer: %a" F.pp_write_error e
+      Lwt.fail_with @@ Fmt.str "Lwt_io_flow.writer: %a" F.pp_write_error e
 
   let ic ?(buffer_size=1024) ?(close=true) t =
     let close () = if close then F.close t else Lwt.return_unit in
@@ -79,7 +79,7 @@ module Fd = struct
 
   let err e =  Lwt.return (Error (`Msg (Printexc.to_string e)))
 
-  let failf fmt = Fmt.kstrf Lwt.fail_with fmt
+  let failf fmt = Fmt.kstr Lwt.fail_with fmt
 
   let pp_fd ppf (t:Lwt_unix.file_descr) =
     Fmt.int ppf (Obj.magic (Lwt_unix.unix_file_descr t): int)

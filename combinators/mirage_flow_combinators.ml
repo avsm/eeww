@@ -39,12 +39,12 @@ module Concrete (S: Mirage_flow.S) = struct
 
   let lift_read = function
     | Ok x    -> Ok x
-    | Error e -> Error (`Msg (Fmt.strf "%a" S.pp_error e))
+    | Error e -> Error (`Msg (Fmt.str "%a" S.pp_error e))
 
   let lift_write = function
     | Ok ()         -> Ok ()
     | Error `Closed -> Error `Closed
-    | Error e       -> Error (`Msg (Fmt.strf "%a" S.pp_write_error e))
+    | Error e       -> Error (`Msg (Fmt.str "%a" S.pp_write_error e))
 
   let read t = S.read t >|= lift_read
   let write t b = S.write t b >|= lift_write
@@ -109,12 +109,12 @@ struct
         Lwt.return (Ok ())
       | Ok (`Data buffer) ->
         read_ops := Int64.succ !read_ops;
-        read_bytes := Int64.(add !read_bytes (of_int @@ Cstruct.len buffer));
+        read_bytes := Int64.(add !read_bytes (of_int @@ Cstruct.length buffer));
         B.write b buffer
         >>= function
         | Ok () ->
           write_ops := Int64.succ !write_ops;
-          write_bytes := Int64.(add !write_bytes (of_int @@ Cstruct.len buffer));
+          write_bytes := Int64.(add !write_bytes (of_int @@ Cstruct.length buffer));
           loop ()
         | Error e ->
           finish := Some (Clock.elapsed_ns ());
@@ -266,8 +266,8 @@ module F = struct
   let output_bytes = output_fn Bytes.length Cstruct.blit_to_bytes
   let string = mk input_string output_bytes
 
-  let input_cstruct = input_fn Cstruct.len Cstruct.blit
-  let output_cstruct = output_fn Cstruct.len Cstruct.blit
+  let input_cstruct = input_fn Cstruct.length Cstruct.blit
+  let output_cstruct = output_fn Cstruct.length Cstruct.blit
   let cstruct = mk input_cstruct output_cstruct
 
   let input_strings = iter input_string
@@ -279,7 +279,7 @@ module F = struct
   let cstructs = mk input_cstructs output_cstructs
 
   let refill ch =
-    if Cstruct.len ch.buf = 0 then (
+    if Cstruct.length ch.buf = 0 then (
       let buf = Cstruct.create default_buffer_size in
       ch.buf <- buf
     )
@@ -303,7 +303,7 @@ module F = struct
   let write ch buf =
     if ch.oc_closed then Lwt.return @@ Error `Closed
     else (
-      let len = Cstruct.len buf in
+      let len = Cstruct.length buf in
       let rec aux off =
         if off = len then Lwt.return (Ok ())
         else (
@@ -359,7 +359,7 @@ let writev (Flow (_, (module F), flow)) b = F.writev flow b
 let close (Flow (_, (module F), flow)) = F.close flow
 let pp ppf (Flow (name, _, _)) = Fmt.string ppf name
 
-let forward ?(verbose=false) ~src ~dst =
+let forward ?(verbose=false) ~src ~dst () =
   let rec loop () =
     read src >>= function
     | Ok `Eof ->
@@ -371,8 +371,8 @@ let forward ?(verbose=false) ~src ~dst =
     | Ok (`Data buf) ->
       Log.debug (fun l ->
           let payload =
-            if verbose then Fmt.strf "[%S]" @@ Cstruct.to_string buf
-            else Fmt.strf "%d bytes" (Cstruct.len buf)
+            if verbose then Fmt.str "[%S]" @@ Cstruct.to_string buf
+            else Fmt.str "%d bytes" (Cstruct.length buf)
           in
           l "forward[%a => %a] %s" pp src pp dst payload);
       write dst buf >>= function
@@ -386,6 +386,6 @@ let forward ?(verbose=false) ~src ~dst =
 
 let proxy ?verbose f1 f2 =
   Lwt.join [
-    forward ?verbose ~src:f1 ~dst:f2;
-    forward ?verbose ~src:f2 ~dst:f1;
+    forward ?verbose ~src:f1 ~dst:f2 ();
+    forward ?verbose ~src:f2 ~dst:f1 ();
   ]
