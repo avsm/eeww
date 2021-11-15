@@ -241,7 +241,7 @@ let server_loop socket k =
 
 let run sock_path =
   let socket = Unix.socket ~cloexec:true Unix.PF_UNIX Unix.SOCK_STREAM 0 in
-  let k = Kqueue.kqueue ~changelist_size:1000 in
+  let k = Kqueue.kqueue ~changelist_size:256 in
   Fun.protect
     ~finally:(fun () ->
       Unix.close socket;
