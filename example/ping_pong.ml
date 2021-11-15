@@ -24,27 +24,9 @@ module Buf = struct
 
   let length t = t.pos_fill - t.pos_read
 
-  module Optional_syntax = struct
-    let is_none t = t < 0
-    let unsafe_value t = t
-  end
-
-  let unsafe_find t ch =
-    match%optional
-      Bigstring.unsafe_find t.buf ~pos:t.pos_read ~len:(t.pos_fill - t.pos_read) ch
-    with
-    | None -> -1
-    | Some idx -> idx - t.pos_read
-  ;;
-
   let resize t size =
     let new_len = (Bigstring.length t.buf + size) * 2 in
     t.buf <- Bigstring.unsafe_destroy_and_resize t.buf ~len:new_len
-  ;;
-
-  let drop t len =
-    if len > length t then invalid_arg "Index out of bounds";
-    t.pos_read <- t.pos_read + len
   ;;
 
   let read_assume_fd_is_nonblocking fd t =
@@ -117,8 +99,6 @@ module Server_state = struct
     ; write_buf : Buf.t
     }
 
-  type t = (Unix.File_descr.t, state) Bounded_int_table.t
-
   let init () =
     Bounded_int_table.create
       ~sexp_of_key:Unix.File_descr.sexp_of_t
@@ -134,7 +114,7 @@ module Server_state = struct
       Bounded_int_table.add_exn
         t
         ~key:fd
-        ~data:{ read_buf = Buf.create 4096; write_buf = Buf.create 4096 })
+        ~data:{ read_buf = Buf.create 1024; write_buf = Buf.create 1024 })
   ;;
 
   let remove_client t fd = Bounded_int_table.remove t fd
@@ -190,8 +170,7 @@ let accept_loop state socket k =
   try
     let client_fd, _ = Unix.accept ~cloexec:true socket in
     Server_state.add_client state client_fd;
-    Kqueue.add k client_fd `Read;
-    Kqueue.add k client_fd `Write;
+    Kqueue.add k client_fd `Read_write;
     Kqueue.add k socket `Read
   with
   | Unix.Unix_error ((EAGAIN | EWOULDBLOCK), _, _) -> Kqueue.add k socket `Read
@@ -232,8 +211,7 @@ let server_loop socket k =
                   aux ()
               in
               aux ();
-              Kqueue.add k fd `Read;
-              Kqueue.add k fd `Write));
+              Kqueue.add k fd `Read_write));
       run ()
   in
   run ()

@@ -31,7 +31,7 @@ end
 
 val pp_event : Format.formatter -> event -> unit
 val kqueue : changelist_size:int -> t
-val add : t -> Unix.file_descr -> event -> unit
+val add : t -> Unix.file_descr -> [ event | `Read_write ] -> unit
 val wait : t -> Timeout.t -> [ `Ok | `Timeout ]
 val iter_ready : t -> f:(Unix.file_descr -> Flag.t -> event -> unit) -> unit
 val close : t -> unit

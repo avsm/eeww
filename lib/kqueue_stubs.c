@@ -48,13 +48,28 @@ CAMLprim value kqueue_ml_kevent_offset_flags(value unit) {
   CAMLreturn(Val_int(offsetof(struct kevent, flags)));
 }
 
-CAMLprim value kqueue_ml_modify_fd(value kqueue_fd, value fd, value filter, value flags) {
-  CAMLparam4(kqueue_fd, fd, filter, flags);
-  struct kevent event;
-  EV_SET(&event, Long_val(fd), Int_val(filter), Int_val(flags), 0, 0, 0);
+CAMLprim value kqueue_ml_kevent_offset_fflags(value unit) {
+  CAMLparam1(unit);
+  CAMLreturn(Val_int(offsetof(struct kevent, fflags)));
+}
 
-  int ret;
-  ret = kevent(Long_val(kqueue_fd), &event, 1, NULL, 0, NULL);
+CAMLprim value kqueue_ml_kevent_offset_data(value unit) {
+  CAMLparam1(unit);
+  CAMLreturn(Val_int(offsetof(struct kevent, data)));
+}
+
+CAMLprim value kqueue_ml_kevent_offset_udata(value unit) {
+  CAMLparam1(unit);
+  CAMLreturn(Val_int(offsetof(struct kevent, udata)));
+}
+
+CAMLprim value kqueue_ml_modify_fd(value kqueue_fd, value buf) {
+  CAMLparam2(kqueue_fd, buf);
+  struct kevent * events;
+  int ret, event_count;
+  events = (struct kevent *) Caml_ba_data_val(buf);
+  event_count = Caml_ba_array_val(buf)->dim[0] / sizeof (struct kevent);
+  ret = kevent(Long_val(kqueue_fd), events, event_count, NULL, 0, NULL);
   if (ret == -1)
     uerror("kevent", Nothing);
   CAMLreturn(Val_long(ret));

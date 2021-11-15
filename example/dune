@@ -1,5 +1,5 @@
 (executable
  (name ping_pong)
  (preprocess
-  (pps ppx_jane))
+  (pps ppx_sexp_conv))
  (libraries kqueue core core.bigstring_unix core_kernel.bounded_int_table))
