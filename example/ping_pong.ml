@@ -201,7 +201,7 @@ let accept_loop state socket k =
 let server_loop socket k =
   let state = Server_state.init () in
   let rec run () =
-    match Kqueue.wait k ~ms:0 with
+    match Kqueue.wait k Kqueue.Timeout.immediate with
     | `Timeout -> run ()
     | `Ok ->
       Kqueue.iter_ready k ~f:(fun fd flags event ->

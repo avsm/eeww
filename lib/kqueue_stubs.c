@@ -69,6 +69,10 @@ CAMLprim value kqueue_ml_wait(value kqueue_fd, value eventlist, value timeout) {
   if (timeout == 0) {
     struct timespec t = { 0, 0 };
     ret = kevent(Long_val(kqueue_fd), NULL, 0, evs, event_count, &t);
+  } else if (timeout < 0) {
+    caml_enter_blocking_section();
+    ret = kevent(Long_val(kqueue_fd), NULL, 0, evs, event_count, NULL);
+    caml_leave_blocking_section();
   } else {
     struct timespec t;
     long ms = Long_val(timeout);

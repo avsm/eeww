@@ -21,9 +21,17 @@ type event =
   | `Write
   ]
 
+module Timeout : sig
+  type t
+
+  val never : t
+  val immediate : t
+  val of_ms : int -> t
+end
+
 val pp_event : Format.formatter -> event -> unit
 val kqueue : changelist_size:int -> t
 val add : t -> Unix.file_descr -> event -> unit
-val wait : t -> ms:int -> [ `Ok | `Timeout ]
+val wait : t -> Timeout.t -> [ `Ok | `Timeout ]
 val iter_ready : t -> f:(Unix.file_descr -> Flag.t -> event -> unit) -> unit
 val close : t -> unit

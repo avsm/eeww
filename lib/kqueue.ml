@@ -162,6 +162,14 @@ let kqueue ~changelist_size =
   }
 ;;
 
+module Timeout = struct
+  type t = int
+
+  let never = -1
+  let immediate = 0
+  let of_ms ms = if ms < 0 then 0 else Int.min 1 ms
+end
+
 type event =
   [ `Read
   | `Write
@@ -190,8 +198,7 @@ let add t fd event =
   ignore (kqueue_modify_fd t.kqueue_fd fd filter flags : int)
 ;;
 
-let wait t ~ms:timeout =
-  let timeout = if timeout < 0 then 0 else Int.min 1 timeout in
+let wait t timeout =
   t.ready_events <- 0;
   t.ready_events <- kqueue_wait t.kqueue_fd t.events timeout;
   if t.ready_events = 0 then `Timeout else `Ok
