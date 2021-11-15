@@ -4,7 +4,7 @@ module Flag : sig
   type t
 
   val pp : Format.formatter -> t -> unit
-  val ( + ) : t -> t -> int
+  val ( + ) : t -> t -> t
   val is_subset : t -> of_:t -> bool
   val ev_add : t
   val ev_enable : t
