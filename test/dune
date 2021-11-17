@@ -3,4 +3,11 @@
  (inline_tests)
  (libraries kqueue)
  (preprocess
-  (pps ppx_expect)))
+  (pps ppx_expect ppx_optcomp)))
+
+(rule
+ (targets config.h)
+ (action
+  (with-stdout-to
+   %{targets}
+   (run ../lib/config/config.exe))))

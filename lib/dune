@@ -4,4 +4,13 @@
  (foreign_stubs
   (language c)
   (names kqueue_stubs))
+ (preprocess
+  (pps ppx_optcomp))
  (libraries unix))
+
+(rule
+ (targets config.h)
+ (action
+  (with-stdout-to
+   %{targets}
+   (run ./config/config.exe))))

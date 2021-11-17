@@ -1,3 +1,6 @@
+[%%import "config.h"]
+[%%ifdef KQUEUE_AVAILABLE]
+
 let%expect_test "create_kqueue" =
   let r, w = Unix.pipe () in
   let k = Kqueue.kqueue ~changelist_size:32 in
@@ -21,3 +24,5 @@ let%expect_test "create_kqueue" =
         flag);
   [%expect {| (r = fd) = true, event = read, flags = EV_ADD, EV_ONESHOT |}]
 ;;
+
+[%%endif]

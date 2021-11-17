@@ -16,6 +16,7 @@ module Server_state = struct
   let remove_client t fd =
     Unix.close fd;
     Hashtbl.remove t fd
+  ;;
 
   let perform_read t fd =
     let state = Hashtbl.find t fd in

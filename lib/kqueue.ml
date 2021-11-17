@@ -1,3 +1,74 @@
+[%%import "config.h"]
+
+module Null = struct
+  type t
+
+  module Timeout = struct
+    type t = int
+
+    let never = -1
+    let immediate = 0
+    let of_ms ms = if ms < 0 then 0 else Int.min 1 ms
+  end
+
+  type event =
+    [ `Read
+    | `Write
+    ]
+
+  let pp_event fmt t =
+    let label =
+      match t with
+      | `Read -> "read"
+      | `Write -> "write"
+    in
+    Format.pp_print_string fmt label
+  ;;
+
+  let pp_event = pp_event
+
+  module Flag = struct
+    type t = int
+
+    let ( + ) = ( lor )
+    let is_subset t ~of_:flags = t = t land flags
+    let ev_add = 0
+    let ev_enable = 0
+    let ev_disable = 0
+    let ev_delete = 0
+    let ev_oneshot = 0
+    let ev_clear = 0
+    let ev_eof = 0
+    let ev_error = 0
+    let known = []
+
+    let pp fmt t =
+      let known_flags =
+        List.filter_map
+          (fun (k, label) -> if is_subset k ~of_:t then Some label else None)
+          known
+      in
+      Format.pp_print_list
+        ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
+        Format.pp_print_string
+        fmt
+        known_flags
+    ;;
+  end
+
+  let kqueue ~changelist_size:_ = assert false
+  let add _ _ _ = assert false
+  let wait _ _ = assert false
+  let iter_ready _ ~f:_ = assert false
+  let close _ = assert false
+end
+
+module _ : Kqueue_intf.S = struct
+  include Null
+end
+
+[%%ifdef KQUEUE_AVAILABLE]
+
 module Bigstring : sig
   type t = (char, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
 
@@ -27,9 +98,7 @@ end = struct
     Int64.to_int (swap64 (unsafe_get_int64 t pos))
   ;;
 
-  let unsafe_get_int64_le_trunc t ~pos =
-    Int64.to_int (unsafe_get_int64 t pos)
-  ;;
+  let unsafe_get_int64_le_trunc t ~pos = Int64.to_int (unsafe_get_int64 t pos)
 
   let unsafe_get_int64_le_trunc =
     if Sys.big_endian then unsafe_get_int64_le_trunc_swap else unsafe_get_int64_le_trunc
@@ -37,7 +106,11 @@ end = struct
 
   let unsafe_set_int64_swap t ~pos v = unsafe_set_int64 t pos (swap64 (Int64.of_int v))
   let unsafe_set_int64 t ~pos v = unsafe_set_int64 t pos (Int64.of_int v)
-  let unsafe_set_int64_le = if Sys.big_endian then unsafe_set_int64_swap else unsafe_set_int64
+
+  let unsafe_set_int64_le =
+    if Sys.big_endian then unsafe_set_int64_swap else unsafe_set_int64
+  ;;
+
   let unsafe_get_int32_le_swap t ~pos = Int32.to_int (swap32 (unsafe_get_int32 t pos))
   let unsafe_get_int32_le t ~pos = Int32.to_int (unsafe_get_int32 t pos)
 
@@ -74,6 +147,28 @@ module Fd = struct
   let of_int : int -> Unix.file_descr = Obj.magic
   let to_int : Unix.file_descr -> int = Obj.magic
 end
+
+module Timeout = struct
+  type t = int
+
+  let never = -1
+  let immediate = 0
+  let of_ms ms = if ms < 0 then 0 else Int.min 1 ms
+end
+
+type event =
+  [ `Read
+  | `Write
+  ]
+
+let pp_event fmt t =
+  let label =
+    match t with
+    | `Read -> "read"
+    | `Write -> "write"
+  in
+  Format.pp_print_string fmt label
+;;
 
 module Filter = struct
   external evfilt_read : unit -> int = "kqueue_filter_evfilt_read"
@@ -308,28 +403,6 @@ let kqueue ~changelist_size =
   }
 ;;
 
-module Timeout = struct
-  type t = int
-
-  let never = -1
-  let immediate = 0
-  let of_ms ms = if ms < 0 then 0 else Int.min 1 ms
-end
-
-type event =
-  [ `Read
-  | `Write
-  ]
-
-let pp_event fmt t =
-  let label =
-    match t with
-    | `Read -> "read"
-    | `Write -> "write"
-  in
-  Format.pp_print_string fmt label
-;;
-
 let event_to_filter = function
   | `Read -> Filter.evfilt_read
   | `Write -> Filter.evfilt_write
@@ -382,3 +455,9 @@ let iter_ready t ~f =
 ;;
 
 let close t = Unix.close t.kqueue_fd
+
+[%%else]
+
+include Null
+
+[%%endif]

@@ -10,17 +10,22 @@ on:
 jobs:
   build:
     name: Build
-    runs-on: macos-latest
     strategy:
       fail-fast: false
       matrix:
         ocaml-version:
           - 4.13.x
+        os:
+          - macos-latest
+          - ubuntu-latest
+          - windows-latest
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
       - uses: ocaml/setup-ocaml@v2
         with:
           ocaml-compiler: ${{ matrix.ocaml-version }}
+          dune-cache: ${{ matrix.os != 'macos-latest' }}
       - name: Install dependencies
         run: |
           opam pin add kqueue.dev -n .
