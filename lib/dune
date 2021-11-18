@@ -4,6 +4,7 @@
  (foreign_stubs
   (language c)
   (names kqueue_stubs))
+ (preprocessor_deps config.h)
  (preprocess
   (pps ppx_optcomp))
  (libraries unix))
