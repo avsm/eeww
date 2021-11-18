@@ -23,4 +23,4 @@
   ppx_optcomp
   (ppx_expect :with-test)
   (ocaml
-   (>= 4.13))))
+   (>= 4.12))))

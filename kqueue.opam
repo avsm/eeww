@@ -12,7 +12,7 @@ depends: [
   "dune" {>= "2.9"}
   "ppx_optcomp"
   "ppx_expect" {with-test}
-  "ocaml" {>= "4.13"}
+  "ocaml" {>= "4.12"}
   "odoc" {with-doc}
 ]
 build: [

@@ -8,7 +8,7 @@ module Null = struct
 
     let never = -1
     let immediate = 0
-    let of_ms ms = if ms < 0 then 0 else Int.min 1 ms
+    let of_ms ms = if ms < 0 then 0 else if ms <= 1 then 1 else ms
   end
 
   type event =
@@ -153,7 +153,7 @@ module Timeout = struct
 
   let never = -1
   let immediate = 0
-  let of_ms ms = if ms < 0 then 0 else Int.min 1 ms
+  let of_ms ms = if ms < 0 then 0 else if ms <= 1 then 1 else ms
 end
 
 type event =
