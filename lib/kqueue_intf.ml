@@ -36,4 +36,5 @@ module type S = sig
   val wait : t -> Timeout.t -> [ `Ok | `Timeout ]
   val iter_ready : t -> f:(Unix.file_descr -> Flag.t -> event -> unit) -> unit
   val close : t -> unit
+  val clear : t -> unit
 end

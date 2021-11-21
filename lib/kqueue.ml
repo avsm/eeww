@@ -61,6 +61,7 @@ module Null = struct
   let wait _ _ = assert false
   let iter_ready _ ~f:_ = assert false
   let close _ = assert false
+  let clear _ = assert false
 end
 
 module _ : Kqueue_intf.S = struct
@@ -455,6 +456,7 @@ let iter_ready t ~f =
 ;;
 
 let close t = Unix.close t.kqueue_fd
+let clear t = t.ready_events <- 0
 
 [%%else]
 

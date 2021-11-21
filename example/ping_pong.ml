@@ -108,6 +108,7 @@ let server_loop socket k =
               in
               aux ();
               Kqueue.add k fd `Read_write));
+      Kqueue.clear k;
       run ()
   in
   run ()
