@@ -19,9 +19,6 @@ jobs:
           - macos-latest
           - ubuntu-latest
           - windows-latest
-        include:
-          - os: ubuntu-latest
-            ocaml-version: 4.12.x
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
@@ -37,5 +34,6 @@ jobs:
         run: |
           opam exec -- dune build
       - name: Test
+        if: runner.os == 'macOS'
         run: |
-          opam exec -- dune runtest
+          opam exec -- dune exec example/oneshot_timer.exe

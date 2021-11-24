@@ -66,38 +66,30 @@
     CAMLreturn(Val_int(offsetof(struct kevent, udata)));
   }
 
-  CAMLprim value kqueue_ml_modify_fd(value kqueue_fd, value buf) {
-    CAMLparam2(kqueue_fd, buf);
+  CAMLprim value kqueue_ml_kevent(value kqueue_fd, value changelist, value eventlist, value timeout) {
+    CAMLparam4(kqueue_fd, changelist, eventlist, timeout);
+    struct kevent * changes;
     struct kevent * events;
-    int ret, event_count;
-    events = (struct kevent *) Caml_ba_data_val(buf);
-    event_count = Caml_ba_array_val(buf)->dim[0] / sizeof (struct kevent);
-    ret = kevent(Long_val(kqueue_fd), events, event_count, NULL, 0, NULL);
-    if (ret == -1)
-      uerror("kevent", Nothing);
-    CAMLreturn(Val_long(ret));
-  }
-
-  CAMLprim value kqueue_ml_wait(value kqueue_fd, value eventlist, value timeout) {
-    CAMLparam3(kqueue_fd, eventlist, timeout);
-    struct kevent * evs;
-    int ret, event_count;
-    evs = (struct kevent *) Caml_ba_data_val(eventlist);
+    int ret, event_count, change_count;
+    int64_t ns;
+    ns = Int64_val(timeout);
+    changes = (struct kevent *) Caml_ba_data_val(changelist);
+    events = (struct kevent *) Caml_ba_data_val(eventlist);
     event_count = Caml_ba_array_val(eventlist)->dim[0] / sizeof (struct kevent);
-    if (timeout == 0) {
+    change_count = Caml_ba_array_val(changelist)->dim[0] / sizeof (struct kevent);
+    if (ns == 0) {
       struct timespec t = { 0, 0 };
-      ret = kevent(Long_val(kqueue_fd), NULL, 0, evs, event_count, &t);
-    } else if (timeout < 0) {
+      ret = kevent(Long_val(kqueue_fd), changes, change_count, events, event_count, &t);
+    } else if (ns < 0) {
       caml_enter_blocking_section();
-      ret = kevent(Long_val(kqueue_fd), NULL, 0, evs, event_count, NULL);
+      ret = kevent(Long_val(kqueue_fd), changes, change_count, events, event_count, NULL);
       caml_leave_blocking_section();
     } else {
       struct timespec t;
-      long ms = Long_val(timeout);
-      t.tv_sec = ms / 1000;
-      t.tv_nsec = (ms % 1000) * 1000000;
+      t.tv_sec = ns / 1000000000;
+      t.tv_nsec = (ns % 1000000000);
       caml_enter_blocking_section();
-      ret = kevent(Long_val(kqueue_fd), NULL, 0, evs, event_count, &t);
+      ret = kevent(Long_val(kqueue_fd), changes, change_count, events, event_count, &t);
       caml_leave_blocking_section();
     }
     if (ret == -1)
@@ -107,8 +99,12 @@
 
   Kqueue_constant(kqueue_filter_evfilt_read, EVFILT_READ)
   Kqueue_constant(kqueue_filter_evfilt_write, EVFILT_WRITE)
+  Kqueue_constant(kqueue_filter_evfilt_timer, EVFILT_TIMER)
+  Kqueue_constant(kqueue_filter_evfilt_vnode, EVFILT_VNODE)
+  Kqueue_constant(kqueue_filter_evfilt_proc, EVFILT_PROC)
 
   Kqueue_constant(kqueue_flag_ev_add, EV_ADD)
+  Kqueue_constant(kqueue_flag_ev_receipt, EV_RECEIPT)
   Kqueue_constant(kqueue_flag_ev_enable, EV_ENABLE)
   Kqueue_constant(kqueue_flag_ev_disable, EV_DISABLE)
   Kqueue_constant(kqueue_flag_ev_delete, EV_DELETE)
@@ -116,6 +112,22 @@
   Kqueue_constant(kqueue_flag_ev_clear, EV_CLEAR)
   Kqueue_constant(kqueue_flag_ev_eof, EV_EOF)
   Kqueue_constant(kqueue_flag_ev_error, EV_ERROR)
+  Kqueue_constant(kqueue_note_seconds, NOTE_SECONDS)
+  Kqueue_constant(kqueue_note_useconds, NOTE_USECONDS)
+  Kqueue_constant(kqueue_note_nseconds, NOTE_NSECONDS)
+  Kqueue_constant(kqueue_note_lowat, NOTE_LOWAT)
+  Kqueue_constant(kqueue_note_oob, NOTE_OOB)
+  Kqueue_constant(kqueue_note_delete, NOTE_DELETE)
+  Kqueue_constant(kqueue_note_write, NOTE_WRITE)
+  Kqueue_constant(kqueue_note_extend, NOTE_EXTEND)
+  Kqueue_constant(kqueue_note_attrib, NOTE_ATTRIB)
+  Kqueue_constant(kqueue_note_link, NOTE_LINK)
+  Kqueue_constant(kqueue_note_rename, NOTE_RENAME)
+  Kqueue_constant(kqueue_note_revoke, NOTE_REVOKE)
+  Kqueue_constant(kqueue_note_exit, NOTE_EXIT)
+  Kqueue_constant(kqueue_note_fork, NOTE_FORK)
+  Kqueue_constant(kqueue_note_exec, NOTE_EXEC)
+  Kqueue_constant(kqueue_note_signal, NOTE_SIGNAL)
 #else
   typedef int dummy_definition;
 #endif

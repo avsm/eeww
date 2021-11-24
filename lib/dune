@@ -12,6 +12,4 @@
 (rule
  (targets config.h)
  (action
-  (with-stdout-to
-   %{targets}
-   (run ./config/config.exe))))
+  (run ./config/config.exe)))
