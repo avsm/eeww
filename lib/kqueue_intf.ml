@@ -118,8 +118,23 @@ module type S = sig
     val get : t -> int -> Event.t
   end
 
+  (** [create] creates a new kernel event queue. *)
   val create : unit -> t
+
+  (** [kevent] is used to register new events, and fetch any ready events from the kernel
+      queue.
+
+      [changelist] is the list of new events to be submitted.
+
+      [eventlist] is the container where the kernel queue fill fill any new events that
+      are ready for the user.
+
+      If [eventlist] is empty the kevent call will return immediately even if a non zero
+      timeout is used. The response returns the count of new events returned by the kernel
+      queue. *)
   val kevent : t -> changelist:Event_list.t -> eventlist:Event_list.t -> Timeout.t -> int
+
+  (** [close] closes the kernel queue. *)
   val close : t -> unit
 
   module Util : sig
