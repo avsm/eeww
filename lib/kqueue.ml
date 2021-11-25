@@ -3,6 +3,8 @@
 module Null = struct
   type t
 
+  let available = false
+
   module Timeout = struct
     type t = [ `Not_implemented ]
 
@@ -472,6 +474,8 @@ let close t =
     t.closed <- true;
     Unix.close t.kqueue_fd)
 ;;
+
+let available = true
 
 [%%else]
 

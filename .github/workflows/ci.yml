@@ -34,6 +34,5 @@ jobs:
         run: |
           opam exec -- dune build
       - name: Test
-        if: runner.os == 'macOS'
         run: |
-          opam exec -- dune exec example/oneshot_timer.exe
+          opam exec -- dune runtest

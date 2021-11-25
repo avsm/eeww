@@ -1,0 +1,11 @@
+(library
+ (name kqueue_test)
+ (inline_tests)
+ (preprocess
+  (pps ppx_expect ppx_optcomp))
+ (libraries kqueue))
+
+(rule
+ (targets config.h)
+ (action
+  (run ../lib/config/config.exe)))
