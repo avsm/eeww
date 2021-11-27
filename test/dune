@@ -1,6 +1,7 @@
 (library
  (name kqueue_test)
  (inline_tests)
+ (preprocessor_deps config.h)
  (preprocess
   (pps ppx_expect ppx_optcomp))
  (libraries kqueue))
