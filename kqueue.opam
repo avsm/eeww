@@ -32,3 +32,6 @@ build: [
   ["dune" "install" "-p" name "--create-install-files" name]
 ]
 dev-repo: "git+https://github.com/anuragsoni/kqueue-ml.git"
+conflicts: [
+  "ppxlib" {< "0.14.0"}
+]
