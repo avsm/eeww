@@ -9,7 +9,7 @@ homepage: "https://github.com/patricoferris/ocaml-network"
 bug-reports: "https://github.com/patricoferris/ocaml-network/issues"
 depends: [
   "dune" {>= "2.8"}
-  "dispatch"
+  "gcd"
   "logs" {with-test}
   "fmt" {with-test}
   "cmdliner" {with-test}

@@ -18,7 +18,7 @@
  (synopsis "OCaml bindings for Apple's Network Framework")
  (description "Bindings for Apple's Network Framework.")
  (depends
-  dispatch
+  gcd
   (logs :with-test)
   (fmt :with-test)
   (cmdliner :with-test)))

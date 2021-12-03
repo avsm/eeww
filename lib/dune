@@ -2,7 +2,7 @@
  (name network)
  (public_name network)
  (c_library_flags -framework Network)
- (libraries dispatch)
+ (libraries gcd)
  (foreign_stubs
   (language c)
   (flags
