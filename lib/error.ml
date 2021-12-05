@@ -1,3 +1,3 @@
-type t
+type t = int
 
-let get_code _ = 1
+let to_int = Fun.id

@@ -1,3 +1,3 @@
 type t
 
-val get_code : t -> int
+val to_int : t -> int

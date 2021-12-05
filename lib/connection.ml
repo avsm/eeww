@@ -13,8 +13,14 @@ external network_connection_retain : t -> unit
 
 external network_connection_start : t -> unit = "ocaml_network_connection_start"
 
+external network_connection_restart : t -> unit
+  = "ocaml_network_connection_restart"
+
 external network_connection_cancel : t -> unit
   = "ocaml_network_connection_cancel"
+
+external network_connection_copy_endpoint : t -> Endpoint.t
+  = "ocaml_network_connection_copy_endpoint"
 
 let create ~params endpoint = network_connection_create endpoint params
 
@@ -24,7 +30,11 @@ let retain t = network_connection_retain t
 
 let start t = network_connection_start t
 
+let restart t = network_connection_restart t
+
 let cancel t = network_connection_cancel t
+
+let copy_endpoint t = network_connection_copy_endpoint t
 
 module State = struct
   type t = Invalid | Waiting | Preparing | Ready | Failed | Cancelled
@@ -40,17 +50,11 @@ let set_state_changed_handler ~handler t =
   network_connection_set_state_changed_handler handler t
 
 module Context = struct
-  type t = unit
-
-  let default () = ()
-
-  let retain _ = ()
-
-  let release _ = ()
+  type t = Default | Final
 end
 
 type receive_completion =
-  Dispatch.Data.t -> Context.t -> bool -> Error.t -> unit
+  Dispatch.Data.t option -> Context.t -> bool -> Error.t -> unit
 
 external network_connection_receive :
   int -> int -> receive_completion -> t -> unit

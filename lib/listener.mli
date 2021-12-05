@@ -26,7 +26,7 @@ val retain : t -> unit
 val release : t -> unit
 
 module State : sig
-  type t = Invalid | Waiting | Preparing | Ready | Failed | Cancelled
+  type t = Invalid | Waiting | Ready | Failed | Cancelled
 
   type handler = t -> Error.t -> unit
 end

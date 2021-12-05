@@ -30,3 +30,6 @@ build: [
   ]
 ]
 dev-repo: "git+https://github.com/patricoferris/ocaml-network.git"
+pin-depends: [
+  ["gcd.dev" "git+https://github.com/patricoferris/ocaml-dispatch#6662b29c20a3db0359759c18677cf3f96c15260f"]
+]
