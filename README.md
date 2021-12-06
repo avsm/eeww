@@ -29,7 +29,7 @@ In summary:
 | Integer type         | 32-bit representation  | 64-bit representation  | Semantics          |
 | --                   | --                  | --                  | --                 |
 | `Stdlib.Int.t`       | 31-bit immediate ✅ | 63-bit immediate ✅ | Always immediate   |
-| `Stdlib.Nativeint.t` | 64-bit boxed ❌     | 32-bit boxed ❌     | Exactly word size  |
+| `Stdlib.Nativeint.t` | 32-bit boxed ❌     | 64-bit boxed ❌     | Exactly word size  |
 | `Stdlib.Int32.t`     | 32-bit boxed ❌     | 32-bit boxed ❌     | Exactly 32 bits    |
 | `Stdlib.Int64.t`     | 64-bit boxed ❌     | 64-bit boxed ❌     | Exactly 64 bits    |
 | `Optint.t` (_new_)   | 32-bit boxed ❌     | 63-bit immediate ✅ | _At least_ 32 bits |
