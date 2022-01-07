@@ -198,18 +198,17 @@ let compare_label a b =
   String.compare (String.lowercase_ascii a) (String.lowercase_ascii b)
 
 let compare_domain cmp_sub a b =
-  let la = Array.length a in
-  match compare la (Array.length b) with
-  | 0 ->
-    let rec cmp idx =
-      if idx = la then 0
-      else
-        match cmp_sub (Array.get a idx) (Array.get b idx) with
-        | 0 -> cmp (succ idx)
-        | x -> x
-    in
-    cmp 0
-  | x -> x
+  let al = Array.length a and bl = Array.length b in
+  let rec cmp idx =
+    if al = bl && al = idx then 0
+    else if al = idx then -1
+    else if bl = idx then 1
+    else
+      match cmp_sub (Array.get a idx) (Array.get b idx) with
+      | 0 -> cmp (succ idx)
+      | x -> x
+  in
+  cmp 0
 
 let compare = compare_domain compare_label
 
