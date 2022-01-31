@@ -8,7 +8,6 @@
 #include <caml/memory.h>
 #include <caml/mlvalues.h>
 #include <caml/signals.h>
-#include <caml/unixsupport.h>
 #include <caml/threads.h>
 #include <string.h>
 #include <pthread.h>
@@ -426,20 +425,20 @@ value ocaml_dispatch_io_close(value v_channel)
   CAMLreturn(Val_unit);
 }
 
+dispatch_io_type_t get_typ (value v_typ)
+{
+  if (Int_val(v_typ) == 0)
+  {
+    return DISPATCH_IO_STREAM;
+  }
+    return DISPATCH_IO_RANDOM;
+}
+
 value ocaml_dispatch_io_create(value v_typ, value v_fd, value v_queue)
 {
   CAMLparam3(v_typ, v_fd, v_queue);
   CAMLlocal1(v_channel);
-  dispatch_io_type_t typ;
-
-  if (Int_val(v_typ) == 0)
-  {
-    typ = DISPATCH_IO_STREAM;
-  }
-  else
-  {
-    typ = DISPATCH_IO_RANDOM;
-  }
+  dispatch_io_type_t typ = get_typ(v_typ);
 
   dispatch_fd_t fd = Int_val(v_fd);
   dispatch_io_t channel = dispatch_io_create(typ, fd, Queue_val(v_queue), ^(int error) {
@@ -454,6 +453,32 @@ value ocaml_dispatch_io_create(value v_typ, value v_fd, value v_queue)
   Channel_val(v_channel) = channel;
 
   CAMLreturn(v_channel);
+}
+
+
+// A crucial missing part to Apple's documentation is that the path must be absolute!
+// Found it here: https://www.manpagez.com/man/3/dispatch_io_create_with_path/
+// "If an invalid type or a non-absolute path argument is specified, these functions will return NULL and the cleanup_handler will not be invoked."
+value ocaml_dispatch_io_create_with_path(value v_flags, value v_mode, value v_path, value v_typ, value v_queue)
+{
+  CAMLparam5(v_flags, v_path, v_typ, v_mode, v_queue);
+  CAMLlocal1(v_channel);
+  dispatch_io_type_t typ = get_typ(v_typ);
+  const char *path = String_val(v_path);
+  dispatch_io_t channel = dispatch_io_create_with_path(DISPATCH_IO_STREAM, path, Int_val(v_flags), Int_val(v_mode), Queue_val(v_queue), ^(int error) {
+    if (error)
+    {
+      fprintf(stderr, "%i", error);
+    }
+  });
+
+  if (channel) {
+    v_channel = caml_alloc_custom(&io_ops, sizeof(dispatch_io_t), 0, 1);
+    Channel_val(v_channel) = channel;
+    CAMLreturn(v_channel);
+  } else {
+    caml_invalid_argument("Error: Failed to create IO channel, perhaps your path was not absolute");
+  }
 }
 
 value ocaml_dispatch_io_handler(value *handler, bool done, dispatch_data_t data, int error) {
@@ -476,7 +501,7 @@ value ocaml_dispatch_with_read(value v_channel, value v_off, value v_len, value 
   value *m_handler = make_callback(v_handler);
   dispatch_queue_t queue = Queue_val(v_queue);
 
-  dispatch_io_read(Channel_val(v_channel), Val_int(v_off), Val_int(v_len), queue, ^(bool done, dispatch_data_t data, int error) {
+  dispatch_io_read(Channel_val(v_channel), Int_val(v_off), Int_val(v_len), queue, ^(bool done, dispatch_data_t data, int error) {
     int res = caml_c_thread_register();
 
     if (res)
@@ -504,7 +529,7 @@ value ocaml_dispatch_with_write(value v_channel, value v_off, value v_data, valu
   // Allocate everything the thread is going to need
   value *m_handler = make_callback(v_handler);
   dispatch_queue_t queue = Queue_val(v_queue);
-  dispatch_io_write(Channel_val(v_channel), Val_int(v_off), Data_val(v_data), queue, ^(bool done, dispatch_data_t data, int error) {
+  dispatch_io_write(Channel_val(v_channel), Int_val(v_off), Data_val(v_data), queue, ^(bool done, dispatch_data_t data, int error) {
     int res = caml_c_thread_register();
 
     if (res)

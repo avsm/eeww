@@ -50,6 +50,7 @@ Next a copy function, for every `read` of data we also `write` that data out.
           ~f:(fun ~err:_ ~finished data -> 
               if finished then Dispatch.Group.leave group
               else (
+                print_int @@ Dispatch.Data.size data;
                 Dispatch.Group.enter group;
                 Dispatch.Io.with_write ~off:0 ~data ~queue:q
                   ~f:(fun ~err:_ ~finished:_ _ -> Dispatch.Group.leave group)
@@ -61,10 +62,14 @@ val cp : Dispatch.Io.t -> Dispatch.Io.t -> unit -> Dispatch.Group.t = <fun>
 Next we run the function using the `LICENSE.md` and printing to standard out.
 
 ```ocaml
-# let () = 
-    let in_io = Dispatch.Io.create Stream (Unix.(openfile "LICENSE.md" [ O_RDONLY ]) 0) q in 
-    let out_io = Dispatch.Io.create Stream Unix.stdout q in
-      with_group (cp in_io out_io)
+# let () =
+    let in_io = Dispatch.Io.(create Stream (Fd.of_unix @@ Unix.(openfile "LICENSE.md" [ O_RDONLY ]) 0)) q in 
+    let out_io = Dispatch.Io.(create Stream Fd.stdout q) in
+    try
+      with_group (cp in_io out_io);
+       Dispatch.Io.close in_io;
+       Dispatch.Io.close out_io
+    with _ -> Dispatch.Io.close in_io; Dispatch.Io.close out_io
 /*
  * Copyright (C) 2020-2021 Patrick Ferris
  *

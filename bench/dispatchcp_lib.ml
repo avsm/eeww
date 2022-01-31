@@ -1,14 +1,10 @@
 let copy_file block_size _queue_depth in_path out_path () =
-  (* The main, serial queue for doing the callbacks *)
   let serial = Dispatch.Queue.(create ~typ:Serial ()) in
-  (* Io value: TODO implement dispatch_io_create_with_path probably? *)
-  let in_fd = Unix.(openfile in_path [ O_RDONLY ] 0) in
-  let read_io = Dispatch.Io.(create Stream in_fd serial) in
+  let read_io = Dispatch.Io.(create_with_path ~flags:0o666 ~mode:0 ~path:in_path Stream serial) in
   let group = Dispatch.Group.create () in
   Dispatch.Group.enter group;
   let write_group = Dispatch.Group.create () in
-  let out_fd = Unix.(openfile out_path [ O_RDWR; O_CREAT; O_TRUNC ] 0o775) in
-  let write_io = Dispatch.Io.(create Stream out_fd serial) in
+  let write_io = Dispatch.Io.(create_with_path ~flags:0o666 ~mode:0 ~path:out_path Stream serial) in
   (* Set high-water mark for low memory consumption... I think... *)
   Dispatch.Io.set_high_water read_io block_size;
   Dispatch.Io.with_read ~off:0 ~length:max_int ~queue:serial
@@ -23,6 +19,8 @@ let copy_file block_size _queue_depth in_path out_path () =
   Dispatch.(Group.wait write_group @@ Time.forever ()) |> ignore
 
 let run_cp block_size _queue_depth infile outfile =
+  let infile = Filename.concat (Sys.getcwd ()) infile in
+  let outfile = Filename.concat (Sys.getcwd ()) outfile in
   copy_file block_size _queue_depth infile outfile
 
 (* if size < 1_000_000 then run_cp2 _block_size _queue_depth infile outfile

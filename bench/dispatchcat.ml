@@ -1,9 +1,9 @@
 (* Inspired by https://github.com/ocaml-multicore/ocaml-uring/blob/main/tests/urcat.ml thanks @avsm *)
 
-let cat ~group fd =
+let cat ~group path =
   let queue = Dispatch.Queue.create () in
-  let io = Dispatch.Io.create Stream fd queue in
-  let stdout = Dispatch.Io.create Stream Unix.stdout queue in
+  let io = Dispatch.Io.create_with_path ~flags:0o666 ~mode:0 ~path Stream queue in
+  let stdout = Dispatch.Io.(create Stream Fd.stdout queue) in
   Dispatch.Group.enter group;
   Dispatch.Io.set_high_water io (1024 * 64);
   Dispatch.Io.with_read ~off:0 ~length:max_int ~queue
@@ -18,10 +18,10 @@ let cat ~group fd =
 
 let () =
   let group = Dispatch.Group.create () in
-  let fd = 
+  let path = 
     if Array.length Sys.argv > 1
-    then Unix.(openfile Sys.argv.(1) [ O_RDONLY ]) 0
-    else Unix.stdin 
+    then Sys.argv.(1)
+    else failwith "Please provide a file to read"
   in
-  cat ~group fd;
+  cat ~group path;
   Dispatch.(Group.wait group (Time.forever ()) |> ignore)

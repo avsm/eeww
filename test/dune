@@ -23,7 +23,7 @@
   (progn
    (with-stdout-to
     text3.txt
-    (run ../bench/dispatchcat.exe ./text.txt)))))
+    (run ../bench/dispatchcat.exe %{workspace_root}/text.txt)))))
 
 (rule
  (alias runtest)

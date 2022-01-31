@@ -7,10 +7,19 @@ type typ =
       (** The underlying type of the channel -- with [Random] you can use the
           file offset to read *)
 
-val create : typ -> Unix.file_descr -> Queue.t -> t
-(** Create a new channel of a particular [typ] from a path *)
+module Fd : sig
+  type t
+  val stdout : t
+  val stdin : t
+  (* Would be good to remove *)
+  val of_unix : Unix.file_descr -> t
+end
 
-(* val read : Queue.t -> t -> int -> int -> Group.t -> Data.t -> unit *)
+val create : typ -> Fd.t -> Queue.t -> t
+(** Create a new channel of a particular [typ] from a file descriptor *)
+
+val create_with_path : flags:int -> mode:int -> path:string -> typ -> Queue.t -> t
+(** Create a new channel of a particular [typ] from a path *)
 
 type err = int
 (** Error type *)

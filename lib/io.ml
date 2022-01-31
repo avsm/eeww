@@ -3,8 +3,19 @@ type typ = Stream | Random
 type err = int
 type handler = err:err -> finished:bool -> Data.t -> unit
 
-external dispatch_io_create : typ -> Unix.file_descr -> Queue.t -> t
+module Fd = struct
+  type t = int
+  let stdout = 1
+  let stdin = 0
+
+  let of_unix = Obj.magic
+end
+
+external dispatch_io_create : typ -> int -> Queue.t -> t
   = "ocaml_dispatch_io_create"
+
+external dispatch_io_create_with_path : int -> int -> string -> typ -> Queue.t -> t
+  = "ocaml_dispatch_io_create_with_path"
 
 external dispatch_io_close : t -> unit
   = "ocaml_dispatch_io_close"
@@ -26,7 +37,10 @@ external dispatch_set_high_water : t -> int -> unit
 external dispatch_set_low_water : t -> int -> unit
   = "ocaml_dispatch_set_low_water"
 
-let create typ fd q = dispatch_io_create typ fd q
+let create typ fd queue = dispatch_io_create typ fd queue
+
+let create_with_path ~flags ~mode ~path typ queue =
+  dispatch_io_create_with_path flags mode path typ queue
 
 let close t = dispatch_io_close t
 
