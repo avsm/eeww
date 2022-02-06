@@ -15,7 +15,7 @@ let sort_by_name lp rp =
   String.compare (name !@lp) (name !@rp)
 
 let ents ?compar path_argv =
-  let fts : FTS.t = fts_open ~path_argv ?compar ~options:[] in
+  let fts : FTS.t = fts_open ~path_argv ?compar ~options:[] () in
   Stream.from (fun _ -> fts_read fts)
 
 let main paths =
