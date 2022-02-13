@@ -3,6 +3,11 @@
   ctypes_primitives.ml
   (run ../configure/gen_c_primitives.exe)))
 
+(rule
+ (deps (:header %{lib:integers:ocaml_integers.h}))
+ (target ocaml_integers.h)
+ (action (copy %{header} %{target})))
+
 (library
  (name ctypes)
  (public_name ctypes)
@@ -14,7 +19,8 @@
  (install_c_headers ctypes_raw_pointer ctypes_primitives
    ctypes_cstubs_internals ctypes_managed_buffer_stubs
    ctypes_complex_compatibility cstubs_internals ctypes_ldouble_stubs
-   ctypes_complex_stubs ctypes_type_info_stubs)
+   ctypes_complex_stubs ctypes_type_info_stubs
+   ocaml_integers)
  (foreign_stubs
   (language c)
   (names complex_stubs ctypes_bigarrays ctypes_roots ldouble_stubs
