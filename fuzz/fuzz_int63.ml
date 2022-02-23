@@ -8,11 +8,11 @@ let int32 =
     let bits () = of_int (Gen.bits ()) in
     fun () -> logxor (bits ()) (shift_left (bits ()) 30)
   in
-  let pos = easily_constructible gen_random PPrintOCaml.int32 in
-  let neg = deconstructible PPrintOCaml.int32 in
+  let pos = easily_constructible gen_random PPrint.OCaml.int32 in
+  let neg = deconstructible PPrint.OCaml.int32 in
   ifpol pos neg
 
-let float = deconstructible PPrintOCaml.float
+let float = deconstructible PPrint.OCaml.float
 let string = deconstructible PPrint.string
 
 module type INTEGER = module type of Optint.Int63.Boxed
