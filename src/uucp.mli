@@ -85,6 +85,7 @@ module Block : sig
     | `Ancient_Symbols
     | `Arabic
     | `Arabic_Ext_A
+    | `Arabic_Ext_B
     | `Arabic_Math
     | `Arabic_PF_A
     | `Arabic_PF_B
@@ -140,6 +141,7 @@ module Block : sig
     | `Cuneiform_Numbers
     | `Currency_Symbols
     | `Cypriot_Syllabary
+    | `Cypro_Minoan
     | `Cyrillic
     | `Cyrillic_Ext_A
     | `Cyrillic_Ext_B
@@ -170,6 +172,7 @@ module Block : sig
     | `Ethiopic
     | `Ethiopic_Ext
     | `Ethiopic_Ext_A
+    | `Ethiopic_Ext_B
     | `Ethiopic_Sup
     | `Geometric_Shapes
     | `Geometric_Shapes_Ext
@@ -207,6 +210,7 @@ module Block : sig
     | `Javanese
     | `Kaithi
     | `Kana_Ext_A
+    | `Kana_Ext_B
     | `Kana_Sup
     | `Kanbun
     | `Kangxi
@@ -228,6 +232,8 @@ module Block : sig
     | `Latin_Ext_C
     | `Latin_Ext_D
     | `Latin_Ext_E
+    | `Latin_Ext_F
+    | `Latin_Ext_G
     | `Lepcha
     | `Letterlike_Symbols
     | `Limbu
@@ -293,6 +299,7 @@ module Block : sig
     | `Old_Sogdian
     | `Old_South_Arabian
     | `Old_Turkic
+    | `Old_Uyghur
     | `Oriya
     | `Ornamental_Dingbats
     | `Osage
@@ -354,6 +361,7 @@ module Block : sig
     | `Takri
     | `Tamil
     | `Tamil_Sup
+    | `Tangsa
     | `Tangut
     | `Tangut_Components
     | `Tangut_Sup
@@ -363,15 +371,18 @@ module Block : sig
     | `Tibetan
     | `Tifinagh
     | `Tirhuta
+    | `Toto
     | `Transport_And_Map
     | `UCAS
     | `UCAS_Ext
+    | `UCAS_Ext_A
     | `Ugaritic
     | `VS
     | `VS_Sup
     | `Vai
     | `Vedic_Ext
     | `Vertical_Forms
+    | `Vithkuqi
     | `Wancho
     | `Warang_Citi
     | `Yezidi
@@ -379,6 +390,7 @@ module Block : sig
     | `Yi_Syllables
     | `Yijing
     | `Zanabazar_Square
+    | `Znamenny_Music
   ]
   (** The type for blocks. The value [`NB] is for characters that are not
       yet assigned to a block. *)
@@ -599,7 +611,7 @@ module Low : sig
     (** [line u] is an integer that can be used with {!line_of_int}. *)
 
     val line_max : int
-    (** [line_max] is the maximal value returned by {!line}. *)
+    (** [line_max] is the maximal value returned by {!val-line}. *)
 
     val line_of_int : line array
     (** [line_of_int.(i)] is the line break property value corresponding
@@ -611,7 +623,7 @@ module Low : sig
 
     val grapheme_cluster_max : int
     (** [grapheme_cluster_max] is the maximal value returned by
-        {!grapheme_cluster}. *)
+        {!val-grapheme_cluster}. *)
 
     val grapheme_cluster_of_int : grapheme_cluster array
     (** [grapheme_cluster_of_int.(i)] is the grapheme cluster break property
@@ -621,7 +633,7 @@ module Low : sig
     (** [word u] is an integer that can be used with {!word_of_int}. *)
 
     val word_max : int
-    (** [word_max] is the maximal value returned by {!word}. *)
+    (** [word_max] is the maximal value returned by {!val-word}. *)
 
     val word_of_int : word array
     (** [word_of_int.(i)] is the word break property value
@@ -631,7 +643,7 @@ module Low : sig
     (** [sentence u] is an integer that can be used with {!sentence_of_int}. *)
 
     val sentence_max : int
-    (** [sentence_max] is the maximal value returned by {!sentence}. *)
+    (** [sentence_max] is the maximal value returned by {!val-sentence}. *)
 
     val sentence_of_int : sentence array
     (** [sentence_of_int.(i)] is the sentence break property value
@@ -643,7 +655,7 @@ end
 
     These properties can implement Unicode's default case detection,
     case conversion and caseless equality over Unicode text, see the
-    {{!caseexamples}examples}.
+    {{!Case.caseexamples}examples}.
 
     {3 References}
     {ul
@@ -1123,7 +1135,7 @@ module Num : sig
       property. *)
 
   val is_hex_digit : Uchar.t -> bool
-  (** [is_ascii_hex_digit u] is [true] if [u] has the
+  (** [is_hex_digit u] is [true] if [u] has the
       {{:http://www.unicode.org/reports/tr44/#Hex_Digit}Hex_Digit}
       property. *)
 
@@ -1195,6 +1207,7 @@ module Script : sig
   | `Cher
   | `Chrs
   | `Copt
+  | `Cpmn
   | `Cprt
   | `Cyrl
   | `Deva
@@ -1274,6 +1287,7 @@ module Script : sig
   | `Orya
   | `Osge
   | `Osma
+  | `Ougr
   | `Palm
   | `Pauc
   | `Perm
@@ -1317,8 +1331,11 @@ module Script : sig
   | `Thai
   | `Tibt
   | `Tirh
+  | `Tnsa
+  | `Toto
   | `Ugar
   | `Vaii
+  | `Vith
   | `Wara
   | `Wcho
   | `Xpeo

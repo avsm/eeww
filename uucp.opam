@@ -1,8 +1,10 @@
 opam-version: "2.0"
-maintainer: "Daniel Bünzli <daniel.buenzl i@erratique.ch>"
-authors: [ "The uucp programmers" ]
+name: "uucp"
+synopsis: """Unicode character properties for OCaml"""
+maintainer: ["Daniel Bünzli <daniel.buenzl i@erratique.ch>"]
+authors: ["The uucp programmers"]
 homepage: "https://erratique.ch/software/uucp"
-doc: "https://erratique.ch/software/uucp/doc/Uucp"
+doc: "https://erratique.ch/software/uucp/doc/"
 dev-repo: "git+https://github.com/dune-universe/uucp.git"
 bug-reports: "https://github.com/dbuenzli/uucp/issues"
 tags: [ "unicode" "text" "character" "org:erratique" ]
@@ -19,5 +21,5 @@ build: [
  [ "dune" "build" "-p" name "-j" jobs]
 ]
 url {
-  src: "git://github.com/dune-universe/uucp.git#duniverse-v13.0.0"
+  src: "git://github.com/dune-universe/uucp.git#duniverse-v14.0.0"
 }
