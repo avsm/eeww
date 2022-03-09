@@ -15,9 +15,7 @@ depends: [
 depopts: ["base-unix"
           "cmdliner"]
 conflicts: ["cmdliner" {< "0.9.8"}]
-build: [
-  [ "dune" "build" "-p" name "-j" jobs ]
-]
+build: [ "dune" "build" "-p" name "-j" jobs "@install" "@runtest" {with-test} ]
 description: """
 Fmt exposes combinators to devise `Format` pretty-printing functions.
 
