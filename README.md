@@ -1,6 +1,6 @@
 Hmap — Heterogeneous value maps for OCaml
 -------------------------------------------------------------------------------
-v%%VERSION%%
+%%VERSION%%
 
 Hmap provides heterogeneous value maps for OCaml. These maps bind keys
 to values with arbitrary types. Keys witness the type of the value
@@ -36,10 +36,8 @@ If you installed Hmap with `opam` sample programs are located in
 the directory `opam config var hmap:doc`.
 
 In the distribution sample programs and tests are located in the
-[`test`](test) directory of the distribution. They can be built with:
+[`test`](test) directory of the distribution. They can be built an run
+with
 
-    ocamlbuild -use-ocamlfind test/tests.otarget
-
-The resulting binaries are in `_build/test`.
-
-- `test.native` tests the library, nothing should fail.
+    topkg build --tests true
+    topkg test

@@ -1,7 +1,7 @@
 (*---------------------------------------------------------------------------
    Copyright (c) 2016 Daniel C. Bünzli. All rights reserved.
    Distributed under the ISC license, see terms at the end of the file.
-   %%NAME%% v%%VERSION%%
+   %%NAME%% %%VERSION%%
   ---------------------------------------------------------------------------*)
 
 let test () =
@@ -18,7 +18,7 @@ let test () =
   assert (Hmap.get sk m = "hey");
   assert (Hmap.find uk m = None);
   assert (try Hmap.get uk m; false with Invalid_argument _ -> true);
-  Printf.printf "Success!%!";
+  Printf.printf "Success!\n%!";
   ()
 
 let () = test ()

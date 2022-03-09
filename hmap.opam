@@ -1,13 +1,11 @@
-opam-version: "1.2"
+opam-version: "2.0"
 maintainer: "Daniel Bünzli <daniel.buenzl i@erratique.ch>"
 authors: ["Daniel Bünzli <daniel.buenzl i@erratique.ch>"]
-homepage: "http://erratique.ch/software/hmap"
-doc: "http://erratique.ch/software/hmap/doc"
+homepage: "https://github.com/dune-universe/hmap"
 license: "ISC"
-dev-repo: "http://erratique.ch/repos/hmap.git"
+dev-repo: "git+https://github.com/dune-universe/hmap.git"
 bug-reports: "http://github.com/dbuenzli/hmap/issues"
 tags: ["data-structure" "org:erratique"]
-available: [ ocaml-version >= "4.02.0"]
 depends: [
   "dune" { >= "2.0.0" }
   "ocaml" { >= "4.02.0" }
@@ -17,3 +15,4 @@ build:
 [
   [ "dune" "build" "-p" name ]
 ]
+synopsis: "Hmap provides heterogeneous value maps for OCaml"
