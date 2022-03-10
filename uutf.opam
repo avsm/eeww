@@ -3,9 +3,8 @@ name: "uutf"
 synopsis: """Non-blocking streaming Unicode codec for OCaml"""
 maintainer: ["Daniel Bünzli <daniel.buenzl i@erratique.ch>"]
 authors: ["The uutf programmers"]
-homepage: "https://erratique.ch/software/uutf"
-doc: "https://erratique.ch/software/uutf/doc/"
-dev-repo: "git+https://erratique.ch/repos/uutf.git"
+homepage: "https://github.com/dune-universe/uutf"
+dev-repo: "git+https://github.com/dune-universe/uutf.git"
 bug-reports: "https://github.com/dbuenzli/uutf/issues"
 license: ["ISC"]
 tags: ["unicode" "text" "utf-8" "utf-16" "codec" "org:erratique"]
