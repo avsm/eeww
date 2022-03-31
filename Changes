@@ -31,7 +31,7 @@ Release 1.9 (2019-08-22):
 - Issue #50: add opam file, make it easy to "opam publish" new versions
 - Issue #38: configure detects 32bit OCaml switch on 64bit host
 - Fix #36: change Q.equal, leq, geq comparisons for undef
-- Request #47: move infix comparison operators of Z in submodule 
+- Request #47: move infix comparison operators of Z in submodule
   avoid shadowing the polymorphic compare [Bernhard Schommer]
 - Fix #49: INT_MAX undeclared
 - Request #46: add prefixnonocaml option [Et7f3]
@@ -47,9 +47,9 @@ Release 1.8 (2019-03-30):
 - Issue #22: wrong stack marking directive in caml_z_x86_64_mingw64.S
   [Bernhard Schommer]
 - Issue #24: generate and install .cmti files for easy access to documentation
-- Issue #25: false alarm in tests/zq.ml owing to unreliable printing  
+- Issue #25: false alarm in tests/zq.ml owing to unreliable printing
   of FP values
-- Request #28: better handling of absolute paths in "configure" 
+- Request #28: better handling of absolute paths in "configure"
 
 Release 1.7 (2017-10-13):
 - Issue#14, pull request#15: ARM assembly code was broken.
@@ -117,7 +117,7 @@ Release 1.1 (2012-03-24):
 - PR#1034: support for static linking of GMP/MPIR
 - PR#1046: autodetection of ocamlopt and dynlink
 - PR#1048: autodetection of more platforms that we support
-- PR#1051: support architectures with strict alignment constraints for 
+- PR#1051: support architectures with strict alignment constraints for
     64-bit integers (e.g. Sparc)
 - Fixed 1-bit precision loss when converting doubles to rationals
 - Improved support for the forthcoming release 4.00 of OCaml
