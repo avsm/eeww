@@ -30,6 +30,12 @@ module Immediate64 = struct
   end
 end
 
+module Conditional = struct
+  type ('t, 'u, 'v) t =
+    | True : ('t, 't, _) t (** therefore ['t] = ['u] *)
+    | False : ('t, _, 't) t (** therefore ['t] = ['v] *)
+end
+
 module Optint = struct
   include Immediate64.Make (Optint_native) (Optint_emul)
 
@@ -41,12 +47,11 @@ module Optint = struct
     | Non_immediate -> (module Optint_emul : S)
 
   include (val impl : S)
-end
 
-module Conditional = struct
-  type ('t, 'u, 'v) t =
-    | True : ('t, 't, _) t (** therefore ['t] = ['u] *)
-    | False : ('t, _, 't) t (** therefore ['t] = ['v] *)
+  let is_immediate : (t, int, int32) Conditional.t =
+    match repr with
+    | Immediate -> True
+    | Non_immediate -> False
 end
 
 module Int63 = struct

@@ -15,6 +15,8 @@ module Conditional : sig
     | False : ('t, _, 't) t (** therefore ['t] = ['v] *)
 end
 
+val is_immediate : (t, int, int32) Conditional.t
+
 (** 63-bit integers. *)
 module Int63 : sig
   type t [@@immediate64]
