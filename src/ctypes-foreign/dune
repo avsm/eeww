@@ -18,11 +18,13 @@
  (private_modules ctypes_foreign_threaded_stubs)
  (libraries ctypes threads)
  (c_library_flags
+  :standard
   (:include c_library_flags.sexp))
  (foreign_stubs
   (language c)
   (names dl_stubs ffi_call_stubs ffi_type_stubs foreign_threaded_stubs)
   (flags
+   :standard
    (:include c_flags.sexp))))
 
 (rule
