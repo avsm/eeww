@@ -24,6 +24,7 @@ depends: [
   "conf-ncurses" {with-test}
   "stdlib-shims" {with-test}
   "bisect_ppx"
+  "conf-fts" {with-test}
   "odoc" {with-doc}
 ]
 build: [

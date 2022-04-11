@@ -33,6 +33,7 @@ depends: [
   "bigarray-compat"
   "bisect_ppx" {>= "2.0.0"}
   "ounit" {with-test}
+  "conf-fts" {with-test}
   "odoc" {with-doc}
 ]
 build: [

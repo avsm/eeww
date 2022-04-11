@@ -20,7 +20,8 @@
   dune-configurator
   bigarray-compat
   (bisect_ppx (>= 2.0.0))
-  (ounit :with-test))
+  (ounit :with-test)
+  (conf-fts :with-test))
  (synopsis "Combinators for binding to C libraries without writing any C")
  (description "
 ctypes is a library for binding to C libraries using pure OCaml. The primary
@@ -52,7 +53,8 @@ This will make the `ctypes-foreign` ocamlfind subpackage available."))
   (ounit :with-test)
   (conf-ncurses :with-test)
   (stdlib-shims :with-test)
-  bisect_ppx)
+  bisect_ppx
+  (conf-fts :with-test))
  (synopsis "Dynamic access to foreign C libraries using Ctypes")
  (description "
 This installs the `ctypes-foreign` interface which
