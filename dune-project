@@ -1,6 +1,7 @@
 (lang dune 2.8)
 (name ctypes)
 (formatting (enabled_for dune))
+(use_standard_c_and_cxx_flags true)
 
 (generate_opam_files true)
 
