@@ -122,10 +122,14 @@ let () =
       (function `V x -> `V (Int32.of_int x)
         | (#binary | #unary) as x -> (x :> int32 p)) l in
 
-  let a = eval (module Optint) la in
-  let b = eval (module Int32) lb in
-  if (b > 0x3fffffffl || b < -0x3fffffffl) then Crowbar.bad_test () ;
-  let a = Optint.to_int a in
-  let b = Int32.to_int b in
+  let a = try Some (eval (module Optint) la) with Division_by_zero -> None in
+  let b = try Some (eval (module Int32) lb) with Division_by_zero -> None in
+  match a, b with
+  | None, None -> ()
+  | Some _, None | None, Some _ -> Crowbar.bad_test ()
+  | Some a, Some b ->
+    if (b > 0x3fffffffl || b < -0x3fffffffl) then Crowbar.bad_test () ;
+    let a = Optint.to_int a in
+    let b = Int32.to_int b in
 
-  Crowbar.check_eq ~pp:(Fmt.fmt "%x") ~eq:(=) ~cmp:compare a b
+    Crowbar.check_eq ~pp:(Fmt.fmt "%x") ~eq:(=) ~cmp:compare a b

@@ -1,3 +1,9 @@
+### v0.2.0 2022-04-08 Paris (France)
+
+- Fix the README.md (@sidkshatriya, #19)
+- Fix fuzzers (@dinosaure, #20)
+- Add a proof to introspect the type of `Optint.t` (@dinosaure, #21)
+
 ### v0.1.0 2021-03-30 Paris (France)
 
 - Annotate integer types with `[@@immediate64]` (@CraigFe, #13)
