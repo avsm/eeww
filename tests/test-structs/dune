@@ -42,6 +42,7 @@
  (name test_structs)
  (modules test_structs)
  (package ctypes-foreign)
- (action (run %{test} -runner sequential))
+ (action
+  (run %{test} -runner sequential))
  (libraries oUnit ctypes ctypes.stubs ctypes-foreign test_structs_stubs
    test_functions test_structs_bindings tests_common))

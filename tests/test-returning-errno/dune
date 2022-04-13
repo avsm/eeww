@@ -41,7 +41,8 @@
 (test
  (name test_returning_errno)
  (modules test_returning_errno)
- (action (run %{test} -runner sequential))
+ (action
+  (run %{test} -runner sequential))
  (package ctypes-foreign)
  (libraries oUnit ctypes ctypes.stubs ctypes-foreign
    test_returning_errno_stubs test_functions test_returning_errno_bindings
