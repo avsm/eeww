@@ -1,6 +1,8 @@
 (test
  (name test_closure_type_promotion)
  (package ctypes-foreign)
+ (link_flags
+  (:include ../flags/link-flags.sexp))
  (libraries
   oUnit
   ctypes

@@ -54,6 +54,8 @@
  (package ctypes-foreign)
  (action
   (run %{test} -runner sequential))
+ (link_flags
+  (:include ../flags/link-flags.sexp))
  (libraries
   oUnit
   ctypes

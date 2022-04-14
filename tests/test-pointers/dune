@@ -1,6 +1,8 @@
 (test
  (name test_pointers)
  (package ctypes-foreign)
+ (link_flags
+  (:include ../flags/link-flags.sexp))
  (libraries
   oUnit
   ctypes
