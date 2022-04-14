@@ -19,7 +19,6 @@
   integers
   dune-configurator
   bigarray-compat
-  (bisect_ppx (>= 2.0.0))
   (ounit :with-test)
   (conf-fts :with-test))
  (synopsis "Combinators for binding to C libraries without writing any C")
@@ -48,12 +47,10 @@ This will make the `ctypes-foreign` ocamlfind subpackage available."))
   (ctypes (= :version))
   dune-configurator
   conf-pkg-config
-  (bisect_ppx (>= 2.0.0))
   (lwt :with-test)
   (ounit :with-test)
   (conf-ncurses :with-test)
   (stdlib-shims :with-test)
-  bisect_ppx
   (conf-fts :with-test))
  (synopsis "Dynamic access to foreign C libraries using Ctypes")
  (description "

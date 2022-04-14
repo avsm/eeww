@@ -12,8 +12,8 @@
 (library
  (name ctypes_foreign)
  (public_name ctypes-foreign)
- (preprocess
-  (pps bisect_ppx --conditional))
+ (instrumentation
+  (backend bisect_ppx))
  (wrapped false)
  (private_modules ctypes_foreign_threaded_stubs)
  (libraries ctypes threads)

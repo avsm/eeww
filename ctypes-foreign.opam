@@ -18,12 +18,10 @@ depends: [
   "ctypes" {= version}
   "dune-configurator"
   "conf-pkg-config"
-  "bisect_ppx" {>= "2.0.0"}
   "lwt" {with-test}
   "ounit" {with-test}
   "conf-ncurses" {with-test}
   "stdlib-shims" {with-test}
-  "bisect_ppx"
   "conf-fts" {with-test}
   "odoc" {with-doc}
 ]
