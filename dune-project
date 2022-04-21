@@ -19,7 +19,7 @@
   integers
   dune-configurator
   bigarray-compat
-  (ounit :with-test)
+  (ounit2 :with-test)
   (conf-fts (and :with-test (<> :os win32)))
   (conf-pkg-config :with-test))
  (synopsis "Combinators for binding to C libraries without writing any C")
@@ -49,7 +49,7 @@ This will make the `ctypes-foreign` ocamlfind subpackage available."))
   dune-configurator
   conf-pkg-config
   (lwt :with-test)
-  (ounit :with-test)
+  (ounit2 :with-test)
   (conf-ncurses :with-test)
   (stdlib-shims :with-test)
   (conf-fts (and :with-test (<> :os win32))))

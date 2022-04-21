@@ -31,7 +31,7 @@ depends: [
   "integers"
   "dune-configurator"
   "bigarray-compat"
-  "ounit" {with-test}
+  "ounit2" {with-test}
   "conf-fts" {with-test & os != "win32"}
   "conf-pkg-config" {with-test}
   "odoc" {with-doc}
