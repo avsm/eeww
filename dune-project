@@ -20,7 +20,8 @@
   dune-configurator
   bigarray-compat
   (ounit :with-test)
-  (conf-fts (and :with-test (<> :os win32))))
+  (conf-fts (and :with-test (<> :os win32)))
+  (conf-pkg-config :with-test))
  (synopsis "Combinators for binding to C libraries without writing any C")
  (description "
 ctypes is a library for binding to C libraries using pure OCaml. The primary
