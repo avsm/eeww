@@ -32,7 +32,7 @@ depends: [
   "dune-configurator"
   "bigarray-compat"
   "ounit" {with-test}
-  "conf-fts" {with-test}
+  "conf-fts" {with-test & os != "win32"}
   "odoc" {with-doc}
 ]
 build: [
