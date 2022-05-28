@@ -1,4 +1,4 @@
-(lang dune 2.8)
+(lang dune 2.9)
 (name ctypes)
 (formatting (enabled_for dune))
 (use_standard_c_and_cxx_flags true)
@@ -32,7 +32,7 @@ can use these combinators to describe the types of the functions that you want
 to call, then bind directly to those functions -- all without writing or
 generating any C!
 
-To install the optional `ctypes.foreign` interface (which uses `libffi` to
+To install the optional `ctypes-foreign` interface (which uses `libffi` to
 provide dynamic access to foreign libraries), you will need to also install
 the `ctypes-foreign` package.
 
