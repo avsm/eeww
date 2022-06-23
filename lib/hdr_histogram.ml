@@ -4,7 +4,7 @@ module Types = Types_generated
 
 type t = Types.hdr_histogram structure ptr
 
-let hdr_init ~lowest_discernible_value ~highest_trackable_value
+let init ~lowest_discernible_value ~highest_trackable_value
              ~significant_figures =
   let h = allocate (ptr Types.hdr_histogram)
                    (from_voidp (Types.hdr_histogram) null)
@@ -17,9 +17,9 @@ let hdr_init ~lowest_discernible_value ~highest_trackable_value
   let h' : t = !@ h in
   h'
 
-let hdr_record_value h v = C.Function.hdr_record_value h (Int64.of_int v)
+let record_value h v = C.Function.hdr_record_value h (Int64.of_int v)
 
-let hdr_close h = C.Function.hdr_close h
+let close h = C.Function.hdr_close h
 
-let hdr_value_at_percentile h p =
+let value_at_percentile h p =
   Int64.to_int @@ C.Function.hdr_value_at_percentile h p
