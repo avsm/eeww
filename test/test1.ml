@@ -6,9 +6,8 @@ let print_percentiles h =
     Printf.printf "%f \t %d\n" p (value_at_percentile h p))
 
 let main () =
-  let h = init ~lowest_discernible_value:1
-                  ~highest_trackable_value:100_000_000
-                  ~significant_figures:3
+  let h = init ~lowest_discernible_value:1 ~highest_trackable_value:100_000_000
+               ~significant_figures:3
   in
   for i=1000 to 100_000 do
     for _j =1 to 1000 do
