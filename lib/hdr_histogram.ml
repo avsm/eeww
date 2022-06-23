@@ -21,8 +21,5 @@ let hdr_record_value h v = C.Function.hdr_record_value h (Int64.of_int v)
 
 let hdr_close h = C.Function.hdr_close h
 
-let hdr_percentiles_print h ~ticks_per_half_distance ~value_scale =
-  let r = C.Function.hdr_percentiles_print h (Int64.of_int 1241085104)
-            (Int32.of_int ticks_per_half_distance) value_scale (Int64.of_int 0)
-  in
-  assert (r = 0)
+let hdr_value_at_percentile h p =
+  Int64.to_int @@ C.Function.hdr_value_at_percentile h p

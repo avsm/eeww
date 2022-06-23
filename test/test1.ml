@@ -1,5 +1,10 @@
 open Hdr_histogram
 
+let print_percentiles h =
+  let percentiles = [| 50.0; 75.0; 90.0; 99.0; 99.9; 99.99; 99.999; 100.0 |] in
+  Fun.flip Array.iter percentiles (fun p ->
+    Printf.printf "%f \t %d\n" p (hdr_value_at_percentile h p))
+
 let main () =
   let h = hdr_init ~lowest_discernible_value:1
                   ~highest_trackable_value:100_000_000
@@ -15,7 +20,7 @@ let main () =
       ignore @@ hdr_record_value h i
     done;
   done;
-  hdr_percentiles_print h ~ticks_per_half_distance:5 ~value_scale:1000.;
+  print_percentiles h;
   hdr_close h
 
 let _ = main ()

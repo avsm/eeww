@@ -21,4 +21,19 @@ module Functions (F : Ctypes.FOREIGN) = struct
   let hdr_percentiles_print = foreign "hdr_percentiles_print"
     (ptr Types.hdr_histogram @-> int64_t @-> int32_t @-> double @-> int64_t @->
      returning int)
+
+  let hdr_value_at_percentile = foreign "hdr_value_at_percentile"
+    (ptr Types.hdr_histogram @-> double @-> returning int64_t)
+
+  let hdr_min = foreign "hdr_min"
+    (ptr Types.hdr_histogram @-> returning int64_t)
+
+  let hdr_max = foreign "hdr_max"
+    (ptr Types.hdr_histogram @-> returning int64_t)
+
+  let hdr_mean = foreign "hdr_mean"
+    (ptr Types.hdr_histogram @-> returning double)
+
+  let hdr_stddev = foreign "hdr_stddev"
+    (ptr Types.hdr_histogram @-> returning double)
 end
