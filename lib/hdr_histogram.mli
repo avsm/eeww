@@ -6,4 +6,9 @@ val init : lowest_discernible_value:int
         -> t
 val record_value : t -> int -> bool
 val close : t -> unit
+
 val value_at_percentile : t -> float -> int
+val min : t -> int
+val max : t -> int
+val mean : t -> float
+val stddev : t -> float

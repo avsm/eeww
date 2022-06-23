@@ -23,3 +23,8 @@ let close h = C.Function.hdr_close h
 
 let value_at_percentile h p =
   Int64.to_int @@ C.Function.hdr_value_at_percentile h p
+
+let max h = Int64.to_int @@ C.Function.hdr_max h
+let min h = Int64.to_int @@ C.Function.hdr_min h
+let mean h = C.Function.hdr_mean h
+let stddev h = C.Function.hdr_stddev h
