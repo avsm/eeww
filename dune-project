@@ -6,22 +6,22 @@
 (generate_opam_files true)
 
 (source
- (github username/reponame))
+ (github kayceesrk/hdr_histogram_ocaml))
 
-(authors "Author Name")
+(authors "KC Sivaramakrishnan")
 
-(maintainers "Maintainer Name")
+(maintainers "KC Sivaramakrishnan")
 
-(license LICENSE)
+(license MIT)
 
 (documentation https://url/to/documentation)
 
 (package
  (name hdr_histogram)
- (synopsis "A short synopsis")
- (description "A longer description")
- (depends ocaml dune)
+ (synopsis "OCaml bindings to Hdr Histogram")
+ (description "OCaml bindings to Hdr Histogram")
+ (depends ocaml dune (ctypes (>= 0.20.1)) (ctypes-foreign (>= 0.18.0)))
  (tags
-  (topics "to describe" your project)))
+  ("histogram" "tail latency")))
 
 ; See the complete stanza docs at https://dune.readthedocs.io/en/stable/dune-files.html#dune-project
