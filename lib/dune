@@ -1,7 +1,6 @@
 (library
  (name hdr_histogram)
  (public_name hdr_histogram)
- ; (libraries core)
  ; ctypes backward compatibility shims warn sometimes; suppress them
  (flags (:standard -w -9-27))
  (ctypes

@@ -20,7 +20,8 @@
  (name hdr_histogram)
  (synopsis "OCaml bindings to Hdr Histogram")
  (description "OCaml bindings to Hdr Histogram")
- (depends ocaml dune (ctypes (>= 0.20.1)) (ctypes-foreign (>= 0.18.0)))
+ (depends ocaml dune (ctypes (>= 0.20.1)) (ctypes-foreign (>= 0.18.0))
+          (conf-pkg-config :build))
  (tags
   ("histogram" "tail latency")))
 
