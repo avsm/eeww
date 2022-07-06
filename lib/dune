@@ -1,12 +1,19 @@
 (library
  (name hdr_histogram)
  (public_name hdr_histogram)
+ (install_c_headers hdr_histogram)
+ (foreign_archives hdr_histogram)
  ; ctypes backward compatibility shims warn sometimes; suppress them
  (flags (:standard -w -9-27))
  (ctypes
   (external_library_name hdr_histogram)
-  (build_flags_resolver pkg_config)
-  (headers (include "hdr/hdr_histogram.h"))
+  (deps hdr_histogram.h dllhdr_histogram.so libhdr_histogram.a)
+  (build_flags_resolver
+  (vendored
+    ; hack: multiple -I directives to work around cc commands being run from
+    ; different relative directories.  Is there a cleaner way to do this?
+    (c_flags ("-Ilib" "-I."))))
+  (headers (include "hdr_histogram.h"))
   (type_description
    (instance Type)
    (functor Type_description))
@@ -16,3 +23,21 @@
    (functor Function_description))
   (generated_types Types_generated)
   (generated_entry_point C)))
+
+(data_only_dirs libhdr_histogram)
+
+(rule
+  (deps (source_tree libhdr_histogram))
+  (targets dllhdr_histogram.so libhdr_histogram.a hdr_histogram.h)
+  (action (no-infer
+  (progn (chdir libhdr_histogram
+            (progn (run mkdir -p _build)
+                   (chdir _build
+                      (progn (run cmake ..)
+                             (run make)))))
+         (copy libhdr_histogram/_build/src/libhdr_histogram_static.a
+               libhdr_histogram.a)
+         (copy libhdr_histogram/_build/src/libhdr_histogram.so
+               dllhdr_histogram.so)
+         (copy libhdr_histogram/include/hdr/hdr_histogram.h
+               hdr_histogram.h)))))
