@@ -21,7 +21,7 @@
  (synopsis "OCaml bindings to Hdr Histogram")
  (description "OCaml bindings to Hdr Histogram")
  (depends
-   ocaml
+  (ocaml (>= 4.08))
    dune
   (ctypes (>= 0.20.1))
   (ctypes-foreign (>= 0.18.0))
