@@ -14,7 +14,7 @@
 
 (license MIT)
 
-(documentation https://url/to/documentation)
+(documentation https://kayceesrk.github.io/hdr_histogram_ocaml/)
 
 (package
  (name hdr_histogram)
