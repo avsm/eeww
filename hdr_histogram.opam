@@ -2,13 +2,13 @@
 opam-version: "2.0"
 synopsis: "OCaml bindings to Hdr Histogram"
 description: "OCaml bindings to Hdr Histogram"
-maintainer: ["KC Sivaramakrishnan"]
+maintainer: ["KC Sivaramakrishnan" "Christiano Haesbaert"]
 authors: ["KC Sivaramakrishnan"]
 license: "MIT"
 tags: ["histogram" "tail latency"]
-homepage: "https://github.com/kayceesrk/hdr_histogram_ocaml"
-doc: "https://kayceesrk.github.io/hdr_histogram_ocaml/"
-bug-reports: "https://github.com/kayceesrk/hdr_histogram_ocaml/issues"
+homepage: "https://github.com/ocaml-multicore/hdr_histogram_ocaml"
+doc: "https://ocaml-multicore.github.io/hdr_histogram_ocaml"
+bug-reports: "https://github.com/ocaml-multicore/hdr_histogram_ocaml/issues"
 depends: [
   "ocaml"
   "dune" {>= "3.3"}
@@ -31,4 +31,4 @@ build: [
     "@doc" {with-doc}
   ]
 ]
-dev-repo: "git+https://github.com/kayceesrk/hdr_histogram_ocaml.git"
+dev-repo: "git+https://github.com/ocaml-multicore/hdr_histogram_ocaml.git"

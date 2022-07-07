@@ -6,15 +6,15 @@
 (generate_opam_files true)
 
 (source
- (github kayceesrk/hdr_histogram_ocaml))
+ (github ocaml-multicore/hdr_histogram_ocaml))
 
 (authors "KC Sivaramakrishnan")
 
-(maintainers "KC Sivaramakrishnan")
+(maintainers "KC Sivaramakrishnan" "Christiano Haesbaert")
 
 (license MIT)
 
-(documentation https://kayceesrk.github.io/hdr_histogram_ocaml/)
+(documentation https://ocaml-multicore.github.io/hdr_histogram_ocaml)
 
 (package
  (name hdr_histogram)
@@ -24,5 +24,3 @@
           (conf-pkg-config :build))
  (tags
   ("histogram" "tail latency")))
-
-; See the complete stanza docs at https://dune.readthedocs.io/en/stable/dune-files.html#dune-project
