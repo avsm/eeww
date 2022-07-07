@@ -45,6 +45,7 @@ if(UNIX)
         -Wshadow
         -Winit-self
         -Wpedantic
+	-fPIC
         $<$<COMPILE_LANGUAGE:C>:-Wmissing-prototypes>)
     add_definitions(-D_GNU_SOURCE)
 endif()
