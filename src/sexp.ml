@@ -134,10 +134,7 @@ module Printing = struct
     Bytes.unsafe_to_string res
   ;;
 
-  let index_of_newline str start =
-    try Some (String.index_from str start '\n') with
-    | Not_found -> None
-  ;;
+  let index_of_newline str start = String.index_from_opt str start '\n'
 
   let get_substring str index end_pos_opt =
     let end_pos =

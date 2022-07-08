@@ -187,5 +187,12 @@ type _ t = { untyped : grammar } [@@unboxed]
 
 let coerce (type a b) ({ untyped = _ } as t : a t) : b t = t
 
+let tag (type a) ({ untyped = grammar } : a t) ~key ~value : a t =
+  { untyped = Tagged { key; value; grammar } }
+;;
+
 (** This reserved key is used for all tags generated from doc comments. *)
 let doc_comment_tag = "sexp_grammar.doc_comment"
+
+(** This reserved key can be used to associate a type name with a grammar. *)
+let type_name_tag = "sexp_grammar.type_name"
