@@ -25,14 +25,15 @@ module Location : sig
 end
 
 include Capnp_rpc_net.S.NETWORK with
-  type t = unit and
+  type t = Eio.Net.t and
   type Address.t = Location.t * Capnp_rpc_net.Auth.Digest.t
 
 val accept_connection :
-  switch:Lwt_switch.t ->
   secret_key:Capnp_rpc_net.Auth.Secret_key.t option ->
-  Unix_flow.flow ->
-  (Capnp_rpc_net.Endpoint.t, [> `Msg of string]) result Lwt.t
+  #Eio.Flow.two_way ->
+  (Capnp_rpc_net.Endpoint.t, [> `Msg of string]) result
 (** [accept_connection ~switch ~secret_key flow] is a new endpoint for [flow].
     If [secret_key] is not [None], it is used to perform a TLS server-side handshake.
     Otherwise, the connection is not encrypted. *)
+
+val addr_of_host : string -> Eio.Net.Ipaddr.v4v6
