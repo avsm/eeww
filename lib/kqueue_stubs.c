@@ -97,6 +97,17 @@
     CAMLreturn(Val_long(ret));
   }
 
+  #ifdef EVFILT_USER_AVAILABLE
+    Kqueue_constant(kqueue_filter_evfilt_user, EVFILT_USER)
+    Kqueue_constant(kqueue_note_ffnop, NOTE_FFNOP)
+    Kqueue_constant(kqueue_note_ffand, NOTE_FFAND)
+    Kqueue_constant(kqueue_note_ffor, NOTE_FFOR)
+    Kqueue_constant(kqueue_note_ffcopy, NOTE_FFCOPY)
+    Kqueue_constant(kqueue_note_ffctrlmask, NOTE_FFCTRLMASK)
+    Kqueue_constant(kqueue_note_fflagsmask, NOTE_FFLAGSMASK)
+    Kqueue_constant(kqueue_note_trigger, NOTE_TRIGGER)
+  #endif 
+
   Kqueue_constant(kqueue_filter_evfilt_read, EVFILT_READ)
   Kqueue_constant(kqueue_filter_evfilt_write, EVFILT_WRITE)
   Kqueue_constant(kqueue_filter_evfilt_timer, EVFILT_TIMER)

@@ -1,3 +1,5 @@
+[%%import "config.h"]
+
 module type S = sig
   type t
 
@@ -30,7 +32,6 @@ module type S = sig
         - {{:https://man.openbsd.org/kqueue.2} OpenBSD}*)
     type t
 
-    val pp : Format.formatter -> t -> unit
     val equal : t -> t -> bool
     val ( = ) : t -> t -> bool
     val empty : t
@@ -50,6 +51,18 @@ module type S = sig
     val fork : t
     val exec : t
     val signal : t
+
+    [%%if defined EVFILT_USER_AVAILABLE]
+
+    val ffnop : t
+    val ffand : t
+    val ffor : t
+    val ffcopy : t
+    val ffctrlmask : t
+    val fflagsmask : t
+    val trigger : t
+
+    [%%endif]
   end
 
   module Filter : sig
@@ -64,6 +77,12 @@ module type S = sig
     val timer : t
     val vnode : t
     val proc : t
+
+    [%%if defined EVFILT_USER_AVAILABLE]
+
+    val user : t
+
+    [%%endif]
   end
 
   module Flag : sig

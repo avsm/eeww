@@ -21,7 +21,6 @@ module Null = struct
   module Note = struct
     type t = [ `Not_implemented ]
 
-    let pp _ _ = assert false
     let equal _ _ = assert false
     let ( = ) = equal
     let seconds = `Not_implemented
@@ -41,6 +40,18 @@ module Null = struct
     let fork = `Not_implemented
     let exec = `Not_implemented
     let signal = `Not_implemented
+
+    [%%if defined EVFILT_USER_AVAILABLE]
+
+    let ffnop = `Not_implemented
+    let ffand = `Not_implemented
+    let ffor = `Not_implemented
+    let ffcopy = `Not_implemented
+    let ffctrlmask = `Not_implemented
+    let fflagsmask = `Not_implemented
+    let trigger = `Not_implemented
+
+    [%%endif]
   end
 
   module Filter = struct
@@ -54,6 +65,12 @@ module Null = struct
     let timer = `Not_implemented
     let vnode = `Not_implemented
     let proc = `Not_implemented
+
+    [%%if defined EVFILT_USER_AVAILABLE]
+
+    let user = `Not_implemented
+
+    [%%endif]
   end
 
   module Flag = struct
@@ -200,29 +217,37 @@ module Note = struct
 
   let signal = signal ()
 
-  let to_string t =
-    match t with
-    | t when t = seconds -> "NOTE_SECONDS"
-    | t when t = useconds -> "NOTE_USECONDS"
-    | t when t = nseconds -> "NOTE_NSECONDS"
-    | t when t = lowat -> "NOTE_LOWAT"
-    | t when t = oob -> "NOTE_OOB"
-    | t when t = delete -> "NOTE_DELETE"
-    | t when t = write -> "NOTE_WRITE"
-    | t when t = extend -> "NOTE_EXTEND"
-    | t when t = attrib -> "NOTE_ATTRIB"
-    | t when t = link -> "NOTE_LINK"
-    | t when t = rename -> "NOTE_RENAME"
-    | t when t = revoke -> "NOTE_REVOKE"
-    | t when t = exit -> "NOTE_EXIT"
-    | t when t = fork -> "NOTE_FORK"
-    | t when t = exec -> "NOTE_EXEC"
-    | t when t = signal -> "NOTE_SIGNAL"
-    | t when t = empty -> "0"
-    | t -> Printf.sprintf "Unknown Note(%d)" t
-  ;;
+  [%%if defined EVFILT_USER_AVAILABLE]
 
-  let pp fmt t = Format.fprintf fmt "%a" Format.pp_print_string (to_string t)
+  external ffnop : unit -> int = "kqueue_note_ffnop"
+
+  let ffnop = ffnop ()
+
+  external ffand : unit -> int = "kqueue_note_ffand"
+
+  let ffand = ffand ()
+
+  external ffor : unit -> int = "kqueue_note_ffor"
+
+  let ffor = ffor ()
+
+  external ffcopy : unit -> int = "kqueue_note_ffcopy"
+
+  let ffcopy = ffcopy ()
+
+  external ffctrlmask : unit -> int = "kqueue_note_ffctrlmask"
+
+  let ffctrlmask = ffctrlmask ()
+
+  external fflagsmask : unit -> int = "kqueue_note_fflagsmask"
+
+  let fflagsmask = fflagsmask ()
+
+  external trigger : unit -> int = "kqueue_note_trigger"
+
+  let trigger = trigger ()
+
+  [%%endif]
 end
 
 module Flag = struct
@@ -302,6 +327,14 @@ module Filter = struct
   let equal a b = Int.equal a b
   let ( = ) = equal
 
+  [%%if defined EVFILT_USER_AVAILABLE]
+
+  external user : unit -> int = "kqueue_filter_evfilt_user"
+
+  let user = user ()
+
+  [%%endif]
+
   external read : unit -> int = "kqueue_filter_evfilt_read"
 
   let read = read ()
@@ -322,16 +355,31 @@ module Filter = struct
 
   let proc = proc ()
 
-  let pp fmt t =
-    let to_string = function
-      | c when c = read -> "EVFILT_READ"
-      | c when c = write -> "EVFILT_WRITE"
-      | c when c = timer -> "EVFILT_TIMER"
-      | c when c = vnode -> "EVFILT_VNODE"
-      | c -> Printf.sprintf "Unknown (%d)" c
-    in
-    Format.fprintf fmt "%a" Format.pp_print_string (to_string t)
+  let known_filters =
+    [ read, "EVFILT_READ"
+    ; write, "EVFILT_WRITE"
+    ; timer, "EVFILT_TIMER"
+    ; vnode, "EVFILT_VNODE"
+    ]
   ;;
+
+  [%%if defined EVFILT_USER_AVAILABLE]
+
+  let known_filters = known_filters @ [ user, "EVFILT_USER" ]
+
+  [%%endif]
+
+  let to_string t =
+    let rec loop filters =
+      match filters with
+      | [] -> Printf.sprintf "Unknown (%d)" t
+      | (filter, label) :: _ when filter = t -> label
+      | _ :: xs -> loop xs
+    in
+    loop known_filters
+  ;;
+
+  let pp fmt t = Format.fprintf fmt "%a" Format.pp_print_string (to_string t)
 end
 
 module Kevent = struct
