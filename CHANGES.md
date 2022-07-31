@@ -1,3 +1,7 @@
+# 0.3.0
+
+* Support EVFILT_USER
+
 # 0.2.0
 
 * Remove the use of ctypes
