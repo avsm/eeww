@@ -5,18 +5,6 @@ module Log = Capnp_rpc.Debug.Log
 
 module ID_map = Auth.Digest.Map
 
-module Condition = struct
-  type t = (unit Promise.t * unit Promise.u) ref
-
-  let create () : t = ref (Promise.create ())
-
-  let await t = Promise.await (fst !t)
-
-  let notify t =
-    Promise.resolve (snd !t) ();
-    t := Promise.create ()
-end
-
 module Make (Network : S.NETWORK) = struct
   module CapTP = CapTP_capnp.Make (Network)
 
@@ -31,7 +19,7 @@ module Make (Network : S.NETWORK) = struct
     address : Network.Address.t option;
     restore : Restorer.t;
     tags : Logs.Tag.set;
-    connection_removed : Condition.t;   (* Fires when a connection is removed *)
+    connection_removed : Eio.Condition.t;        (* Fires when a connection is removed *)
     mutable connecting : connection_attempt ID_map.t; (* Out-going connections being attempted. *)
     mutable connections : CapTP.t ID_map.t;      (* Accepted connections *)
     mutable anon_connections : CapTP.t list;     (* Connections not using TLS. *)
@@ -45,7 +33,7 @@ module Make (Network : S.NETWORK) = struct
       address;
       restore;
       tags;
-      connection_removed = Condition.create ();
+      connection_removed = Eio.Condition.create ();
       connecting = ID_map.empty;
       connections = ID_map.empty;
       anon_connections = [];
@@ -68,7 +56,7 @@ module Make (Network : S.NETWORK) = struct
         Fun.protect (fun () -> CapTP.listen conn)
           ~finally:(fun () ->
              remove conn;
-             Condition.notify t.connection_removed
+             Eio.Condition.broadcast t.connection_removed
           )
       );
     conn
@@ -180,7 +168,7 @@ module Make (Network : S.NETWORK) = struct
       Restorer.restore t.restore service
     else match ID_map.find remote_id t.connections with
       | Some conn when CapTP.disconnecting conn ->
-        Condition.await t.connection_removed;
+        Eio.Condition.await_no_mutex t.connection_removed;
         connect_auth t remote_id addr ~service
       | Some conn ->
         (* Already connected; use that. *)

@@ -394,18 +394,6 @@ module Loader = struct
   let load t _sr digest = t digest
 end
 
-module Cond = struct
-  type t = (unit Promise.t * unit Promise.u) ref
-
-  let create () : t = ref (Promise.create ())
-
-  let await t = Promise.await (fst !t)
-
-  let notify t =
-    Promise.resolve (snd !t) ();
-    t := Promise.create ()
-end
-
 let test_fn_restorer ~net:_ =
   Switch.run @@ fun sw ->
   let cap = Alcotest.testable Capability.pp (=) in
@@ -413,12 +401,12 @@ let test_fn_restorer ~net:_ =
   let b = Restorer.Id.public "b" in
   let c = Restorer.Id.public "c" in
   let current_c = ref (Restorer.reject (Exception.v "Broken C")) in
-  let delay = Cond.create () in
+  let delay = Eio.Condition.create () in
   let digest = Restorer.Id.digest (Loader.hash ()) in
   let load d =
     if d = digest a then Restorer.grant @@ Echo.local ()
-    else if d = digest b then (Cond.await delay; Restorer.grant @@ Echo.local ())
-    else if d = digest c then (Cond.await delay; !current_c)
+    else if d = digest b then (Eio.Condition.await_no_mutex delay; Restorer.grant @@ Echo.local ())
+    else if d = digest c then (Eio.Condition.await_no_mutex delay; !current_c)
     else Restorer.unknown_service_id
   in
   let table = Restorer.Table.of_loader ~sw (module Loader) load in
@@ -438,7 +426,7 @@ let test_fn_restorer ~net:_ =
   let b1 = Fiber.fork_promise ~sw (fun () -> restore b) in
   let b2 = Fiber.fork_promise ~sw (fun () -> restore b) in
   assert (Promise.peek b1 = None);
-  Cond.notify delay;
+  Eio.Condition.broadcast delay;
   let b1 = Promise.await_exn b1 |> expect_non_exn in
   let b2 = Promise.await_exn b2 |> expect_non_exn in
   Alcotest.check cap "Restore delayed cached" b1 b2;
@@ -447,14 +435,14 @@ let test_fn_restorer ~net:_ =
   Capability.dec_ref b2;
   (* Failed lookups aren't cached. *)
   let c1 = Fiber.fork_promise ~sw (fun () -> restore c) in
-  Cond.notify delay;
+  Eio.Condition.broadcast delay;
   let c1 = Promise.await_exn c1 in
   let reject = Alcotest.result cap except in
   Alcotest.check reject "C initially fails" (Error (Exception.v "Broken C")) c1;
   let c2 = Fiber.fork_promise ~sw (fun () -> restore c) in
   let c_service = Echo.local () in
   current_c := Restorer.grant c_service;
-  Cond.notify delay;
+  Eio.Condition.broadcast delay;
   let c2 = Promise.await_exn c2 |> expect_non_exn in
   Alcotest.check cap "C now works" c_service c2;
   Capability.dec_ref c2;
@@ -466,7 +454,7 @@ let test_fn_restorer ~net:_ =
     b1
   in
   let b2 = Fiber.fork_promise ~sw (fun () -> restore b) in
-  Cond.notify delay;
+  Eio.Condition.broadcast delay;
   let b1 = Promise.await_exn b1 in
   let b2 = Promise.await_exn b2 |> expect_non_exn in
   Alcotest.check cap "Cap not freed" b1 b2;
