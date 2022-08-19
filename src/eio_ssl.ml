@@ -41,7 +41,7 @@ exception Retry_write
 exception Too_many_polls
 
 let wrap_call f () =
-  try Eio_unix.run_in_systhread f with
+  try f () with
   | ( Ssl.Connection_error err
     | Ssl.Accept_error err
     | Ssl.Read_error err
@@ -77,20 +77,32 @@ let embed_uninitialized_socket (fd : Eio_unix.socket) context =
 
 let ssl_accept fd ctx =
   let socket = Ssl.embed_socket (Eio_unix.FD.peek fd) ctx in
-  let () = repeat_call fd (fun () -> Ssl.accept socket) in
+  let () =
+    repeat_call fd (fun () ->
+        Eio_unix.run_in_systhread (fun () -> Ssl.accept socket))
+  in
   fd, SSL socket
 
 let ssl_connect fd ctx =
   let socket = Ssl.embed_socket (Eio_unix.FD.peek fd) ctx in
-  let () = repeat_call fd (fun () -> Ssl.connect socket) in
+  let () =
+    repeat_call fd (fun () ->
+        Eio_unix.run_in_systhread (fun () -> Ssl.connect socket))
+  in
   fd, SSL socket
 
 let ssl_accept_handshake (fd, socket) =
-  let () = repeat_call fd (fun () -> Ssl.accept socket) in
+  let () =
+    repeat_call fd (fun () ->
+        Eio_unix.run_in_systhread (fun () -> Ssl.accept socket))
+  in
   fd, SSL socket
 
 let ssl_perform_handshake (fd, socket) =
-  let () = repeat_call fd (fun () -> Ssl.connect socket) in
+  let () =
+    repeat_call fd (fun () ->
+        Eio_unix.run_in_systhread (fun () -> Ssl.connect socket))
+  in
   fd, SSL socket
 
 let read ((fd, s) : socket) ~off ~len buf =
@@ -101,8 +113,9 @@ let read ((fd, s) : socket) ~off ~len buf =
     then 0
     else
       repeat_call fd (fun () ->
-          try Ssl.read_into_bigarray s buf off len with
-          | Ssl.Read_error Ssl.Error_zero_return -> 0)
+          Eio_unix.run_in_systhread (fun () ->
+              try Ssl.read_into_bigarray s buf off len with
+              | Ssl.Read_error Ssl.Error_zero_return -> 0))
 
 let write_string ((fd, s) : socket) str =
   let len = String.length str in
@@ -114,7 +127,9 @@ let write_string ((fd, s) : socket) str =
     if String.length str = 0
     then 0
     else
-      repeat_call fd (fun () -> Ssl.write s (Bytes.unsafe_of_string str) 0 len)
+      repeat_call fd (fun () ->
+          Eio_unix.run_in_systhread (fun () ->
+              Ssl.write s (Bytes.unsafe_of_string str) 0 len))
 
 let write (fd, s) ~off ~len buf =
   match s with
@@ -131,7 +146,9 @@ let write (fd, s) ~off ~len buf =
 let ssl_shutdown (fd, s) =
   match s with
   | Plain -> ()
-  | SSL s -> repeat_call fd (fun () -> Ssl.shutdown s)
+  | SSL s ->
+    repeat_call fd (fun () ->
+        Eio_unix.run_in_systhread (fun () -> Ssl.shutdown s))
 
 let shutdown (fd, _) cmd = Eio.Flow.shutdown fd cmd
 let close (fd, _) = Eio.Flow.close fd
