@@ -20,7 +20,15 @@
  * 02111-1307, USA.
  *)
 
-exception Too_many_polls
+module Exn : sig
+  exception Too_many_polls
+
+  exception
+    Ssl_exception of
+      { ssl_error : Ssl.ssl_error
+      ; message : string
+      }
+end
 
 type socket
 (** Wrapper for SSL sockets.

@@ -36,34 +36,47 @@ let ssl_socket (_fd, kind) =
 let ssl_socket_of_uninitialized_socket (_fd, socket) = socket
 let is_ssl s = match snd s with Plain -> false | SSL _ -> true
 
-exception Retry_read
-exception Retry_write
-exception Too_many_polls
+module Exn = struct
+  exception Retry_read
+  exception Retry_write
+  exception Too_many_polls
 
-let wrap_call f () =
-  try Eio_unix.run_in_systhread f with
-  | ( Ssl.Connection_error err
-    | Ssl.Accept_error err
-    | Ssl.Read_error err
-    | Ssl.Write_error err ) as e ->
-    (match[@ocaml.warning "-4"] err with
-    | Ssl.Error_want_read -> raise_notrace Retry_read
-    | Ssl.Error_want_write -> raise_notrace Retry_write
-    | _ -> raise e)
+  exception
+    Ssl_exception of
+      { ssl_error : Ssl.ssl_error
+      ; message : string
+      }
+end
+
+let wrap_call ~f () =
+  Eio_unix.run_in_systhread (fun () ->
+      try f () with
+      | ( Ssl.Connection_error err
+        | Ssl.Accept_error err
+        | Ssl.Read_error err
+        | Ssl.Write_error err ) as e ->
+        (match err with
+        | Ssl.Error_want_read -> raise_notrace Exn.Retry_read
+        | Ssl.Error_want_write -> raise_notrace Exn.Retry_write
+        | Ssl.Error_ssl ->
+          raise
+            (Exn.Ssl_exception
+               { ssl_error = err; message = Ssl.get_error_string () })
+        | _ -> raise e))
 
 let unix_fd_exn (fd : Eio.Net.stream_socket) =
   Option.get (Eio_unix.FD.peek_opt fd)
 
-let repeat_call fd f =
+let repeat_call ~f fd =
   let rec inner polls_remaining fd f =
     if polls_remaining <= 0
-    then raise Too_many_polls
+    then raise Exn.Too_many_polls
     else
-      try wrap_call f () with
-      | Retry_read ->
+      try wrap_call ~f () with
+      | Exn.Retry_read ->
         Eio_unix.await_readable (unix_fd_exn fd);
         inner (polls_remaining - 1) fd f
-      | Retry_write ->
+      | Exn.Retry_write ->
         Eio_unix.await_writable (unix_fd_exn fd);
         inner (polls_remaining - 1) fd f
       | e -> raise e
@@ -80,20 +93,20 @@ let embed_uninitialized_socket fd context =
 
 let ssl_accept fd ctx =
   let socket = Ssl.embed_socket (unix_fd_exn fd) ctx in
-  let () = repeat_call fd (fun () -> Ssl.accept socket) in
+  repeat_call fd ~f:(fun () -> Ssl.accept socket);
   fd, SSL socket
 
 let ssl_connect fd ctx =
   let socket = Ssl.embed_socket (unix_fd_exn fd) ctx in
-  let () = repeat_call fd (fun () -> Ssl.connect socket) in
+  repeat_call fd ~f:(fun () -> Ssl.connect socket);
   fd, SSL socket
 
 let ssl_accept_handshake (fd, socket) =
-  let () = repeat_call fd (fun () -> Ssl.accept socket) in
+  repeat_call fd ~f:(fun () -> Ssl.accept socket);
   fd, SSL socket
 
 let ssl_perform_handshake (fd, socket) =
-  let () = repeat_call fd (fun () -> Ssl.connect socket) in
+  repeat_call fd ~f:(fun () -> Ssl.connect socket);
   fd, SSL socket
 
 let read ((fd, s) : socket) ~off ~len buf =
@@ -103,7 +116,7 @@ let read ((fd, s) : socket) ~off ~len buf =
     if len = 0
     then 0
     else
-      repeat_call fd (fun () ->
+      repeat_call fd ~f:(fun () ->
           try Ssl.read_into_bigarray s buf off len with
           | Ssl.Read_error Ssl.Error_zero_return -> 0)
 
@@ -117,7 +130,8 @@ let write_string ((fd, s) : socket) str =
     if String.length str = 0
     then 0
     else
-      repeat_call fd (fun () -> Ssl.write s (Bytes.unsafe_of_string str) 0 len)
+      repeat_call fd ~f:(fun () ->
+          Ssl.write s (Bytes.unsafe_of_string str) 0 len)
 
 let write (fd, s) ~off ~len buf =
   match s with
@@ -129,12 +143,12 @@ let write (fd, s) ~off ~len buf =
   | SSL s ->
     if len = 0
     then 0
-    else repeat_call fd (fun () -> Ssl.write_bigarray s buf off len)
+    else repeat_call fd ~f:(fun () -> Ssl.write_bigarray s buf off len)
 
 let ssl_shutdown (fd, s) =
   match s with
   | Plain -> ()
-  | SSL s -> repeat_call fd (fun () -> Ssl.shutdown s)
+  | SSL s -> repeat_call fd ~f:(fun () -> Ssl.shutdown s)
 
 let shutdown (fd, _) cmd = Eio.Flow.shutdown fd cmd
 
