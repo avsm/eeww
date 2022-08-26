@@ -40,13 +40,13 @@ val ssl_socket_of_uninitialized_socket : uninitialized_socket -> Ssl.socket
 val is_ssl : socket -> bool
 (** Are we using an SSL socket? *)
 
-val ssl_accept : Eio_unix.socket -> Ssl.context -> socket
-val ssl_connect : Eio_unix.socket -> Ssl.context -> socket
-val plain : Eio_unix.socket -> socket
-val embed_socket : Eio_unix.socket -> Ssl.context -> socket
+val ssl_accept : Eio.Net.stream_socket -> Ssl.context -> socket
+val ssl_connect : Eio.Net.stream_socket -> Ssl.context -> socket
+val plain : Eio.Net.stream_socket -> socket
+val embed_socket : Eio.Net.stream_socket -> Ssl.context -> socket
 
 val embed_uninitialized_socket
-  :  Eio_unix.socket
+  :  Eio.Net.stream_socket
   -> Ssl.context
   -> uninitialized_socket
 
@@ -64,9 +64,8 @@ val write_string : socket -> string -> int
 val write : socket -> off:int -> len:int -> bigstring -> int
 val shutdown : socket -> Eio.Flow.shutdown_command -> unit
 val shutdown_and_close : socket -> unit
-val close : socket -> unit
 val ssl_shutdown : socket -> unit
-val get_fd : socket -> Eio_unix.socket
+val get_fd : socket -> Eio.Net.stream_socket
 val get_unix_fd : socket -> Unix.file_descr
 val getsockname : socket -> Unix.sockaddr
 val getpeername : socket -> Unix.sockaddr
