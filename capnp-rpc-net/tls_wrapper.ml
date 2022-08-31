@@ -10,7 +10,6 @@ let plain_endpoint flow =
   Endpoint.of_flow ~peer_id:Auth.Digest.insecure flow
 
 let connect_as_server flow secret_key =
-  let flow = (flow :> Eio.Flow.two_way) in
   match secret_key with
   | None -> Ok (plain_endpoint flow)
   | Some key ->
@@ -20,7 +19,7 @@ let connect_as_server flow secret_key =
     | exception (Failure msg) -> error "TLS connection failed: %s" msg
     | exception ex -> error "TLS connection failed: %a" Fmt.exn ex
     | flow ->
-      match flow#epoch with
+      match Tls_eio.epoch flow with
       | Error () -> failwith "Unknown error getting TLS epoch data"
       | Ok data ->
         match data.Tls.Core.peer_certificate with

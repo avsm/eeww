@@ -769,7 +769,7 @@ This should print (in the server's output) something like:
 $ dune exec ./main.exe
 +[client] Connecting to echo service...
 +[server] Received "Message from client"
-Fatal error: exception Exit
+Fatal error: exception Stdlib.Exit
 [2]
 ```
 
@@ -877,7 +877,7 @@ $ dune exec ./main.exe
 [server] "alice" says "Message from Alice"
 [client] loaded "./bob.cap"
 [server] "bob" says "Message from Bob"
-Fatal error: exception Exit
+Fatal error: exception Stdlib.Exit
 [2]
 ```
 
@@ -926,7 +926,7 @@ $ dune exec ./main.exe
 [server] "root" says "Message from Admin"
 [server] "root/alice" says "Message from Alice"
 [server] "root/bob" says "Message from Bob"
-Fatal error: exception Exit
+Fatal error: exception Stdlib.Exit
 [2]
 ```
 
@@ -960,7 +960,7 @@ If successful, the client can use this sturdy ref to connect directly to the log
 $ dune exec ./main.exe
 [server] "root" says "Message from Admin"
 [server] "root/alice" says "Message from Alice"
-Fatal error: exception Exit
+Fatal error: exception Stdlib.Exit
 [2]
 ```
 

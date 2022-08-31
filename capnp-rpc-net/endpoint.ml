@@ -17,7 +17,7 @@ let peer_id t = t.peer_id
 
 let of_flow ~peer_id flow =
   let decoder = Capnp.Codecs.FramedStream.empty compression in
-  let flow = (flow :> Eio.Flow.two_way) in
+  let flow = (flow :> flow) in
   { flow; decoder; peer_id }
 
 let dump_msg =

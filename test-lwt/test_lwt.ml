@@ -27,13 +27,9 @@ type cs = {
   serve_tls : bool;
 }
 
-let ensure_removed path =
-  try Unix.unlink path
-  with Unix.Unix_error(Unix.ENOENT, _, _) -> ()
-
 let next_port = ref 8000
 
-let get_test_address ~sw name =
+let get_test_address name =
   match Sys.os_type with
   | "Win32" ->
     (* No Unix-domain sockets on Windows *)
@@ -41,9 +37,7 @@ let get_test_address ~sw name =
     incr next_port;
     `TCP ("127.0.0.1", port)
   | _ ->
-    let socket_path = Filename.(concat (Filename.get_temp_dir_name ())) name in
-    Switch.on_release sw (fun () -> ensure_removed socket_path);
-    `Unix socket_path
+    `Unix (Filename.(concat (Filename.get_temp_dir_name ())) name)
 
 (* Have the client ask the server for its bootstrap object, and return the
    resulting client-side proxy to it. *)
@@ -81,7 +75,7 @@ let make_vats_full ?(serve_tls=false) ?server_sw ~sw ~net ~restore () =
   let server =
     let sw = Option.value server_sw ~default:sw in
     let server_config =
-      let addr = get_test_address ~sw "capnp-rpc-test-server" in
+      let addr = get_test_address "capnp-rpc-test-server" in
       Capnp_rpc_unix.Vat_config.create ~secret_key:server_pem ~serve_tls addr
     in
     Capnp_rpc_unix.serve ~sw ~net ~tags:Test_utils.server_tags ~restore server_config
@@ -134,7 +128,7 @@ let test_bad_crypto ~net =
   | Ok _ -> Alcotest.fail "Wrong TLS key should have been rejected"
   | Error e ->
     let msg = Fmt.to_to_string Capnp_rpc.Exception.pp e in
-    assert (String.is_prefix ~affix:"Failed: TLS connection failed: authentication failure" msg);
+    assert (String.is_prefix ~affix:"Failed: TLS connection failed: TLS failure: authentication failure" msg);
     Logs.info (fun f -> f "Wait for server to log warning...");
     while Logs.warn_count () = old_warnings do
       Fiber.yield ()
@@ -554,7 +548,7 @@ let test_crossed_calls ~net =
       let config =
         let secret_key = `PEM (Auth.Secret_key.to_pem_data secret_key) in
         let name = Fmt.str "capnp-rpc-test-%s" addr in
-        Capnp_rpc_unix.Vat_config.create ~secret_key (get_test_address ~sw name)
+        Capnp_rpc_unix.Vat_config.create ~secret_key (get_test_address name)
       in
       let vat = Capnp_rpc_unix.serve ~net ~sw ~tags ~restore config in
       Switch.on_release sw (fun () -> Capability.dec_ref service);
@@ -607,7 +601,7 @@ let test_store ~net =
     (* Persistent server configuration *)
     let db = Store.DB.create () in
     let config =
-      let addr = get_test_address ~sw "capnp-rpc-test-server" in
+      let addr = get_test_address "capnp-rpc-test-server" in
       Capnp_rpc_unix.Vat_config.create ~secret_key:server_pem addr
     in
     let main_id = Restorer.Id.generate () in
@@ -621,20 +615,24 @@ let test_store ~net =
       Capnp_rpc_unix.serve ~sw ~net ~restore ~tags:Test_utils.server_tags config
     in
     (* Start server *)
-    Switch.run @@ fun server_switch ->
-    let server = start_server ~sw:server_switch () in
-    let store_uri = Capnp_rpc_unix.Vat.sturdy_uri server main_id in
-    (* Set up client *)
-    let client = Capnp_rpc_unix.client_only_vat ~tags:Test_utils.client_tags ~sw net in
-    let sr = Capnp_rpc_unix.Vat.import_exn client store_uri in
-    Sturdy_ref.with_cap_exn sr @@ fun store ->
-    (* Try creating a file *)
-    let file = Store.create_file store in
-    Store.File.set file "Hello";
-    let file_sr = Persistence.save_exn file in
-    let file_sr = Vat.import_exn client file_sr in (* todo: get rid of this step *)
-    (* Shut down server *)
-    Switch.fail server_switch Simulated_failure;
+    let file, file_sr =
+      Switch.run (fun server_switch ->
+          let server = start_server ~sw:server_switch () in
+          let store_uri = Capnp_rpc_unix.Vat.sturdy_uri server main_id in
+          (* Set up client *)
+          let client = Capnp_rpc_unix.client_only_vat ~tags:Test_utils.client_tags ~sw net in
+          let sr = Capnp_rpc_unix.Vat.import_exn client store_uri in
+          Sturdy_ref.with_cap_exn sr @@ fun store ->
+          (* Try creating a file *)
+          let file = Store.create_file store in
+          Store.File.set file "Hello";
+          let file_sr = Persistence.save_exn file in
+          let file_sr = Vat.import_exn client file_sr in (* todo: get rid of this step *)
+          (* Shut down server *)
+          Switch.fail server_switch Simulated_failure;
+          file, file_sr
+        )
+    in
     let broken, set_broken = Promise.create () in
     Capability.when_broken (Promise.resolve set_broken) file;
     ignore (Promise.await broken : Exception.t);
