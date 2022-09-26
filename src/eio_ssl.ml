@@ -20,8 +20,6 @@
  * 02111-1307, USA.
  *)
 
-open Eio.Std
-
 type t =
   | Plain
   | SSL of Ssl.socket
@@ -50,8 +48,10 @@ module Exn = struct
       }
 end
 
-let unix_fd_exn (fd : Eio.Net.stream_socket) =
-  Option.get (Eio_unix.FD.peek_opt fd)
+module Unix_fd = struct
+  let get_exn (fd : Eio.Net.stream_socket) =
+    Option.get (Eio_unix.FD.peek_opt fd)
+end
 
 let wrap_call ~f () =
   try f () with
@@ -68,29 +68,17 @@ let wrap_call ~f () =
            { ssl_error = err; message = Ssl.get_error_string () })
     | _ -> raise e)
 
-let wrap_call_async ~f () =
-  let p, u = Promise.create () in
-  let _t : Thread.t =
-    Thread.create
-      (fun () ->
-        match wrap_call ~f () with
-        | r -> Promise.resolve_ok u r
-        | exception exn -> Promise.resolve_error u exn)
-      ()
-  in
-  Promise.await_exn p
-
 let repeat_call ~f fd =
   let rec inner polls_remaining fd f =
     if polls_remaining <= 0
     then raise Exn.Too_many_polls
     else
-      try wrap_call_async ~f () with
+      try wrap_call ~f () with
       | Exn.Retry_read ->
-        Eio_unix.await_readable (unix_fd_exn fd);
+        Eio_unix.await_readable (Unix_fd.get_exn fd);
         inner (polls_remaining - 1) fd f
       | Exn.Retry_write ->
-        Eio_unix.await_writable (unix_fd_exn fd);
+        Eio_unix.await_writable (Unix_fd.get_exn fd);
         inner (polls_remaining - 1) fd f
       | e -> raise e
   in
@@ -101,18 +89,18 @@ let repeat_call ~f fd =
 let plain fd = fd, Plain
 
 let embed_socket fd context =
-  fd, SSL (Ssl.embed_socket (unix_fd_exn fd) context)
+  fd, SSL (Ssl.embed_socket (Unix_fd.get_exn fd) context)
 
 let embed_uninitialized_socket fd context =
-  fd, Ssl.embed_socket (unix_fd_exn fd) context
+  fd, Ssl.embed_socket (Unix_fd.get_exn fd) context
 
 let ssl_accept fd ctx =
-  let socket = Ssl.embed_socket (unix_fd_exn fd) ctx in
+  let socket = Ssl.embed_socket (Unix_fd.get_exn fd) ctx in
   repeat_call fd ~f:(fun () -> Ssl.accept socket);
   fd, SSL socket
 
 let ssl_connect fd ctx =
-  let socket = Ssl.embed_socket (unix_fd_exn fd) ctx in
+  let socket = Ssl.embed_socket (Unix_fd.get_exn fd) ctx in
   repeat_call fd ~f:(fun () -> Ssl.connect socket);
   fd, SSL socket
 
@@ -185,7 +173,7 @@ let get_fd (fd, _socket) = fd
 
 let get_unix_fd (fd, socket) =
   match socket with
-  | Plain -> unix_fd_exn fd
+  | Plain -> Unix_fd.get_exn fd
   | SSL socket -> Ssl.file_descr_of_socket socket
 
 let getsockname s = Unix.getsockname (get_unix_fd s)
