@@ -63,7 +63,17 @@ let wrap_call ~f () =
            { ssl_error = err; message = Ssl.get_error_string () })
     | _ -> raise e)
 
-let wrap_call_async ~f () = Eio_unix.run_in_systhread (wrap_call ~f)
+let wrap_call_async ~f () =
+  let p, u = Eio.Promise.create () in
+  let _t : Thread.t =
+    Thread.create
+      (fun () ->
+        match wrap_call ~f () with
+        | r -> Eio.Promise.resolve_ok u r
+        | exception exn -> Eio.Promise.resolve_error u exn)
+      ()
+  in
+  match Eio.Promise.await p with Ok r -> r | Error exn -> raise exn
 
 let unix_fd_exn (fd : Eio.Net.stream_socket) =
   Option.get (Eio_unix.FD.peek_opt fd)
@@ -135,7 +145,9 @@ let write_string ((fd, s) : socket) str =
     then 0
     else
       repeat_call fd ~f:(fun () ->
-          Ssl.write s (Bytes.unsafe_of_string str) 0 len)
+          match Ssl.write s (Bytes.unsafe_of_string str) 0 len with
+          | n -> n
+          | exception Ssl.Write_error Ssl.Error_zero_return -> 0)
 
 let write (fd, s) ~off ~len buf =
   match s with
@@ -147,7 +159,11 @@ let write (fd, s) ~off ~len buf =
   | SSL s ->
     if len = 0
     then 0
-    else repeat_call fd ~f:(fun () -> Ssl.write_bigarray s buf off len)
+    else
+      repeat_call fd ~f:(fun () ->
+          match Ssl.write_bigarray s buf off len with
+          | n -> n
+          | exception Ssl.Write_error Ssl.Error_zero_return -> 0)
 
 let ssl_shutdown (fd, s) =
   match s with
