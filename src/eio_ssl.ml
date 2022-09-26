@@ -20,6 +20,8 @@
  * 02111-1307, USA.
  *)
 
+open Eio.Std
+
 type t =
   | Plain
   | SSL of Ssl.socket
@@ -48,6 +50,9 @@ module Exn = struct
       }
 end
 
+let unix_fd_exn (fd : Eio.Net.stream_socket) =
+  Option.get (Eio_unix.FD.peek_opt fd)
+
 let wrap_call ~f () =
   try f () with
   | ( Ssl.Connection_error err
@@ -64,19 +69,16 @@ let wrap_call ~f () =
     | _ -> raise e)
 
 let wrap_call_async ~f () =
-  let p, u = Eio.Promise.create () in
+  let p, u = Promise.create () in
   let _t : Thread.t =
     Thread.create
       (fun () ->
         match wrap_call ~f () with
-        | r -> Eio.Promise.resolve_ok u r
-        | exception exn -> Eio.Promise.resolve_error u exn)
+        | r -> Promise.resolve_ok u r
+        | exception exn -> Promise.resolve_error u exn)
       ()
   in
-  match Eio.Promise.await p with Ok r -> r | Error exn -> raise exn
-
-let unix_fd_exn (fd : Eio.Net.stream_socket) =
-  Option.get (Eio_unix.FD.peek_opt fd)
+  Promise.await_exn p
 
 let repeat_call ~f fd =
   let rec inner polls_remaining fd f =
