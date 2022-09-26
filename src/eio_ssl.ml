@@ -124,7 +124,7 @@ let ssl_perform_handshake (fd, socket) =
   repeat_call fd ~f:(fun () -> Ssl.connect socket);
   fd, SSL socket
 
-let read ((fd, s) : socket) ~off ~len buf =
+let read (fd, s) ~off ~len buf =
   match s with
   | Plain -> Eio.Flow.read fd (Cstruct.of_bigarray buf ~off ~len)
   | SSL s ->
@@ -136,7 +136,7 @@ let read ((fd, s) : socket) ~off ~len buf =
           | n -> n
           | exception Ssl.Read_error Ssl.Error_zero_return -> 0)
 
-let write_string ((fd, s) : socket) str =
+let write_string (fd, s) str =
   let len = String.length str in
   match s with
   | Plain ->
@@ -166,6 +166,9 @@ let write (fd, s) ~off ~len buf =
           match Ssl.write_bigarray s buf off len with
           | n -> n
           | exception Ssl.Write_error Ssl.Error_zero_return -> 0)
+
+let close_notify (_, s) =
+  match s with Plain -> true | SSL s -> Ssl.close_notify s
 
 let ssl_shutdown (fd, s) =
   match s with

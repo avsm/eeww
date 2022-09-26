@@ -70,6 +70,7 @@ type bigstring =
 val read : socket -> off:int -> len:int -> bigstring -> int
 val write_string : socket -> string -> int
 val write : socket -> off:int -> len:int -> bigstring -> int
+val close_notify : socket -> bool
 val shutdown : socket -> Eio.Flow.shutdown_command -> unit
 val shutdown_and_close : socket -> unit
 val ssl_shutdown : socket -> unit
