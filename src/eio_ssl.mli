@@ -47,4 +47,4 @@ val accept : Context.t -> t
 (** Accept a TLS Connection from a client *)
 
 val connect : Context.t -> t
-(** Connect to a client over TLS *)
+(** Connect to a server over TLS *)
