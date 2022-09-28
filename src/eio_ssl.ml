@@ -114,7 +114,14 @@ module Raw = struct
               Ssl.read_into_bigarray ssl_socket buf.buffer buf.off buf.len
             with
             | n -> n
-            | exception Ssl.Read_error Ssl.Error_zero_return -> 0)
+            | exception Ssl.Read_error Ssl.Error_zero_return ->
+              (* From https://www.openssl.org/docs/man1.1.1/man3/SSL_get_error.html:
+               *
+               *   SSL_ERROR_ZERO_RETURN
+               *     The TLS/SSL peer has closed the connection for writing by
+               *     sending the close_notify alert. No more data can be read
+               *)
+              raise End_of_file)
 
   let writev t bufs =
     let { ssl_socket; _ } = t in
@@ -123,7 +130,8 @@ module Raw = struct
         repeat_call t ~f:(fun () ->
             match Ssl.write_bigarray ssl_socket buf off len with
             | n -> n
-            | exception Ssl.Write_error Ssl.Error_zero_return -> 0)
+            | exception Ssl.Write_error Ssl.Error_zero_return ->
+              raise End_of_file)
       with
       | n when n < len -> n + do_write buf ~off:(off + n) ~len:(len - n)
       | n -> n
