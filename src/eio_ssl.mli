@@ -30,51 +30,21 @@ module Exn : sig
       }
 end
 
-type socket
-(** Wrapper for SSL sockets.
+module Context : sig
+  type t
 
-    It is either a plain socket, either a real SSL socket. *)
+  val create : ctx:Ssl.context -> #Eio.Flow.two_way -> t
+  val get_fd : t -> Eio.Net.stream_socket
+  val get_unix_fd : t -> Unix.file_descr
+  val ssl_socket : t -> Ssl.socket
+end
 
-type uninitialized_socket
-(** Wrapper for SSL sockets that have not yet performed the SSL handshake. *)
+type t = private < Eio.Flow.two_way ; .. >
 
-val ssl_socket : socket -> Ssl.socket option
-(** Returns the underlying SSL socket used for this wrapper. If it is a plain
-    socket it returns [None]. *)
+val ssl_socket : t -> Ssl.socket
 
-val ssl_socket_of_uninitialized_socket : uninitialized_socket -> Ssl.socket
-(** Returns the underlying SSL socket used for this wrapper. *)
+val accept : Context.t -> t
+(** Accept a TLS Connection from a client *)
 
-val is_ssl : socket -> bool
-(** Are we using an SSL socket? *)
-
-val ssl_accept : Eio.Net.stream_socket -> Ssl.context -> socket
-val ssl_connect : Eio.Net.stream_socket -> Ssl.context -> socket
-val plain : Eio.Net.stream_socket -> socket
-val embed_socket : Eio.Net.stream_socket -> Ssl.context -> socket
-
-val embed_uninitialized_socket
-  :  Eio.Net.stream_socket
-  -> Ssl.context
-  -> uninitialized_socket
-
-val ssl_perform_handshake : uninitialized_socket -> socket
-(** Initiate a SSL/TLS handshake on the specified socket (used by clients). *)
-
-val ssl_accept_handshake : uninitialized_socket -> socket
-(** Await a SSL/TLS handshake on the specified socket (used by servers). *)
-
-type bigstring =
-  (char, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
-
-val read : socket -> off:int -> len:int -> bigstring -> int
-val write_string : socket -> string -> int
-val write : socket -> off:int -> len:int -> bigstring -> int
-val close_notify : socket -> bool
-val shutdown : socket -> Eio.Flow.shutdown_command -> unit
-val shutdown_and_close : socket -> unit
-val ssl_shutdown : socket -> unit
-val get_fd : socket -> Eio.Net.stream_socket
-val get_unix_fd : socket -> Unix.file_descr
-val getsockname : socket -> Unix.sockaddr
-val getpeername : socket -> Unix.sockaddr
+val connect : Context.t -> t
+(** Connect to a client over TLS *)

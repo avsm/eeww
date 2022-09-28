@@ -20,22 +20,6 @@
  * 02111-1307, USA.
  *)
 
-type t =
-  | Plain
-  | SSL of Ssl.socket
-
-type bigstring =
-  (char, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
-
-type socket = Eio.Net.stream_socket * t
-type uninitialized_socket = Eio.Net.stream_socket * Ssl.socket
-
-let ssl_socket (_fd, kind) =
-  match kind with Plain -> None | SSL socket -> Some socket
-
-let ssl_socket_of_uninitialized_socket (_fd, socket) = socket
-let is_ssl s = match snd s with Plain -> false | SSL _ -> true
-
 module Exn = struct
   exception Retry_read
   exception Retry_write
@@ -84,97 +68,124 @@ let repeat_call ~f fd =
   in
   inner 64 fd f
 
-(**)
+module Context = struct
+  type t =
+    { flow : Eio.Flow.two_way
+    ; ctx : Ssl.context
+    ; ssl_socket : Ssl.socket
+    ; mutable state : [ `Uninitialized | `Connected | `Shutdown ]
+    }
 
-let plain fd = fd, Plain
+  let create ~ctx flow =
+    let flow = (flow :> Eio.Flow.two_way) in
+    let ssl_socket = Ssl.embed_socket (Unix_fd.get_exn flow) ctx in
+    { flow; ctx; ssl_socket; state = `Uninitialized }
 
-let embed_socket fd context =
-  fd, SSL (Ssl.embed_socket (Unix_fd.get_exn fd) context)
+  let get_fd t = t.flow
 
-let embed_uninitialized_socket fd context =
-  fd, Ssl.embed_socket (Unix_fd.get_exn fd) context
+  let get_unix_fd t =
+    match t.state with
+    | `Uninitialized | `Shutdown -> Unix_fd.get_exn t.flow
+    | `Connected -> Ssl.file_descr_of_socket t.ssl_socket
 
-let ssl_accept fd ctx =
-  let socket = Ssl.embed_socket (Unix_fd.get_exn fd) ctx in
-  repeat_call fd ~f:(fun () -> Ssl.accept socket);
-  fd, SSL socket
+  let ssl_socket t = t.ssl_socket
+end
 
-let ssl_connect fd ctx =
-  let socket = Ssl.embed_socket (Unix_fd.get_exn fd) ctx in
-  repeat_call fd ~f:(fun () -> Ssl.connect socket);
-  fd, SSL socket
+module Raw = struct
+  open Context
 
-let ssl_accept_handshake (fd, socket) =
-  repeat_call fd ~f:(fun () -> Ssl.accept socket);
-  fd, SSL socket
+  let read { flow; state; ssl_socket; _ } buf =
+    match state with
+    | `Uninitialized | `Shutdown -> Eio.Flow.read flow buf
+    | `Connected ->
+      if buf.len = 0
+      then 0
+      else
+        repeat_call flow ~f:(fun () ->
+            match
+              Ssl.read_into_bigarray ssl_socket buf.buffer buf.off buf.len
+            with
+            | n -> n
+            | exception Ssl.Read_error Ssl.Error_zero_return -> 0)
 
-let ssl_perform_handshake (fd, socket) =
-  repeat_call fd ~f:(fun () -> Ssl.connect socket);
-  fd, SSL socket
+  let writev { flow; ssl_socket; _ } bufs =
+    let rec do_write buf ~off ~len =
+      match
+        repeat_call flow ~f:(fun () ->
+            Ssl.write_bigarray ssl_socket buf off len)
+      with
+      | n when n < len -> n + do_write buf ~off:(off + n) ~len:(len - n)
+      | n -> n
+      | exception Ssl.Write_error Ssl.Error_zero_return -> 0
+    in
 
-let read (fd, s) ~off ~len buf =
-  match s with
-  | Plain -> Eio.Flow.read fd (Cstruct.of_bigarray buf ~off ~len)
-  | SSL s ->
-    if len = 0
+    if Cstruct.lenv bufs = 0
     then 0
     else
-      repeat_call fd ~f:(fun () ->
-          match Ssl.read_into_bigarray s buf off len with
-          | n -> n
-          | exception Ssl.Read_error Ssl.Error_zero_return -> 0)
+      List.fold_left
+        (fun acc (buf : Cstruct.t) ->
+          acc + do_write buf.buffer ~off:buf.off ~len:buf.len)
+        0
+        bufs
 
-let write_string (fd, s) str =
-  let len = String.length str in
-  match s with
-  | Plain ->
-    Eio.Flow.copy_string str fd;
-    len
-  | SSL s ->
-    if String.length str = 0
-    then 0
-    else
-      repeat_call fd ~f:(fun () ->
-          match Ssl.write s (Bytes.unsafe_of_string str) 0 len with
-          | n -> n
-          | exception Ssl.Write_error Ssl.Error_zero_return -> 0)
+  let copy t src =
+    let do_rsb rsb =
+      try
+        while true do
+          rsb (writev t)
+        done
+      with
+      | End_of_file -> ()
+    in
+    match Eio.Flow.read_methods src with
+    | Eio.Flow.Read_source_buffer rsb :: _
+    | _ :: Eio.Flow.Read_source_buffer rsb :: _ ->
+      do_rsb rsb
+    | xs ->
+      (match
+         List.find_map
+           (function Eio.Flow.Read_source_buffer rsb -> Some rsb | _ -> None)
+           xs
+       with
+      | Some rsb -> do_rsb rsb
+      | None ->
+        (try
+           while true do
+             let buf = Cstruct.create 4096 in
+             let got = Eio.Flow.read src buf in
+             ignore (writev t [ Cstruct.sub buf 0 got ] : int)
+           done
+         with
+        | End_of_file -> ()))
 
-let write (fd, s) ~off ~len buf =
-  match s with
-  | Plain ->
-    Eio.Flow.copy
-      (Eio.Flow.cstruct_source [ Cstruct.of_bigarray ~off ~len buf ])
-      fd;
-    len
-  | SSL s ->
-    if len = 0
-    then 0
-    else
-      repeat_call fd ~f:(fun () ->
-          match Ssl.write_bigarray s buf off len with
-          | n -> n
-          | exception Ssl.Write_error Ssl.Error_zero_return -> 0)
+  let shutdown t cmd =
+    match cmd with
+    | `Receive -> ()
+    | `Send | `All ->
+      (match t.state with
+      | `Uninitialized | `Shutdown -> ()
+      | `Connected -> if Ssl.close_notify t.ssl_socket then t.state <- `Shutdown)
+end
 
-let close_notify (_, s) =
-  match s with Plain -> true | SSL s -> Ssl.close_notify s
+type t = < Eio.Flow.two_way ; t : Context.t >
 
-let ssl_shutdown (fd, s) =
-  match s with
-  | Plain -> ()
-  | SSL s -> repeat_call fd ~f:(fun () -> Ssl.shutdown s)
+let of_t t =
+  object
+    inherit Eio.Flow.two_way
+    method read_into = Raw.read t
+    method copy = Raw.copy t
+    method shutdown = Raw.shutdown t
+    method t = t
+  end
 
-let shutdown (fd, _) cmd = Eio.Flow.shutdown fd cmd
+let accept (t : Context.t) =
+  assert (t.state = `Uninitialized);
+  repeat_call t.flow ~f:(fun () -> Ssl.accept t.ssl_socket);
+  of_t { t with state = `Connected }
 
-let shutdown_and_close s =
-  let () = ssl_shutdown s in
-  shutdown s `All
+let connect (t : Context.t) =
+  assert (t.state = `Uninitialized);
+  repeat_call t.flow ~f:(fun () -> Ssl.connect t.ssl_socket);
+  of_t { t with state = `Connected }
 
-let get_fd (fd, _socket) = fd
-
-let get_unix_fd (fd, socket) =
-  match socket with
-  | Plain -> Unix_fd.get_exn fd
-  | SSL socket -> Ssl.file_descr_of_socket socket
-
-let getsockname s = Unix.getsockname (get_unix_fd s)
-let getpeername s = Unix.getpeername (get_unix_fd s)
+let ssl_socket t = Context.ssl_socket t#t
