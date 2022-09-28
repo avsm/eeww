@@ -37,37 +37,6 @@ module Unix_fd = struct
     Option.get (Eio_unix.FD.peek_opt fd)
 end
 
-let wrap_call ~f () =
-  try f () with
-  | ( Ssl.Connection_error err
-    | Ssl.Accept_error err
-    | Ssl.Read_error err
-    | Ssl.Write_error err ) as e ->
-    (match err with
-    | Ssl.Error_want_read -> raise_notrace Exn.Retry_read
-    | Ssl.Error_want_write -> raise_notrace Exn.Retry_write
-    | Ssl.Error_syscall | Ssl.Error_ssl ->
-      raise
-        (Exn.Ssl_exception
-           { ssl_error = err; message = Ssl.get_error_string () })
-    | _ -> raise e)
-
-let repeat_call ~f fd =
-  let rec inner polls_remaining fd f =
-    if polls_remaining <= 0
-    then raise Exn.Too_many_polls
-    else
-      try wrap_call ~f () with
-      | Exn.Retry_read ->
-        Eio_unix.await_readable (Unix_fd.get_exn fd);
-        inner (polls_remaining - 1) fd f
-      | Exn.Retry_write ->
-        Eio_unix.await_writable (Unix_fd.get_exn fd);
-        inner (polls_remaining - 1) fd f
-      | e -> raise e
-  in
-  inner 64 fd f
-
 module Context = struct
   type t =
     { flow : Eio.Flow.two_way
@@ -94,29 +63,70 @@ end
 module Raw = struct
   open Context
 
-  let read { flow; state; ssl_socket; _ } buf =
+  let wrap_call ~f t =
+    try f () with
+    | ( Ssl.Connection_error err
+      | Ssl.Accept_error err
+      | Ssl.Read_error err
+      | Ssl.Write_error err ) as e ->
+      (match err with
+      | Ssl.Error_want_read -> raise_notrace Exn.Retry_read
+      | Ssl.Error_want_write -> raise_notrace Exn.Retry_write
+      | Ssl.Error_syscall | Ssl.Error_ssl ->
+        (* From https://www.openssl.org/docs/man1.1.1/man3/SSL_get_error.html:
+         * If this error occurs then no further I/O operations should be
+         * performed on the connection and SSL_shutdown() must not be called.
+         *)
+        t.state <- `Shutdown;
+        raise
+          (Exn.Ssl_exception
+             { ssl_error = err; message = Ssl.get_error_string () })
+      | _ -> raise e)
+
+  let repeat_call ~f t =
+    let rec inner polls_remaining flow f =
+      if polls_remaining <= 0
+      then raise Exn.Too_many_polls
+      else
+        try wrap_call ~f t with
+        | Exn.Retry_read ->
+          Eio_unix.await_readable (Unix_fd.get_exn flow);
+          inner (polls_remaining - 1) flow f
+        | Exn.Retry_write ->
+          Eio_unix.await_writable (Unix_fd.get_exn flow);
+          inner (polls_remaining - 1) flow f
+    in
+    inner 64 t.flow f
+
+  let accept t = repeat_call t ~f:(fun () -> Ssl.accept t.ssl_socket)
+  let connect t = repeat_call t ~f:(fun () -> Ssl.connect t.ssl_socket)
+
+  let read t buf =
+    let { flow; state; ssl_socket; _ } = t in
     match state with
     | `Uninitialized | `Shutdown -> Eio.Flow.read flow buf
     | `Connected ->
       if buf.len = 0
       then 0
       else
-        repeat_call flow ~f:(fun () ->
+        repeat_call t ~f:(fun () ->
             match
               Ssl.read_into_bigarray ssl_socket buf.buffer buf.off buf.len
             with
             | n -> n
             | exception Ssl.Read_error Ssl.Error_zero_return -> 0)
 
-  let writev { flow; ssl_socket; _ } bufs =
+  let writev t bufs =
+    let { ssl_socket; _ } = t in
     let rec do_write buf ~off ~len =
       match
-        repeat_call flow ~f:(fun () ->
-            Ssl.write_bigarray ssl_socket buf off len)
+        repeat_call t ~f:(fun () ->
+            match Ssl.write_bigarray ssl_socket buf off len with
+            | n -> n
+            | exception Ssl.Write_error Ssl.Error_zero_return -> 0)
       with
       | n when n < len -> n + do_write buf ~off:(off + n) ~len:(len - n)
       | n -> n
-      | exception Ssl.Write_error Ssl.Error_zero_return -> 0
     in
 
     if Cstruct.lenv bufs = 0
@@ -180,12 +190,12 @@ let of_t t =
 
 let accept (t : Context.t) =
   assert (t.state = `Uninitialized);
-  repeat_call t.flow ~f:(fun () -> Ssl.accept t.ssl_socket);
+  Raw.accept t;
   of_t { t with state = `Connected }
 
 let connect (t : Context.t) =
   assert (t.state = `Uninitialized);
-  repeat_call t.flow ~f:(fun () -> Ssl.connect t.ssl_socket);
+  Raw.connect t;
   of_t { t with state = `Connected }
 
 let ssl_socket t = Context.ssl_socket t#t
