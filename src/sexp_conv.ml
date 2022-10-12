@@ -392,14 +392,6 @@ let () =
       , function
         | Stack.Empty -> Atom "Stack.Empty"
         | _ -> assert false )
-    ; ( [%extension_constructor Stream.Failure]
-      , function
-        | Stream.Failure -> Atom "Stream.Failure"
-        | _ -> assert false )
-    ; ( [%extension_constructor Stream.Error]
-      , function
-        | Stream.Error arg -> List [ Atom "Stream.Error"; Atom arg ]
-        | _ -> assert false )
     ; ( [%extension_constructor Sys.Break]
       , function
         | Sys.Break -> Atom "Sys.Break"
