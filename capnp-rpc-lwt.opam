@@ -21,20 +21,10 @@ depends: [
   "asetmap"
   "uri" {>= "1.6.0"}
   "dune" {>= "3.0"}
-  "eio"
+  "eio" {>= "0.7"}
 ]
 build: [
   ["dune" "build" "-p" name "-j" jobs]
   ["dune" "runtest" "-p" name "-j" jobs] {with-test}
 ]
 dev-repo: "git+https://github.com/mirage/capnp-rpc.git"
-pin-depends: [
-  ["eio.dev" "git+https://github.com/ocaml-multicore/eio.git#2aadabf4249a0fb14f0f70a06542103fc07ff08f"]
-  ["eio_linux.dev" "git+https://github.com/ocaml-multicore/eio.git#2aadabf4249a0fb14f0f70a06542103fc07ff08f"]
-  ["eio_luv.dev" "git+https://github.com/ocaml-multicore/eio.git#2aadabf4249a0fb14f0f70a06542103fc07ff08f"]
-  ["eio_main.dev" "git+https://github.com/ocaml-multicore/eio.git#2aadabf4249a0fb14f0f70a06542103fc07ff08f"]
-  ["base.v0.14" "git+https://github.com/kit-ty-kate/base.git#a3cf0042e943c9c979ff7424912c71c6236f68f3"]
-  ["stdint.0.7.0.1~alpha-repo" "git+https://github.com/kit-ty-kate/ocaml-stdint.git#cb95ca6dff6bd58aa555b872a5db6558837d52db"]
-  ["sexplib.v0.14.1~alpha-repo" "git+https://github.com/kit-ty-kate/sexplib.git#864ef15e927761b4d98d194b638293a7ca2fbff3"]
-  ["sexplib0.v0.14.1~alpha-repo" "git+https://github.com/kit-ty-kate/sexplib0.git#f13a9b23e7f0a68d9e5d81af30c35cbd419f8b25"]
-]

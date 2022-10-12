@@ -132,7 +132,7 @@ let rec eval ~sw ?(args=[||]) : _ -> Api.Reader.Calculator.Value.t Capability.t 
   | Call (f, params) ->
     let result = Fiber.fork_promise ~sw (fun () ->
         params
-        |> Fiber.map (fun p ->
+        |> Fiber.List.map (fun p ->
             let value = eval ~sw ~args p in
             Value.final_read value
           )

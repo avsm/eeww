@@ -39,6 +39,6 @@ let load t ~digest =
     let msg = Message.of_storage [Bytes.unsafe_of_string segment] in
     let reader = ReaderOps.get_root_struct (Message.readonly msg) in
     Some reader
-  | exception Eio.Fs.Not_found _ ->
+  | exception Eio.Io (Eio.Fs.E Not_found _, _) ->
     Logs.info (fun f -> f "File %S not found" leaf);
     None

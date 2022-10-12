@@ -40,9 +40,9 @@ module Make (Network : S.NETWORK) = struct
     } in
     Switch.on_release sw (fun () ->
         let ex = Capnp_rpc.Exception.v ~ty:`Disconnected "Vat shut down" in
-        ID_map.bindings t.connections |> Fiber.iter (fun (_, c) -> CapTP.disconnect c ex);
+        ID_map.bindings t.connections |> Fiber.List.iter (fun (_, c) -> CapTP.disconnect c ex);
         t.connections <- ID_map.empty;
-        Fiber.iter (fun c -> CapTP.disconnect c ex) t.anon_connections;
+        Fiber.List.iter (fun c -> CapTP.disconnect c ex) t.anon_connections;
         t.anon_connections <- [];
         (* If sw is being released then the connection fibers must have finished. *)
         assert (ID_map.is_empty t.connecting);

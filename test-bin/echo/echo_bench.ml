@@ -17,7 +17,7 @@ let run_client service =
         assert (res = desired_result)
     ) in
   let st = Unix.gettimeofday () in
-  ops |> Fiber.iter ~max_fibers:12 (fun v -> v ());
+  ops |> Fiber.List.iter ~max_fibers:12 (fun v -> v ());
   let ed = Unix.gettimeofday () in 
   let rate = (Int.to_float n) /. (ed -. st) in
   Logs.info (fun m -> m "rate = %f" rate )

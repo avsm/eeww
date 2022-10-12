@@ -36,8 +36,8 @@ let send t msg =
   match Eio.Flow.copy_string data t.flow with
   | ()
   | exception End_of_file -> Ok ()
-  | exception Eio.Net.Connection_reset ex ->
-    Log.info (fun f -> f "Connection reset: %a" Fmt.exn ex);
+  | exception (Eio.Io (Eio.Net.E Connection_reset _, _) as ex) ->
+    Log.info (fun f -> f "%a" Eio.Exn.pp ex);
     Error `Closed
   | exception ex ->
     Eio.Fiber.check ();
@@ -50,7 +50,7 @@ let rec recv t =
   | Error Capnp.Codecs.FramingError.Incomplete ->
     Log.debug (fun f -> f "Incomplete; waiting for more data...");
     let buf = Cstruct.create 4096 in    (* TODO: make this efficient *)
-    match Eio.Flow.read t.flow buf with
+    match Eio.Flow.single_read t.flow buf with
     | got ->
       Log.debug (fun f -> f "Read %d bytes" got);
       Capnp.Codecs.FramedStream.add_fragment t.decoder (Cstruct.to_string buf ~len:got);
@@ -58,8 +58,8 @@ let rec recv t =
     | exception End_of_file ->
       Log.info (fun f -> f "Connection closed");
       Error `Closed
-    | exception Eio.Net.Connection_reset ex ->
-      Log.info (fun f -> f "Connection reset: %a" Fmt.exn ex);
+    | exception (Eio.Io (Eio.Net.E Connection_reset _, _) as ex) ->
+      Log.info (fun f -> f "%a" Eio.Exn.pp ex);
       Error `Closed
 
 let disconnect t =
