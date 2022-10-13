@@ -1,3 +1,15 @@
+(** Grammar constructors. *)
+
+val sexp_grammar_with_tags
+  :  Sexp_grammar.grammar
+  -> tags:(string * Sexp.t) list
+  -> Sexp_grammar.grammar
+
+val sexp_grammar_with_tag_list
+  :  'a Sexp_grammar.with_tag_list
+  -> tags:(string * Sexp.t) list
+  -> 'a Sexp_grammar.with_tag_list
+
 (** Sexp grammar definitions. *)
 
 val unit_sexp_grammar : unit Sexp_grammar.t

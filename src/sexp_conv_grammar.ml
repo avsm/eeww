@@ -1,3 +1,15 @@
+open StdLabels
+
+let sexp_grammar_with_tags grammar ~tags =
+  List.fold_right tags ~init:grammar ~f:(fun (key, value) grammar ->
+    Sexp_grammar.Tagged { key; value; grammar })
+;;
+
+let sexp_grammar_with_tag_list x ~tags =
+  List.fold_right tags ~init:x ~f:(fun (key, value) grammar ->
+    Sexp_grammar.Tag { key; value; grammar })
+;;
+
 let unit_sexp_grammar : unit Sexp_grammar.t = { untyped = List Empty }
 let bool_sexp_grammar : bool Sexp_grammar.t = { untyped = Bool }
 let string_sexp_grammar : string Sexp_grammar.t = { untyped = String }

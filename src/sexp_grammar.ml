@@ -196,3 +196,15 @@ let doc_comment_tag = "sexp_grammar.doc_comment"
 
 (** This reserved key can be used to associate a type name with a grammar. *)
 let type_name_tag = "sexp_grammar.type_name"
+
+(** This reserved key indicates that a sexp represents a key/value association. The tag's
+    value is ignored. *)
+let assoc_tag = "sexp_grammar.assoc"
+
+(** This reserved key indicates that a sexp is a key in a key/value association. The tag's
+    value is ignored. *)
+let assoc_key_tag = "sexp_grammar.assoc.key"
+
+(** This reserved key indicates that a sexp is a value in a key/value association. The
+    tag's value is ignored. *)
+let assoc_value_tag = "sexp_grammar.assoc.value"
