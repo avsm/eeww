@@ -13,8 +13,9 @@
           ocamlPackages = super.ocaml-ng.ocamlPackages_5_00;
         });
       in
-      rec {
-        defaultPackage = pkgs.callPackage ./nix { nix-filter = nix-filter.lib; };
-        devShell = pkgs.callPackage ./shell.nix { };
+      {
+        defaultPackage = pkgs.callPackage ./nix {
+          nix-filter = nix-filter.lib;
+        };
       });
 }
