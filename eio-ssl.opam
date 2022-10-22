@@ -9,7 +9,7 @@ bug-reports: "https://github.com/anmonteiro/eio-ssl/issues"
 depends: [
   "dune" {>= "2.0"}
   "ocaml" {>= "5.0"}
-  "ssl" {>= "0.5.12"}
+  "ssl" {>= "0.5.13"}
   "eio"
   "eio_main"
 ]
