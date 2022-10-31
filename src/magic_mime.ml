@@ -28,3 +28,16 @@ let lookup ?default filename =
   match get_extension filename with
   | "" -> Mime_types.map_file ?default filename
   | ext -> Mime_types.map_extension ?default (String.lowercase_ascii ext)
+
+let reverse_lookup mime =
+  let mime' =
+    let string_length = String.length mime in
+    let rec strip_parameters i =
+      if i = string_length || mime.[i] = ';' then
+        String.sub mime 0 i
+      else
+        strip_parameters (i + 1)
+    in
+    strip_parameters 0
+  in
+  Mime_types.map_mime mime'

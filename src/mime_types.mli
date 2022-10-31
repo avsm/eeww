@@ -25,3 +25,7 @@ val map_extension : ?default:string -> string -> string
     defaulting to [default] (which is [application/octet-stream] by default) if
     it is unknown. *)
 val map_file : ?default:string -> string -> string
+
+(** [map_mime m] converts the MIME type [m] into a list of acceptable
+    file extensions, defaulting to an empty list if it is unknown. *)
+val map_mime : string -> string list
