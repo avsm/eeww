@@ -1,0 +1,4 @@
+(library
+ (name eio_console)
+ (public_name eio.console)
+ (libraries eio eio.utils ptime nottui))
