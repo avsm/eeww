@@ -50,6 +50,8 @@ type event =
   | Mutex
 (** Types of threads or other recorded objects. *)
 
+val event_to_string : event -> string
+
 val mint_id : unit -> id
 (** [mint_id ()] is a fresh unique [id]. *)
 
@@ -89,18 +91,30 @@ val note_signal : ?src:id -> id -> unit
 type log_buffer = (char, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
 
 module Control : sig
-  type t
-
-  val make : timestamper:(log_buffer -> int -> unit) -> log_buffer -> t
-  (** [make ~timestamper b] is a trace buffer that record events in [b].
-      In most cases, the {!Ctf_unix} module provides a simpler interface. *)
-
-  val start : t -> unit
+  val start : unit -> unit
   (** [start t] begins recording events in [t]. *)
 
-  val stop : t -> unit
+  val stop : unit -> unit
   (** [stop t] stops recording to [t] (which must be the current trace buffer). *)
 end
+
+(** Types *)
+
+type Runtime_events.User.tag += Created
+type Runtime_events.User.tag += Failed
+type Runtime_events.User.tag += Read
+type Runtime_events.User.tag += Try_read
+type Runtime_events.User.tag += Resolved
+type Runtime_events.User.tag += Label
+type Runtime_events.User.tag += Switch
+type Runtime_events.User.tag += Increase
+type Runtime_events.User.tag += Value
+type Runtime_events.User.tag += Signal
+type Runtime_events.User.tag += Suspend
+
+val created_type : (id * event) Runtime_events.Type.t
+val labelled_type : (id * string) Runtime_events.Type.t
+val two_ids_type : (id * id) Runtime_events.Type.t
 
 (**/**)
 
