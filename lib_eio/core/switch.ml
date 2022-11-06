@@ -115,9 +115,9 @@ let maybe_raise_exs t =
   | None -> ()
   | Some (ex, bt) -> Printexc.raise_with_backtrace ex bt
 
-let create cancel =
+let create ?loc cancel =
   let id = Ctf.mint_id () in
-  Ctf.note_created id Ctf.Switch;
+  Ctf.note_created ?label:loc id Ctf.Switch;
   {
     id;
     fibers = 1;         (* The main function counts as a fiber *)
