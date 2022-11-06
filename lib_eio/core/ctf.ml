@@ -214,7 +214,7 @@ module Control = struct
    * us to discard whole packets at a time when we need to overwrite something.
    *)
 
-  let event_log = ref false
+  let event_log = ref true
 
   let stop () =
     match !event_log with
@@ -276,7 +276,8 @@ let note_fork () =
   let child = mint_id () in
   begin match !Control.event_log with
     | false -> ()
-    | true -> Control.note_created child Task
+    | true ->
+      Control.note_created child Task
   end;
   child
 

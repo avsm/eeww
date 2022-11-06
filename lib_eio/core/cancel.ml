@@ -193,17 +193,17 @@ module Fiber_context = struct
   let clear_cancel_fn t =
     t.cancel_fn <- ignore
 
-  let make ~cc ~vars =
+  let make ?loc ~cc ~vars () =
     let tid = Ctf.mint_id () in
-    Ctf.note_created tid Ctf.Task;
+    Ctf.note_created ?label:loc tid Ctf.Task;
     let t = { tid; cancel_context = cc; cancel_node = None; cancel_fn = ignore; vars } in
     t.cancel_node <- Some (Lwt_dllist.add_r t cc.fibers);
     t
 
-  let make_root () =
+  let make_root ?loc () =
     let cc = create ~protected:false in
     cc.state <- On;
-    make ~cc ~vars:Hmap.empty
+    make ?loc ~cc ~vars:Hmap.empty ()
 
   let destroy t =
     Option.iter Lwt_dllist.remove t.cancel_node
