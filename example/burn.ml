@@ -1,5 +1,14 @@
 open Eio
 
+let woops_sleepy ~clock =
+  Switch.run @@ fun sw ->
+  Fiber.fork ~loc:__LOC__ ~sw (fun () -> 
+    (* Woops! Wrong sleep function, we blocked the fiber *)
+    traceln "Woops! Blocked by Unix.sleepf";
+    Unix.sleepf 10.;
+    Time.sleep clock 10.
+  )
+
 let spawn ~clock min max =
   Switch.run @@ fun sw ->
   for i = min to max do
@@ -16,9 +25,12 @@ let main clock =
   Switch.run @@ fun sw ->
   (* A long running task *)
   Fiber.fork ~loc:__LOC__ ~sw (fun () -> traceln "stuck waiting :("; Promise.await p; traceln "Done");
-  Fiber.both ~loc:__LOC__
-    (fun () -> spawn ~clock 5 10)
-    (fun () -> spawn ~clock 10 30);
+  Fiber.all ~loc:__LOC__
+    [
+      (fun () -> spawn ~clock 5 10);
+      (fun () -> spawn ~clock 10 30);
+      (fun () -> woops_sleepy ~clock);
+    ];
   Promise.resolve r ()
 
 let () =
