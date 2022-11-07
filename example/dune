@@ -1,3 +1,0 @@
-(executables
- (names main console burn)
- (libraries eio eio_main nottui-pretty eio.console unix nottui eio.unix))
