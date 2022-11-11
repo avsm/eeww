@@ -27,3 +27,6 @@ val mean : t -> float
 
 val stddev : t -> float
 (** Get the standard deviation of the values in the histogram *)
+
+val memory_size : t -> int64
+(** Get the memory size of the histogram *)
