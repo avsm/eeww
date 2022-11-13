@@ -32,4 +32,7 @@ module Functions (F : Ctypes.FOREIGN) = struct
 
   let hdr_stddev = foreign "hdr_stddev"
     (ptr Types.hdr_histogram @-> returning double)
+
+  let hdr_get_memory_size = foreign "hdr_get_memory_size"
+    (ptr Types.hdr_histogram @-> returning size_t)
 end
