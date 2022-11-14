@@ -28,4 +28,4 @@ let max h = Int64.to_int @@ C.Function.hdr_max h
 let min h = Int64.to_int @@ C.Function.hdr_min h
 let mean h = C.Function.hdr_mean h
 let stddev h = C.Function.hdr_stddev h
-let memory_size h = Unsigned.Size_t.to_int64 @@ C.Function.hdr_get_memory_size h
+let memory_size h = Unsigned.Size_t.to_int @@ C.Function.hdr_get_memory_size h
