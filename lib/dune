@@ -12,7 +12,7 @@
   (vendored
     ; hack: multiple -I directives to work around cc commands being run from
     ; different relative directories.  Is there a cleaner way to do this?
-    (c_flags ("-Ilib" "-I."))))
+    (c_flags :standard "-Ilib" "-I.")))
   (headers (include "hdr_histogram.h"))
   (type_description
    (instance Type)
