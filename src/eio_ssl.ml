@@ -38,24 +38,29 @@ module Unix_fd = struct
 end
 
 module Context = struct
+  type state =
+    | Uninitialized
+    | Connected
+    | Shutdown of exn option
+
   type t =
     { flow : Eio.Flow.two_way
     ; ctx : Ssl.context
     ; ssl_socket : Ssl.socket
-    ; mutable state : [ `Uninitialized | `Connected | `Shutdown ]
+    ; mutable state : state
     }
 
   let create ~ctx flow =
     let flow = (flow :> Eio.Flow.two_way) in
     let ssl_socket = Ssl.embed_socket (Unix_fd.get_exn flow) ctx in
-    { flow; ctx; ssl_socket; state = `Uninitialized }
+    { flow; ctx; ssl_socket; state = Uninitialized }
 
   let get_fd t = t.flow
 
   let get_unix_fd t =
     match t.state with
-    | `Uninitialized | `Shutdown -> Unix_fd.get_exn t.flow
-    | `Connected -> Ssl.file_descr_of_socket t.ssl_socket
+    | Uninitialized | Shutdown _ -> Unix_fd.get_exn t.flow
+    | Connected -> Ssl.file_descr_of_socket t.ssl_socket
 
   let ssl_socket t = t.ssl_socket
 end
@@ -77,10 +82,12 @@ module Raw = struct
          * If this error occurs then no further I/O operations should be
          * performed on the connection and SSL_shutdown() must not be called.
          *)
-        t.state <- `Shutdown;
-        raise
-          (Exn.Ssl_exception
-             { ssl_error = err; message = Ssl.get_error_string () })
+        let exn =
+          Exn.Ssl_exception
+            { ssl_error = err; message = Ssl.get_error_string () }
+        in
+        t.state <- Shutdown (Some exn);
+        raise exn
       | _ -> raise e)
 
   let repeat_call ~f t =
@@ -104,8 +111,9 @@ module Raw = struct
   let read t buf =
     let { flow; state; ssl_socket; _ } = t in
     match state with
-    | `Uninitialized | `Shutdown -> Eio.Flow.read flow buf
-    | `Connected ->
+    | Shutdown (Some _) -> raise End_of_file
+    | Uninitialized | Shutdown None -> Eio.Flow.single_read flow buf
+    | Connected ->
       if buf.len = 0
       then 0
       else
@@ -170,7 +178,7 @@ module Raw = struct
         (try
            while true do
              let buf = Cstruct.create 4096 in
-             let got = Eio.Flow.read src buf in
+             let got = Eio.Flow.single_read src buf in
              ignore (writev t [ Cstruct.sub buf 0 got ] : int)
            done
          with
@@ -181,8 +189,9 @@ module Raw = struct
     | `Receive -> ()
     | `Send | `All ->
       (match t.state with
-      | `Uninitialized | `Shutdown -> ()
-      | `Connected -> if Ssl.close_notify t.ssl_socket then t.state <- `Shutdown)
+      | Uninitialized | Shutdown _ -> ()
+      | Connected ->
+        if Ssl.close_notify t.ssl_socket then t.state <- Shutdown None)
 end
 
 type t = < Eio.Flow.two_way ; t : Context.t >
@@ -197,13 +206,13 @@ let of_t t =
   end
 
 let accept (t : Context.t) =
-  assert (t.state = `Uninitialized);
+  assert (t.state = Uninitialized);
   Raw.accept t;
-  of_t { t with state = `Connected }
+  of_t { t with state = Connected }
 
 let connect (t : Context.t) =
-  assert (t.state = `Uninitialized);
+  assert (t.state = Uninitialized);
   Raw.connect t;
-  of_t { t with state = `Connected }
+  of_t { t with state = Connected }
 
 let ssl_socket t = Context.ssl_socket t#t
