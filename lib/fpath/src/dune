@@ -1,7 +1,7 @@
 (library
  (name fpath)
  (public_name fpath)
- (libraries astring result)
+ (libraries astring)
  (modules fpath)
  (flags :standard -w -6-27-32-33-39)
  (wrapped false))
