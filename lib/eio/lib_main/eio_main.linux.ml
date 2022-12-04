@@ -12,25 +12,8 @@ let run_io_uring ?fallback fn =
   Log.info (fun f -> f "Selecting io-uring backend");
   Eio_linux.run ?fallback (fun env -> fn (env :> Eio.Stdenv.t))
 
-let run_luv fn =
-  Eio_luv.run (fun env -> fn (env :> Eio.Stdenv.t))
-
 let run fn =
   match Sys.getenv_opt "EIO_BACKEND" with
-  | Some "io-uring" -> run_io_uring fn
   | Some "luv" ->
-    Log.info (fun f -> f "Using luv backend");
-    run_luv fn
-  | None | Some "" ->
-    begin match Luv.System_info.uname () with
-      | Ok x when has_working_uring x.release ->
-        run_io_uring fn
-          ~fallback:(fun (`Msg msg) ->
-              Log.info (fun f -> f "%s; using luv backend instead" msg);
-              run_luv fn
-            )
-      | _ ->
-        Log.info (fun f -> f "Selecting luv backend (io-uring needs Linux >= 5.11)");
-        run_luv fn
-    end
-  | Some x -> Fmt.failwith "Unknown eio backend %S (from $EIO_BACKEND)" x
+    failwith "luv has been disabled in this tree"
+  | Some _ -> run_io_uring fn
