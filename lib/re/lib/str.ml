@@ -15,6 +15,8 @@
 
 (* $Id: re_str.ml,v 1.3 2002/07/03 15:47:54 vouillon Exp $ *)
 
+[@@@warning "-69"]
+
 module Re = Core
 
 type regexp =
