@@ -7,7 +7,7 @@
   (preprocess (per_module 
                 ; use full to path to pp.exe to work around
                 ; https://github.com/ocaml/dune/issues/6106
-               ((action (run lib/lwd/pp.exe %{input-file})) lwd_infix lwd_seq))))
+               ((action (run lib/lwd/lib/lwd/pp.exe %{input-file})) lwd_infix lwd_seq))))
 
 (executable 
   (name pp)
