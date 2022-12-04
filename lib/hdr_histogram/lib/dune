@@ -1,3 +1,4 @@
+(copy_files libhdr_histogram/include/hdr/hdr_histogram.h)
 (library
  (name hdr_histogram)
  (public_name hdr_histogram)
@@ -12,7 +13,7 @@
   (vendored
     ; hack: multiple -I directives to work around cc commands being run from
     ; different relative directories.  Is there a cleaner way to do this?
-    (c_flags :standard "-Ilib" "-I.")))
+    (c_flags :standard "-Ilib/ctypes/src/ctypes" "-Ilib/hdr_histogram/lib" "-Ilib" "-I.")))
   (headers (include "hdr_histogram.h"))
   (type_description
    (instance Type)
@@ -28,7 +29,7 @@
 
 (rule
   (deps (source_tree libhdr_histogram))
-  (targets dllhdr_histogram.so libhdr_histogram.a hdr_histogram.h)
+  (targets dllhdr_histogram.so libhdr_histogram.a)
   (action (no-infer
   (progn (chdir libhdr_histogram
             (progn (run mkdir -p _build)
@@ -39,5 +40,4 @@
                libhdr_histogram.a)
          (copy libhdr_histogram/_build/src/libhdr_histogram.so
                dllhdr_histogram.so)
-         (copy libhdr_histogram/include/hdr/hdr_histogram.h
-               hdr_histogram.h)))))
+               ))))
