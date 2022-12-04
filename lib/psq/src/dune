@@ -1,5 +1,4 @@
 (library
   (public_name psq)
   (synopsis "Functional Priority Search Queues")
-  (libraries seq)
   (wrapped false))
