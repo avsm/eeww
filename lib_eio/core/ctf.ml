@@ -349,3 +349,18 @@ let should_resolve thread =
   match !Control.event_log with
   | false -> ()
   | true -> Control.note_label thread "__should_resolve" (* Hack! *)
+
+let dune_exe_strategy stack =
+  let rec first acc s = match acc, Astring.String.cut ~sep:"Dune__exe__" s with
+    | None, Some (_, v) -> Some v
+    | (Some _ as v), _ -> v
+    | _ -> None
+  in
+  List.fold_left first None stack
+
+let get_caller () =
+  (* Need quite a few frames to escape switch and cancel contexts *)
+  let stack = Printexc.get_callstack 6 |> Printexc.raw_backtrace_to_string |> String.split_on_char '\n' in
+  match dune_exe_strategy stack with
+  | Some s -> s 
+  | None -> String.concat "\n" stack

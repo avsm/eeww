@@ -1529,7 +1529,7 @@ let rec run : type a.
   in
   let result = ref None in
   let `Exit_scheduler =
-    let new_fiber = Fiber_context.make_root () in
+    let new_fiber = Fiber_context.make_root ~loc:(Eio.Private.Ctf.get_caller ()) () in
     fork ~new_fiber (fun () ->
         Switch.run_protected (fun sw ->
             let fd = EventFD_pool.get () in
