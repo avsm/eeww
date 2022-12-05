@@ -122,3 +122,5 @@ module BS : sig
   val set_int8 : Cstruct.buffer -> int -> int -> unit
   val set_int64_le : Cstruct.buffer -> int -> int64 -> unit
 end
+
+val get_caller : unit -> string

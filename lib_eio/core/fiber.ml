@@ -8,21 +8,6 @@ let yield () =
 let fork_raw new_fiber f =
   Effect.perform (Fork (new_fiber, f))
 
-let get_caller () =
-  let stack = Printexc.get_callstack 3 |> Printexc.raw_backtrace_to_string |> String.split_on_char '\n' in
-  match stack with
-  | _ :: _ :: x  :: _ -> (
-    match Astring.String.cut ~sep:"Dune__exe__" x with
-    | Some (_, x) -> x
-    | None -> x 
-  )
-  | _ :: x :: _ -> (
-    match Astring.String.cut ~sep:"Dune__exe__" x with
-    | Some (_, x) -> x
-    | None -> x 
-  )
-  | _ -> "Unknown location " ^ (string_of_int @@ List.length stack)
-
 let fork' ~loc ~sw f =
   Switch.check_our_domain sw;
   if Cancel.is_on sw.cancel then (
@@ -38,15 +23,15 @@ let fork' ~loc ~sw f =
       Ctf.note_resolved (Cancel.Fiber_context.tid new_fiber) ~ex:(Some ex)
   ) (* else the fiber should report the error to [sw], but [sw] is failed anyway *)
 
-let fork ~sw f = 
-  let loc = get_caller () in
+let fork ~sw f =
+  let loc = Ctf.get_caller () in
   fork' ~loc ~sw f
 
 let fork_daemon ~sw f =
   Switch.check_our_domain sw;
   if Cancel.is_on sw.cancel then (
     let vars = Cancel.Fiber_context.get_vars () in
-    let loc = get_caller () in
+    let loc = Ctf.get_caller () in
     let new_fiber = Cancel.Fiber_context.make ~loc ~cc:sw.cancel ~vars () in
     fork_raw new_fiber @@ fun () ->
     Switch.with_daemon sw @@ fun () ->
@@ -65,7 +50,7 @@ let fork_daemon ~sw f =
 let fork_promise ~sw f =
   Switch.check_our_domain sw;
   let vars = Cancel.Fiber_context.get_vars () in
-  let loc = get_caller () in
+  let loc = Ctf.get_caller () in
   let new_fiber = Cancel.Fiber_context.make ~loc ~cc:sw.Switch.cancel ~vars () in
   let p, r = Promise.create_with_id (Cancel.Fiber_context.tid new_fiber) in
   fork_raw new_fiber (fun () ->
@@ -80,7 +65,7 @@ let fork_promise ~sw f =
 let fork_promise_exn ~sw f =
   Switch.check_our_domain sw;
   let vars = Cancel.Fiber_context.get_vars () in
-  let loc = get_caller () in
+  let loc = Ctf.get_caller () in
   let new_fiber = Cancel.Fiber_context.make ~loc ~cc:sw.Switch.cancel ~vars () in
   let p, r = Promise.create_with_id (Cancel.Fiber_context.tid new_fiber) in
   fork_raw new_fiber (fun () ->
@@ -96,11 +81,11 @@ let all' ~loc xs =
   List.iter (fork' ~loc ~sw) xs
 
 let all xs =
-  let loc = get_caller () in
+  let loc = Ctf.get_caller () in
   all' ~loc xs
 
 let both f g = 
-  let loc = get_caller () in
+  let loc = Ctf.get_caller () in
   all' ~loc [f; g]
 
 let pair f g =
@@ -110,7 +95,8 @@ let pair f g =
   (Promise.await_exn x, y)
 
 let fork_sub ~sw ~on_error f =
-  fork ~sw (fun () ->
+  let loc = Ctf.get_caller () in
+  fork' ~loc ~sw (fun () ->
       try Switch.run f
       with
       | ex when Cancel.is_on sw.cancel ->
@@ -132,7 +118,7 @@ let await_cancel () =
   Cancel.Fiber_context.set_cancel_fn fiber (fun ex -> enqueue (Error ex))
 
 let any fs =
-  let loc = get_caller () in
+  let loc = Ctf.get_caller () in
   let r = ref `None in
   let parent_c =
     Cancel.sub_unchecked (fun cc ->
@@ -258,8 +244,9 @@ module List = struct
       fork_promise_exn ~sw:t.sw (fun () -> let r = fn x in release t; r)
 
     let fork t fn x =
+      let loc = Ctf.get_caller () in
       await_free t;
-      fork ~sw:t.sw (fun () -> fn x; release t)
+      fork' ~loc ~sw:t.sw (fun () -> fn x; release t)
   end
 
   let filter_map ?(max_fibers=max_int) fn items =

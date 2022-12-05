@@ -1279,7 +1279,7 @@ let rec run : type a. (_ -> a) -> a = fun main ->
     }
   in
   let main_status = ref `Running in
-  let new_fiber = Fiber_context.make_root () in
+  let new_fiber = Fiber_context.make_root ~loc:(Eio.Private.Ctf.get_caller ()) () in
   fork ~new_fiber (fun () ->
       begin match main stdenv with
         | v -> main_status := `Done v
