@@ -8,11 +8,26 @@ let yield () =
 let fork_raw new_fiber f =
   Effect.perform (Fork (new_fiber, f))
 
-let fork ?loc ~sw f =
+let get_caller () =
+  let stack = Printexc.get_callstack 3 |> Printexc.raw_backtrace_to_string |> String.split_on_char '\n' in
+  match stack with
+  | _ :: _ :: x  :: _ -> (
+    match Astring.String.cut ~sep:"Dune__exe__" x with
+    | Some (_, x) -> x
+    | None -> x 
+  )
+  | _ :: x :: _ -> (
+    match Astring.String.cut ~sep:"Dune__exe__" x with
+    | Some (_, x) -> x
+    | None -> x 
+  )
+  | _ -> "Unknown location " ^ (string_of_int @@ List.length stack)
+
+let fork' ~loc ~sw f =
   Switch.check_our_domain sw;
   if Cancel.is_on sw.cancel then (
     let vars = Cancel.Fiber_context.get_vars () in
-    let new_fiber = Cancel.Fiber_context.make ?loc ~cc:sw.cancel ~vars () in
+    let new_fiber = Cancel.Fiber_context.make ~loc ~cc:sw.cancel ~vars () in
     fork_raw new_fiber @@ fun () ->
     Switch.with_op sw @@ fun () ->
     match f () with
@@ -23,11 +38,16 @@ let fork ?loc ~sw f =
       Ctf.note_resolved (Cancel.Fiber_context.tid new_fiber) ~ex:(Some ex)
   ) (* else the fiber should report the error to [sw], but [sw] is failed anyway *)
 
-let fork_daemon ?loc ~sw f =
+let fork ~sw f = 
+  let loc = get_caller () in
+  fork' ~loc ~sw f
+
+let fork_daemon ~sw f =
   Switch.check_our_domain sw;
   if Cancel.is_on sw.cancel then (
     let vars = Cancel.Fiber_context.get_vars () in
-    let new_fiber = Cancel.Fiber_context.make ?loc ~cc:sw.cancel ~vars () in
+    let loc = get_caller () in
+    let new_fiber = Cancel.Fiber_context.make ~loc ~cc:sw.cancel ~vars () in
     fork_raw new_fiber @@ fun () ->
     Switch.with_daemon sw @@ fun () ->
     match f () with
@@ -42,10 +62,11 @@ let fork_daemon ?loc ~sw f =
       Ctf.note_resolved (Cancel.Fiber_context.tid new_fiber) ~ex:(Some ex)
   ) (* else the fiber should report the error to [sw], but [sw] is failed anyway *)
 
-let fork_promise ?loc ~sw f =
+let fork_promise ~sw f =
   Switch.check_our_domain sw;
   let vars = Cancel.Fiber_context.get_vars () in
-  let new_fiber = Cancel.Fiber_context.make ?loc ~cc:sw.Switch.cancel ~vars () in
+  let loc = get_caller () in
+  let new_fiber = Cancel.Fiber_context.make ~loc ~cc:sw.Switch.cancel ~vars () in
   let p, r = Promise.create_with_id (Cancel.Fiber_context.tid new_fiber) in
   fork_raw new_fiber (fun () ->
       match Switch.with_op sw f with
@@ -56,10 +77,11 @@ let fork_promise ?loc ~sw f =
 
 (* This is not exposed. On failure it fails [sw], but you need to make sure that
    any fibers waiting on the promise will be cancelled. *)
-let fork_promise_exn ?loc ~sw f =
+let fork_promise_exn ~sw f =
   Switch.check_our_domain sw;
   let vars = Cancel.Fiber_context.get_vars () in
-  let new_fiber = Cancel.Fiber_context.make ?loc ~cc:sw.Switch.cancel ~vars () in
+  let loc = get_caller () in
+  let new_fiber = Cancel.Fiber_context.make ~loc ~cc:sw.Switch.cancel ~vars () in
   let p, r = Promise.create_with_id (Cancel.Fiber_context.tid new_fiber) in
   fork_raw new_fiber (fun () ->
       match Switch.with_op sw f with
@@ -69,11 +91,17 @@ let fork_promise_exn ?loc ~sw f =
     );
   p
 
-let all ?loc xs =
+let all' ~loc xs =
   Switch.run @@ fun sw ->
-  List.iter (fork ?loc ~sw) xs
+  List.iter (fork' ~loc ~sw) xs
 
-let both ?loc f g = all ?loc [f; g]
+let all xs =
+  let loc = get_caller () in
+  all' ~loc xs
+
+let both f g = 
+  let loc = get_caller () in
+  all' ~loc [f; g]
 
 let pair f g =
   Switch.run @@ fun sw ->
@@ -103,7 +131,8 @@ let await_cancel () =
   Suspend.enter @@ fun fiber enqueue ->
   Cancel.Fiber_context.set_cancel_fn fiber (fun ex -> enqueue (Error ex))
 
-let any ?loc fs =
+let any fs =
+  let loc = get_caller () in
   let r = ref `None in
   let parent_c =
     Cancel.sub_unchecked (fun cc ->
@@ -133,7 +162,7 @@ let any ?loc fs =
           | [] -> await_cancel ()
           | [f] -> wrap f; []
           | f :: fs ->
-            let new_fiber = Cancel.Fiber_context.make ?loc ~cc ~vars () in
+            let new_fiber = Cancel.Fiber_context.make ~loc ~cc ~vars () in
             let p, r = Promise.create_with_id (Cancel.Fiber_context.tid new_fiber) in
             fork_raw new_fiber (fun () ->
                 match wrap f with
