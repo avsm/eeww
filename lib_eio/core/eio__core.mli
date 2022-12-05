@@ -177,7 +177,7 @@ module Fiber : sig
       A fiber runs until it performs an IO operation (directly or indirectly).
       At that point, it may be suspended and the next fiber on the run queue runs. *)
 
-  val both : ?loc:string -> (unit -> unit) -> (unit -> unit) -> unit
+  val both : (unit -> unit) -> (unit -> unit) -> unit
   (** [both f g] runs [f ()] and [g ()] concurrently.
 
       They run in a new cancellation sub-context, and
@@ -195,7 +195,7 @@ module Fiber : sig
   val pair : (unit -> 'a) -> (unit -> 'b) -> 'a * 'b
   (** [pair f g] is like [both], but returns the two results. *)
 
-  val all : ?loc:string -> (unit -> unit) list -> unit
+  val all : (unit -> unit) list -> unit
   (** [all fs] is like [both], but for any number of fibers.
       [all []] returns immediately. *)
 
@@ -213,7 +213,7 @@ module Fiber : sig
       This is because there is a period of time after the first operation succeeds,
       but before its fiber finishes, during which the other operation may also succeed. *)
 
-  val any : ?loc:string -> (unit -> 'a) list -> 'a
+  val any : (unit -> 'a) list -> 'a
   (** [any fs] is like [first], but for any number of fibers.
 
       [any []] just waits forever (or until cancelled). *)
@@ -222,7 +222,7 @@ module Fiber : sig
   (** [await_cancel ()] waits until cancelled.
       @raise Cancel.Cancelled *)
 
-  val fork : ?loc:string -> sw:Switch.t -> (unit -> unit) -> unit
+  val fork : sw:Switch.t -> (unit -> unit) -> unit
   (** [fork ~sw fn] runs [fn ()] in a new fiber, but does not wait for it to complete.
 
       The new fiber is attached to [sw] (which can't finish until the fiber ends).
@@ -244,13 +244,13 @@ module Fiber : sig
                       If it raises in turn, the parent switch is failed.
                       It is not called if the parent [sw] itself is cancelled. *)
 
-  val fork_promise : ?loc:string -> sw:Switch.t -> (unit -> 'a) -> 'a Promise.or_exn
+  val fork_promise : sw:Switch.t -> (unit -> 'a) -> 'a Promise.or_exn
   (** [fork_promise ~sw fn] schedules [fn ()] to run in a new fiber and returns a promise for its result.
 
       This is just a convenience wrapper around {!fork}.
       If [fn] raises an exception then the promise is resolved to the error, but [sw] is not failed. *)
 
-  val fork_daemon : ?loc:string -> sw:Switch.t -> (unit -> [`Stop_daemon]) -> unit
+  val fork_daemon : sw:Switch.t -> (unit -> [`Stop_daemon]) -> unit
   (** [fork_daemon] is like {!fork} except that instead of waiting for the fiber to finish,
       the switch will cancel it once all non-daemon fibers are done.
 
