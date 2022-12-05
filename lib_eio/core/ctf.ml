@@ -360,7 +360,7 @@ let dune_exe_strategy stack =
 
 let get_caller () =
   (* Need quite a few frames to escape switch and cancel contexts *)
-  let stack = Printexc.get_callstack 6 |> Printexc.raw_backtrace_to_string |> String.split_on_char '\n' in
+  let stack = Printexc.get_callstack 20 |> Printexc.raw_backtrace_to_string |> String.split_on_char '\n' in
   match dune_exe_strategy stack with
   | Some s -> s 
   | None -> String.concat "\n" stack
