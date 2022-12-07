@@ -1,0 +1,8 @@
+(executables
+ (names server1 client1 docker_client client_timeout)
+ (libraries cohttp-eio eio_main eio.unix unix))
+
+(alias
+ (name runtest)
+ (package cohttp-eio)
+ (deps server1.exe))
