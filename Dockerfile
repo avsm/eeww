@@ -1,5 +1,5 @@
 FROM ocaml/opam:alpine as build
-RUN sudo apk add --update openssl-dev pkgconfig libffi linux-headers build-base patch tar ca-certificates git rsync curl sudo bash libx11-dev nano coreutils xz ncurses
+RUN sudo apk add --update openssl-dev pkgconfig libffi linux-headers build-base patch tar ca-certificates git rsync curl sudo bash libx11-dev nano coreutils xz ncurses cmake
 COPY boot /home/opam/src/boot
 COPY Makefile /home/opam/src/Makefile
 RUN sudo chown -R opam /home/opam/src
