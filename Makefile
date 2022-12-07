@@ -1,8 +1,7 @@
 .PHONY: clean distclean all boot
 
 all: _obj/bin/dune
-	env PATH="`pwd`/_obj/bin:$$PATH" dune build 
-	env PATH="`pwd`/_obj/bin:$$PATH" dune build lib/meio/src/bin/meio.exe
+	@env PATH="`pwd`/_obj/bin:$$PATH" dune build @install lib/meio/src/bin/meio.exe
 
 boot: _obj/bin/dune
 	@:
