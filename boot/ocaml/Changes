@@ -32,6 +32,9 @@ Working version
 - #11764: add prototypes to old-style C function definitions and declarations
   (Antonin Décimo, review by Xavier Leroy)
 
+- #11474: Add support for user-defined events in the runtime event tracing
+  system. (Lucas Pluvinage)
+
 ### Code generation and optimizations:
 
 - #8998, #11321, #11430: change mangling of OCaml long identifiers
