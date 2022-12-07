@@ -1,0 +1,37 @@
+description = "Monotonic wall-clock time for OCaml"
+version = "%%VERSION_NUM%%"
+requires = ""
+archive(byte) = "mtime.cma"
+archive(native) = "mtime.cmxa"
+plugin(byte) = "mtime.cma"
+plugin(native) = "mtime.cmxs"
+
+package "top" (
+  description = "Mtime toplevel support"
+  version = "%%VERSION_NUM%%"
+  requires = "mtime"
+  directory = "top"
+  archive(byte) = "mtime_top.cma"
+  archive(native) = "mtime_top.cmxa"
+  plugin(byte) = "mtime_top.cma"
+  plugin(native) = "mtime_top.cmxs"
+)
+
+package "clock" (
+  description = "Monotonic time clock interface"
+  version = "%%VERSION_NUM%%"
+  requires = ""
+  directory = "clock"
+
+  package "os" (
+    description = "Mtime_clock for your platform (including JavaScript)"
+    version = "%%VERSION_NUM%%"
+    requires = "mtime"
+    directory = "os"
+    archive(byte) = "mtime_clock.cma"
+    archive(native) = "mtime_clock.cmxa"
+    plugin(byte) = "mtime_clock.cma"
+    plugin(native) = "mtime_clock.cmxs"
+    linkopts(javascript) = "+mtime.clock.os/runtime.js"
+    exists_if = "mtime_clock.cma")
+)
