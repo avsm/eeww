@@ -1,0 +1,4 @@
+(executable
+ (name main)
+ (public_name eeww)
+ (libraries cohttp-eio eio_main eio.unix eio uri fpath magic-mime))

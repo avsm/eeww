@@ -1,0 +1,6 @@
+pin-depends: [
+ ["eio.dev" "git+https://github.com/ocaml-multicore/eio"]
+ ["eio_luv.dev" "git+https://github.com/ocaml-multicore/eio"]
+ ["eio_main.dev" "git+https://github.com/ocaml-multicore/eio"]
+ ["eio_linux.dev" "git+https://github.com/ocaml-multicore/eio"]
+]
