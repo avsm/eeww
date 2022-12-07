@@ -16,4 +16,4 @@ let run fn =
   match Sys.getenv_opt "EIO_BACKEND" with
   | Some "luv" ->
     failwith "luv has been disabled in this tree"
-  | Some _ -> run_io_uring fn
+  | Some _ | None -> run_io_uring fn
