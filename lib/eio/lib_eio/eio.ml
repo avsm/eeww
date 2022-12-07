@@ -1,5 +1,11 @@
 include Eio__core
 
+module Ctf = struct
+  let with_tracing fn =
+    Ctf.Control.start ();
+    Fun.protect fn ~finally:(fun () -> Ctf.Control.stop ())
+end
+
 module Fibre = Fiber
 
 module Debug = Private.Debug

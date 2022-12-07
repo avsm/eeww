@@ -562,7 +562,7 @@ module Private : sig
   module Fiber_context : sig
     type t
 
-    val make_root : unit -> t
+    val make_root : ?loc:string -> unit -> t
     (** Make a new root context for a new domain. *)
 
     val destroy : t -> unit
