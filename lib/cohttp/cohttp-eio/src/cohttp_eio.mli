@@ -81,6 +81,8 @@ module Server : sig
   val bad_request_response : response
   (* [bad_request t] returns a HTTP/1.1, 400 status response. *)
 
+  val respond_redirect : uri:Uri.t -> response
+
   (** {1 Run Server} *)
 
   val run :
