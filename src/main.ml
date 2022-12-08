@@ -67,8 +67,9 @@ let server env =
     ignore "An HTTP/1.1 server";
   Eio.Switch.run @@ fun sw ->
   let docroot = Eio.Path.open_dir ~sw (env#cwd / "./site") in
-  Server.run ~port:!port env (app env#fs docroot)
+  Server.run ~domains:8 ~port:!port env (app env#fs docroot)
 
 let _ =
   Eio_main.run @@ fun env ->
+  Eio.Ctf.with_tracing @@ fun () ->
   server env
