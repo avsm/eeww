@@ -174,10 +174,14 @@ type Runtime_events.User.tag += Failed
 
 let labelled_type =
   let encode buf ((child : int), exn) =
-    let len = String.length exn in
+    (* Check size of buf and use smallest size which means we may
+       have to truncate the label. *)
+    let available_buf_len = Bytes.length buf - 1 in
+    let exn_len = String.length exn in
+    let data_len = min available_buf_len exn_len in
     Bytes.set_int8 buf 0 child;
-    Bytes.blit_string exn 0 buf 1 len;
-    len + 1
+    Bytes.blit_string exn 0 buf 1 data_len;
+    data_len + 1
   in
   let decode buf size =
     let child = Bytes.get_int8 buf 0 in
@@ -351,7 +355,7 @@ let should_resolve thread =
   | true -> Control.note_label thread "__should_resolve" (* Hack! *)
 
 let dune_exe_strategy stack =
-  let rec first acc s = match acc, Astring.String.cut ~sep:"Dune__exe__" s with
+  let first acc s = match acc, Astring.String.cut ~sep:"Dune__exe__" s with
     | None, Some (_, v) -> Some v
     | (Some _ as v), _ -> v
     | _ -> None
