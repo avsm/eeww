@@ -50,5 +50,7 @@ git subtree add --prefix lib/zarith https://github.com/ocaml/Zarith master
 git subtree pull --prefix lib/zarith https://github.com/dune-universe/Zarith duniverse-v1.12
 git subtree add --prefix lib/pbkdf https://github.com/abeaumont/ocaml-pbkdf.git master
 git subtree add --prefix lib/domain-name https://github.com/hannesm/domain-name.git main
+git subtree add --prefix lib/gmap https://github.com/hannesm/gmap.git main
+git subtree add --prefix lib/dns https://github.com/mirage/ocaml-dns main
 ```
 
