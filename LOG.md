@@ -52,5 +52,6 @@ git subtree add --prefix lib/pbkdf https://github.com/abeaumont/ocaml-pbkdf.git 
 git subtree add --prefix lib/domain-name https://github.com/hannesm/domain-name.git main
 git subtree add --prefix lib/gmap https://github.com/hannesm/gmap.git main
 git subtree add --prefix lib/dns https://github.com/mirage/ocaml-dns main
+git subtree add --prefix lib/metrics https://github.com/mirage/metrics main
 ```
 
