@@ -38,10 +38,13 @@ let serve ~docroot ~uri path =
     match Eio.File.((stat fin).kind) with
     |`Directory -> begin
        let idx = Eio.Path.(fname / "index.html") in
-       if Eiox.file_exists idx then
-          Server.html_response (Eio.Path.load idx)
+       (* if path doesn't end in /, redirect appending / *)
+       if String.length path > 1 && path.[(String.length path) - 1] != '/' then
+         Server.respond_redirect ~uri:(Uri.of_string ((Uri.to_string uri) ^ "/"))
+       else if Eiox.file_exists idx then
+         Server.html_response (Eio.Path.load idx)
        else
-          Server.html_response "not found"
+         Server.html_response "not found"
     end
     |`Regular_file ->
        (* TODO stream body instead of loading *)

@@ -65,6 +65,10 @@ let internal_server_error_response =
 let bad_request_response =
   (Http.Response.make ~status:`Bad_request (), Body.Empty)
 
+let respond_redirect ~uri =
+  let headers = Http.Header.init_with "location" (Uri.to_string uri) in
+  (Http.Response.make ~headers ~status:`Moved_permanently (), Body.Empty)
+
 let write_response ?request writer (response, body) =
   let headers =
     let request_meth = Option.map Http.Request.meth request in
