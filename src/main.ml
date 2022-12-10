@@ -24,7 +24,6 @@ module Cohttpx = struct
       [ "content-type", mime_type;
         "content-length", string_of_int @@ String.length body;
       ] in
-    Eio.traceln "mime: %s %s" fname mime_type;
     let response =
       Http.Response.make ~version:`HTTP_1_1 ~status:`OK ~headers () in
     response, Body.Fixed body
