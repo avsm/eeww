@@ -37,4 +37,18 @@ git subtree add --prefix lib/notty https://github.com/pqwy/notty.git master
 git subtree add --prefix lib/ctypes https://github.com/avsm/ocaml-ctypes.git dune-port 
 git subtree add --prefix lib/integers https://github.com/yallop/ocaml-integers.git master 
 git subtree add --prefix lib/bigarray-compat https://github.com/mirage/bigarray-compat.git master 
+git subtree add --prefix lib/base64 https://github.com/mirage/ocaml-base64 master
+git subtree add --prefix lib/mirage-crypto https://github.com/mirage/mirage-crypto main
+git subtree add --prefix lib/randomconv https://github.com/hannesm/randomconv main
+git subtree add --prefix lib/ipaddr https://github.com/mirage/ocaml-ipaddr main
+git subtree add --prefix lib/x509 https://github.com/mirleft/ocaml-x509 main
+git subtree add --prefix lib/asn1-combinators https://github.com/mirleft/ocaml-asn1-combinators main
+git subtree add --prefix lib/yojson https://github.com/ocaml-community/yojson master
+git subtree add --prefix lib/eqaf https://github.com/mirage/eqaf master
+git subtree add --prefix lib/sexplib0 https://github.com/janestreet/sexplib0 master
+git subtree add --prefix lib/zarith https://github.com/ocaml/Zarith master
+git subtree pull --prefix lib/zarith https://github.com/dune-universe/Zarith duniverse-v1.12
+git subtree add --prefix lib/pbkdf https://github.com/abeaumont/ocaml-pbkdf.git master
+git subtree add --prefix lib/domain-name https://github.com/hannesm/domain-name.git main
 ```
+
