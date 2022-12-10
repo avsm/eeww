@@ -35,6 +35,4 @@
  (name yojson)
  (public_name yojson)
  (modules yojson)
- (synopsis "JSON parsing and printing")
- (libraries seq)
- (flags (-safe-string)))
+ (synopsis "JSON parsing and printing"))
