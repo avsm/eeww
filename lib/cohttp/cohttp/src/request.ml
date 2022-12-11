@@ -99,8 +99,8 @@ let make_for_client ?headers ?(chunked = true) ?(body_length = Int64.zero) meth
   in
   make ~meth ~encoding ?headers uri
 
-let pp_hum ppf r =
-  Format.fprintf ppf "%s" (r |> sexp_of_t |> Sexplib0.Sexp.to_string_hum)
+let pp_hum ppf _r =
+  Format.fprintf ppf "TODO"
 
 (* Validate path when reading URI. Implemented for compatibility with old
    implementation rather than efficiency *)

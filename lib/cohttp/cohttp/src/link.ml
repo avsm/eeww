@@ -14,12 +14,10 @@
  *
   }}}*)
 
-open Sexplib0.Sexp_conv
-
 (* From <https://tools.ietf.org/html/rfc5988> *)
 module Rel = struct
   type t =
-    | Extension of Uri_sexp.t
+    | Extension of Uri.t
     | Alternate
     | Appendix
     | Bookmark
@@ -59,7 +57,6 @@ module Rel = struct
     | Via
     | Working_copy
     | Working_copy_of
-  [@@deriving sexp]
 
   let extension uri = Extension uri
   let alternate = Alternate
@@ -104,14 +101,14 @@ module Rel = struct
 end
 
 module Language = struct
-  type t = string [@@deriving sexp]
+  type t = string 
 
   let to_string x = x
   let of_string x = x
 end
 
 module Charset = struct
-  type t = string [@@deriving sexp]
+  type t = string 
 
   let to_string x = x
   let of_string x = x
@@ -119,7 +116,7 @@ end
 
 module Ext = struct
   type 'a t = { charset : Charset.t; language : Language.t; value : 'a }
-  [@@deriving sexp]
+  
 
   let charset t = t.charset
   let language t = t.language
@@ -140,7 +137,7 @@ module Arc = struct
     extensions : (string * string) list;
     extension_exts : (string * string Ext.t) list;
   }
-  [@@deriving sexp]
+  
 
   let empty =
     {
@@ -156,8 +153,8 @@ module Arc = struct
     }
 end
 
-type t = { context : Uri_sexp.t; arc : Arc.t; target : Uri_sexp.t }
-[@@deriving sexp]
+type t = { context : Uri.t; arc : Arc.t; target : Uri.t }
+
 
 (* TODO: this could be replaced with empty t/arc fupdate *)
 type param =

@@ -54,8 +54,8 @@ let make ?(version = `HTTP_1_1) ?(status = `OK) ?(flush = false)
   in
   { encoding; headers; version; flush; status }
 
-let pp_hum ppf r =
-  Format.fprintf ppf "%s" (r |> sexp_of_t |> Sexplib0.Sexp.to_string_hum)
+let pp_hum ppf _r =
+  Format.fprintf ppf "TODO"
 
 let allowed_body response =
   (* rfc7230#section-5.7.1 *)
