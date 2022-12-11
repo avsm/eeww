@@ -37,7 +37,7 @@ val to_output :
   ?len:int ->
   ?suf:string ->
   ?std:bool ->
-  < output : string -> int -> int -> int; .. > -> t -> unit
+  < output : string -> int -> int -> unit; .. > -> t -> unit
   (** Write a compact JSON value to an OO channel.
 
       See [to_string] for the role of the optional arguments and raised exceptions. *)
