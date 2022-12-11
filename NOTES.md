@@ -1,0 +1,2 @@
+- need a eio-aware cmdliner
+- conduit replacement for uri -> conn
