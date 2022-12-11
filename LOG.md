@@ -53,5 +53,6 @@ git subtree add --prefix lib/domain-name https://github.com/hannesm/domain-name.
 git subtree add --prefix lib/gmap https://github.com/hannesm/gmap.git main
 git subtree add --prefix lib/dns https://github.com/mirage/ocaml-dns main
 git subtree add --prefix lib/metrics https://github.com/mirage/metrics main
+git subtree add --prefix lib/cppo https://github.com/ocaml-community/cppo.git master
 ```
 
