@@ -51,6 +51,17 @@
   (mdx (and (>= 1.10.0) :with-test))
   (fmt (>= 0.8.9))))
 (package
+ (name eio_gcd)
+ (synopsis "Eio implementation using GCD")
+ (description "An eio implementation for most platforms, using gcd.")
+ (depends
+  (eio (= :version))
+   gcd
+   network
+  (mdx (and (>= 1.10.0) :with-test))
+  (logs (>= 0.7.0))
+  (fmt (>= 0.8.9))))
+(package
  (name eio_main)
  (synopsis "Effect-based direct-style IO mainloop for OCaml")
  (description "Selects an appropriate Eio backend for the current platform.")
