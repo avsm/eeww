@@ -3,6 +3,8 @@
 # Eio -- Effects-Based Parallel IO for OCaml
 
 Eio provides an effects-based direct-style IO stack for OCaml 5.0.
+For example, you can use Eio to read and write files, make network connections,
+or perform CPU-intensive calculations, running multiple operations at the same time.
 It aims to be easy to use, secure, well documented, and fast.
 A generic cross-platform API is implemented by optimised backends for different platforms.
 Eio replaces existing concurrency libraries such as Lwt
@@ -78,26 +80,11 @@ and we hope that Eio will be that API.
 
 ## Current Status
 
-Platform support:
-
-- Unix and macos: should be fully working using the libuv backend.
-- Linux: can additionally use io_uring for better performance on recent kernels.
-- Windows: should be mostly working - see [#125](https://github.com/ocaml-multicore/eio/issues/125) for remaining tasks.
-- MirageOS: waiting for [ocaml-freestanding](https://github.com/mirage/ocaml-freestanding) to be updated to OCaml 5.0.
-- Browsers: waiting for [js_of_ocaml](https://github.com/ocsigen/js_of_ocaml/issues/1088) to be updated to OCaml 5.0.
-
-Feature status:
-
-- Concurrency primitives: Fibers, cancellation, promises, streams and semaphores are all working.
-- Multicore support: Working.
-- Networking: Clients and servers using TCP, UDP and Unix domain sockets work.
-- File-systems: Can create files and directories, load, save, parse, etc. Most other operations missing.
-- Spawning sub-processes: Not implemented yet (see [#330](https://github.com/ocaml-multicore/eio/pull/330)).
+See [Eio 1.0 progress tracking](https://github.com/ocaml-multicore/eio/issues/388) for the current status.
+Please try porting your programs to use Eio and submit PRs or open issues when you find problems.
+Remember that you can always fall back to using Lwt libraries to provide missing features if necessary.
 
 See [Awesome Multicore OCaml][] for links to work migrating other projects to Eio.
-
-If you'd like to help out, please try porting your program to use Eio and submit PRs or open issues when you find problems.
-Remember that you can always fall back to using Lwt libraries to provide missing features if necessary.
 
 ## Structure of the Code
 
@@ -109,17 +96,17 @@ Remember that you can always fall back to using Lwt libraries to provide missing
 
 ## Getting OCaml 5.0
 
-You'll need OCaml 5.0.0~beta2.
+You'll need OCaml 5.0.0 or later.
 You can either install it yourself or build the included [Dockerfile](./Dockerfile).
 
 To install it yourself:
 
 1. Make sure you have opam 2.1 or later (run `opam --version` to check).
 
-2. Use opam to install OCaml 5.0.0~beta2:
+2. Use opam to install OCaml 5.0.0:
 
    ```
-   opam switch create 5.0.0~beta2
+   opam switch create 5.0.0
    ```
 
 ## Getting Eio
@@ -177,6 +164,8 @@ Note that:
 
 - `Eio_main.run` automatically calls the appropriate run function for your platform.
   For example, on Linux this will call `Eio_linux.run`. For non-portable code you can use the platform-specific library directly.
+
+This example can also be built using dune; see [examples/hello](./examples/hello/).
 
 ## Testing with Mocks
 
@@ -312,6 +301,11 @@ If you want to make an operation non-cancellable, wrap it with `Cancel.protect`
 +x = "b"
 - : unit = ()
 ```
+
+Note: using `Fiber.first` to ensure that *exactly one* of two actions is performed is not reliable.
+There is usually a possibility that both actions succeed at the same time (and one result is thrown away).
+For example, if you ask Eio read from two sockets with `io_uring`
+then the kernel may have already performed both reads by the time it tells Eio about the first one.
 
 ## Switches
 
@@ -515,6 +509,8 @@ let main ~net ~addr =
 +Server received: "Hello from client"
 - : unit = ()
 ```
+
+See [examples/net](./examples/net/) for a more complete example.
 
 ## Design Note: Capabilities
 
