@@ -6,6 +6,7 @@
   ocaml-compiler-libs.shadow
   astlib
   ppxlib_print_diff
+  ppx_derivers
   ppxlib_traverse_builtins
   stdppx
   sexplib0)
