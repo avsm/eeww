@@ -1,3 +1,7 @@
+(rule
+ (targets config.ml)
+ (action (run ./include/discover.exe)))
+
 (library
  (name eio_gcd)
  (public_name eio_gcd)

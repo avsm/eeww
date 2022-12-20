@@ -136,9 +136,9 @@ let enqueue_failed_thread t k ex =
      sometimes causes segfaults *)
    let io_queue = lazy Dispatch.Queue.(create ~typ:Serial ())
 
-   let realpath _ = failwith "TODO"
+   let realpath p = try Ok (Unix.realpath p) with _ -> Error (`Msg "TODO")
 
-   let mkdir _ = failwith "TODO"
+   let mkdir ~mode p = Unix.mkdir p mode
 
    (* A few notes:
         - Creating a channel doesn't open the file until you try and do something with it (e.g. a write)
@@ -161,13 +161,14 @@ let enqueue_failed_thread t k ex =
      data -- here we concatenate them and only once the read is finished reading
      do we enqueue thread. *)
     let read ~off ~length fd (buf : Buffer.t) =
-      Log.debug (fun f -> f "gcd read");
       let read = ref 0 in
       enter (fun t k ->
         Dispatch.Io.with_read ~off ~length ~queue:(Lazy.force io_queue) (get "with_read" fd) ~f:(fun ~err ~finished r ->
           let size = Dispatch.Data.size r in
           if err = 0 && finished then begin
-            if size = 0 then enqueue_thread t k !read
+            if size = 0 then begin
+              enqueue_thread t k !read
+            end
             else (
               read := !read + size;
               buf := Dispatch.Data.concat r !buf;
@@ -248,8 +249,6 @@ let enqueue_failed_thread t k ex =
     match res with
     | 0 -> raise End_of_file
     | got -> got
-
-  method read_methods = []
 
   method copy src =
     let buf = Cstruct.create 4096 in
@@ -426,7 +425,7 @@ let flow fd = object (_ : <source; sink; ..>)
 
   method read_into buff =
     let data = Buffer.empty () in
-    let res = File.read ~off:(buff.Cstruct.off) ~length:(buff.len) fd data in
+    let res = File.read ~off:0 ~length:(buff.len) fd data in
     let cs = Cstruct.of_bigarray @@ Dispatch.Data.to_buff ~offset:0 res !data in
     Cstruct.blit cs 0 buff 0 res;
     match res with
@@ -434,6 +433,12 @@ let flow fd = object (_ : <source; sink; ..>)
     | got -> got
 
   method read_methods = []
+
+  method pread = failwith "TODO"
+
+  method pwrite = failwith "TODO"
+
+  method stat = failwith "TODO"
 
   method write _ = failwith "TODO"
 
@@ -454,6 +459,125 @@ end
 let source fd = (flow fd :> source)
 let sink   fd = (flow fd :> sink)
 
+type _ Eio.Generic.ty += Dir_resolve_new : (string -> string) Eio.Generic.ty
+let dir_resolve_new x = Eio.Generic.probe x Dir_resolve_new
+
+let or_raise_fs = function
+  | Ok v -> v
+  | Error (`Msg m) -> failwith ("FS: " ^ m)
+
+type Eio.Exn.Backend.t +=
+  | Outside_sandbox of string * string
+  | Absolute_path
+
+(* Borrowed mostly from the luv backend *)
+class dir ~label (dir_path : string) = object (self)
+  inherit Eio.Fs.dir
+
+  val mutable closed = false
+
+  method! probe : type a. a Eio.Generic.ty -> a option = function
+    | Dir_resolve_new -> Some self#resolve_new
+    | _ -> None
+
+  (* Resolve a relative path to an absolute one, with no symlinks.
+     @raise Eio.Fs.Permission_denied if it's outside of [dir_path]. *)
+  method private resolve path =
+    if closed then Fmt.invalid_arg "Attempt to use closed directory %S" dir_path;
+    if Filename.is_relative path then (
+      let dir_path = File.realpath dir_path |> or_raise_fs in
+      let full = File.realpath (Filename.concat dir_path path) |> or_raise_fs in
+      let prefix_len = String.length dir_path + 1 in
+      if String.length full >= prefix_len && String.sub full 0 prefix_len = dir_path ^ Filename.dir_sep then
+        full
+      else if full = dir_path then
+        full
+      else
+        raise @@ Eio.Fs.err (Permission_denied (Outside_sandbox (full, dir_path)))
+    ) else (
+      raise @@ Eio.Fs.err (Permission_denied Absolute_path)
+    )
+
+  (* We want to create [path]. Check that the parent is in the sandbox. *)
+  method private resolve_new path =
+    let dir, leaf = Filename.dirname path, Filename.basename path in
+    if leaf = ".." then Fmt.failwith "New path %S ends in '..'!" path
+    else
+      let dir = self#resolve dir in
+      Filename.concat dir leaf
+
+  method open_in ~sw path =
+    let fd = File.open_ ~sw (self#resolve path) 0o644 |> or_raise_fs in
+    (flow fd :> <Eio.File.ro; Eio.Flow.close>)
+
+  method open_out ~sw ~append ~create path =
+    let mode, flags =
+      match create with
+      | `Never            -> 0,    0
+      | `If_missing  perm -> perm, Config.o_creat
+      | `Or_truncate perm -> perm, Config.(o_creat lor o_trunc)
+      | `Exclusive   perm -> perm, Config.(o_creat lor o_excl)
+    in
+    let flags = if append then Config.(o_append lor flags) else flags in
+    let flags = Config.(o_rdwr lor flags) in
+    let real_path =
+      if create = `Never then self#resolve path
+      else self#resolve_new path
+    in
+    let fd = File.open_ ~sw real_path flags ~mode |> or_raise_fs in
+    (flow fd :> <Eio.File.rw; Eio.Flow.close>)
+
+  method open_dir ~sw path =
+    Switch.check sw;
+    let label = Filename.basename path in
+    let d = new dir ~label (self#resolve path) in
+    Switch.on_release sw (fun () -> d#close);
+    d
+
+  (* libuv doesn't seem to provide a race-free way to do this. *)
+  method mkdir ~perm path =
+    let real_path = self#resolve_new path in
+    File.mkdir ~mode:perm real_path
+
+  (* libuv doesn't seem to provide a race-free way to do this. *)
+  method unlink path =
+    let dir_path = Filename.dirname path in
+    let leaf = Filename.basename path in
+    let real_dir_path = self#resolve dir_path in
+    Unix.unlink (Filename.concat real_dir_path leaf)
+
+  (* libuv doesn't seem to provide a race-free way to do this. *)
+  method rmdir path =
+    let dir_path = Filename.dirname path in
+    let leaf = Filename.basename path in
+    let real_dir_path = self#resolve dir_path in
+    Unix.rmdir (Filename.concat real_dir_path leaf)
+
+  method read_dir path =
+    let path = self#resolve path in
+    Sys.readdir path |> Array.to_list
+
+  method rename old_path new_dir new_path =
+    match dir_resolve_new new_dir with
+    | None -> invalid_arg "Target is not a luv directory!"
+    | Some new_resolve_new ->
+      let old_path = self#resolve old_path in
+      let new_path = new_resolve_new new_path in
+      Unix.rename old_path new_path
+
+  method close = closed <- true
+
+  method pp f = Fmt.string f (String.escaped label)
+end
+
+(* Full access to the filesystem. *)
+let fs = object
+  inherit dir ~label:"fs" "."
+
+  (* No checks *)
+  method! private resolve path = path
+end
+
 type stdenv = <
   stdin  : source;
   stdout : sink;
@@ -473,7 +597,7 @@ let stdenv =
     method stdout = (Lazy.force stdout)
     method stderr = failwith "unimplemented"
     method net = net
-    method fs = failwith "unimplemented"
+    method fs = (fs :> Eio.Fs.dir), "."
   end
 
 let rec wakeup ~async ~io_queued run_q =
