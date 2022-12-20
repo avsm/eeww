@@ -155,7 +155,7 @@ let enqueue_failed_thread t k ex =
    | false -> create path
    | true -> match realpath Filename.current_dir_name with
      | Ok parent -> create Filename.(concat parent path)
-     | Error e -> Error (`Msg (Luv.Error.strerror e))
+     | Error e -> Error (`Msg "Failed")
 
    (* A read can call the callback multiple times with more and more chunks of
      data -- here we concatenate them and only once the read is finished reading
