@@ -1,0 +1,56 @@
+; Copying File
+
+(rule
+ (alias runtest)
+ (deps text.txt ../bench/dispatchcp.exe)
+ (targets text2.txt)
+ (action
+  (progn
+   (run ../bench/dispatchcp.exe ./text.txt ./text2.txt))))
+
+(rule
+ (alias runtest)
+ (action
+  (diff ./text.txt ./text2.txt)))
+
+; Cat-ing File 
+
+(rule
+ (alias runtest)
+ (deps text.txt ../bench/dispatchcat.exe)
+ (targets text3.txt)
+ (action
+  (progn
+   (with-stdout-to
+    text3.txt
+    (run ../bench/dispatchcat.exe %{workspace_root}/text.txt)))))
+
+(rule
+ (alias runtest)
+ (action
+  (diff ./text.txt ./text3.txt)))
+
+; C cat-ing file
+
+(rule
+ (alias runtest)
+ (deps text.txt ../bench/cat)
+ (targets text4.txt)
+ (action
+  (progn
+   (with-stdout-to
+    text4.txt
+    (run ../bench/cat ./text.txt)))))
+
+(rule
+ (alias runtest)
+ (action
+  (diff ./text.txt ./text4.txt)))
+
+; Testing random parts of the API
+; running in byte mode seems to hit different code paths
+
+(test
+ (name main)
+ (modes byte)
+ (libraries dispatch))

@@ -1,0 +1,17 @@
+(library
+ (name dispatch)
+ (public_name gcd)
+ (c_library_flags
+  (:include c_library_flags.sexp))
+ (libraries threads bigarray)
+ (foreign_stubs
+  (language c)
+  (flags
+   (:standard -O -g -std=c99 -pedantic-errors -Wsign-compare -Wshadow
+     -Wno-unguarded-availability-new -Wc11-extensions -x objective-c))
+  (names dispatch_stubs)))
+
+(rule
+ (targets c_flags.sexp c_library_flags.sexp)
+ (action
+  (run ./config/discover.exe)))

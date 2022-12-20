@@ -1,0 +1,39 @@
+(library
+ (name dispatchcp_lib)
+ (modules dispatchcp_lib)
+ (libraries gcd unix cmdliner))
+
+(executable
+ (name dispatchcp)
+ (modules dispatchcp)
+ (libraries cmdliner dispatchcp_lib fmt logs logs.cli logs.fmt fmt.tty
+   fmt.cli))
+
+(executable
+ (name dispatchcat)
+ (modules dispatchcat)
+ (libraries dispatch))
+
+(executable
+ (name lwtcp)
+ (modules lwtcp)
+ (libraries cmdliner lwtcp_lib fmt logs logs.cli logs.fmt fmt.tty fmt.cli))
+
+(library
+ (name lwtcp_lib)
+ (modules lwtcp_lib)
+ (libraries lwt logs.cli logs.fmt fmt.tty fmt.cli fmt lwt.unix unix cmdliner))
+
+(executable
+ (name cptest)
+ (public_name gcd-bench)
+ (package gcd-bench)
+ (modules cptest)
+ (libraries dispatchcp_lib lwtcp_lib dispatch bos bechamel notty.unix
+   bechamel-notty))
+
+(rule
+ (alias default)
+ (deps cat.c)
+ (targets cat)
+ (action (run gcc -O3 -o cat cat.c)))

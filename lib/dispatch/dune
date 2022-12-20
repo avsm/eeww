@@ -1,0 +1,3 @@
+(mdx
+ (packages gcd)
+ (files README.md))
