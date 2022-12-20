@@ -1,0 +1,14 @@
+(test
+ (name main)
+ (modules main)
+ (libraries network))
+
+(executable
+ (name echoer)
+ (modules echoer)
+ (libraries cmdliner logs dispatch network))
+
+(executable
+ (name netcat)
+ (modules netcat)
+ (libraries cmdliner logs dispatch network))
