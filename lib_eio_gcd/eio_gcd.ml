@@ -573,12 +573,26 @@ let fs = object
   method! private resolve path = path
 end
 
+external eio_gcd_secure_random : int -> Cstruct.buffer -> unit = "caml_eio_gcd_secure_random"
+
+let secure_random =
+  object
+    inherit Eio.Flow.source
+
+    method read_into buf =
+      let buf = Cstruct.to_bigarray buf in
+      let dim = Bigarray.Array1.dim buf in
+      eio_gcd_secure_random dim buf;
+      dim
+  end
+
 type stdenv = <
   stdin  : source;
   stdout : sink;
   stderr : sink;
   net : Eio.Net.t;
   fs : Eio.Fs.dir Eio.Path.t;
+  secure_random : Eio.Flow.source;
   (* cwd : Eio.Dir.t; *)
 >
 
@@ -593,6 +607,7 @@ let stdenv =
     method stderr = failwith "unimplemented"
     method net = net
     method fs = (fs :> Eio.Fs.dir), "."
+    method secure_random = secure_random
   end
 
 let rec wakeup ~async ~io_queued run_q =

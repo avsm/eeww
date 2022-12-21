@@ -77,8 +77,15 @@ let forking _env =
   Fiber.fork ~sw (fun () -> Promise.resolve r (); Promise.await q);
   Eio.traceln "Done!"
 
+let random env =
+  let buf = Cstruct.create 16 in
+  Eio.traceln "Before fill: %a" Cstruct.hexdump_pp buf;
+  Flow.read_exact env#secure_random buf;
+  Eio.traceln "After fill: %a" Cstruct.hexdump_pp buf
+
 let () = 
   Eio_gcd.run @@ fun env ->
   (* file_io env *)
-  network env
+  (* network env *)
   (* forking env *)
+  random env
