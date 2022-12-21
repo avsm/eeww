@@ -348,9 +348,18 @@ end
    let net = object
      inherit Eio.Net.t
 
-     method datagram_socket = failwith "TODO"
-     method getnameinfo = failwith "TODO"
-     method getaddrinfo = failwith "TODO"
+     method datagram_socket = failwith "TODO: datagram socket"
+     method getnameinfo = Eio_unix.getnameinfo
+     method getaddrinfo ~service host =
+      let convert : Unix.addr_info -> Eio.Net.Sockaddr.t = fun addr ->
+        match addr.ai_addr, addr.ai_protocol with
+          | Unix.ADDR_INET (i, p), 6 -> `Tcp (Eio_unix.Ipaddr.of_unix i, p) 
+          | Unix.ADDR_INET (i, p), 17 -> `Udp (Eio_unix.Ipaddr.of_unix i, p) 
+          | Unix.ADDR_UNIX p, _ -> `Unix p
+          | _ -> failwith "Unknown protcol strategy"
+      in
+      Unix.getaddrinfo host service []
+      |> List.map convert
 
      method listen ~reuse_addr ~reuse_port:_ ~backlog ~sw:_ = function
        | `Tcp (hostname, port) ->
@@ -592,14 +601,8 @@ let clock = object
 
   method sleep_until due =
     let delay = 1_000_000_000. *. (due -. Unix.gettimeofday ()) |> ceil |> Int64.of_float |> Int64.max 0L in
-    Eio.traceln "Waiting for %Ld" delay;
-    (* let clock = 
-      Dispatch.Source.Timer.create queue
-    in *)
-    Eio.traceln "Got here";
     enter @@ fun t k ->
     Dispatch.after ~delay queue (fun () -> enqueue_thread t k ())
-    (* enter_clock clock delay *)
 end
 
 type stdenv = <
