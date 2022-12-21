@@ -619,7 +619,7 @@ let rec wakeup ~async ~io_queued run_q =
 
 let enqueue_at_head t k v =
   Lf_queue.push_head t.run_q (Thread (fun () -> Suspended.continue k v));
-  Dispatch.async t.async (fun () -> ())
+  Dispatch.async t.async (Option.get !async_run)
 
 let rec run : type a. (_ -> a) -> a = fun main ->
   let open Eio.Private in
