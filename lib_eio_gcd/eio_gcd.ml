@@ -36,7 +36,7 @@
 
   let of_bigarray buf = ref @@ Dispatch.Data.create buf
 
-  let to_string buff =
+  let _to_string buff =
     let buff = !buff in
     Cstruct.(to_string @@ of_bigarray @@ (Dispatch.Data.to_buff ~offset:0 (Dispatch.Data.size buff) buff))
  end
@@ -76,7 +76,7 @@ type _ Effect.t += Enter : (t -> 'a Suspended.t -> unit) -> 'a Effect.t
 type _ Effect.t += Enter_unchecked : (t -> 'a Suspended.t -> unit) -> 'a Effect.t
 
 let enter fn = Effect.perform (Enter fn)
-let enter_unchecked fn = Effect.perform (Enter_unchecked fn)
+let _enter_unchecked fn = Effect.perform (Enter_unchecked fn)
 
 (* TODO: Fix *)
 let async_run = ref None
@@ -89,7 +89,7 @@ let enqueue_result_thread t k r =
   Lf_queue.push t.run_q (Thread (fun () -> Suspended.continue_result k r));
   Dispatch.async t.async (Option.get !async_run)
 
-let enqueue_failed_thread t k ex =
+let _enqueue_failed_thread t k ex =
   Lf_queue.push t.run_q (Thread (fun () -> Suspended.discontinue k ex));
   Dispatch.async t.async (Option.get !async_run)
 
@@ -117,7 +117,7 @@ let enqueue_failed_thread t k ex =
    let ensure_closed t =
      if is_open t then close t
 
-   let to_gcd = get "to_gcd"
+   let _to_gcd = get "to_gcd"
 
    let of_gcd_no_hook fd =
      { fd = `Open fd; release_hook = Eio.Switch.null_hook }
@@ -155,7 +155,7 @@ let enqueue_failed_thread t k ex =
    | false -> create path
    | true -> match realpath Filename.current_dir_name with
      | Ok parent -> create Filename.(concat parent path)
-     | Error e -> Error (`Msg "Failed")
+     | Error _ as e -> e
 
    (* A read can call the callback multiple times with more and more chunks of
      data -- here we concatenate them and only once the read is finished reading
@@ -220,15 +220,13 @@ let enqueue_failed_thread t k ex =
         )
       ) in match r with
       | Ok (_, true) -> raise End_of_file
-      | Ok (got, false) ->
-        Logs.debug (fun f -> f "GOT %i" got);
-        got
+      | Ok (got, false) ->got
       | Error (`Msg e) ->
         failwith ("Connection receive failed with " ^ e)
 
     let send (conn : Network.Connection.t) buf =
       enter (fun t k ->
-        Network.Connection.send ~is_complete:true ~context:Final conn ~data:(!buf) ~completion:(fun e ->
+        Network.Connection.send ~is_complete:true ~context:Default conn ~data:(!buf) ~completion:(fun e ->
           match Network.Error.to_int e with
           | 0 -> enqueue_thread t k (Ok ())
           | i -> enqueue_thread t k (Error (`Msg (string_of_int i)))
@@ -271,16 +269,15 @@ let enqueue_failed_thread t k ex =
           "In order to close a connection on the sending side (a "write close"), send
           a context that is marked as "final" and mark is_complete. The convenience definition
           NW_CONNECTION_FINAL_MESSAGE_CONTEXT may be used to define the default final context
-          for a connection."
-
-          TODO: I think the data argument can also be NULL, so could save the allocation here I think. *)
+          for a connection." *)
       let r = enter (fun t k ->
-        Network.Connection.send ~is_complete:true ~context:Final sock ~data:(Dispatch.Data.empty ()) ~completion:(fun e ->
+        Network.Connection.send ~is_complete:true ~context:Final sock ~completion:(fun e ->
           match Network.Error.to_int e with
           | 0 ->
             Logs.debug (fun f -> f "Sending 'write close' to connection");
             enqueue_thread t k (Ok ())
           | i ->
+            Logs.debug (fun f -> f "Got error %i" i);
             enqueue_thread t k (Error (`Msg (string_of_int i)))
         )
       ) in match r with
@@ -379,24 +376,22 @@ end
           let params = Parameters.create_tcp () in
           let endpoint = Endpoint.create_address Unix.(ADDR_INET (Eio_unix.Ipaddr.to_unix hostname, port)) in
           let _ =
-            Parameters.set_reuse_local_address params true;
-            Parameters.set_local_endpoint ~endpoint params
+            Parameters.set_reuse_local_address params true
           in
-          let _ = Endpoint.release endpoint in
           let connection = Connection.create ~params endpoint in
+          let _ = Endpoint.release endpoint in
           Connection.retain connection;
           Connection.set_queue ~queue:(Lazy.force net_queue) connection;
           let handler t k (state : Network.Connection.State.t) _ =
             match state with
-            | Waiting -> Logs.debug (fun f -> f "Connection is waiting...")
+            | Waiting -> 
+              Logs.debug (fun f -> f "Connection is waiting...")
             | Ready ->
               Logs.debug (fun f -> f "Connection is ready");
               enqueue_thread t k (socket connection)
             | Invalid -> Logs.warn (fun f -> f "Invalid connection")
             | Preparing -> Logs.debug (fun f -> f "Connection is being prepared")
-            | Failed ->
-              Logs.warn (fun f -> f "Connection failed");
-              failwith "Connection Failed"
+            | Failed -> Logs.warn (fun f -> f "Connection failed")
             | Cancelled -> Logs.debug (fun f -> f "Connection has been cancelled")
           in
           enter (fun t k ->
@@ -411,9 +406,9 @@ type has_fd = < fd : File.t >
 type source = < Eio.Flow.source; Eio.Flow.close; has_fd >
 type sink   = < Eio.Flow.sink  ; Eio.Flow.close; has_fd >
 
-let get_fd (t : <has_fd; ..>) = t#fd
+let _get_fd (t : <has_fd; ..>) = t#fd
 
-let get_fd_opt t = Eio.Generic.probe t FD
+let _get_fd_opt t = Eio.Generic.probe t FD
 
 let flow fd = object (_ : <source; sink; ..>)
   method fd = fd
@@ -621,7 +616,7 @@ let enqueue_at_head t k v =
   Lf_queue.push_head t.run_q (Thread (fun () -> Suspended.continue k v));
   Dispatch.async t.async (Option.get !async_run)
 
-let rec run : type a. (_ -> a) -> a = fun main ->
+let run : type a. (_ -> a) -> a = fun main ->
   let open Eio.Private in
   Log.debug (fun l -> l "starting run");
   let run_q = Lf_queue.create () in
