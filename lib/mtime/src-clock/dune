@@ -3,6 +3,6 @@
  (public_name mtime.clock.os)
  (libraries mtime)
  (modules mtime_clock)
- (c_names mtime_clock_stubs)
+ (foreign_stubs (language c) (names mtime_clock_stubs))
  (js_of_ocaml (javascript_files runtime.js))
  (wrapped false))
