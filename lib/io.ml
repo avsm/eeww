@@ -5,6 +5,8 @@ type handler = err:err -> finished:bool -> Data.t -> unit
 
 module Fd = struct
   type t = int
+
+  let stderr = 2
   let stdout = 1
   let stdin = 0
 

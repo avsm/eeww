@@ -11,6 +11,7 @@ module Fd : sig
   type t
   val stdout : t
   val stdin : t
+  val stderr : t
   (* Would be good to remove *)
   val of_unix : Unix.file_descr -> t
 end
