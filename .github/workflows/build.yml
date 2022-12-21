@@ -31,6 +31,9 @@ jobs:
     name: Build on macOS
     runs-on: macos-latest
     steps:
+      - uses: actions/checkout@v3
+      - name: Deps
+        run: brew install cmake gmp
       -
         name: Build
         run: make
