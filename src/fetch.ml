@@ -15,7 +15,7 @@ let get_html ?headers ~tls_config ~net (base, resource) =
             |> Domain_name.host |> Result.to_option)
           conn
       in
-      let resp = Client.get ?headers ~conn ("https://" ^ base, None) resource in
+      let resp = Client.get ?headers ~conn (base, None) resource in
       Client.read_fixed resp
 
 let _ =
