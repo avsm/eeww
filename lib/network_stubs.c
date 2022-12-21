@@ -212,16 +212,23 @@ value ocaml_network_connection_receive(value v_min, value v_max, value v_comp, v
 
 nw_content_context_t content_context_of_value(value v_int) {
   int i = Int_val(v_int);
-  if (v_int == 1) {
+  if (i == 1) {
     return NW_CONNECTION_FINAL_MESSAGE_CONTEXT;
   }
-
   return NW_CONNECTION_DEFAULT_MESSAGE_CONTEXT;
 }
 
 value ocaml_network_connection_send(value v_d, value v_ctx, value v_bool, value v_comp, value v_conn) {
   CAMLparam5(v_d, v_ctx, v_bool, v_comp, v_conn);
-  nw_connection_send(Connection_val(v_conn), Data_val(v_d), content_context_of_value(v_ctx), Bool_val(v_bool),
+  dispatch_data_t data;
+  
+  // Important for being able to send a write close.
+  if (Is_some(v_d)) {
+    data = Data_val(Some_val(v_d));
+  } else {
+    data = NULL;
+  }
+  nw_connection_send(Connection_val(v_conn), data, content_context_of_value(v_ctx), Bool_val(v_bool),
     ^(nw_error_t receive_error) {
       int res = caml_c_thread_register();
       if (res)
