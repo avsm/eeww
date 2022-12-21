@@ -189,11 +189,14 @@ let _enqueue_failed_thread t k ex =
           )
       )
 
-  let fast_copy src dst =
+  (* TODO: This isn't write and segfaults! *)
+  let _fast_copy src dst =
     let data = Buffer.empty () in
+    let off = ref 0 in
     try
       while true do
-        let _got = read ~off:0 ~length:max_int src data in
+        let got = read ~off:!off ~length:max_int src data in
+        off := !off + got;
         write dst data
       done
     with End_of_file -> ()
@@ -445,9 +448,10 @@ let flow fd = object (_ : <source; sink; ..>)
   method write _ = failwith "TODO"
 
   method copy src =
-    match Eio.Generic.probe src FD with
+    (* See comment at fast_copy *)
+    (* match Eio.Generic.probe src FD with
     | Some src -> File.fast_copy src fd
-    | None ->
+    | None -> *)
       let chunk = Cstruct.create 4096 in
       try
         while true do

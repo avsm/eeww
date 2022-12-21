@@ -88,10 +88,24 @@ let timer env =
   Eio.Time.sleep env#clock 2.;
   Eio.traceln "Done!"
 
+let big_flow_copy env =
+  let big_file = Path.(env#fs / "big") in
+  let _file =
+    Eio.Path.(with_open_out ~create:(`If_missing 0o644) big_file) @@ fun f ->
+    Flow.copy_string (String.make 12_000 'a') f
+  in
+  let _file =
+    Eio.Path.(with_open_in big_file) @@ fun f ->
+    Flow.copy f env#stdout
+  in
+  Path.unlink big_file;
+  ()
+
 let () = 
   Eio_gcd.run @@ fun env ->
   (* file_io env *)
   (* network env *)
   (* forking env *)
   (* random env *)
-  timer env
+  (* timer env *)
+  big_flow_copy env
