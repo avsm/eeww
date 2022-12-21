@@ -63,5 +63,7 @@ git subtree add --prefix lib/ppx_sexp_conv https://github.com/janestreet/ppx_sex
 git subtree add --prefix lib/base https://github.com/janestreet/base v0.15.1
 git subtree add --prefix lib/parsexp https://github.com/janestreet/parsexp v0.14.2
 git subtree add --prefix lib/ppx_derivers https://github.com/ocaml-ppx/ppx_derivers master
+git subtree add --prefix lib/dispatch https://github.com/patricoferris/ocaml-dispatch main
+git subtree add --prefix lib/network https://github.com/patricoferris/ocaml-network main
 ```
 
