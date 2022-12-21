@@ -35,6 +35,18 @@ Working version
 - #11474: Add support for user-defined events in the runtime event tracing
   system. (Lucas Pluvinage)
 
+- #11796: protect lazy computation of code fragment digest by a mutex.
+  This makes the thread sanitizer happier, and avoids duplicating
+  the hashing work.
+  (Gabriel Scherer, review by Xavier Leroy, report by Olivier Nicole)
+
+### Type system:
+
+- #6941, #11187: prohibit using classes through recursive modules
+  inheriting or including a class belonging to a mutually-recursive module
+  would previous behave incorrectly, and now results in a clean error.
+  (Leo White, review by Gabriel Scherer and Florian Angeletti)
+
 ### Code generation and optimizations:
 
 - #8998, #11321, #11430: change mangling of OCaml long identifiers
@@ -110,6 +122,11 @@ Working version
   (Simon Cruanes, review by Gabriel Scherer, Xavier Leroy,
    Guillaume Munch-Maccagnoni)
 
+- #11581: Add type equality witness `type (_, _) eq = Equal: ('a, 'a) eq` in a
+  new module Stdlib.Type.
+  (Nicolás Ojeda Bär, review by Daniel Bünzli, Jacques Garrigue, Florian
+  Angeletti, Alain Frisch, Gabriel Scherer, Jeremy Yallop and Xavier Leroy)
+
 ### Other libraries:
 
 - #11374: Remove pointer cast to a type with stricter alignment requirements
@@ -152,6 +169,9 @@ Working version
 
 - #11481: Fix the type of Unix.umask to Unix.file_perm -> Unix.file_perm
   (Favonia, review by Sébastien Hinderer)
+
+- #11676: Fix missing since annotation in the `Sys` and `Format` modules
+  (Github user Bukolab99, review by Florian Angeletti)
 
 ### Compiler user-interface and warnings:
 
@@ -200,8 +220,10 @@ Working version
 - #11446: document switch compilation (lambda/switch.ml)
   (Gabriel Scherer, review by Luc Maranget and Vincent Laviron)
 
-- #11601, #11612: Clean up some global state handling in emitcode, spill.
-  (Hugo Heuzard, Stefan Muenzel review by Vincent Laviron and Gabriel Scherer)
+- #11601, #11612, #11628: Clean up some global state handling
+  in emitcode, bytepackager, spill.
+  (Hugo Heuzard, Stefan Muenzel, review by Vincent Laviron, Gabriel Scherer
+   and Nathanaëlle Courant)
 
 - #11627: use return values instead of globals for linear scan intervals
   (Stefan Muenzel, review by Nicolás Ojeda Bär)
@@ -222,8 +244,13 @@ Working version
   Gabriel Scherer)
 
 ### Build system:
+
 - #11590: Allow installing to a destination path containing spaces.
    (Élie Brami, review by Sébastien Hinderer and David Allsopp)
+
+- #11243, #11248, #11268, #11420, #11675: merge the sub-makefiles into
+  the root Makefile.
+  (Sébastien Hinderer, review by David Allsopp and Florian Angeletti)
 
 ### Bug fixes:
 
@@ -261,6 +288,17 @@ Working version
 
 - #11776: Extend environment with functor parameters in `strengthen_lazy`.
   (Chris Casinghino and Luke Maurer, review by Gabriel Scherer)
+
+- #11803, #11808: on x86, the destination of an integer comparison must be
+  a register, it cannot be a stack slot.
+  (Vincent Laviron, review by Xavier Leroy, report by
+   Emilio Jesús Gallego Arias)
+
+- #11809: Protect Parmatch.pats_of_type from missing cmis
+  (Jacques Garrigue, review by Stephen Dolan and Gabriel Scherer)
+
+- #11824: Fix a crash when calling `ocamlrun -b`
+  (Florian Angeletti, review by Sébastien Hinderer)
 
 OCaml 5.0
 ---------
@@ -583,6 +621,10 @@ OCaml 5.0
    flambda commonly-used options, and negative options (`-no-rectypes`, ... ).
    (Amandine Nangah, review by David Allsopp, Florian Angeletti,
    Sébastien Hinderer, and Vincent Laviron)
+
+- #11813: Make new multicore chapters easier to discover, and emphasize impact
+  on C bindings.
+  (Edwin Török, review by KC Sivaramakrishnan, and Florian Angeletti)
 
 ### Compiler user-interface and warnings:
 
