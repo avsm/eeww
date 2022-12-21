@@ -7,6 +7,7 @@ on:
 
 jobs:
   docker:
+    name: Build on Linux and push to Docker Hub
     runs-on: ubuntu-latest
     steps:
       -
@@ -26,3 +27,10 @@ jobs:
           tags: avsm/eeww:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+  mac:
+    name: Build on macOS
+    runs-on: macos-latest
+    steps:
+      -
+        name: Build
+        run: make
