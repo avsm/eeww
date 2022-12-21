@@ -83,9 +83,15 @@ let random env =
   Flow.read_exact env#secure_random buf;
   Eio.traceln "After fill: %a" Cstruct.hexdump_pp buf
 
+let timer env =
+  Eio.traceln "First print this and wait 2 seconds";
+  Eio.Time.sleep env#clock 2.;
+  Eio.traceln "Done!"
+
 let () = 
   Eio_gcd.run @@ fun env ->
   (* file_io env *)
   (* network env *)
   (* forking env *)
-  random env
+  (* random env *)
+  timer env

@@ -73,10 +73,8 @@ type t = {
 }
 
 type _ Effect.t += Enter : (t -> 'a Suspended.t -> unit) -> 'a Effect.t
-type _ Effect.t += Enter_unchecked : (t -> 'a Suspended.t -> unit) -> 'a Effect.t
 
-let enter fn = Effect.perform (Enter fn)
-let _enter_unchecked fn = Effect.perform (Enter_unchecked fn)
+let enter fn = Effect.perform (Enter fn) 
 
 (* TODO: Fix *)
 let async_run = ref None
@@ -586,6 +584,24 @@ let secure_random =
       dim
   end
 
+let clock = object
+  inherit Eio.Time.clock
+  val queue = Dispatch.Queue.create ()
+
+  method now = Unix.gettimeofday ()
+
+  method sleep_until due =
+    let delay = 1_000_000_000. *. (due -. Unix.gettimeofday ()) |> ceil |> Int64.of_float |> Int64.max 0L in
+    Eio.traceln "Waiting for %Ld" delay;
+    (* let clock = 
+      Dispatch.Source.Timer.create queue
+    in *)
+    Eio.traceln "Got here";
+    enter @@ fun t k ->
+    Dispatch.after ~delay queue (fun () -> enqueue_thread t k ())
+    (* enter_clock clock delay *)
+end
+
 type stdenv = <
   stdin  : source;
   stdout : sink;
@@ -593,21 +609,23 @@ type stdenv = <
   net : Eio.Net.t;
   fs : Eio.Fs.dir Eio.Path.t;
   secure_random : Eio.Flow.source;
+  clock : Eio.Time.clock;
   (* cwd : Eio.Dir.t; *)
 >
 
 let stdenv =
   let stdin = lazy (source (File.of_gcd_no_hook @@ Dispatch.Io.(create Stream Fd.stdin (Lazy.force File.io_queue)))) in
   let stdout = lazy (sink (File.of_gcd_no_hook @@ Dispatch.Io.(create Stream Fd.stdout (Lazy.force File.io_queue)))) in
-  (* TODO: Add stderr to Dispatch *)
+  let stderr = lazy (sink (File.of_gcd_no_hook @@ Dispatch.Io.(create Stream Fd.stderr (Lazy.force File.io_queue)))) in
   (* let _stderr = lazy (sink (File.of_luv_no_hook Luv.File.stderr)) in *)
   object (_ : stdenv)
     method stdin  = (Lazy.force stdin)
     method stdout = (Lazy.force stdout)
-    method stderr = failwith "unimplemented"
+    method stderr = (Lazy.force stderr)
     method net = net
     method fs = (fs :> Eio.Fs.dir), "."
     method secure_random = secure_random
+    method clock = clock
   end
 
 let rec wakeup ~async ~io_queued run_q =
@@ -654,9 +672,6 @@ let run : type a. (_ -> a) -> a = fun main ->
               fork ~new_fiber f
             )
         | Eio.Private.Effects.Get_context -> Some (fun k -> continue k fiber)
-        | Enter_unchecked fn -> Some (fun k ->
-            fn st { Suspended.k; fiber }
-          )
         | Enter fn -> Some (fun k ->
             match Fiber_context.get_error fiber with
             | Some e -> discontinue k e

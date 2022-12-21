@@ -13,6 +13,7 @@ type sink   = < Eio.Flow.sink  ; Eio.Flow.close; has_fd >
  net : Eio.Net.t;
  fs : Eio.Fs.dir Eio.Path.t;
  secure_random : Eio.Flow.source;
+ clock : Eio.Time.clock;
 >
 
 val run : (stdenv -> unit) -> unit
