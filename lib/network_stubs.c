@@ -176,7 +176,8 @@ value ocaml_network_connection_set_state_changed_handler(value v_handler, value 
 
 value ocaml_network_connection_receive(value v_min, value v_max, value v_comp, value v_conn) {
   CAMLparam4(v_min, v_max, v_comp, v_conn);
-  nw_connection_receive(Connection_val(v_conn), 1, UINT32_MAX, 
+  // TODO: contrain to 32bit int
+  nw_connection_receive(Connection_val(v_conn), 1, Int_val(v_max), 
     ^(dispatch_data_t data, nw_content_context_t context, bool is_complete, nw_error_t receive_error) {
       int res = caml_c_thread_register();
       if (res)
