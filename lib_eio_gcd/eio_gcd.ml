@@ -19,6 +19,7 @@
  module Log = (val Logs.src_log src : Logs.LOG)
 
  open Eio.Std
+ open Eio.Private
  open Eio_utils
 
  module Ctf = Eio.Private.Ctf
@@ -65,7 +66,7 @@ end
 
 type runnable =
   | IO
-  | Thread of (unit -> unit)
+  | Thread of string * (unit -> unit)
 
 type t = {
   async : Dispatch.Queue.t;       (* Will process [run_q] when prodded. *)
@@ -79,16 +80,16 @@ let enter fn = Effect.perform (Enter fn)
 (* TODO: Fix *)
 let async_run = ref None
 
-let enqueue_thread t k v =
-  Lf_queue.push t.run_q (Thread (fun () -> Suspended.continue k v));
+let enqueue_thread ~msg t k v =
+  Lf_queue.push t.run_q (Thread (msg, fun () -> Suspended.continue k v));
   Dispatch.async t.async (Option.get !async_run)
 
-let enqueue_result_thread t k r =
-  Lf_queue.push t.run_q (Thread (fun () -> Suspended.continue_result k r));
+let enqueue_result_thread ~msg t k r =
+  Lf_queue.push t.run_q (Thread (msg, fun () -> Suspended.continue_result k r));
   Dispatch.async t.async (Option.get !async_run)
 
-let _enqueue_failed_thread t k ex =
-  Lf_queue.push t.run_q (Thread (fun () -> Suspended.discontinue k ex));
+let enqueue_failed_thread ~msg t k ex =
+  Lf_queue.push t.run_q (Thread (msg, fun () -> Suspended.discontinue k ex));
   Dispatch.async t.async (Option.get !async_run)
 
  module File = struct
@@ -165,15 +166,15 @@ let _enqueue_failed_thread t k ex =
           let size = Dispatch.Data.size r in
           if err = 0 && finished then begin
             if size = 0 then begin
-              enqueue_thread t k !read
+              enqueue_thread ~msg:"read of zero" t k !read
             end
             else (
               read := !read + size;
               buf := Dispatch.Data.concat r !buf;
-              enqueue_thread t k !read
+              enqueue_thread ~msg:"read not zero" t k !read
             )
           end
-          else if err <> 0 then failwith "err"
+          else if err <> 0 then enqueue_failed_thread ~msg:"failed read" t k (Failure "Read failed")
           else begin
             read := !read + size;
             buf := Dispatch.Data.concat r !buf
@@ -183,8 +184,9 @@ let _enqueue_failed_thread t k ex =
 
    let write fd (bufs : Buffer.t) =
     enter (fun t k ->
-        Dispatch.Io.with_write ~off:0 ~data:(!bufs) ~queue:(Lazy.force io_queue) (get "with_write" fd) ~f:(fun ~err:_ ~finished _remaining ->
-            if finished then enqueue_thread t k ()
+        Dispatch.Io.with_write ~off:0 ~data:(!bufs) ~queue:(Lazy.force io_queue) (get "with_write" fd) ~f:(fun ~err ~finished _remaining ->
+            if err <> 0 then enqueue_failed_thread ~msg:"failed write" t k (Failure "Write failed") else 
+            if finished then enqueue_thread ~msg:"write finished" t k ()
             else ()
           )
       )
@@ -203,11 +205,11 @@ let _enqueue_failed_thread t k ex =
  end
 
  module Conn = struct
-    let receive (conn : Network.Connection.t) buf =
+    let receive ?(max=max_int) (conn : Network.Connection.t) buf =
       let r = enter (fun t k ->
-        Network.Connection.receive ~min:0 ~max:max_int conn ~completion:(fun data _context is_complete err ->
+        Network.Connection.receive ~min:0 ~max conn ~completion:(fun data _context is_complete err ->
           match data with
-            | None -> enqueue_thread t k (Ok (0, true))
+            | None -> enqueue_thread ~msg:"recv no data" t k (Ok (0, true))
             | Some data ->
               let err_code = Network.Error.to_int err in
               let res =
@@ -217,20 +219,20 @@ let _enqueue_failed_thread t k ex =
                   Ok (size, is_complete)
                   end else Error (`Msg (string_of_int err_code))
                 in
-              enqueue_thread t k res
+              enqueue_thread ~msg:"recv data" t k res
         )
       ) in match r with
-      | Ok (_, true) -> raise End_of_file
-      | Ok (got, false) ->got
-      | Error (`Msg e) ->
-        failwith ("Connection receive failed with " ^ e)
+      | Ok (0, true) -> raise End_of_file
+      | Ok (got, true) -> got
+      | Ok (got, false) -> got
+      | Error (`Msg e) -> failwith ("Connection receive failed with " ^ e)
 
     let send (conn : Network.Connection.t) buf =
       enter (fun t k ->
         Network.Connection.send ~is_complete:true ~context:Default conn ~data:(!buf) ~completion:(fun e ->
           match Network.Error.to_int e with
-          | 0 -> enqueue_thread t k (Ok ())
-          | i -> enqueue_thread t k (Error (`Msg (string_of_int i)))
+          | 0 -> enqueue_thread ~msg:"send none" t k (Ok ())
+          | i -> enqueue_thread ~msg:"send err" t k (Error (`Msg (string_of_int i)))
         )
       )
 
@@ -242,10 +244,11 @@ let _enqueue_failed_thread t k ex =
   (* Lots of copying :/ *)
   method read_into buff =
     let data = Buffer.empty () in
-    let res = Conn.receive sock data in
+    let res = Conn.receive ~max:(Cstruct.length buff) sock data in
     let cs = Cstruct.of_bigarray @@ Dispatch.Data.to_buff ~offset:0 res !data in
-    Cstruct.blit cs 0 buff 0 res;
-    match res with
+    let size = min (Cstruct.length buff) res in
+    Cstruct.blit cs 0 buff 0 size;
+    match size with
     | 0 -> raise End_of_file
     | got -> got
 
@@ -276,10 +279,10 @@ let _enqueue_failed_thread t k ex =
           match Network.Error.to_int e with
           | 0 ->
             Logs.debug (fun f -> f "Sending 'write close' to connection");
-            enqueue_thread t k (Ok ())
+            enqueue_thread ~msg:"shutdown write" t k (Ok ())
           | i ->
             Logs.debug (fun f -> f "Got error %i" i);
-            enqueue_thread t k (Error (`Msg (string_of_int i)))
+            enqueue_thread ~msg:"shutdown err" t k (Error (`Msg (string_of_int i)))
         )
       ) in match r with
           | Ok () -> ()
@@ -382,6 +385,7 @@ end
 
      method connect ~sw:_ = function
        | `Tcp (hostname, port) ->
+          Logs.debug (fun f -> f "Connecting...");
           let open Network in
           let params = Parameters.create_tcp () in
           let endpoint = Endpoint.create_address Unix.(ADDR_INET (Eio_unix.Ipaddr.to_unix hostname, port)) in
@@ -398,7 +402,7 @@ end
               Logs.debug (fun f -> f "Connection is waiting...")
             | Ready ->
               Logs.debug (fun f -> f "Connection is ready");
-              enqueue_thread t k (socket connection)
+              enqueue_thread ~msg:"connection" t k (socket connection)
             | Invalid -> Logs.warn (fun f -> f "Invalid connection")
             | Preparing -> Logs.debug (fun f -> f "Connection is being prepared")
             | Failed -> Logs.warn (fun f -> f "Connection failed")
@@ -606,7 +610,15 @@ let clock = object
   method sleep_until due =
     let delay = 1_000_000_000. *. (due -. Unix.gettimeofday ()) |> ceil |> Int64.of_float |> Int64.max 0L in
     enter @@ fun t k ->
-    Dispatch.after ~delay queue (fun () -> enqueue_thread t k ())
+    (* TODO: Dispatch work items are cancellable! *)
+    Fiber_context.set_cancel_fn k.fiber (fun ex ->
+      (* Luv.Handle.close timer (fun () -> ()); *)
+      enqueue_failed_thread ~msg:"Timeout stopped!" t k ex
+    );
+    Dispatch.after ~delay queue (fun () -> 
+      match Fiber_context.get_error k.fiber with
+      | None -> enqueue_thread ~msg:"Sleepy" t k ()
+      | Some _ -> ())
 end
 
 type stdenv = <
@@ -624,7 +636,6 @@ let stdenv =
   let stdin = lazy (source (File.of_gcd_no_hook @@ Dispatch.Io.(create Stream Fd.stdin (Lazy.force File.io_queue)))) in
   let stdout = lazy (sink (File.of_gcd_no_hook @@ Dispatch.Io.(create Stream Fd.stdout (Lazy.force File.io_queue)))) in
   let stderr = lazy (sink (File.of_gcd_no_hook @@ Dispatch.Io.(create Stream Fd.stderr (Lazy.force File.io_queue)))) in
-  (* let _stderr = lazy (sink (File.of_luv_no_hook Luv.File.stderr)) in *)
   object (_ : stdenv)
     method stdin  = (Lazy.force stdin)
     method stdout = (Lazy.force stdout)
@@ -637,7 +648,8 @@ let stdenv =
 
 let rec wakeup ~async ~io_queued run_q =
   match Lf_queue.pop run_q with
-  | Some (Thread f) ->
+  | Some (Thread (msg, f)) ->
+    Logs.debug (fun f -> f "Scheduler: %s" msg);
     if not !io_queued then (
       Lf_queue.push run_q IO;
       io_queued := true;
@@ -649,11 +661,12 @@ let rec wakeup ~async ~io_queued run_q =
        Therefore, we keep an [IO] job on the queue to force us to check from time to time. *)
     io_queued := false;
     if not (Lf_queue.is_empty run_q) then
-      Dispatch.async async (fun () -> wakeup ~async ~io_queued run_q)
-  | None -> ()
+      Dispatch.async async (Option.get !async_run)
+  | None ->
+    ()
 
 let enqueue_at_head t k v =
-  Lf_queue.push_head t.run_q (Thread (fun () -> Suspended.continue k v));
+  Lf_queue.push_head t.run_q (Thread ("FORK", fun () -> Suspended.continue k v));
   Dispatch.async t.async (Option.get !async_run)
 
 let run : type a. (_ -> a) -> a = fun main ->
@@ -687,7 +700,7 @@ let run : type a. (_ -> a) -> a = fun main ->
         | Eio.Private.Effects.Suspend fn ->
           Some (fun k ->
               let k = { Suspended.k; fiber } in
-              fn fiber (enqueue_result_thread st k)
+              fn fiber (enqueue_result_thread ~msg:"suspend" st k)
             )
         | _ -> None
     }

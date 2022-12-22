@@ -101,6 +101,11 @@ let big_flow_copy env =
   Path.unlink big_file;
   ()
 
+let cancellation env =
+  Fiber.first
+    (fun () -> Eio.Time.sleep env#clock 5.)
+    (fun () -> Eio.traceln "All done, stop the clock!")
+
 let () = 
   Eio_gcd.run @@ fun env ->
   (* file_io env *)
@@ -108,4 +113,5 @@ let () =
   (* forking env *)
   (* random env *)
   (* timer env *)
-  big_flow_copy env
+  (* big_flow_copy env *)
+  cancellation env
