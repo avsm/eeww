@@ -70,6 +70,7 @@ type runnable =
 
 type t = {
   async : Dispatch.Queue.t;       (* Will process [run_q] when prodded. *)
+  async_run : unit -> unit;
   run_q : runnable Lf_queue.t;
 }
 
@@ -77,20 +78,17 @@ type _ Effect.t += Enter : (t -> 'a Suspended.t -> unit) -> 'a Effect.t
 
 let enter fn = Effect.perform (Enter fn) 
 
-(* TODO: Fix *)
-let async_run = ref None
-
 let enqueue_thread ~msg t k v =
   Lf_queue.push t.run_q (Thread (msg, fun () -> Suspended.continue k v));
-  Dispatch.async t.async (Option.get !async_run)
+  Dispatch.async t.async t.async_run
 
 let enqueue_result_thread ~msg t k r =
   Lf_queue.push t.run_q (Thread (msg, fun () -> Suspended.continue_result k r));
-  Dispatch.async t.async (Option.get !async_run)
+  Dispatch.async t.async t.async_run
 
 let enqueue_failed_thread ~msg t k ex =
   Lf_queue.push t.run_q (Thread (msg, fun () -> Suspended.discontinue k ex));
-  Dispatch.async t.async (Option.get !async_run)
+  Dispatch.async t.async t.async_run
 
  module File = struct
    type t = {
@@ -126,6 +124,17 @@ let enqueue_failed_thread ~msg t k ex =
      t.release_hook <- Switch.on_release_cancellable sw (fun () -> ensure_closed t);
      t
 
+    let to_unix op t =
+      let io_channel = get "to_unix" t in
+      let fd = Dispatch.Io.get_unix io_channel |> Option.get in
+      match op with
+        | `Peek -> fd
+        | `Take ->
+          t.fd <- `Closed;
+          Eio.Switch.remove_hook t.release_hook;
+          fd
+        
+
     (* Dispatch Queue
      Ideally, I think, this would be [Concurrent] but then the OCaml
      runtime lock would block the thread and cause GCD to "thread explode".
@@ -135,20 +144,20 @@ let enqueue_failed_thread ~msg t k ex =
      sometimes causes segfaults *)
    let io_queue = lazy Dispatch.Queue.(create ~typ:Serial ())
 
-   let realpath p = try Ok (Unix.realpath p) with _ -> Error (`Msg "TODO")
+   let realpath p = try Ok (Unix.realpath p) with exn -> Error exn
 
-   let mkdir ~mode p = Unix.mkdir p mode
+   let mkdir ~mode p = try Ok (Unix.mkdir p mode) with exn -> Error exn
 
-   (* A few notes:
-        - Creating a channel doesn't open the file until you try and do something with it (e.g. a write)
-        - [Dispatch.Io.create_with_path] needs an absolute path hence the [realpath] mangling... *)
+   (* We use `Unix.openfile` here because dispatch tries to be clever otherwise and will not open a
+      file descriptor until the first IO operation. *)
    let open_ ~sw ?mode path flags =
     let create path =
         try
-          let io_channel = Dispatch.Io.create_with_path ~path ~flags ~mode:(Option.value ~default:0 mode) Stream (Lazy.force io_queue) in
+          let fd = Unix.openfile path flags (Option.value ~default:0 mode) in
+          let io_channel = Dispatch.Io.create Stream (Dispatch.Io.Fd.of_unix fd) (Lazy.force io_queue) in
           Ok (of_gcd ~sw io_channel)
         with
-        | Invalid_argument m -> Error (`Msg m)
+        | exn -> Error exn
     in
    match Filename.is_relative path with
    | false -> create path
@@ -293,10 +302,7 @@ let enqueue_failed_thread ~msg t k ex =
        Log.warn (fun f -> f "shutdown receive not supported")
  end
 
-
-let net_queue = lazy (Dispatch.Queue.create ~typ:Serial ())
-
-class virtual ['a] listening_socket ~backlog:_ sock = object (self)
+class virtual ['a] listening_socket ~backlog:_ net_queue sock = object (self)
   inherit Eio.Net.listening_socket
 
   method private virtual get_endpoint_addr : Network.Endpoint.t -> Eio.Net.Sockaddr.stream
@@ -329,7 +335,7 @@ class virtual ['a] listening_socket ~backlog:_ sock = object (self)
    let conn_handler conn =
     Eio.Semaphore.release connected;
     Network.Connection.retain conn;
-    Network.Connection.set_queue ~queue:(Lazy.force net_queue) conn;
+    Network.Connection.set_queue ~queue:net_queue conn;
     Network.Connection.start conn;
     let endpoint = Network.Connection.copy_endpoint conn in
     let sockaddr = self#get_endpoint_addr endpoint in
@@ -342,8 +348,8 @@ class virtual ['a] listening_socket ~backlog:_ sock = object (self)
 
 
 end
-  let listening_socket ~backlog sock = object
-    inherit [[ `TCP ]] listening_socket ~backlog sock
+  let listening_socket ~backlog net_queue sock = object
+    inherit [[ `TCP ]] listening_socket ~backlog net_queue sock
 
     method private get_endpoint_addr e =
       match Option.get @@ Network.Endpoint.get_address e with
@@ -353,6 +359,8 @@ end
 
    let net = object
      inherit Eio.Net.t
+
+     val queue = Dispatch.Queue.create ~typ:Serial ()
 
      method datagram_socket = failwith "TODO: datagram socket"
      method getnameinfo = Eio_unix.getnameinfo
@@ -378,9 +386,9 @@ end
          in
          let _ = Endpoint.release endpoint in
          let listener = Listener.create params in
-         Listener.set_queue ~queue:(Lazy.force net_queue) listener;
+         Listener.set_queue ~queue listener;
          Listener.retain listener;
-         listening_socket ~backlog listener
+         listening_socket ~backlog queue listener
        | _ -> assert false
 
      method connect ~sw:_ = function
@@ -395,7 +403,7 @@ end
           let connection = Connection.create ~params endpoint in
           let _ = Endpoint.release endpoint in
           Connection.retain connection;
-          Connection.set_queue ~queue:(Lazy.force net_queue) connection;
+          Connection.set_queue ~queue connection;
           let handler t k (state : Network.Connection.State.t) _ =
             match state with
             | Waiting -> 
@@ -420,16 +428,45 @@ type has_fd = < fd : File.t >
 type source = < Eio.Flow.source; Eio.Flow.close; has_fd >
 type sink   = < Eio.Flow.sink  ; Eio.Flow.close; has_fd >
 
-let _get_fd (t : <has_fd; ..>) = t#fd
+let get_fd (t : <has_fd; ..>) = t#fd
 
-let _get_fd_opt t = Eio.Generic.probe t FD
+let get_fd_opt t = Eio.Generic.probe t FD
+
+let unix_fstat fd =
+  let ust = Unix.LargeFile.fstat fd in
+  let st_kind : Eio.File.Stat.kind =
+    match ust.st_kind with
+    | Unix.S_REG  -> `Regular_file
+    | Unix.S_DIR  -> `Directory
+    | Unix.S_CHR  -> `Character_special
+    | Unix.S_BLK  -> `Block_device
+    | Unix.S_LNK  -> `Symbolic_link
+    | Unix.S_FIFO -> `Fifo
+    | Unix.S_SOCK -> `Socket
+  in
+  Eio.File.Stat.{
+    dev     = ust.st_dev   |> Int64.of_int;
+    ino     = ust.st_ino   |> Int64.of_int;
+    kind    = st_kind;
+    perm    = ust.st_perm;
+    nlink   = ust.st_nlink |> Int64.of_int;
+    uid     = ust.st_uid   |> Int64.of_int;
+    gid     = ust.st_gid   |> Int64.of_int;
+    rdev    = ust.st_rdev  |> Int64.of_int;
+    size    = ust.st_size  |> Optint.Int63.of_int64;
+    atime   = ust.st_atime;
+    mtime   = ust.st_mtime;
+    ctime   = ust.st_ctime;
+  }
 
 let flow fd = object (_ : <source; sink; ..>)
   method fd = fd
   method close = File.close fd
+  method unix_fd op = File.to_unix op fd
 
   method probe : type a. a Eio.Generic.ty -> a option = function
     | FD -> Some fd
+    | Eio_unix.Private.Unix_file_descr op -> Some (File.to_unix op fd)
     | _ -> None
 
   method read_into buff =
@@ -447,7 +484,7 @@ let flow fd = object (_ : <source; sink; ..>)
 
   method pwrite = failwith "TODO"
 
-  method stat = failwith "TODO"
+  method stat = unix_fstat (File.to_unix `Peek fd)
 
   method write _ = failwith "TODO"
 
@@ -472,9 +509,23 @@ let sink   fd = (flow fd :> sink)
 type _ Eio.Generic.ty += Dir_resolve_new : (string -> string) Eio.Generic.ty
 let dir_resolve_new x = Eio.Generic.probe x Dir_resolve_new
 
+type Eio.Exn.Backend.t += Gcd_error
+
+let wrap_error = function
+  | (Unix.ECONNREFUSED, _, _) -> Eio.Net.err (Connection_failure (Refused Gcd_error))
+  | (Unix.ECONNRESET, _, _)| (Unix.EPIPE, _, _) -> Eio.Net.err (Connection_reset Gcd_error)
+  | (e, a, b) -> Unix.Unix_error (e, a, b)
+
+let wrap_error_fs e =
+  match e with
+  | (Unix.EEXIST, _, _) -> Eio.Fs.err (Already_exists Gcd_error)
+  | (Unix.ENOENT, _, _) -> Eio.Fs.err (Not_found Gcd_error)
+  | e -> wrap_error e
+
 let or_raise_fs = function
   | Ok v -> v
-  | Error (`Msg m) -> failwith ("FS: " ^ m)
+  | Error (Unix.Unix_error (e, a, b)) -> raise (wrap_error_fs (e, a, b))
+  | Error exn -> raise exn
 
 type Eio.Exn.Backend.t +=
   | Outside_sandbox of string * string
@@ -517,19 +568,19 @@ class dir ~label (dir_path : string) = object (self)
       Filename.concat dir leaf
 
   method open_in ~sw path =
-    let fd = File.open_ ~sw (self#resolve path) 0o644 |> or_raise_fs in
+    let fd = File.open_ ~sw (self#resolve path) [ Unix.O_RDONLY ] |> or_raise_fs in
     (flow fd :> <Eio.File.ro; Eio.Flow.close>)
 
   method open_out ~sw ~append ~create path =
     let mode, flags =
       match create with
-      | `Never            -> 0,    0
-      | `If_missing  perm -> perm, Config.o_creat
-      | `Or_truncate perm -> perm, Config.(o_creat lor o_trunc)
-      | `Exclusive   perm -> perm, Config.(o_creat lor o_excl)
+      | `Never            -> 0,    []
+      | `If_missing  perm -> perm, [ Unix.O_CREAT ]
+      | `Or_truncate perm -> perm, [ Unix.O_CREAT; Unix.O_TRUNC ]
+      | `Exclusive   perm -> perm, [ Unix.O_CREAT; Unix.O_EXCL ]
     in
-    let flags = if append then Config.(o_append lor flags) else flags in
-    let flags = Config.(o_rdwr lor flags) in
+    let flags = if append then Unix.O_APPEND :: flags else flags in
+    let flags = Unix.O_RDWR :: flags in
     let real_path =
       if create = `Never then self#resolve path
       else self#resolve_new path
@@ -547,21 +598,21 @@ class dir ~label (dir_path : string) = object (self)
   (* libuv doesn't seem to provide a race-free way to do this. *)
   method mkdir ~perm path =
     let real_path = self#resolve_new path in
-    File.mkdir ~mode:perm real_path
+    File.mkdir ~mode:perm real_path |> or_raise_fs
 
   (* libuv doesn't seem to provide a race-free way to do this. *)
   method unlink path =
     let dir_path = Filename.dirname path in
     let leaf = Filename.basename path in
     let real_dir_path = self#resolve dir_path in
-    Unix.unlink (Filename.concat real_dir_path leaf)
+    try Unix.unlink (Filename.concat real_dir_path leaf) with (Unix.Unix_error (e, a, b)) -> raise (wrap_error_fs (e, a, b))
 
   (* libuv doesn't seem to provide a race-free way to do this. *)
   method rmdir path =
     let dir_path = Filename.dirname path in
     let leaf = Filename.basename path in
     let real_dir_path = self#resolve dir_path in
-    Unix.rmdir (Filename.concat real_dir_path leaf)
+    try Unix.rmdir (Filename.concat real_dir_path leaf) with (Unix.Unix_error (e, a, b)) -> raise (wrap_error_fs (e, a, b))
 
   method read_dir path =
     let path = self#resolve path in
@@ -573,7 +624,7 @@ class dir ~label (dir_path : string) = object (self)
     | Some new_resolve_new ->
       let old_path = self#resolve old_path in
       let new_path = new_resolve_new new_path in
-      Unix.rename old_path new_path
+      try Unix.rename old_path new_path with (Unix.Unix_error (e, a, b)) -> raise (wrap_error_fs (e, a, b))
 
   method close = closed <- true
 
@@ -586,6 +637,10 @@ let fs = object
 
   (* No checks *)
   method! private resolve path = path
+end
+
+let cwd = object
+  inherit dir  ~label:"cwd" "."
 end
 
 external eio_gcd_secure_random : int -> Cstruct.buffer -> unit = "caml_eio_gcd_secure_random"
@@ -627,9 +682,12 @@ type stdenv = <
   stderr : sink;
   net : Eio.Net.t;
   fs : Eio.Fs.dir Eio.Path.t;
+  cwd : Eio.Fs.dir Eio.Path.t;
   secure_random : Eio.Flow.source;
   clock : Eio.Time.clock;
-  (* cwd : Eio.Dir.t; *)
+  mono_clock : Eio.Time.Mono.t;
+  debug : Eio.Debug.t;
+  domain_mgr : Eio.Domain_manager.t;
 >
 
 let stdenv =
@@ -642,14 +700,19 @@ let stdenv =
     method stderr = (Lazy.force stderr)
     method net = net
     method fs = (fs :> Eio.Fs.dir), "."
+    method cwd = (cwd :> Eio.Fs.dir), "."
     method secure_random = secure_random
     method clock = clock
+    method mono_clock = failwith "Mono unimplemented"
+    method debug = Eio.Private.Debug.v
+    method domain_mgr = failwith "Domain Manager unimplemented"
   end
 
 let rec wakeup ~async ~io_queued run_q =
+  (* Eio.traceln "HERE!"; *)
   match Lf_queue.pop run_q with
-  | Some (Thread (msg, f)) ->
-    Logs.debug (fun f -> f "Scheduler: %s" msg);
+  | Some (Thread (_msg, f)) ->
+    (* Eio.traceln "Scheduler: %s" msg; *)
     if not !io_queued then (
       Lf_queue.push run_q IO;
       io_queued := true;
@@ -661,13 +724,13 @@ let rec wakeup ~async ~io_queued run_q =
        Therefore, we keep an [IO] job on the queue to force us to check from time to time. *)
     io_queued := false;
     if not (Lf_queue.is_empty run_q) then
-      Dispatch.async async (Option.get !async_run)
+      Dispatch.async async (fun () -> wakeup ~async ~io_queued run_q)
   | None ->
     ()
 
 let enqueue_at_head t k v =
   Lf_queue.push_head t.run_q (Thread ("FORK", fun () -> Suspended.continue k v));
-  Dispatch.async t.async (Option.get !async_run)
+  Dispatch.async t.async t.async_run
 
 let run : type a. (_ -> a) -> a = fun main ->
   let open Eio.Private in
@@ -675,8 +738,7 @@ let run : type a. (_ -> a) -> a = fun main ->
   let run_q = Lf_queue.create () in
   let io_queued = ref false in
   let async = Dispatch.Queue.create () in
-  async_run := Some (fun () -> wakeup ~async ~io_queued run_q);
-  let st = { async; run_q } in
+  let st = { async; async_run = (fun () -> wakeup ~async ~io_queued run_q); run_q } in
   let rec fork ~new_fiber:fiber fn =
     Ctf.note_switch (Fiber_context.tid fiber);
     let open Effect.Deep in
@@ -699,9 +761,16 @@ let run : type a. (_ -> a) -> a = fun main ->
           )
         | Eio.Private.Effects.Suspend fn ->
           Some (fun k ->
+              (* Eio.traceln "suspended"; *)
               let k = { Suspended.k; fiber } in
               fn fiber (enqueue_result_thread ~msg:"suspend" st k)
             )
+        | Eio_unix.Private.Pipe _ -> Some (fun k ->
+            discontinue k (Failure "Pipes not supported by GCD backend yet")
+          )
+        | Eio_unix.Private.Socketpair _ -> Some (fun k ->
+            discontinue k (Failure "Socketpair not supported by GCD backend yet")
+          )
         | _ -> None
     }
   in
@@ -717,7 +786,8 @@ let run : type a. (_ -> a) -> a = fun main ->
       Dispatch.Group.leave finished
     );
   let _ = Dispatch.Group.wait finished (Dispatch.Time.dispatch_forever ()) in
-  Lf_queue.close st.run_q;
+  (* Can't do this yet because cancellation isn't implemented everywhere *)
+  (* Lf_queue.close st.run_q; *)
   match !main_status with
   | `Done v -> v
   | `Ex (ex, bt) -> Printexc.raise_with_backtrace ex bt
