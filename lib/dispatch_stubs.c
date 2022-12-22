@@ -229,7 +229,6 @@ value ocaml_dispatch_queue_create(value v_typ, value v_unit)
   // So we control the releasing of the queue
   dispatch_retain(queue);
   v_queue = caml_alloc_custom(&queue_ops, sizeof(dispatch_queue_t), 0, 1);
-  caml_register_global_root(&v_queue); // Might not be necessary...
   Queue_val(v_queue) = queue;
   CAMLreturn(v_queue);
 }
