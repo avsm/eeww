@@ -3,7 +3,7 @@
  (public_name gcd)
  (c_library_flags
   (:include c_library_flags.sexp))
- (libraries threads bigarray)
+ (libraries threads unix bigarray)
  (foreign_stubs
   (language c)
   (flags

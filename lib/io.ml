@@ -39,6 +39,9 @@ external dispatch_set_high_water : t -> int -> unit
 external dispatch_set_low_water : t -> int -> unit
   = "ocaml_dispatch_set_low_water"
 
+external dispatch_get_unix : t -> Unix.file_descr
+  = "ocaml_dispatch_get_unix"
+
 let create typ fd queue = dispatch_io_create typ fd queue
 
 let create_with_path ~flags ~mode ~path typ queue =
@@ -60,3 +63,5 @@ let write queue channel offset group data =
 
 let set_high_water = dispatch_set_high_water
 let set_low_water = dispatch_set_low_water
+
+let get_unix t = try Some (dispatch_get_unix t) with _ -> None

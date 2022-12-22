@@ -8,4 +8,6 @@ module Qos : sig
 end
 
 val global : Qos.t -> t
-val create : ?typ:typ -> unit -> t
+
+val create : ?typ:typ -> ?target:t -> unit -> t
+

@@ -110,7 +110,6 @@ value ocaml_dispatch_async(value v_queue, value v_fun)
   CAMLparam2(v_queue, v_fun);
   value *m_fun = make_callback(v_fun);
   dispatch_queue_t queue = Queue_val(v_queue);
-  // caml_release_runtime_system(); not sure why this doesn't need to be called?
   dispatch_async(queue, ^{
     int res = caml_c_thread_register();
     if (res)
@@ -209,21 +208,29 @@ value ocaml_dispatch_get_global_queue(value v_qos) {
   CAMLreturn(v_queue);
 }
 
-value ocaml_dispatch_queue_create(value v_typ, value v_unit)
+value ocaml_dispatch_queue_create(value v_typ, value v_target)
 {
-  CAMLparam2(v_typ, v_unit);
+  CAMLparam2(v_typ, v_target);
   CAMLlocal1(v_queue);
   dispatch_queue_t queue;
 
   if (Val_int(0) == v_typ)
   {
     // Serial queue
-    queue = dispatch_queue_create("caml.queue.create.serial", DISPATCH_QUEUE_SERIAL);
+    if (Is_some(v_target)) {
+      queue = dispatch_queue_create_with_target("caml.queue.create.serial", DISPATCH_QUEUE_SERIAL, Queue_val(Some_val(v_target)));
+    } else {
+      queue = dispatch_queue_create("caml.queue.create.serial", DISPATCH_QUEUE_SERIAL);
+    }
   }
   else
   {
     // Concurrent queue
-    queue = dispatch_queue_create("caml.queue.create.concurrent", DISPATCH_QUEUE_CONCURRENT);
+    if (Is_some(v_target)) {
+      queue = dispatch_queue_create_with_target("caml.queue.create.concurrent", DISPATCH_QUEUE_CONCURRENT, Queue_val(Some_val(v_target)));
+    } else {
+      queue = dispatch_queue_create("caml.queue.create.concurrent", DISPATCH_QUEUE_CONCURRENT);
+    }
   }
 
   // So we control the releasing of the queue
@@ -444,15 +451,20 @@ value ocaml_dispatch_io_create(value v_typ, value v_fd, value v_queue)
   dispatch_io_t channel = dispatch_io_create(typ, fd, Queue_val(v_queue), ^(int error) {
     if (error)
     {
-      fputs(strerror(error), stderr);
+      // TODO: handle this, seems to be disconnect between returning an
+      // error and the IO channel being null e.g. with a directory FD.
+      // fputs(strerror(error), stderr);
     }
-    close(fd);
   });
 
-  v_channel = caml_alloc_custom(&io_ops, sizeof(dispatch_io_t), 0, 1);
-  Channel_val(v_channel) = channel;
+  if (channel) {
+    v_channel = caml_alloc_custom(&io_ops, sizeof(dispatch_io_t), 0, 1);
+    Channel_val(v_channel) = channel;
 
-  CAMLreturn(v_channel);
+    CAMLreturn(v_channel);
+  }
+
+  caml_failwith("Failed to create IO channel");
 }
 
 
@@ -468,7 +480,7 @@ value ocaml_dispatch_io_create_with_path(value v_flags, value v_mode, value v_pa
   dispatch_io_t channel = dispatch_io_create_with_path(DISPATCH_IO_STREAM, path, Int_val(v_flags), Int_val(v_mode), Queue_val(v_queue), ^(int error) {
     if (error)
     {
-      fprintf(stderr, "%i", error);
+      // fprintf(stderr, "%i", error);
     }
   });
 
@@ -477,7 +489,7 @@ value ocaml_dispatch_io_create_with_path(value v_flags, value v_mode, value v_pa
     Channel_val(v_channel) = channel;
     CAMLreturn(v_channel);
   } else {
-    caml_invalid_argument("Error: Failed to create IO channel, perhaps your path was not absolute");
+    caml_invalid_argument("Error: Failed to create IO channel");
   }
 }
 
@@ -492,6 +504,18 @@ value ocaml_dispatch_io_handler(value *handler, bool done, dispatch_data_t data,
   }
   caml_callback3(*handler, Val_int(error), value_of_bool(done), v_data);
   CAMLreturn(Val_unit);
+}
+
+value ocaml_dispatch_get_unix(value v_channel) {
+  CAMLparam1(v_channel);
+
+  dispatch_fd_t fd = dispatch_io_get_descriptor(Channel_val(v_channel));
+
+  if (fd < 0) {
+    caml_failwith("Getting FD for channel failed, maybe the channel is already closed");
+  }
+
+  CAMLreturn(Val_int(fd));
 }
 
 value ocaml_dispatch_with_read(value v_channel, value v_off, value v_len, value v_queue, value v_handler)
@@ -572,7 +596,6 @@ value ocaml_dispatch_write(value v_queue, value v_channel, value v_offset, value
 
     if (error)
     {
-      printf("Error(%i)\n", error);
       if (res)
       {
         caml_release_runtime_system();
