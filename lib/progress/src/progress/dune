@@ -1,0 +1,9 @@
+(library
+ (name progress)
+ (public_name progress)
+ (libraries
+  (re_export progress.engine)
+  (re_export terminal)
+  mtime.clock.os
+  fmt
+  unix))

@@ -1,0 +1,11 @@
+(library
+ (name progress_engine)
+ (public_name progress.engine)
+ (libraries
+  (re_export mtime)
+  (re_export optint)
+  fmt
+  logs
+  logs.fmt
+  terminal
+  vector))
