@@ -1,0 +1,7 @@
+PKG uucd uutf uunf cmdliner b0.kit
+S src
+S src/data
+S test
+S support
+B _b0/b/**
+B _build/**
