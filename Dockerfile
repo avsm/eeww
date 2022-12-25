@@ -5,6 +5,7 @@ COPY Makefile /src/Makefile
 WORKDIR /src
 RUN make boot
 COPY . /src
+ENV DUNE_PROFILE=release
 RUN make
 FROM alpine
 COPY --from=build /src/_build/install/default/bin/eeww /usr/bin/eeww
