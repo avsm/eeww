@@ -4,4 +4,4 @@
  (foreign_stubs
   (language c)
   (names terminal_stubs))
- (libraries stdlib-shims uutf uucp))
+ (libraries uutf uucp))
