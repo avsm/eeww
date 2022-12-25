@@ -65,5 +65,8 @@ git subtree add --prefix lib/parsexp https://github.com/janestreet/parsexp v0.14
 git subtree add --prefix lib/ppx_derivers https://github.com/ocaml-ppx/ppx_derivers master
 git subtree add --prefix lib/dispatch https://github.com/patricoferris/ocaml-dispatch main
 git subtree add --prefix lib/network https://github.com/patricoferris/ocaml-network main
+git subtree add --prefix lib/vector https://github.com/backtracking/vector main
+git subtree add --prefix lib/uucp https://github.com/dune-universe/uucp.git duniverse-v14.0.0
+git subtree add --prefix lib/progress https://github.com/craigfe/progress main
 ```
 
