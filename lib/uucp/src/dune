@@ -1,7 +1,6 @@
 (library
  (name uucp)
  (public_name uucp)
- (libraries uchar)
  (flags :standard -w -27-39))
 
 (rule
