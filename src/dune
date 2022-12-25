@@ -7,7 +7,7 @@
 (executable
  (name fetch)
  (public_name eeww-fetch)
- (modules fetch)
- (libraries cohttp-eio eio_main eio.unix eio tls tls-eio mirage-crypto-rng-eio))
+ (modules fetch bars)
+ (libraries cohttp-eio eio_main eio.unix eio tls tls-eio mirage-crypto-rng-eio progress vector))
 
 

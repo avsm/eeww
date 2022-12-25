@@ -80,6 +80,8 @@ end
 
 let _ =
   (* the scheduler setup *)
+  Bars.run ();
+
   Eio_main.run @@ fun env ->
   Eio.Ctf.with_tracing @@ fun () ->
   Mirage_crypto_rng_eio.run (module Mirage_crypto_rng.Fortuna) env @@ fun () ->
