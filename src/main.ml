@@ -29,7 +29,15 @@ module Cohttpx = struct
     response, Body.Fixed body
 end
 
-let serve ~docroot ~uri path =
+let serve ~tokenroot ~docroot ~uri path =
+  (* TODO put a URL router here! *)
+  match Fpath.(v path |> segs) with
+  | [ ""; ".well-known"; "acme-challenge"; token ] ->
+      (* TODO need a streaming responder *)
+      let fname = tokenroot / token in
+      let body = Eio.Path.load fname in
+      Cohttpx.respond_file fname body
+  | _ -> begin
   let fname = docroot / (Eiox.normalise path) in
   Eio.traceln "uri: %a local file: %a, path %s" Uri.pp uri Eio.Path.pp fname path;
   Eio.Switch.run (fun sw ->
@@ -52,24 +60,26 @@ let serve ~docroot ~uri path =
     | _ ->
        Server.html_response "not found"
   )
+  end
 
-let app _fs docroot (req, _reader, _client_addr) =
+let app _fs ~tokenroot ~docroot (req, _reader, _client_addr) =
   let uri = Uri.of_string @@ Http.Request.resource req in
   let path = Uri.path uri in
   let meth = Http.Request.meth req in
   Eio.traceln "%a %s" Http.Method.pp meth path;
   match meth with
-  | (`GET|`HEAD) -> serve ~docroot ~uri path
+  | (`GET|`HEAD) -> serve ~tokenroot ~docroot ~uri path
   | _ -> Server.not_found_response
 
 let server env =
-  let port = ref 8080 in
+  let port = ref 80 in
   Arg.parse
     [ ("-p", Arg.Set_int port, " Listening port number(8080 by default)") ]
     ignore "An HTTP/1.1 server";
   Eio.Switch.run @@ fun sw ->
   let docroot = Eio.Path.open_dir ~sw (env#cwd / "./site") in
-  Server.run ~domains:8 ~port:!port env (app env#fs docroot)
+  let tokenroot = Eio.Path.open_dir ~sw (env#cwd / "./tokens") in
+  Server.run ~domains:8 ~port:!port env (app env#fs ~tokenroot ~docroot)
 
 let _ =
   Eio_main.run @@ fun env ->
