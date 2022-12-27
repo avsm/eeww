@@ -1,7 +1,7 @@
 (executable
  (name main)
  (public_name eeww)
- (modules main)
+ (modules main letsencrypt_ext)
  (libraries cohttp-eio eio_main eio.unix eio uri fpath magic-mime letsencrypt fmt.tty logs.fmt logs.cli fmt.cli cmdliner mirage-crypto-rng-eio))
 
 (executable

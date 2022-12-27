@@ -1,10 +1,10 @@
 open Cohttp_eio
 
 let (/) = Eio.Path.(/)
-let ( let* ) = Result.bind
 
 exception Invalid_request_path of string
 module Eiox = struct
+  (* UPSTREAM: need a realpath and relative resolver *)
   let normalise =
     let open Fpath in
     let root = v "/" in fun path ->
@@ -12,6 +12,7 @@ module Eiox = struct
     | None -> raise (Invalid_request_path path)
     | Some path -> to_string path
 
+  (* UPSTREAM: need an Eio file exists check without opening *)
   let file_exists f =
     Eio.Switch.run @@ fun sw ->
     try ignore(Eio.Path.open_in ~sw f); true
@@ -43,50 +44,17 @@ module Cohttpx = struct
         loop ()
       in loop ())
 
-  let tls_serve ?(socket_backlog = 128) ?(domains = 8) ~port ~cert_dir env handler =
-    let server_config = 
-      let certificate = X509_eio.private_of_pems ~cert:(cert_dir / "certificate.pem") ~priv_key:(cert_dir / "privkey.pem") in
-      let certificates = `Multiple [ certificate ] in
-      Tls.Config.(server ~version:(`TLS_1_0, `TLS_1_3) ~certificates ~ciphers:Ciphers.supported ()) in
+  let tls_serve ?(socket_backlog = 128) ?(domains = 8) ~port ~config env handler =
     Eio.Switch.run @@ fun sw ->
-    let domain_mgr = Eio.Stdenv.domain_mgr env in
     let ssock =
       Eio.Net.listen env#net ~sw ~reuse_addr:true ~reuse_port:true
       ~backlog:socket_backlog (`Tcp (Eio.Net.Ipaddr.V4.any, port)) in
     for _ = 2 to domains do
       Eio.Std.Fiber.fork ~sw (fun () ->
-        Eio.Domain_manager.run domain_mgr (fun () -> run_domain ~server_config ssock handler))
+        Eio.Domain_manager.run env#domain_mgr (fun () -> run_domain ~server_config:config ssock handler))
     done;
-    run_domain ~server_config ssock handler
+    run_domain ~server_config:config ssock handler
 
-end
-
-module LEx = struct
-
-  let main ~priv_pem ~csr_pem ~email ~acme_dir ~endpoint ~cert env =
-    let priv_pem = Eio.Path.load (Eio.Path.(Eio.Stdenv.fs env / priv_pem)) in
-    let csr_pem = Eio.Path.load (Eio.Path.(Eio.Stdenv.fs env / csr_pem)) in
-    let f_exists = Sys.file_exists cert in
-    if f_exists then (Eio.traceln "certificate found, skipping LE"; Ok ())
-    else begin
-      let* account_key = X509.Private_key.decode_pem (Cstruct.of_string priv_pem) in
-      let* request = X509.Signing_request.decode_pem (Cstruct.of_string csr_pem) in
-      let solver =
-        Logs.app (fun m -> m "using http solver, writing to %a" Eio.Path.pp acme_dir);
-        let solve_challenge _ ~prefix:_ ~token ~content =
-          (* now, resource has .well-known/acme-challenge prepended *)
-          let path = Eio.Path.(acme_dir / token) in
-          Eio.Path.save ~create:(`Or_truncate 0o600) path content;
-          Ok () in
-        Letsencrypt.Client.http_solver solve_challenge in
-      let sleep n = Eio.Time.sleep env#clock (float_of_int n) in
-      let* le = Letsencrypt.Client.initialise env ~endpoint ?email account_key in
-      let* certs = Letsencrypt.Client.sign_certificate env solver le sleep request in
-      Logs.info (fun m -> m "Certificates downloaded");
-      let path = Eio.Path.(Eio.Stdenv.fs env / cert) in
-      Eio.Path.save ~create:(`Exclusive 0o600) path (Cstruct.to_string @@ X509.Certificate.encode_pem_multiple certs);
-      Ok ()
-   end
 end
 
 let https_serve ~docroot ~uri path =
@@ -113,24 +81,21 @@ let https_serve ~docroot ~uri path =
     | _ ->
        Server.html_response "not found")
 
-let http_serve ~tokenroot path =
+let http_serve path =
   (* TODO put a URL router here! *)
   match Fpath.(v path |> segs) with
   | [ ""; ".well-known"; "acme-challenge"; token ] ->
-      (* TODO need a streaming responder *)
-      let fname = tokenroot / token in
-      let body = Eio.Path.load fname in
-      Cohttpx.respond_file fname body
+      Server.text_response (Letsencrypt_ext.Token_cache.get token)
   | _ ->
       failwith "TODO redirect to https url"
 
-let http_app _fs ~tokenroot (req, _reader, _client_addr) =
+let http_app (req, _reader, _client_addr) =
   let uri = Uri.of_string @@ Http.Request.resource req in
   let path = Uri.path uri in
   let meth = Http.Request.meth req in
   Eio.traceln "http %a %s" Http.Method.pp meth path;
   match meth with
-  | (`GET|`HEAD) -> http_serve ~tokenroot path
+  | (`GET|`HEAD) -> http_serve path
   | _ -> Server.not_found_response
 
 let https_app _fs ~docroot (req, _reader, _client_addr) =
@@ -142,27 +107,44 @@ let https_app _fs ~docroot (req, _reader, _client_addr) =
   | (`GET|`HEAD) -> https_serve ~docroot ~uri path
   | _ -> Server.not_found_response
 
-
-let run_http_server ~tokenroot ~port env =
+let run_http_server ~port env =
   Eio.traceln "Starting HTTP server";
-  Server.run ~domains:2 ~port env (http_app env#fs ~tokenroot)
+  Server.run ~domains:2 ~port env http_app
 
-let run_https_server ~docroot ~cert ~port env =
+let run_https_server ~docroot ~config ~port env =
   Eio.traceln "Starting HTTPS server";
-  Cohttpx.tls_serve ~domains:2 ~cert_dir:cert ~port env (https_app env#fs ~docroot)
+  Cohttpx.tls_serve ~domains:2 ~config ~port env (https_app env#fs ~docroot)
 
-let main priv_pem csr_pem email acme_dir prod cert () =
+let main email prod cert () =
   Eio_main.run @@ fun env ->
   Eio.Ctf.with_tracing @@ fun () ->
   Mirage_crypto_rng_eio.run (module Mirage_crypto_rng.Fortuna) env @@ fun () ->
   Eio.Switch.run @@ fun sw ->
   let endpoint = if prod then Letsencrypt.letsencrypt_production_url else Letsencrypt.letsencrypt_staging_url in
   let docroot = Eio.Path.open_dir ~sw (env#cwd / "./site") in
-  let tokenroot = Eio.Path.open_dir ~sw (env#cwd / acme_dir) in
-  Eio.Fiber.fork ~sw (fun () -> run_http_server ~tokenroot ~port:80 env);
-  match LEx.main ~priv_pem ~csr_pem ~email ~acme_dir:tokenroot ~endpoint ~cert env with
-  | Error (`Msg m) -> failwith m
-  | Ok () -> run_https_server ~docroot ~cert:env#cwd ~port:443 env
+  Eio.Fiber.fork ~sw (fun () -> run_http_server ~port:80 env);
+  (* Letsencrypt dance *)
+  let cert_root = Eio.Path.open_dir ~sw (env#cwd / cert) in
+  let account_file = cert_root / "account.pem" in
+  let csr_file = cert_root / "csr.pem" in
+  let key_file = cert_root / "privkey.pem" in
+  let cert_file = cert_root / "fullcert.pem" in
+  if not (Eiox.file_exists account_file) then begin
+    Eio.traceln "Generating account key";
+    Letsencrypt_ext.gen_account_key ~account_file ()
+  end;
+  if not (Eiox.file_exists key_file) then begin
+    Eio.traceln "Generating key file and CSR";
+    Letsencrypt_ext.gen_csr ~org:"OCaml" ~email ~domain:"gha.ocaml.org" ~csr_file ~key_file ();
+  end;
+  if not (Eiox.file_exists cert_file) then begin
+    Eio.traceln "Generating cert file";
+    let csr_pem = Eio.Path.load csr_file in
+    let account_pem = Eio.Path.load account_file in
+    Letsencrypt_ext.gen_cert ~csr_pem ~account_pem ~email ~cert_file ~endpoint env
+  end;
+  let config = Letsencrypt_ext.get_tls_server_config ~key_file ~cert_file in
+  run_https_server ~docroot ~config ~port:443 env
 
 let setup_log style_renderer level =
   Fmt_tty.setup_std_outputs ?style_renderer ();
@@ -171,29 +153,17 @@ let setup_log style_renderer level =
 
 open Cmdliner
 
-let priv_pem =
-  let doc = "File containing the PEM-encoded private key." in
-  Arg.(value & opt string "account.pem" & info ["account-key"] ~docv:"FILE" ~doc)
-
-let csr_pem =
-  let doc = "File containing the PEM-encoded CSR." in
-  Arg.(value & opt string "csr.pem" & info ["csr"] ~docv:"FILE" ~doc)
-
-let acme_dir =
-  let doc = "Base path for where to serve and write LetsEncrypt challenges. " in
-  Arg.(value & opt string "tokens" & info ["acme-dir"] ~docv:"DIR" ~doc)
-
 let prod =
   let doc = "Production certification generation" in
   Arg.(value & flag & info ["prod"] ~doc)
 
 let cert =
-  let doc = "filename where to store the certificate" in
-  Arg.(value & opt string "certificate.pem" & info ["cert"] ~doc)
+  let doc = "Directory where to store the certificates" in
+  Arg.(value & opt string "certs" & info ["certs-dir"] ~doc)
 
 let email =
   let doc = "Contact e-mail for registering new LetsEncrypt keys" in
-  Arg.(value & opt (some string) None & info ["email"] ~doc)
+  Arg.(required & opt (some string) None & info ["email"] ~doc)
 
 let setup_log =
   Term.(const setup_log
@@ -210,6 +180,6 @@ let info =
 
 let () =
   Printexc.record_backtrace true;
-  let cli = Term.(const main $ priv_pem $ csr_pem $ email $ acme_dir $ prod $ cert $ setup_log) in
+  let cli = Term.(const main $ email $ prod $ cert $ setup_log) in
   let cmd = Cmd.v info cli in
   exit @@ Cmd.eval cmd
