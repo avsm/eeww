@@ -1,22 +1,25 @@
 opam-version: "2.0"
-maintainer: "Daniel Bünzli <daniel.buenzl i@erratique.ch>"
-authors: ["Daniel Bünzli <daniel.buenzl i@erratique.ch>"]
-dev-repo: "git+https://github.com/dune-universe/bos.git"
-tags: [ "os" "system" "cli" "command" "file" "path" "log" "unix" "org:erratique" ]
-license: "ISC"
+name: "bos"
+synopsis: """Basic OS interaction for OCaml"""
+maintainer: ["Daniel Bünzli <daniel.buenzl i@erratique.ch>"]
+authors: ["The bos programmers"]
+homepage: "https://erratique.ch/software/bos"
+doc: "https://erratique.ch/software/bos/doc"
+dev-repo: "git+https://erratique.ch/repos/bos.git"
+bug-reports: "https://github.com/dbuenzli/bos/issues"
+license: ["ISC"]
+tags: ["os" "system" "cli" "command" "file" "path" "log" "unix"
+       "org:erratique"]
+depends: ["ocaml" {>= "4.08.0"}
+          "dune" {>= "3.4"}
+          "base-unix"
+          "rresult" {>= "0.7.0"}
+          "astring"
+          "fpath"
+          "fmt" {>= "0.8.10"}
+          "logs"
+          "mtime" {with-test}]
 build: [[ "dune" "build" "-p" name ]]
-depends: [
-  "dune"
-  "ocaml" {>= "4.01.0"}
-  "base-unix"
-  "rresult" {>= "0.4.0"}
-  "astring"
-  "fpath"
-  "fmt" {>= "0.8.0"}
-  "logs"
-  "mtime" {with-test}
-]
-synopsis: "Basic OS interaction for OCaml"
 description: """
 Bos provides support for basic and robust interaction with the
 operating system in OCaml. It has functions to access the process

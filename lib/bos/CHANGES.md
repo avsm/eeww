@@ -1,3 +1,8 @@
+
+
+- Add `Cmd.if'` and deprecate `Cmd.on`.
+- `bos` library. Drop dependency on `rresult`.
+
 v0.2.1 2021-10-04 Zagreb
 ------------------------
 

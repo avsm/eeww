@@ -1,5 +1,4 @@
 open B0_kit.V000
-open B00_std
 open Result.Syntax
 
 (* OCaml library names *)
@@ -35,7 +34,7 @@ let bos_lib =
             `X (v "src/bos_top.ml");
             `X (v "src/bos_top_init.ml") ]
   in
-  let requires = [rresult; astring; fpath; fmt; unix; logs]
+  let requires = [astring; fpath; fmt; unix; logs]
   in
   B0_ocaml.lib bos ~doc:"The bos library" ~srcs ~requires
 
@@ -75,13 +74,13 @@ let test =
 let test_arg =
   let srcs = Fpath.[ `File (v "test/test_arg.ml")] in
   let meta = B0_meta.(empty |> tag test) in
-  let requires = [ astring; fmt; fpath; logs_fmt; bos ] in
+  let requires = [ astring; fmt; fpath; logs; logs_fmt; bos ] in
   B0_ocaml.exe "test-arg" ~doc:"Test argument parsing" ~srcs ~meta ~requires
 
 let test_arg_pos =
   let srcs = Fpath.[ `File (v "test/test_arg_pos.ml")] in
   let meta = B0_meta.(empty |> tag test) in
-  let requires = [ fmt; logs_fmt; bos ] in
+  let requires = [ fmt; logs; logs_fmt; bos ] in
   B0_ocaml.exe "test-arg-pos" ~doc:"Test argument parsing" ~srcs ~meta ~requires
 
 let watch =
@@ -120,7 +119,7 @@ let default =
         "fpath", "";
         "fmt", {|>= "0.8.10"|};
         "logs", "";
-        "mtime", {|test|};
+        "mtime", {|with-test|};
       ]
     |> add B0_opam.Meta.build
       {|[["ocaml" "pkg/pkg.ml" "build" "--dev-pkg" "%{dev}%"]]|}

@@ -4,7 +4,6 @@
   ---------------------------------------------------------------------------*)
 
 open Astring
-open Rresult
 
 (* Command line fragments *)
 
@@ -17,7 +16,8 @@ let ( % ) l a = a :: l
 let ( %% ) l0 l1 = List.rev_append (List.rev l1) l0
 let add_arg l a = l % a
 let add_args l a = l %% a
-let on bool l = if bool then l else []
+let if' bool l = if bool then l else []
+let on = if'
 let p = Fpath.to_string
 
 (* Command lines *)
@@ -108,7 +108,8 @@ let parse_cmdline s =
       loop (token :: acc) (skip_white s)
     in
     Ok (loop [] (skip_white (String.sub s)))
-  with Failure err -> R.error_msgf "command line %a:%s" String.dump s err
+  with Failure err ->
+    Error (`Msg (Fmt.str "command line %a:%s" String.dump s err))
 
 let of_string s = parse_cmdline s
 let to_string l = String.concat ~sep:" " (List.rev_map Filename.quote l)
