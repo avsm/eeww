@@ -85,7 +85,7 @@ let http_serve path =
   (* TODO put a URL router here! *)
   match Fpath.(v path |> segs) with
   | [ ""; ".well-known"; "acme-challenge"; token ] ->
-      Server.text_response (Letsencrypt_ext.Token_cache.get token)
+      Server.text_response (Tls_le.Token_cache.get token)
   | _ ->
       failwith "TODO redirect to https url"
 
@@ -124,7 +124,7 @@ let main email org domain prod cert () =
   let docroot = Eio.Path.open_dir ~sw (env#cwd / "./site") in
   Eio.Fiber.fork ~sw (fun () -> run_http_server ~port:80 env);
   let cert_root = Eio.Path.open_dir ~sw (env#cwd / cert) in
-  let config = Letsencrypt_ext.tls_config ~cert_root ~org ~email ~domain ~endpoint env in
+  let config = Tls_le.tls_config ~cert_root ~org ~email ~domain ~endpoint env in
   run_https_server ~docroot ~config ~port:443 env
 
 let setup_log style_renderer level =
