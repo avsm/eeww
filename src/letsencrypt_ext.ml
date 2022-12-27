@@ -50,3 +50,32 @@ let get_tls_server_config ~key_file ~cert_file =
   let certificate = X509_eio.private_of_pems ~cert:cert_file ~priv_key:key_file in
   let certificates = `Single  certificate in
   Tls.Config.(server ~version:(`TLS_1_0, `TLS_1_3) ~certificates ~ciphers:Ciphers.supported ())
+
+module Eiox = struct
+  (* UPSTREAM: need an Eio file exists check without opening *)
+  let file_exists f =
+    Eio.Switch.run @@ fun sw ->
+    try ignore(Eio.Path.open_in ~sw f); true
+    with _ -> false
+end
+
+let tls_config ~cert_root ~org ~email ~domain ~endpoint env =
+  let account_file = cert_root / "account.pem" in
+  let csr_file = cert_root / "csr.pem" in
+  let key_file = cert_root / "privkey.pem" in
+  let cert_file = cert_root / "fullcert.pem" in
+  if not (Eiox.file_exists account_file) then begin
+    Eio.traceln "Generating account key";
+    gen_account_key ~account_file ()
+  end;
+  if not (Eiox.file_exists key_file) then begin
+    Eio.traceln "Generating key file and CSR";
+    gen_csr ~org ~email ~domain ~csr_file ~key_file ();
+  end;
+  if not (Eiox.file_exists cert_file) then begin
+    Eio.traceln "Generating cert file";
+    let csr_pem = Eio.Path.load csr_file in
+    let account_pem = Eio.Path.load account_file in
+    gen_cert ~csr_pem ~account_pem ~email ~cert_file ~endpoint env
+  end;
+  get_tls_server_config ~key_file ~cert_file

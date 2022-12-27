@@ -115,7 +115,7 @@ let run_https_server ~docroot ~config ~port env =
   Eio.traceln "Starting HTTPS server";
   Cohttpx.tls_serve ~domains:2 ~config ~port env (https_app env#fs ~docroot)
 
-let main email prod cert () =
+let main email org domain prod cert () =
   Eio_main.run @@ fun env ->
   Eio.Ctf.with_tracing @@ fun () ->
   Mirage_crypto_rng_eio.run (module Mirage_crypto_rng.Fortuna) env @@ fun () ->
@@ -123,27 +123,8 @@ let main email prod cert () =
   let endpoint = if prod then Letsencrypt.letsencrypt_production_url else Letsencrypt.letsencrypt_staging_url in
   let docroot = Eio.Path.open_dir ~sw (env#cwd / "./site") in
   Eio.Fiber.fork ~sw (fun () -> run_http_server ~port:80 env);
-  (* Letsencrypt dance *)
   let cert_root = Eio.Path.open_dir ~sw (env#cwd / cert) in
-  let account_file = cert_root / "account.pem" in
-  let csr_file = cert_root / "csr.pem" in
-  let key_file = cert_root / "privkey.pem" in
-  let cert_file = cert_root / "fullcert.pem" in
-  if not (Eiox.file_exists account_file) then begin
-    Eio.traceln "Generating account key";
-    Letsencrypt_ext.gen_account_key ~account_file ()
-  end;
-  if not (Eiox.file_exists key_file) then begin
-    Eio.traceln "Generating key file and CSR";
-    Letsencrypt_ext.gen_csr ~org:"OCaml" ~email ~domain:"gha.ocaml.org" ~csr_file ~key_file ();
-  end;
-  if not (Eiox.file_exists cert_file) then begin
-    Eio.traceln "Generating cert file";
-    let csr_pem = Eio.Path.load csr_file in
-    let account_pem = Eio.Path.load account_file in
-    Letsencrypt_ext.gen_cert ~csr_pem ~account_pem ~email ~cert_file ~endpoint env
-  end;
-  let config = Letsencrypt_ext.get_tls_server_config ~key_file ~cert_file in
+  let config = Letsencrypt_ext.tls_config ~cert_root ~org ~email ~domain ~endpoint env in
   run_https_server ~docroot ~config ~port:443 env
 
 let setup_log style_renderer level =
@@ -165,6 +146,14 @@ let email =
   let doc = "Contact e-mail for registering new LetsEncrypt keys" in
   Arg.(required & opt (some string) None & info ["email"] ~doc)
 
+let org =
+  let doc = "Organisation name for the LetsEncrypt keys" in
+  Arg.(required & opt (some string) None & info ["org"] ~doc)
+
+let domain =
+  let doc = "Domain name to issue certificate for" in
+  Arg.(required & opt (some string) None & info ["domain"] ~doc)
+
 let setup_log =
   Term.(const setup_log
         $ Fmt_cli.style_renderer ()
@@ -180,6 +169,6 @@ let info =
 
 let () =
   Printexc.record_backtrace true;
-  let cli = Term.(const main $ email $ prod $ cert $ setup_log) in
+  let cli = Term.(const main $ email $ org $ domain $ prod $ cert $ setup_log) in
   let cmd = Cmd.v info cli in
   exit @@ Cmd.eval cmd
