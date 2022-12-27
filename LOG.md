@@ -68,5 +68,7 @@ git subtree add --prefix lib/network https://github.com/patricoferris/ocaml-netw
 git subtree add --prefix lib/vector https://github.com/backtracking/vector main
 git subtree add --prefix lib/uucp https://github.com/dune-universe/uucp.git duniverse-v14.0.0
 git subtree add --prefix lib/progress https://github.com/craigfe/progress main
+git subtree add --prefix lib/ocaml-print-intf https://github.com/avsm/ocaml-print-intf master
+git subtree add --prefix lib/bos https://github.com/dune-universe/bos duniverse-master
 ```
 
