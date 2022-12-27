@@ -115,13 +115,13 @@ let run_https_server ~docroot ~config ~port env =
   Eio.traceln "Starting HTTPS server";
   Cohttpx.tls_serve ~domains:2 ~config ~port env (https_app env#fs ~docroot)
 
-let main email org domain prod cert () =
+let main email org domain prod site cert () =
   Eio_main.run @@ fun env ->
   Eio.Ctf.with_tracing @@ fun () ->
   Mirage_crypto_rng_eio.run (module Mirage_crypto_rng.Fortuna) env @@ fun () ->
   Eio.Switch.run @@ fun sw ->
   let endpoint = if prod then Letsencrypt.letsencrypt_production_url else Letsencrypt.letsencrypt_staging_url in
-  let docroot = Eio.Path.open_dir ~sw (env#cwd / "./site") in
+  let docroot = Eio.Path.open_dir ~sw (env#cwd / site) in
   Eio.Fiber.fork ~sw (fun () -> run_http_server ~port:80 env);
   let cert_root = Eio.Path.open_dir ~sw (env#cwd / cert) in
   let config = Tls_le.tls_config ~cert_root ~org ~email ~domain ~endpoint env in
@@ -141,6 +141,10 @@ let prod =
 let cert =
   let doc = "Directory where to store the certificates" in
   Arg.(value & opt string "certs" & info ["certs-dir"] ~doc)
+
+let site =
+  let doc = "Directory where to serve the HTML from" in
+  Arg.(value & opt string "site" & info ["html-dir"] ~doc)
 
 let email =
   let doc = "Contact e-mail for registering new LetsEncrypt keys" in
@@ -169,6 +173,6 @@ let info =
 
 let () =
   Printexc.record_backtrace true;
-  let cli = Term.(const main $ email $ org $ domain $ prod $ cert $ setup_log) in
+  let cli = Term.(const main $ email $ org $ domain $ prod $ site $ cert $ setup_log) in
   let cmd = Cmd.v info cli in
   exit @@ Cmd.eval cmd
