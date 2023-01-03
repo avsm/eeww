@@ -42,53 +42,103 @@
     Cstruct.(to_string @@ of_bigarray @@ (Dispatch.Data.to_buff ~offset:0 (Dispatch.Data.size buff) buff))
  end
 
- module Suspended = struct
-  type 'a t = {
-    fiber : Eio.Private.Fiber_context.t;
-    k : ('a, unit) Effect.Deep.continuation;
-  }
-
-  let tid t = Eio.Private.Fiber_context.tid t.fiber
-
-  let continue t v =
-    Ctf.note_switch (tid t);
-    Effect.Deep.continue t.k v
-
-  let discontinue t ex =
-    Ctf.note_switch (tid t);
-    Effect.Deep.discontinue t.k ex
-
-  let continue_result t = function
-    | Ok x -> continue t x
-    | Error x -> discontinue t x
-end
-
-
 type runnable =
   | IO
-  | Thread of string * (unit -> unit)
+  | Thread of string * (unit -> [`Exit_scheduler])
+
+type eventfd = {
+  r : Dispatch.Io.t;
+  w : Dispatch.Io.t;
+} (* A pipe *)
 
 type t = {
   async : Dispatch.Queue.t;       (* Will process [run_q] when prodded. *)
-  async_run : unit -> unit;
+  eventfd : eventfd;
   run_q : runnable Lf_queue.t;
+  need_wakeup : bool Atomic.t;
+  pending_io : Dispatch.Group.t;  (* All IO operations enter and leave this group. *)
 }
 
 type _ Effect.t += Enter : (t -> 'a Suspended.t -> unit) -> 'a Effect.t
 
-let enter fn = Effect.perform (Enter fn) 
+let enter fn = Effect.perform (Enter fn)
+
+
+let wake_buffer =
+  let b = Bytes.create 8 in
+  Bytes.set_int64_ne b 0 1L;
+  b
+
+let wakeup t =
+  Atomic.set t.need_wakeup false; (* [t] will check [run_q] after getting the event below *)
+  let sent = Unix.single_write (Dispatch.Io.get_unix t.eventfd.w |> Option.get) wake_buffer 0 8 in
+  assert (sent = 8)
 
 let enqueue_thread ~msg t k v =
   Lf_queue.push t.run_q (Thread (msg, fun () -> Suspended.continue k v));
-  Dispatch.async t.async t.async_run
-
-let enqueue_result_thread ~msg t k r =
-  Lf_queue.push t.run_q (Thread (msg, fun () -> Suspended.continue_result k r));
-  Dispatch.async t.async t.async_run
+  if Atomic.get t.need_wakeup then wakeup t
 
 let enqueue_failed_thread ~msg t k ex =
   Lf_queue.push t.run_q (Thread (msg, fun () -> Suspended.discontinue k ex));
-  Dispatch.async t.async t.async_run
+  if Atomic.get t.need_wakeup then wakeup t
+
+module Low_level = struct
+  (* A read can call the callback multiple times with more and more chunks of
+     data -- here we concatenate them and only once the read is finished reading
+     do we enqueue thread. *)
+     let read ~off ~length fd io_queue (buf : Buffer.t) =
+      let read = ref 0 in
+      enter (fun t k ->
+        Dispatch.Group.enter t.pending_io;
+        Fiber_context.set_cancel_fn k.fiber (fun _ -> 
+          Dispatch.Group.leave t.pending_io; 
+          enqueue_failed_thread ~msg:"cancelled" t k (Eio.Cancel.Cancelled Exit)
+        );
+        Dispatch.Io.with_read ~off ~length ~queue:io_queue fd ~f:(fun ~err ~finished r ->
+          let size = Dispatch.Data.size r in
+          if err = 0 && finished then begin
+            if size = 0 then begin
+              if Fiber_context.clear_cancel_fn k.fiber then begin
+                Dispatch.Group.leave t.pending_io;
+                enqueue_thread ~msg:"read of zero" t k !read
+              end
+            end
+            else (
+              read := !read + size;
+              buf := Dispatch.Data.concat r !buf;
+              if Fiber_context.clear_cancel_fn k.fiber then begin
+                Dispatch.Group.leave t.pending_io;
+                enqueue_thread ~msg:"read not zero" t k !read
+              end
+            )
+          end
+          else if err <> 0 then begin
+            if Fiber_context.clear_cancel_fn k.fiber then
+            enqueue_failed_thread ~msg:"failed read" t k (Failure "Read failed")
+          end
+          else begin
+            read := !read + size;
+            buf := Dispatch.Data.concat r !buf
+          end
+        )
+      )
+
+   let write fd io_queue (bufs : Buffer.t) =
+    enter (fun t k ->
+        Dispatch.Group.enter t.pending_io;
+        Dispatch.Io.with_write ~off:0 ~data:(!bufs) ~queue:io_queue fd ~f:(fun ~err ~finished _remaining ->
+            if err <> 0 then begin
+              Dispatch.Group.leave t.pending_io;
+              enqueue_failed_thread ~msg:"failed write" t k (Failure "Write failed") 
+            end else 
+            if finished then begin
+              Dispatch.Group.leave t.pending_io;
+              enqueue_thread ~msg:"write finished" t k ()
+            end
+            else ()
+          )
+      )
+end
 
  module File = struct
    type t = {
@@ -165,52 +215,8 @@ let enqueue_failed_thread ~msg t k ex =
      | Ok parent -> create Filename.(concat parent path)
      | Error _ as e -> e
 
-   (* A read can call the callback multiple times with more and more chunks of
-     data -- here we concatenate them and only once the read is finished reading
-     do we enqueue thread. *)
-    let read ~off ~length fd (buf : Buffer.t) =
-      let read = ref 0 in
-      enter (fun t k ->
-        Dispatch.Io.with_read ~off ~length ~queue:(Lazy.force io_queue) (get "with_read" fd) ~f:(fun ~err ~finished r ->
-          let size = Dispatch.Data.size r in
-          if err = 0 && finished then begin
-            if size = 0 then begin
-              enqueue_thread ~msg:"read of zero" t k !read
-            end
-            else (
-              read := !read + size;
-              buf := Dispatch.Data.concat r !buf;
-              enqueue_thread ~msg:"read not zero" t k !read
-            )
-          end
-          else if err <> 0 then enqueue_failed_thread ~msg:"failed read" t k (Failure "Read failed")
-          else begin
-            read := !read + size;
-            buf := Dispatch.Data.concat r !buf
-          end
-        )
-      )
-
-   let write fd (bufs : Buffer.t) =
-    enter (fun t k ->
-        Dispatch.Io.with_write ~off:0 ~data:(!bufs) ~queue:(Lazy.force io_queue) (get "with_write" fd) ~f:(fun ~err ~finished _remaining ->
-            if err <> 0 then enqueue_failed_thread ~msg:"failed write" t k (Failure "Write failed") else 
-            if finished then enqueue_thread ~msg:"write finished" t k ()
-            else ()
-          )
-      )
-
-  (* TODO: This isn't write and segfaults! *)
-  let _fast_copy src dst =
-    let data = Buffer.empty () in
-    let off = ref 0 in
-    try
-      while true do
-        let got = read ~off:!off ~length:max_int src data in
-        off := !off + got;
-        write dst data
-      done
-    with End_of_file -> ()
+  let read ~off ~length io_queue fd = Low_level.read ~off ~length (get "with_read" fd) io_queue
+  let write io_queue fd = Low_level.write (get "with_read" fd) io_queue
  end
 
  module Conn = struct
@@ -464,6 +470,8 @@ let flow fd = object (_ : <source; sink; ..>)
   method close = File.close fd
   method unix_fd op = File.to_unix op fd
 
+  val io_queue = Dispatch.Queue.create ()
+
   method probe : type a. a Eio.Generic.ty -> a option = function
     | FD -> Some fd
     | Eio_unix.Private.Unix_file_descr op -> Some (File.to_unix op fd)
@@ -471,7 +479,7 @@ let flow fd = object (_ : <source; sink; ..>)
 
   method read_into buff =
     let data = Buffer.empty () in
-    let res = File.read ~off:0 ~length:(buff.len) fd data in
+    let res = File.read ~off:0 ~length:(buff.len) io_queue fd data in
     let cs = Cstruct.of_bigarray @@ Dispatch.Data.to_buff ~offset:0 res !data in
     Cstruct.blit cs 0 buff 0 res;
     match res with
@@ -498,7 +506,7 @@ let flow fd = object (_ : <source; sink; ..>)
         while true do
           let got = Eio.Flow.single_read src chunk in
           let chunk = Cstruct.sub chunk 0 got in
-          File.write fd (ref @@ Dispatch.Data.create (Cstruct.to_bigarray chunk))
+          File.write io_queue fd (ref @@ Dispatch.Data.create (Cstruct.to_bigarray chunk))
         done
       with End_of_file -> ()
 end
@@ -665,15 +673,25 @@ let clock = object
   method sleep_until due =
     let delay = 1_000_000_000. *. (due -. Unix.gettimeofday ()) |> ceil |> Int64.of_float |> Int64.max 0L in
     enter @@ fun t k ->
-    (* TODO: Dispatch work items are cancellable! *)
+    Dispatch.Group.enter t.pending_io;
+    (* TODO: Dispatch work items are properly cancellable! *)
     Fiber_context.set_cancel_fn k.fiber (fun ex ->
-      (* Luv.Handle.close timer (fun () -> ()); *)
+      Dispatch.Group.leave t.pending_io;
       enqueue_failed_thread ~msg:"Timeout stopped!" t k ex
     );
     Dispatch.after ~delay queue (fun () -> 
       match Fiber_context.get_error k.fiber with
-      | None -> enqueue_thread ~msg:"Sleepy" t k ()
-      | Some _ -> ())
+      | None -> 
+        if Fiber_context.clear_cancel_fn k.fiber then begin 
+          Dispatch.Group.leave t.pending_io;
+          enqueue_thread ~msg:"Sleepy" t k ()
+        end
+      | Some exn ->
+        if Fiber_context.clear_cancel_fn k.fiber then begin
+          Dispatch.Group.leave t.pending_io;
+          enqueue_failed_thread ~msg:"Timeout stopped!" t k exn
+        end
+      )
 end
 
 type stdenv = <
@@ -708,42 +726,78 @@ let stdenv =
     method domain_mgr = failwith "Domain Manager unimplemented"
   end
 
-let rec wakeup ~async ~io_queued run_q =
-  (* Eio.traceln "HERE!"; *)
-  match Lf_queue.pop run_q with
+let io_finished t =
+  match Dispatch.(Group.wait t.pending_io (Time.now ())) with 
+  | Pending -> false
+  | Ready -> true
+
+(* This is a mix of the uring-based linux scheduler and the
+   luv-based scheduler. *)
+
+let rec schedule st : [ `Exit_scheduler ] =
+  match Lf_queue.pop st.run_q with
   | Some (Thread (_msg, f)) ->
     (* Eio.traceln "Scheduler: %s" msg; *)
-    if not !io_queued then (
-      Lf_queue.push run_q IO;
-      io_queued := true;
-    );
-    f ();
-    wakeup ~async ~io_queued run_q
+    f ()
   | Some IO ->
     (* If threads keep yielding they could prevent pending IO from being processed.
        Therefore, we keep an [IO] job on the queue to force us to check from time to time. *)
-    io_queued := false;
-    if not (Lf_queue.is_empty run_q) then
-      Dispatch.async async (fun () -> wakeup ~async ~io_queued run_q)
-  | None ->
-    ()
+    if not (Lf_queue.is_empty st.run_q) then (
+      Lf_queue.push st.run_q IO;
+      schedule st
+    ) else (
+      Atomic.set st.need_wakeup true;
+      if not (io_finished st) && Lf_queue.is_empty st.run_q then (
+        Atomic.set st.need_wakeup false;
+        Lf_queue.push st.run_q IO;
+        schedule st
+      ) else if io_finished st then (
+        `Exit_scheduler
+      )
+        else (
+         Atomic.set st.need_wakeup false;
+         Lf_queue.push st.run_q IO;
+         schedule st
+      )
+    )
+  | None -> assert false
 
 let enqueue_at_head t k v =
-  Lf_queue.push_head t.run_q (Thread ("FORK", fun () -> Suspended.continue k v));
-  Dispatch.async t.async t.async_run
+  Lf_queue.push_head t.run_q (Thread ("fork", fun () -> Suspended.continue k v));
+  if Atomic.get t.need_wakeup then wakeup t
+
+let monitor_event_fd t =
+  let buf = ref (Dispatch.Data.empty ()) in
+  while true do
+    let got = Low_level.read ~off:0 ~length:8 t.eventfd.r t.async buf in
+    Log.debug (fun f -> f "Received wakeup on eventfd");
+    assert (got = 8);
+    (* We just go back to sleep now, but this will cause the scheduler to look
+        at the run queue again and notice any new items. *)
+  done;
+  assert false
 
 let run : type a. (_ -> a) -> a = fun main ->
   let open Eio.Private in
   Log.debug (fun l -> l "starting run");
   let run_q = Lf_queue.create () in
-  let io_queued = ref false in
+  Lf_queue.push run_q IO;
+  let pending_io = Dispatch.Group.create () in
   let async = Dispatch.Queue.create () in
-  let st = { async; async_run = (fun () -> wakeup ~async ~io_queued run_q); run_q } in
+  let eventfd =
+    let r, w = Unix.pipe () in
+    { 
+      r = Dispatch.Io.(create Stream Fd.(of_unix r) async);
+      w = Dispatch.Io.(create Stream Fd.(of_unix w) async)
+    }
+  in
+  let need_wakeup = Atomic.make false in
+  let st = { async; pending_io; eventfd; run_q; need_wakeup } in
   let rec fork ~new_fiber:fiber fn =
     Ctf.note_switch (Fiber_context.tid fiber);
     let open Effect.Deep in
     match_with fn ()
-    { retc = (fun () -> Fiber_context.destroy fiber);
+    { retc = (fun () -> Fiber_context.destroy fiber; schedule st );
       exnc = (fun e -> Fiber_context.destroy fiber; raise e);
       effc = fun (type a) (e : a Effect.t) ->
         match e with
@@ -757,13 +811,19 @@ let run : type a. (_ -> a) -> a = fun main ->
         | Enter fn -> Some (fun k ->
             match Fiber_context.get_error fiber with
             | Some e -> discontinue k e
-            | None -> fn st { Suspended.k; fiber }
+            | None -> (
+              fn st { Suspended.k; fiber };
+              schedule st
+            ) 
           )
         | Eio.Private.Effects.Suspend fn ->
           Some (fun k ->
-              (* Eio.traceln "suspended"; *)
               let k = { Suspended.k; fiber } in
-              fn fiber (enqueue_result_thread ~msg:"suspend" st k)
+              fn fiber (function
+              | Ok v -> enqueue_thread ~msg:"suspend" st k v
+              | Error ex -> enqueue_failed_thread ~msg:"suspend" st k ex
+              );
+              schedule st
             )
         | Eio_unix.Private.Pipe _ -> Some (fun k ->
             discontinue k (Failure "Pipes not supported by GCD backend yet")
@@ -774,21 +834,27 @@ let run : type a. (_ -> a) -> a = fun main ->
         | _ -> None
     }
   in
-  let main_status = ref `Running in
-  let new_fiber = Fiber_context.make_root () in
+  let result = ref None in
   let finished = Dispatch.Group.create () in
-  fork ~new_fiber (fun () ->
-      Dispatch.Group.enter finished;
-      begin match main stdenv with
-        | v -> main_status := `Done v
-        | exception ex -> main_status := `Ex (ex, Printexc.get_raw_backtrace ())
-      end;
-      Dispatch.Group.leave finished
-    );
+  let `Exit_scheduler =
+    let new_fiber = Fiber_context.make_root () in
+    Dispatch.Group.enter finished;
+    fork ~new_fiber (fun () ->
+        Switch.run_protected (fun sw ->
+            Switch.on_release sw (fun () ->
+                (* TODO *)()
+              );
+            Log.debug (fun f -> f "Monitoring dispatch async queue");
+            result := Some (
+                Fiber.first
+                  (fun () -> main stdenv)
+                  (fun () -> monitor_event_fd st)
+              );
+            Dispatch.Group.leave finished
+          )
+      )
+  in
   let _ = Dispatch.Group.wait finished (Dispatch.Time.dispatch_forever ()) in
   (* Can't do this yet because cancellation isn't implemented everywhere *)
   (* Lf_queue.close st.run_q; *)
-  match !main_status with
-  | `Done v -> v
-  | `Ex (ex, bt) -> Printexc.raise_with_backtrace ex bt
-  | `Running -> failwith "Deadlock detected: no events scheduled but main function hasn't returned"
+  Option.get !result

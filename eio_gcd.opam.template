@@ -1,4 +1,4 @@
 pin-depends: [
-  ["gcd.dev" "git+https://github.com/patricoferris/ocaml-dispatch#8ee88d97274a5ca2833babfb6ef4a9abfb83f0e7"]
+  ["gcd.dev" "git+https://github.com/patricoferris/ocaml-dispatch#3df9df0422d0384ce70485686791f3dc8f2e67e5"]
   ["network.dev" "git+https://github.com/patricoferris/ocaml-network#414ce7620f247b5e8796793c27fdf9d62cc6b662"]
 ]
