@@ -694,6 +694,24 @@ let clock = object
       )
 end
 
+let domain_mgr ~run_event_loop = object (self)
+  inherit Eio.Domain_manager.t
+
+  method run_raw fn =
+    let domain = ref None in
+    enter (fun t k ->
+        domain := Some (Domain.spawn (fun () -> Fun.protect fn ~finally:(fun () -> enqueue_thread ~msg:"domain run raw" t k ())))
+      );
+    Domain.join (Option.get !domain)
+
+  method run fn =
+    self#run_raw (fun () ->
+        let result = ref None in
+        run_event_loop (fun _ -> result := Some (fn ()));
+        Option.get !result
+      )
+end
+
 type stdenv = <
   stdin  : source;
   stdout : sink;
@@ -708,7 +726,7 @@ type stdenv = <
   domain_mgr : Eio.Domain_manager.t;
 >
 
-let stdenv =
+let stdenv ~run_event_loop =
   let stdin = lazy (source (File.of_gcd_no_hook @@ Dispatch.Io.(create Stream Fd.stdin (Lazy.force File.io_queue)))) in
   let stdout = lazy (sink (File.of_gcd_no_hook @@ Dispatch.Io.(create Stream Fd.stdout (Lazy.force File.io_queue)))) in
   let stderr = lazy (sink (File.of_gcd_no_hook @@ Dispatch.Io.(create Stream Fd.stderr (Lazy.force File.io_queue)))) in
@@ -723,7 +741,7 @@ let stdenv =
     method clock = clock
     method mono_clock = failwith "Mono unimplemented"
     method debug = Eio.Private.Debug.v
-    method domain_mgr = failwith "Domain Manager unimplemented"
+    method domain_mgr = domain_mgr ~run_event_loop
   end
 
 let io_finished t =
@@ -777,7 +795,7 @@ let monitor_event_fd t =
   done;
   assert false
 
-let run : type a. (_ -> a) -> a = fun main ->
+let rec run : type a. (_ -> a) -> a = fun main ->
   let open Eio.Private in
   Log.debug (fun l -> l "starting run");
   let run_q = Lf_queue.create () in
@@ -847,7 +865,7 @@ let run : type a. (_ -> a) -> a = fun main ->
             Log.debug (fun f -> f "Monitoring dispatch async queue");
             result := Some (
                 Fiber.first
-                  (fun () -> main stdenv)
+                  (fun () -> main (stdenv ~run_event_loop:run))
                   (fun () -> monitor_event_fd st)
               );
             Dispatch.Group.leave finished
