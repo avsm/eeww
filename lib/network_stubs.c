@@ -33,6 +33,20 @@ value error_to_value(nw_error_t error) {
   return Val_int(0);
 }
 
+value *network_make_callback(value v_fun)
+{
+  value *m_fun = (value *)caml_stat_alloc(sizeof(v_fun));
+  *m_fun = v_fun;
+  caml_register_generational_global_root(&(*m_fun));
+  return m_fun;
+}
+
+void network_free_callback(value *v_fun)
+{
+  caml_remove_generational_global_root(&(*v_fun));
+  caml_stat_free(v_fun);
+}
+
 // ~~~Endpoints~~~
 static struct custom_operations endpoint_ops = {
     "network.endpoint",
@@ -157,12 +171,16 @@ value state_to_value(nw_connection_state_t state) {
 
 value ocaml_network_connection_set_state_changed_handler(value v_handler, value v_connection) {
   CAMLparam1(v_connection);
+
+  // Need to free!
+  value *m_handler = network_make_callback(v_handler);
+
   nw_connection_set_state_changed_handler(Connection_val(v_connection), ^(nw_connection_state_t state, nw_error_t error) {
     int res = caml_c_thread_register();
     if (res)
       caml_acquire_runtime_system();
 
-    caml_callback2(v_handler, state_to_value(state), error_to_value(error));
+    caml_callback2(*m_handler, state_to_value(state), error_to_value(error));
 
     if (res)
     {
@@ -177,6 +195,9 @@ value ocaml_network_connection_set_state_changed_handler(value v_handler, value 
 value ocaml_network_connection_receive(value v_min, value v_max, value v_comp, value v_conn) {
   CAMLparam4(v_min, v_max, v_comp, v_conn);
   // TODO: contrain to 32bit int
+
+  value *m_comp = network_make_callback(v_comp);
+
   nw_connection_receive(Connection_val(v_conn), 1, Int_val(v_max), 
     ^(dispatch_data_t data, nw_content_context_t context, bool is_complete, nw_error_t receive_error) {
       int res = caml_c_thread_register();
@@ -200,7 +221,8 @@ value ocaml_network_connection_receive(value v_min, value v_max, value v_comp, v
       args[1] = Val_unit; // TODO: Pass context
       args[2] = Val_bool(is_complete);
       args[3] = error_to_value(receive_error);
-      caml_callbackN(v_comp, 4, args);
+      caml_callbackN(*m_comp, 4, args);
+      network_free_callback(m_comp);
       
       if (res)
       {
@@ -222,6 +244,8 @@ nw_content_context_t content_context_of_value(value v_int) {
 value ocaml_network_connection_send(value v_d, value v_ctx, value v_bool, value v_comp, value v_conn) {
   CAMLparam5(v_d, v_ctx, v_bool, v_comp, v_conn);
   dispatch_data_t data;
+
+  value *m_comp = network_make_callback(v_comp);
   
   // Important for being able to send a write close.
   if (Is_some(v_d)) {
@@ -229,13 +253,16 @@ value ocaml_network_connection_send(value v_d, value v_ctx, value v_bool, value 
   } else {
     data = NULL;
   }
+
   nw_connection_send(Connection_val(v_conn), data, content_context_of_value(v_ctx), Bool_val(v_bool),
     ^(nw_error_t receive_error) {
       int res = caml_c_thread_register();
       if (res)
         caml_acquire_runtime_system();
 
-      caml_callback(v_comp, error_to_value(receive_error)); // pass err
+      caml_callback(*m_comp, error_to_value(receive_error)); // pass err
+      network_free_callback(m_comp);
+
       if (res)
       {
         caml_release_runtime_system();
@@ -338,12 +365,16 @@ value listener_state_to_value(nw_listener_state_t state) {
 
 value ocaml_network_listener_set_state_changed_handler(value v_handler, value v_listener) {
   CAMLparam2(v_handler, v_listener);
+
+  // Went to free? Tied to the lifetime of the listener.
+  value *m_handler = network_make_callback(v_handler);
+
   nw_listener_set_state_changed_handler(Listener_val(v_listener), ^(nw_listener_state_t state, nw_error_t error) {
     int res = caml_c_thread_register();
     if (res)
       caml_acquire_runtime_system();
 
-    caml_callback2(v_handler, listener_state_to_value(state), error_to_value(error));
+    caml_callback2(*m_handler, listener_state_to_value(state), error_to_value(error));
 
     if (res)
     {
@@ -352,11 +383,16 @@ value ocaml_network_listener_set_state_changed_handler(value v_handler, value v_
     }
     return;
   });
+
   CAMLreturn(Val_unit);
 }
 
 value ocaml_network_listener_set_new_connection_handler(value v_handler, value v_listener) {
   CAMLparam2(v_handler, v_listener);
+  
+  // Went to free?
+  value *m_handler = network_make_callback(v_handler);
+
   nw_listener_set_new_connection_handler(Listener_val(v_listener), ^(nw_connection_t connection) {
     int res = caml_c_thread_register();
     if (res)
@@ -365,7 +401,7 @@ value ocaml_network_listener_set_new_connection_handler(value v_handler, value v
     CAMLlocal1(v_connection);
     v_connection = caml_alloc_custom(&connection_ops, sizeof(nw_connection_t), 0, 1);
     Connection_val(v_connection) = connection;
-    caml_callback_exn(v_handler, v_connection);
+    caml_callback_exn(*m_handler, v_connection);
 
     if (res)
     {
