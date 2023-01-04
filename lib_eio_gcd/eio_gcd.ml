@@ -69,9 +69,13 @@ let wake_buffer =
   Bytes.set_int64_ne b 0 1L;
   b
 
+let option_get ~msg = function
+  | Some v -> v
+  | None -> failwith ("Option is None: " ^ msg)
+
 let wakeup t =
   Atomic.set t.need_wakeup false; (* [t] will check [run_q] after getting the event below *)
-  let sent = Unix.single_write (Dispatch.Io.get_unix t.eventfd.w |> Option.get) wake_buffer 0 8 in
+  let sent = Unix.single_write (Dispatch.Io.get_unix t.eventfd.w |> option_get ~msg:"wakeup write") wake_buffer 0 8 in
   assert (sent = 8)
 
 let enqueue_thread ~msg t k v =
@@ -91,30 +95,32 @@ module Low_level = struct
       enter (fun t k ->
         Dispatch.Group.enter t.pending_io;
         Fiber_context.set_cancel_fn k.fiber (fun _ -> 
-          Dispatch.Group.leave t.pending_io; 
-          enqueue_failed_thread ~msg:"cancelled" t k (Eio.Cancel.Cancelled Exit)
+          enqueue_failed_thread ~msg:"cancelled" t k (Eio.Cancel.Cancelled Exit);
+          Dispatch.Group.leave t.pending_io
         );
         Dispatch.Io.with_read ~off ~length ~queue:io_queue fd ~f:(fun ~err ~finished r ->
           let size = Dispatch.Data.size r in
           if err = 0 && finished then begin
             if size = 0 then begin
               if Fiber_context.clear_cancel_fn k.fiber then begin
-                Dispatch.Group.leave t.pending_io;
-                enqueue_thread ~msg:"read of zero" t k !read
+                enqueue_thread ~msg:"read of zero" t k !read;
+                Dispatch.Group.leave t.pending_io
               end
             end
             else (
               read := !read + size;
               buf := Dispatch.Data.concat r !buf;
               if Fiber_context.clear_cancel_fn k.fiber then begin
-                Dispatch.Group.leave t.pending_io;
-                enqueue_thread ~msg:"read not zero" t k !read
+                enqueue_thread ~msg:("read not zero: " ^ string_of_int size) t k !read;
+                Dispatch.Group.leave t.pending_io
               end
             )
           end
           else if err <> 0 then begin
-            if Fiber_context.clear_cancel_fn k.fiber then
-            enqueue_failed_thread ~msg:"failed read" t k (Failure "Read failed")
+            if Fiber_context.clear_cancel_fn k.fiber then begin
+              enqueue_failed_thread ~msg:"failed read" t k (Failure "Read failed");
+              Dispatch.Group.leave t.pending_io
+            end
           end
           else begin
             read := !read + size;
@@ -128,12 +134,12 @@ module Low_level = struct
         Dispatch.Group.enter t.pending_io;
         Dispatch.Io.with_write ~off:0 ~data:(!bufs) ~queue:io_queue fd ~f:(fun ~err ~finished _remaining ->
             if err <> 0 then begin
-              Dispatch.Group.leave t.pending_io;
-              enqueue_failed_thread ~msg:"failed write" t k (Failure "Write failed") 
+              enqueue_failed_thread ~msg:"failed write" t k (Failure "Write failed");
+              Dispatch.Group.leave t.pending_io
             end else 
             if finished then begin
-              Dispatch.Group.leave t.pending_io;
-              enqueue_thread ~msg:"write finished" t k ()
+              enqueue_thread ~msg:"write finished" t k ();
+              Dispatch.Group.leave t.pending_io
             end
             else ()
           )
@@ -176,7 +182,7 @@ end
 
     let to_unix op t =
       let io_channel = get "to_unix" t in
-      let fd = Dispatch.Io.get_unix io_channel |> Option.get in
+      let fd = Dispatch.Io.get_unix io_channel |> option_get ~msg:"to_unix" in
       match op with
         | `Peek -> fd
         | `Take ->
@@ -222,9 +228,12 @@ end
  module Conn = struct
     let receive ?(max=max_int) (conn : Network.Connection.t) buf =
       let r = enter (fun t k ->
+        Dispatch.Group.enter t.pending_io;
         Network.Connection.receive ~min:0 ~max conn ~completion:(fun data _context is_complete err ->
           match data with
-            | None -> enqueue_thread ~msg:"recv no data" t k (Ok (0, true))
+            | None -> 
+              enqueue_thread ~msg:"recv no data" t k (Ok (0, true));
+              Dispatch.Group.leave t.pending_io
             | Some data ->
               let err_code = Network.Error.to_int err in
               let res =
@@ -234,7 +243,8 @@ end
                   Ok (size, is_complete)
                   end else Error (`Msg (string_of_int err_code))
                 in
-              enqueue_thread ~msg:"recv data" t k res
+              enqueue_thread ~msg:"recv data" t k res;
+              Dispatch.Group.leave t.pending_io
         )
       ) in match r with
       | Ok (0, true) -> raise End_of_file
@@ -244,10 +254,15 @@ end
 
     let send (conn : Network.Connection.t) buf =
       enter (fun t k ->
+        Dispatch.Group.enter t.pending_io;
         Network.Connection.send ~is_complete:true ~context:Default conn ~data:(!buf) ~completion:(fun e ->
           match Network.Error.to_int e with
-          | 0 -> enqueue_thread ~msg:"send none" t k (Ok ())
-          | i -> enqueue_thread ~msg:"send err" t k (Error (`Msg (string_of_int i)))
+          | 0 -> 
+            enqueue_thread ~msg:"send none" t k (Ok ());
+            Dispatch.Group.leave t.pending_io
+          | i ->
+            enqueue_thread ~msg:"send err" t k (Error (`Msg (string_of_int i)));
+            Dispatch.Group.leave t.pending_io
         )
       )
 
@@ -324,8 +339,10 @@ class virtual ['a] listening_socket ~backlog:_ net_queue sock = object (self)
 
   method accept ~sw =
     Eio.Semaphore.acquire connected;
-    Switch.on_release sw (fun () -> (* TODO *) ());
-    let (conn, sockaddr) = Option.get conn_sock in
+    let (conn, sockaddr) = option_get ~msg:"connection sock" conn_sock in
+    Switch.on_release sw (fun () ->
+      Network.Connection.cancel conn
+    );
     (socket conn), sockaddr
 
   initializer
@@ -337,15 +354,15 @@ class virtual ['a] listening_socket ~backlog:_ net_queue sock = object (self)
         | _, Invalid -> Logs.debug (fun f -> f "Listener changed to invalid state")
         | _, Waiting ->Logs.debug (fun f -> f "Listener is waiting...")
         | _, Cancelled -> Logs.debug (fun f -> f "Listener is cancelled")
-  in
-   let conn_handler conn =
-    Eio.Semaphore.release connected;
-    Network.Connection.retain conn;
-    Network.Connection.set_queue ~queue:net_queue conn;
-    Network.Connection.start conn;
-    let endpoint = Network.Connection.copy_endpoint conn in
-    let sockaddr = self#get_endpoint_addr endpoint in
-    conn_sock <- Some (conn, sockaddr)
+    in
+    let conn_handler conn =
+      Network.Connection.retain conn;
+      Network.Connection.set_queue ~queue:net_queue conn;
+      Network.Connection.start conn;
+      let endpoint = Network.Connection.copy_endpoint conn in
+      let sockaddr = self#get_endpoint_addr endpoint in
+      conn_sock <- Some (conn, sockaddr);
+      Eio.Semaphore.release connected
     in
       Logs.debug (fun f -> f "Initialising socket");
       Network.Listener.set_state_changed_handler ~handler sock;
@@ -358,7 +375,7 @@ end
     inherit [[ `TCP ]] listening_socket ~backlog net_queue sock
 
     method private get_endpoint_addr e =
-      match Option.get @@ Network.Endpoint.get_address e with
+      match option_get ~msg:"endpoint address" @@ Network.Endpoint.get_address e with
         | Unix.ADDR_UNIX path         -> `Unix path
         | Unix.ADDR_INET (host, port) -> `Tcp (Eio_unix.Ipaddr.of_unix host, port) (* TODO: Remove unix *)
     end
@@ -676,20 +693,20 @@ let clock = object
     Dispatch.Group.enter t.pending_io;
     (* TODO: Dispatch work items are properly cancellable! *)
     Fiber_context.set_cancel_fn k.fiber (fun ex ->
-      Dispatch.Group.leave t.pending_io;
-      enqueue_failed_thread ~msg:"Timeout stopped!" t k ex
+      enqueue_failed_thread ~msg:"Timeout stopped!" t k ex;
+      Dispatch.Group.leave t.pending_io
     );
     Dispatch.after ~delay queue (fun () -> 
       match Fiber_context.get_error k.fiber with
       | None -> 
         if Fiber_context.clear_cancel_fn k.fiber then begin 
-          Dispatch.Group.leave t.pending_io;
-          enqueue_thread ~msg:"Sleepy" t k ()
+          enqueue_thread ~msg:"Sleepy" t k ();
+          Dispatch.Group.leave t.pending_io
         end
       | Some exn ->
         if Fiber_context.clear_cancel_fn k.fiber then begin
-          Dispatch.Group.leave t.pending_io;
-          enqueue_failed_thread ~msg:"Timeout stopped!" t k exn
+          enqueue_failed_thread ~msg:"Timeout stopped!" t k exn;
+          Dispatch.Group.leave t.pending_io
         end
       )
 end
@@ -764,12 +781,14 @@ let rec schedule st : [ `Exit_scheduler ] =
       Lf_queue.push st.run_q IO;
       schedule st
     ) else (
+      let finished = io_finished st in
       Atomic.set st.need_wakeup true;
-      if not (io_finished st) && Lf_queue.is_empty st.run_q then (
+      if not finished && Lf_queue.is_empty st.run_q then (
         Atomic.set st.need_wakeup false;
         Lf_queue.push st.run_q IO;
         schedule st
-      ) else if io_finished st then (
+      ) else if finished then (
+        Atomic.set st.need_wakeup false;
         `Exit_scheduler
       )
         else (
@@ -875,4 +894,4 @@ let rec run : type a. (_ -> a) -> a = fun main ->
   let _ = Dispatch.Group.wait finished (Dispatch.Time.dispatch_forever ()) in
   (* Can't do this yet because cancellation isn't implemented everywhere *)
   (* Lf_queue.close st.run_q; *)
-  Option.get !result
+  option_get ~msg:"end result" !result
