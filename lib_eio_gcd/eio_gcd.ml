@@ -15,19 +15,19 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *)
 
- let src = Logs.Src.create "eio_gcd" ~doc:"Eio backend using gcd and luv"
- module Log = (val Logs.src_log src : Logs.LOG)
+let src = Logs.Src.create "eio_gcd" ~doc:"Eio backend using gcd and luv"
+module Log = (val Logs.src_log src : Logs.LOG)
 
- open Eio.Std
- open Eio.Private
- open Eio_utils
+open Eio.Std
+open Eio.Private
+open Eio_utils
 
- module Ctf = Eio.Private.Ctf
+module Ctf = Eio.Private.Ctf
 
- (* SIGPIPE makes no sense in a modern application. *)
- let () = Sys.(set_signal sigpipe Signal_ignore)
+(* SIGPIPE makes no sense in a modern application. *)
+let () = Sys.(set_signal sigpipe Signal_ignore)
 
- module Buffer = struct
+module Buffer = struct
   type t = Dispatch.Data.t ref
   let empty () = ref @@ Dispatch.Data.empty ()
 
@@ -40,7 +40,7 @@
   let _to_string buff =
     let buff = !buff in
     Cstruct.(to_string @@ of_bigarray @@ (Dispatch.Data.to_buff ~offset:0 (Dispatch.Data.size buff) buff))
- end
+end
 
 type runnable =
   | IO
@@ -87,56 +87,80 @@ let enqueue_failed_thread ~msg t k ex =
   if Atomic.get t.need_wakeup then wakeup t
 
 module Low_level = struct
+
+  let sleep_until ~queue due =
+    let delay = 1_000_000_000. *. (due -. Unix.gettimeofday ()) |> ceil |> Int64.of_float |> Int64.max 0L in
+    enter @@ fun t k ->
+    Dispatch.Group.enter t.pending_io;
+    (* TODO: Dispatch work items are properly cancellable! *)
+    Fiber_context.set_cancel_fn k.fiber (fun ex ->
+        enqueue_failed_thread ~msg:"Timeout stopped!" t k ex;
+        Dispatch.Group.leave t.pending_io
+      );
+    Dispatch.after ~delay queue (fun () ->
+        match Fiber_context.get_error k.fiber with
+        | None ->
+          if Fiber_context.clear_cancel_fn k.fiber then begin
+            enqueue_thread ~msg:"Sleepy" t k ();
+            Dispatch.Group.leave t.pending_io
+          end
+        | Some exn ->
+          if Fiber_context.clear_cancel_fn k.fiber then begin
+            enqueue_failed_thread ~msg:"Timeout stopped!" t k exn;
+            Dispatch.Group.leave t.pending_io
+          end
+      )
+
   (* A read can call the callback multiple times with more and more chunks of
      data -- here we concatenate them and only once the read is finished reading
      do we enqueue thread. *)
-     let read ~off ~length fd io_queue (buf : Buffer.t) =
-      let read = ref 0 in
-      enter (fun t k ->
+  let read ~off ~length fd io_queue (buf : Buffer.t) =
+    let read = ref 0 in
+    enter (fun t k ->
         Dispatch.Group.enter t.pending_io;
-        Fiber_context.set_cancel_fn k.fiber (fun _ -> 
-          enqueue_failed_thread ~msg:"cancelled" t k (Eio.Cancel.Cancelled Exit);
-          Dispatch.Group.leave t.pending_io
-        );
+        Fiber_context.set_cancel_fn k.fiber (fun _ ->
+            enqueue_failed_thread ~msg:"cancelled" t k (Eio.Cancel.Cancelled Exit);
+            Dispatch.Group.leave t.pending_io
+          );
         Dispatch.Io.with_read ~off ~length ~queue:io_queue fd ~f:(fun ~err ~finished r ->
-          let size = Dispatch.Data.size r in
-          if err = 0 && finished then begin
-            if size = 0 then begin
+            let size = Dispatch.Data.size r in
+            if err = 0 && finished then begin
+              if size = 0 then begin
+                if Fiber_context.clear_cancel_fn k.fiber then begin
+                  enqueue_thread ~msg:"read of zero" t k !read;
+                  Dispatch.Group.leave t.pending_io
+                end
+              end
+              else (
+                read := !read + size;
+                buf := Dispatch.Data.concat r !buf;
+                if Fiber_context.clear_cancel_fn k.fiber then begin
+                  enqueue_thread ~msg:("read not zero: " ^ string_of_int size) t k !read;
+                  Dispatch.Group.leave t.pending_io
+                end
+              )
+            end
+            else if err <> 0 then begin
               if Fiber_context.clear_cancel_fn k.fiber then begin
-                enqueue_thread ~msg:"read of zero" t k !read;
+                enqueue_failed_thread ~msg:"failed read" t k (Failure "Read failed");
                 Dispatch.Group.leave t.pending_io
               end
             end
-            else (
+            else begin
               read := !read + size;
-              buf := Dispatch.Data.concat r !buf;
-              if Fiber_context.clear_cancel_fn k.fiber then begin
-                enqueue_thread ~msg:("read not zero: " ^ string_of_int size) t k !read;
-                Dispatch.Group.leave t.pending_io
-              end
-            )
-          end
-          else if err <> 0 then begin
-            if Fiber_context.clear_cancel_fn k.fiber then begin
-              enqueue_failed_thread ~msg:"failed read" t k (Failure "Read failed");
-              Dispatch.Group.leave t.pending_io
+              buf := Dispatch.Data.concat r !buf
             end
-          end
-          else begin
-            read := !read + size;
-            buf := Dispatch.Data.concat r !buf
-          end
-        )
+          )
       )
 
-   let write fd io_queue (bufs : Buffer.t) =
+  let write fd io_queue (bufs : Buffer.t) =
     enter (fun t k ->
         Dispatch.Group.enter t.pending_io;
         Dispatch.Io.with_write ~off:0 ~data:(!bufs) ~queue:io_queue fd ~f:(fun ~err ~finished _remaining ->
             if err <> 0 then begin
               enqueue_failed_thread ~msg:"failed write" t k (Failure "Write failed");
               Dispatch.Group.leave t.pending_io
-            end else 
+            end else
             if finished then begin
               enqueue_thread ~msg:"write finished" t k ();
               Dispatch.Group.leave t.pending_io
@@ -146,94 +170,101 @@ module Low_level = struct
       )
 end
 
- module File = struct
-   type t = {
-     mutable release_hook : Eio.Switch.hook;        (* Use this on close to remove switch's [on_release] hook. *)
-     mutable fd : [`Open of Dispatch.Io.t | `Closed]
-   }
+module File = struct
+  type t = {
+    mutable release_hook : Eio.Switch.hook;        (* Use this on close to remove switch's [on_release] hook. *)
+    mutable fd : [`Open of Dispatch.Io.t | `Closed]
+  }
 
-   let get op = function
-     | { fd = `Open fd; _ } -> fd
-     | { fd = `Closed ; _ } -> invalid_arg (op ^ ": file descriptor used after calling close!")
+  let get op = function
+    | { fd = `Open fd; _ } -> fd
+    | { fd = `Closed ; _ } -> invalid_arg (op ^ ": file descriptor used after calling close!")
 
-   let is_open = function
-     | { fd = `Open _; _ } -> true
-     | { fd = `Closed; _ } -> false
+  let is_open = function
+    | { fd = `Open _; _ } -> true
+    | { fd = `Closed; _ } -> false
 
-   let close t =
-     Ctf.label "close";
-     let fd = get "close" t in
-     t.fd <- `Closed;
-     Eio.Switch.remove_hook t.release_hook;
-     Dispatch.Io.close fd
+  let close t =
+    Ctf.label "close";
+    let fd = get "close" t in
+    t.fd <- `Closed;
+    Eio.Switch.remove_hook t.release_hook;
+    Dispatch.Io.close fd
 
-   let ensure_closed t =
-     if is_open t then close t
+  let ensure_closed t =
+    if is_open t then close t
 
-   let _to_gcd = get "to_gcd"
+  let _to_gcd = get "to_gcd"
 
-   let of_gcd_no_hook fd =
-     { fd = `Open fd; release_hook = Eio.Switch.null_hook }
+  let of_gcd_no_hook fd =
+    { fd = `Open fd; release_hook = Eio.Switch.null_hook }
 
-   let of_gcd ~sw fd =
-     let t = of_gcd_no_hook fd in
-     t.release_hook <- Switch.on_release_cancellable sw (fun () -> ensure_closed t);
-     t
+  let of_gcd ~sw fd =
+    let t = of_gcd_no_hook fd in
+    t.release_hook <- Switch.on_release_cancellable sw (fun () -> ensure_closed t);
+    t
 
-    let to_unix op t =
-      let io_channel = get "to_unix" t in
-      let fd = Dispatch.Io.get_unix io_channel |> option_get ~msg:"to_unix" in
-      match op with
-        | `Peek -> fd
-        | `Take ->
-          t.fd <- `Closed;
-          Eio.Switch.remove_hook t.release_hook;
-          fd
-        
+  let to_unix op t =
+    let io_channel = get "to_unix" t in
+    let fd = Dispatch.Io.get_unix io_channel |> option_get ~msg:"to_unix" in
+    match op with
+    | `Peek -> fd
+    | `Take ->
+      t.fd <- `Closed;
+      Eio.Switch.remove_hook t.release_hook;
+      fd
 
-    (* Dispatch Queue
+
+  (* Dispatch Queue
      Ideally, I think, this would be [Concurrent] but then the OCaml
      runtime lock would block the thread and cause GCD to "thread explode".
 
      BUG: Something in ocaml-dispatch needs to change with the retention/allocation of
      queues, if this `lazy` is removed then this is initialised when the module is and
      sometimes causes segfaults *)
-   let io_queue = lazy Dispatch.Queue.(create ~typ:Serial ())
+  let io_queue = lazy Dispatch.Queue.(create ~typ:Serial ())
 
-   let realpath p = try Ok (Unix.realpath p) with exn -> Error exn
+  let realpath p = try Ok (Unix.realpath p) with exn -> Error exn
 
-   let mkdir ~mode p = try Ok (Unix.mkdir p mode) with exn -> Error exn
+  let mkdir ~mode p = try Ok (Unix.mkdir p mode) with exn -> Error exn
 
-   (* We use `Unix.openfile` here because dispatch tries to be clever otherwise and will not open a
-      file descriptor until the first IO operation. *)
-   let open_ ~sw ?mode path flags =
+  (* We use `Unix.openfile` here because dispatch tries to be clever otherwise and will not open a
+     file descriptor until the first IO operation. *)
+  let open_ ~sw ?mode path flags =
     let create path =
-        try
-          let fd = Unix.openfile path flags (Option.value ~default:0 mode) in
-          let io_channel = Dispatch.Io.create Stream (Dispatch.Io.Fd.of_unix fd) (Lazy.force io_queue) in
-          Ok (of_gcd ~sw io_channel)
-        with
-        | exn -> Error exn
+      try
+        let fd = Unix.openfile path flags (Option.value ~default:0 mode) in
+        let io_channel = Dispatch.Io.create Stream (Dispatch.Io.Fd.of_unix fd) (Lazy.force io_queue) in
+        Ok (of_gcd ~sw io_channel)
+      with
+      | exn -> Error exn
     in
-   match Filename.is_relative path with
-   | false -> create path
-   | true -> match realpath Filename.current_dir_name with
-     | Ok parent -> create Filename.(concat parent path)
-     | Error _ as e -> e
+    match Filename.is_relative path with
+    | false -> create path
+    | true -> match realpath Filename.current_dir_name with
+      | Ok parent -> create Filename.(concat parent path)
+      | Error _ as e -> e
 
   let read ~off ~length io_queue fd = Low_level.read ~off ~length (get "with_read" fd) io_queue
   let write io_queue fd = Low_level.write (get "with_read" fd) io_queue
- end
+end
 
- module Conn = struct
-    let receive ?(max=max_int) (conn : Network.Connection.t) buf =
-      let r = enter (fun t k ->
+module Conn = struct
+  let receive ?(max=max_int) (conn : Network.Connection.t) buf =
+    let r = enter (fun t k ->
         Dispatch.Group.enter t.pending_io;
+        Fiber_context.set_cancel_fn k.fiber (fun exn ->
+            (* Can't see any way to actually cancel the receive operation. *)
+            enqueue_failed_thread ~msg:"Failed network receive" t k exn;
+            Dispatch.Group.leave t.pending_io
+          );
         Network.Connection.receive ~min:0 ~max conn ~completion:(fun data _context is_complete err ->
-          match data with
-            | None -> 
-              enqueue_thread ~msg:"recv no data" t k (Ok (0, true));
-              Dispatch.Group.leave t.pending_io
+            match data with
+            | None ->
+              if Fiber_context.clear_cancel_fn k.fiber then begin
+                enqueue_thread ~msg:"recv no data" t k (Ok (0, true));
+                Dispatch.Group.leave t.pending_io
+              end
             | Some data ->
               let err_code = Network.Error.to_int err in
               let res =
@@ -241,34 +272,80 @@ end
                   let size = Dispatch.Data.size data in
                   Buffer.concat buf data;
                   Ok (size, is_complete)
-                  end else Error (`Msg (string_of_int err_code))
-                in
-              enqueue_thread ~msg:"recv data" t k res;
-              Dispatch.Group.leave t.pending_io
-        )
+                end else Error (`Msg (string_of_int err_code))
+              in
+              if Fiber_context.clear_cancel_fn k.fiber then begin
+                enqueue_thread ~msg:"recv data" t k res;
+                Dispatch.Group.leave t.pending_io
+              end
+          )
       ) in match r with
-      | Ok (0, true) -> raise End_of_file
-      | Ok (got, true) -> got
-      | Ok (got, false) -> got
-      | Error (`Msg e) -> failwith ("Connection receive failed with " ^ e)
+    | Ok (0, true) -> raise End_of_file
+    | Ok (got, true) -> got
+    | Ok (got, false) -> got
+    | Error (`Msg e) -> failwith ("Connection receive failed with " ^ e)
 
-    let send (conn : Network.Connection.t) buf =
-      enter (fun t k ->
+  let _receive_message (conn : Network.Connection.t) buf =
+    let r = enter (fun t k ->
         Dispatch.Group.enter t.pending_io;
-        Network.Connection.send ~is_complete:true ~context:Default conn ~data:(!buf) ~completion:(fun e ->
-          match Network.Error.to_int e with
-          | 0 -> 
-            enqueue_thread ~msg:"send none" t k (Ok ());
+        Fiber_context.set_cancel_fn k.fiber (fun exn ->
+            (* Can't see any way to actually cancel the receive operation. *)
+            enqueue_failed_thread ~msg:"Failed network receive" t k exn;
             Dispatch.Group.leave t.pending_io
-          | i ->
-            enqueue_thread ~msg:"send err" t k (Error (`Msg (string_of_int i)));
+          );
+        Network.Connection.receive_message conn ~completion:(fun data _context is_complete err ->
+            match data with
+            | None ->
+              if Fiber_context.clear_cancel_fn k.fiber then begin
+                enqueue_thread ~msg:"recv no data" t k (Ok (0, true));
+                Dispatch.Group.leave t.pending_io
+              end
+            | Some data ->
+              let err_code = Network.Error.to_int err in
+              let res =
+                if err_code = 0 then begin
+                  let size = Dispatch.Data.size data in
+                  Buffer.concat buf data;
+                  Ok (size, is_complete)
+                end else Error (`Msg (string_of_int err_code))
+              in
+              if Fiber_context.clear_cancel_fn k.fiber then begin
+                enqueue_thread ~msg:"recv data" t k res;
+                Dispatch.Group.leave t.pending_io
+              end
+          )
+      ) in match r with
+    | Ok (0, true) -> raise End_of_file
+    | Ok (got, true) -> got
+    | Ok (got, false) -> got
+    | Error (`Msg e) -> failwith ("Connection receive failed with " ^ e)
+
+  let send ?(is_complete=true) ?(context=Network.Connection.Context.Default) (conn : Network.Connection.t) buf =
+    enter (fun t k ->
+        Dispatch.Group.enter t.pending_io;
+        Fiber_context.set_cancel_fn k.fiber (fun exn ->
+            (* Can't see any way to actually cancel the receive operation. *)
+            enqueue_failed_thread ~msg:"Failed network receive" t k exn;
             Dispatch.Group.leave t.pending_io
-        )
+          );
+        Network.Connection.send ~is_complete ~context conn ~data:(!buf) ~completion:(fun e ->
+            match Network.Error.to_int e with
+            | 0 ->
+              if Fiber_context.clear_cancel_fn k.fiber then begin
+                enqueue_thread ~msg:"sent" t k (Ok ());
+                Dispatch.Group.leave t.pending_io
+              end
+            | i ->
+              if Fiber_context.clear_cancel_fn k.fiber then begin
+                enqueue_thread ~msg:"send err" t k (Error (`Msg (string_of_int i)));
+                Dispatch.Group.leave t.pending_io
+              end
+          )
       )
 
- end
+end
 
- let socket sock = object
+let socket sock = object
   inherit Eio.Flow.two_way
 
   (* Lots of copying :/ *)
@@ -289,39 +366,155 @@ end
         let got = Eio.Flow.single_read src buf in
         let data = Buffer.of_bigarray @@ Cstruct.(to_bigarray (sub buf 0 got)) in
         match Conn.send sock data with
-          | Ok () -> ()
-          | Error (`Msg m) -> failwith m
+        | Ok () -> ()
+        | Error (`Msg m) -> failwith m
       done
     with End_of_file -> ()
 
   method close =
     Network.Connection.cancel sock
 
-   method shutdown = function
-     | `Send -> (
-      (* Deep in a connection.h file it says:
-          "In order to close a connection on the sending side (a "write close"), send
-          a context that is marked as "final" and mark is_complete. The convenience definition
-          NW_CONNECTION_FINAL_MESSAGE_CONTEXT may be used to define the default final context
-          for a connection." *)
-      let r = enter (fun t k ->
-        Network.Connection.send ~is_complete:true ~context:Final sock ~completion:(fun e ->
-          match Network.Error.to_int e with
-          | 0 ->
-            Logs.debug (fun f -> f "Sending 'write close' to connection");
-            enqueue_thread ~msg:"shutdown write" t k (Ok ())
-          | i ->
-            Logs.debug (fun f -> f "Got error %i" i);
-            enqueue_thread ~msg:"shutdown err" t k (Error (`Msg (string_of_int i)))
+  method shutdown = function
+    | `Send -> (
+        (* Deep in a connection.h file it says:
+            "In order to close a connection on the sending side (a "write close"), send
+            a context that is marked as "final" and mark is_complete. The convenience definition
+            NW_CONNECTION_FINAL_MESSAGE_CONTEXT may be used to define the default final context
+            for a connection." *)
+        let r = enter (fun t k ->
+            Network.Connection.send ~is_complete:true ~context:Final sock ~completion:(fun e ->
+                match Network.Error.to_int e with
+                | 0 ->
+                  Logs.debug (fun f -> f "Sending 'write close' to connection");
+                  enqueue_thread ~msg:"shutdown write" t k (Ok ())
+                | i ->
+                  Logs.debug (fun f -> f "Got error %i" i);
+                  enqueue_thread ~msg:"shutdown err" t k (Error (`Msg (string_of_int i)))
+              )
+          ) in match r with
+        | Ok () -> ()
+        | Error (`Msg m) -> failwith m
+      )
+    | `Receive -> failwith "shutdown receive not supported"
+    | `All ->
+      Log.warn (fun f -> f "shutdown receive not supported")
+end
+
+let udp_socket local_addr (listener : Network.Listener.t) = object
+  inherit Eio.Net.datagram_socket
+
+  val queue = Dispatch.Queue.create ~typ:Serial ()
+
+  val stream = Eio.Stream.create max_int
+
+  (* More copying :/ *)
+  method recv buff =
+    let size, addr, buf = Eio.Stream.take stream in
+    let data =
+      Cstruct.of_bigarray @@ Dispatch.Data.to_buff ~offset:0 size !buf
+    in
+    Cstruct.blit data 0 buff 0 size;
+    addr, size
+
+  method send (addr : Eio.Net.Sockaddr.datagram) buf =
+    let open Network in
+    let ip, port = match addr with
+      | `Udp v -> v
+    in
+    let local_endpoint = match local_addr with
+      | `Udp (ip, port) ->
+        Some (Endpoint.create_address Unix.(ADDR_INET (Eio_unix.Ipaddr.to_unix ip, port)))
+      | _ -> None
+    in
+    let params = Parameters.create_udp () in
+    let endpoint = Endpoint.create_address Unix.(ADDR_INET (Eio_unix.Ipaddr.to_unix ip, port)) in
+    Option.iter (fun endpoint -> Parameters.set_local_endpoint ~endpoint params) local_endpoint;
+    Parameters.set_reuse_local_address params true;
+    let connection = Connection.create ~params endpoint in
+    let _ = Endpoint.release endpoint in
+    Connection.retain connection;
+    Connection.set_queue ~queue connection;
+    let handler t k (state : Network.Connection.State.t) e =
+      if Network.Error.to_int e <> 0 then enqueue_failed_thread ~msg:"connection" t k (Failure "UDP Connection")
+      else
+        match state with
+        | Waiting ->
+          Logs.debug (fun f -> f "Connection is waiting...")
+        | Ready ->
+          Logs.debug (fun f -> f "Connection is ready");
+          enqueue_thread ~msg:"connection" t k connection
+        | Invalid -> Logs.warn (fun f -> f "Invalid connection")
+        | Preparing -> Logs.debug (fun f -> f "Connection is being prepared")
+        | Failed -> Logs.warn (fun f -> f "Connection failed")
+        | Cancelled -> Logs.debug (fun f -> f "Connection has been cancelled")
+    in
+    let connection =
+      enter (fun t k ->
+          Connection.set_state_changed_handler ~handler:(handler t k) connection;
+          Connection.start connection)
+    in
+    let buff = Buffer.of_bigarray (Cstruct.to_bigarray buf) in
+    Conn.send ~is_complete:true ~context:Final connection buff |> Result.get_ok;
+    Connection.cancel connection
+
+  method close =
+    Network.Listener.cancel listener
+
+  initializer
+    let open Network in
+    let handler conn =
+      Connection.retain conn;
+      Connection.set_queue ~queue conn;
+      let endpoint = Connection.copy_endpoint conn in
+      let sockaddr = match Option.get @@ Endpoint.get_address endpoint with
+        | Unix.ADDR_INET (host, port) -> `Udp (Eio_unix.Ipaddr.of_unix host, port)
+        | _ -> assert false
+      in
+      let handler (state : Network.Connection.State.t) _ =
+        match state with
+        | Waiting ->
+          Logs.debug (fun f -> f "Connection is waiting...")
+        | Ready ->
+          Logs.debug (fun f -> f "Connection is ready")
+        | Invalid -> Logs.warn (fun f -> f "Invalid connection")
+        | Preparing -> Logs.debug (fun f -> f "Connection is being prepared")
+        | Failed -> Logs.warn (fun f -> f "Connection failed")
+        | Cancelled -> Logs.debug (fun f -> f "Connection has been cancelled")
+      in
+      Connection.set_state_changed_handler ~handler conn;
+      Connection.start conn;
+      (* We don't want to actually block here by using Conn.receive, this
+         will just push datagrams into the stream as an when they arrive. *)
+      let buff = Buffer.empty () in
+      Network.Connection.receive_message conn ~completion:(fun data _context _is_complete err ->
+          match data with
+          | None -> Eio.Stream.add stream (0, sockaddr, Buffer.empty ())
+          | Some data ->
+            let err_code = Network.Error.to_int err in
+            if err_code = 0 then begin
+              let size = Dispatch.Data.size data in
+              Buffer.concat buff data;
+              Eio.Stream.add stream (size, sockaddr, buff)
+            end else failwith "Error receiving data on UDP socket"
         )
-      ) in match r with
-          | Ok () -> ()
-          | Error (`Msg m) -> failwith m
-     )
-     | `Receive -> failwith "shutdown receive not supported"
-     | `All ->
-       Log.warn (fun f -> f "shutdown receive not supported")
- end
+    in
+    let state_handler t k (state : Network.Listener.State.t) err =
+      match (Network.Error.to_int err, state) with
+      | i, _ when i <> 0 -> failwith ("Listener failed with error code: " ^ string_of_int i)
+      | _, Ready -> enqueue_thread ~msg:"UDP listener ready" t k ()
+      | i, Failed -> failwith ("Network listener failed: " ^ string_of_int i)
+      | _, Invalid -> Logs.debug (fun f -> f "Listener changed to invalid state")
+      | _, Waiting -> Logs.debug (fun f -> f "Listener is waiting...")
+      | _, Cancelled -> Logs.debug (fun f -> f "Listener is cancelled")
+    in
+    Listener.retain listener;
+    Listener.set_queue ~queue listener;
+    Network.Listener.set_new_connection_handler listener ~handler;
+    enter (fun t k ->
+        Network.Listener.set_state_changed_handler ~handler:(state_handler t k) listener;
+        Network.Listener.start listener
+      )
+end
 
 class virtual ['a] listening_socket ~backlog:_ net_queue sock = object (self)
   inherit Eio.Net.listening_socket
@@ -340,20 +533,18 @@ class virtual ['a] listening_socket ~backlog:_ net_queue sock = object (self)
   method accept ~sw =
     Eio.Semaphore.acquire connected;
     let (conn, sockaddr) = option_get ~msg:"connection sock" conn_sock in
-    Switch.on_release sw (fun () ->
-      Network.Connection.cancel conn
-    );
+    Switch.on_release sw (fun () -> Network.Connection.cancel conn);
     (socket conn), sockaddr
 
   initializer
     let handler (state : Network.Listener.State.t) err =
       match (Network.Error.to_int err, state) with
-        | i, _ when i <> 0 -> failwith ("Listener failed with error code: " ^ string_of_int i)
-        | _, Ready -> Log.debug (fun f -> f "Listening on port %i..." (Network.Listener.get_port sock));
-        | _, Failed -> failwith "Network listener failed"
-        | _, Invalid -> Logs.debug (fun f -> f "Listener changed to invalid state")
-        | _, Waiting ->Logs.debug (fun f -> f "Listener is waiting...")
-        | _, Cancelled -> Logs.debug (fun f -> f "Listener is cancelled")
+      | i, _ when i <> 0 -> failwith ("Listener failed with error code: " ^ string_of_int i)
+      | _, Ready -> Log.debug (fun f -> f "Listening on port %i..." (Network.Listener.get_port sock));
+      | _, Failed -> failwith "Network listener failed"
+      | _, Invalid -> Logs.debug (fun f -> f "Listener changed to invalid state")
+      | _, Waiting ->Logs.debug (fun f -> f "Listener is waiting...")
+      | _, Cancelled -> Logs.debug (fun f -> f "Listener is cancelled")
     in
     let conn_handler conn =
       Network.Connection.retain conn;
@@ -364,86 +555,97 @@ class virtual ['a] listening_socket ~backlog:_ net_queue sock = object (self)
       conn_sock <- Some (conn, sockaddr);
       Eio.Semaphore.release connected
     in
-      Logs.debug (fun f -> f "Initialising socket");
-      Network.Listener.set_state_changed_handler ~handler sock;
-      Network.Listener.set_new_connection_handler ~handler:conn_handler sock;
-      Network.Listener.start sock
+    Logs.debug (fun f -> f "Initialising socket");
+    Network.Listener.set_state_changed_handler ~handler sock;
+    Network.Listener.set_new_connection_handler ~handler:conn_handler sock;
+    Network.Listener.start sock
 
 
 end
-  let listening_socket ~backlog net_queue sock = object
-    inherit [[ `TCP ]] listening_socket ~backlog net_queue sock
+let listening_socket ~backlog net_queue sock = object
+  inherit [[ `TCP ]] listening_socket ~backlog net_queue sock
 
-    method private get_endpoint_addr e =
-      match option_get ~msg:"endpoint address" @@ Network.Endpoint.get_address e with
-        | Unix.ADDR_UNIX path         -> `Unix path
-        | Unix.ADDR_INET (host, port) -> `Tcp (Eio_unix.Ipaddr.of_unix host, port) (* TODO: Remove unix *)
-    end
+  method private get_endpoint_addr e =
+    match option_get ~msg:"endpoint address" @@ Network.Endpoint.get_address e with
+    | Unix.ADDR_UNIX path         -> `Unix path
+    | Unix.ADDR_INET (host, port) -> `Tcp (Eio_unix.Ipaddr.of_unix host, port)
+end
 
-   let net = object
-     inherit Eio.Net.t
+let net = object
+  inherit Eio.Net.t
 
-     val queue = Dispatch.Queue.create ~typ:Serial ()
+  val queue = Dispatch.Queue.create ~typ:Serial ()
 
-     method datagram_socket = failwith "TODO: datagram socket"
-     method getnameinfo = Eio_unix.getnameinfo
-     method getaddrinfo ~service host =
-      let convert : Unix.addr_info -> Eio.Net.Sockaddr.t = fun addr ->
-        match addr.ai_addr, addr.ai_protocol with
-          | Unix.ADDR_INET (i, p), 6 -> `Tcp (Eio_unix.Ipaddr.of_unix i, p) 
-          | Unix.ADDR_INET (i, p), 17 -> `Udp (Eio_unix.Ipaddr.of_unix i, p) 
-          | Unix.ADDR_UNIX p, _ -> `Unix p
-          | _ -> failwith "Unknown protcol strategy"
+  method datagram_socket ~reuse_addr ~reuse_port:_ ~sw:_ addr =
+    let open Network in
+    let params = Parameters.create_udp () in
+    Parameters.set_reuse_local_address params reuse_addr;
+    Parameters.set_allow_fast_open params true;
+    let listener = match addr with
+      | `Udp (_ip, port) ->
+        Listener.create_with_port ~port params
+      | _ -> Listener.create params
+    in
+    udp_socket addr listener
+
+  method getnameinfo = Eio_unix.getnameinfo
+  method getaddrinfo ~service host =
+    let convert : Unix.addr_info -> Eio.Net.Sockaddr.t = fun addr ->
+      match addr.ai_addr, addr.ai_protocol with
+      | Unix.ADDR_INET (i, p), 6 -> `Tcp (Eio_unix.Ipaddr.of_unix i, p)
+      | Unix.ADDR_INET (i, p), 17 -> `Udp (Eio_unix.Ipaddr.of_unix i, p)
+      | Unix.ADDR_UNIX p, _ -> `Unix p
+      | _ -> failwith "Unknown protcol strategy"
+    in
+    Unix.getaddrinfo host service []
+    |> List.map convert
+
+  method listen ~reuse_addr ~reuse_port:_ ~backlog ~sw:_ = function
+    | `Tcp (hostname, port) ->
+      let open Network in
+      let params = Parameters.create_tcp () in
+      let endpoint = Endpoint.create_address Unix.(ADDR_INET (Eio_unix.Ipaddr.to_unix hostname, port)) in
+      let _ =
+        Parameters.set_reuse_local_address params reuse_addr;
+        Parameters.set_local_endpoint ~endpoint params
       in
-      Unix.getaddrinfo host service []
-      |> List.map convert
+      let _ = Endpoint.release endpoint in
+      let listener = Listener.create_with_port ~port params in
+      Listener.set_queue ~queue listener;
+      Listener.retain listener;
+      listening_socket ~backlog queue listener
+    | _ -> assert false
 
-     method listen ~reuse_addr ~reuse_port:_ ~backlog ~sw:_ = function
-       | `Tcp (hostname, port) ->
-         let open Network in
-         let params = Parameters.create_tcp () in
-         let endpoint = Endpoint.create_address Unix.(ADDR_INET (Eio_unix.Ipaddr.to_unix hostname, port)) in
-         let _ =
-          Parameters.set_reuse_local_address params reuse_addr;
-          Parameters.set_local_endpoint ~endpoint params
-         in
-         let _ = Endpoint.release endpoint in
-         let listener = Listener.create params in
-         Listener.set_queue ~queue listener;
-         Listener.retain listener;
-         listening_socket ~backlog queue listener
-       | _ -> assert false
-
-     method connect ~sw:_ = function
-       | `Tcp (hostname, port) ->
-          Logs.debug (fun f -> f "Connecting...");
-          let open Network in
-          let params = Parameters.create_tcp () in
-          let endpoint = Endpoint.create_address Unix.(ADDR_INET (Eio_unix.Ipaddr.to_unix hostname, port)) in
-          let _ =
-            Parameters.set_reuse_local_address params true
-          in
-          let connection = Connection.create ~params endpoint in
-          let _ = Endpoint.release endpoint in
-          Connection.retain connection;
-          Connection.set_queue ~queue connection;
-          let handler t k (state : Network.Connection.State.t) _ =
-            match state with
-            | Waiting -> 
-              Logs.debug (fun f -> f "Connection is waiting...")
-            | Ready ->
-              Logs.debug (fun f -> f "Connection is ready");
-              enqueue_thread ~msg:"connection" t k (socket connection)
-            | Invalid -> Logs.warn (fun f -> f "Invalid connection")
-            | Preparing -> Logs.debug (fun f -> f "Connection is being prepared")
-            | Failed -> Logs.warn (fun f -> f "Connection failed")
-            | Cancelled -> Logs.debug (fun f -> f "Connection has been cancelled")
-          in
-          enter (fun t k ->
-            Connection.set_state_changed_handler ~handler:(handler t k) connection;
-            Connection.start connection)
-       | _ -> assert false
-   end
+  method connect ~sw:_ = function
+    | `Tcp (hostname, port) ->
+      Logs.debug (fun f -> f "Connecting...");
+      let open Network in
+      let params = Parameters.create_tcp () in
+      let endpoint = Endpoint.create_address Unix.(ADDR_INET (Eio_unix.Ipaddr.to_unix hostname, port)) in
+      let _ =
+        Parameters.set_reuse_local_address params true
+      in
+      let connection = Connection.create ~params endpoint in
+      let _ = Endpoint.release endpoint in
+      Connection.retain connection;
+      Connection.set_queue ~queue connection;
+      let handler t k (state : Network.Connection.State.t) _ =
+        match state with
+        | Waiting ->
+          Logs.debug (fun f -> f "Connection is waiting...")
+        | Ready ->
+          Logs.debug (fun f -> f "Connection is ready");
+          enqueue_thread ~msg:"connection" t k (socket connection)
+        | Invalid -> Logs.warn (fun f -> f "Invalid connection")
+        | Preparing -> Logs.debug (fun f -> f "Connection is being prepared")
+        | Failed -> Logs.warn (fun f -> f "Connection failed")
+        | Cancelled -> Logs.debug (fun f -> f "Connection has been cancelled")
+      in
+      enter (fun t k ->
+          Connection.set_state_changed_handler ~handler:(handler t k) connection;
+          Connection.start connection)
+    | _ -> assert false
+end
 
 type _ Eio.Generic.ty += FD : File.t Eio.Generic.ty
 
@@ -516,16 +718,16 @@ let flow fd = object (_ : <source; sink; ..>)
   method copy src =
     (* See comment at fast_copy *)
     (* match Eio.Generic.probe src FD with
-    | Some src -> File.fast_copy src fd
-    | None -> *)
-      let chunk = Cstruct.create 4096 in
-      try
-        while true do
-          let got = Eio.Flow.single_read src chunk in
-          let chunk = Cstruct.sub chunk 0 got in
-          File.write io_queue fd (ref @@ Dispatch.Data.create (Cstruct.to_bigarray chunk))
-        done
-      with End_of_file -> ()
+       | Some src -> File.fast_copy src fd
+       | None -> *)
+    let chunk = Cstruct.create 4096 in
+    try
+      while true do
+        let got = Eio.Flow.single_read src chunk in
+        let chunk = Cstruct.sub chunk 0 got in
+        File.write io_queue fd (ref @@ Dispatch.Data.create (Cstruct.to_bigarray chunk))
+      done
+    with End_of_file -> ()
 end
 
 let source fd = (flow fd :> source)
@@ -681,34 +883,32 @@ let secure_random =
       dim
   end
 
+let mono_clock = object
+  inherit Eio.Time.Mono.t
+
+  val queue = Dispatch.Queue.create ()
+
+  method now = Mtime_clock.now ()
+
+  method sleep_until time =
+    let now = Mtime.to_uint64_ns (Mtime_clock.now ()) in
+    let time = Mtime.to_uint64_ns time in
+    if Int64.unsigned_compare now time >= 0 then Fiber.yield ()
+    else (
+      let delay_ns = Int64.sub time now |> Int64.to_float in
+      let delay_ms = delay_ns /. 1e6 |> ceil |> truncate |> max 0 in
+      Low_level.sleep_until ~queue (float_of_int delay_ms)
+    )
+end
+
 let clock = object
   inherit Eio.Time.clock
+
   val queue = Dispatch.Queue.create ()
 
   method now = Unix.gettimeofday ()
 
-  method sleep_until due =
-    let delay = 1_000_000_000. *. (due -. Unix.gettimeofday ()) |> ceil |> Int64.of_float |> Int64.max 0L in
-    enter @@ fun t k ->
-    Dispatch.Group.enter t.pending_io;
-    (* TODO: Dispatch work items are properly cancellable! *)
-    Fiber_context.set_cancel_fn k.fiber (fun ex ->
-      enqueue_failed_thread ~msg:"Timeout stopped!" t k ex;
-      Dispatch.Group.leave t.pending_io
-    );
-    Dispatch.after ~delay queue (fun () -> 
-      match Fiber_context.get_error k.fiber with
-      | None -> 
-        if Fiber_context.clear_cancel_fn k.fiber then begin 
-          enqueue_thread ~msg:"Sleepy" t k ();
-          Dispatch.Group.leave t.pending_io
-        end
-      | Some exn ->
-        if Fiber_context.clear_cancel_fn k.fiber then begin
-          enqueue_failed_thread ~msg:"Timeout stopped!" t k exn;
-          Dispatch.Group.leave t.pending_io
-        end
-      )
+  method sleep_until due = Low_level.sleep_until ~queue due
 end
 
 let domain_mgr ~run_event_loop = object (self)
@@ -756,13 +956,13 @@ let stdenv ~run_event_loop =
     method cwd = (cwd :> Eio.Fs.dir), "."
     method secure_random = secure_random
     method clock = clock
-    method mono_clock = failwith "Mono unimplemented"
+    method mono_clock = mono_clock
     method debug = Eio.Private.Debug.v
     method domain_mgr = domain_mgr ~run_event_loop
   end
 
 let io_finished t =
-  match Dispatch.(Group.wait t.pending_io (Time.now ())) with 
+  match Dispatch.(Group.wait t.pending_io (Time.now ())) with
   | Pending -> false
   | Ready -> true
 
@@ -791,10 +991,10 @@ let rec schedule st : [ `Exit_scheduler ] =
         Atomic.set st.need_wakeup false;
         `Exit_scheduler
       )
-        else (
-         Atomic.set st.need_wakeup false;
-         Lf_queue.push st.run_q IO;
-         schedule st
+      else (
+        Atomic.set st.need_wakeup false;
+        Lf_queue.push st.run_q IO;
+        schedule st
       )
     )
   | None -> assert false
@@ -823,7 +1023,7 @@ let rec run : type a. (_ -> a) -> a = fun main ->
   let async = Dispatch.Queue.create () in
   let eventfd =
     let r, w = Unix.pipe () in
-    { 
+    {
       r = Dispatch.Io.(create Stream Fd.(of_unix r) async);
       w = Dispatch.Io.(create Stream Fd.(of_unix w) async)
     }
@@ -834,42 +1034,51 @@ let rec run : type a. (_ -> a) -> a = fun main ->
     Ctf.note_switch (Fiber_context.tid fiber);
     let open Effect.Deep in
     match_with fn ()
-    { retc = (fun () -> Fiber_context.destroy fiber; schedule st );
-      exnc = (fun e -> Fiber_context.destroy fiber; raise e);
-      effc = fun (type a) (e : a Effect.t) ->
-        match e with
-        | Eio.Private.Effects.Fork (new_fiber, f) ->
-          Some (fun (k : (a, _) continuation) ->
-              let k = { Suspended.k; fiber } in
-              enqueue_at_head st k ();
-              fork ~new_fiber f
+      { retc = (fun () -> Fiber_context.destroy fiber; schedule st );
+        exnc = (fun e -> Fiber_context.destroy fiber; raise e);
+        effc = fun (type a) (e : a Effect.t) ->
+          match e with
+          | Eio.Private.Effects.Fork (new_fiber, f) ->
+            Some (fun (k : (a, _) continuation) ->
+                let k = { Suspended.k; fiber } in
+                enqueue_at_head st k ();
+                fork ~new_fiber f
+              )
+          | Eio.Private.Effects.Get_context -> Some (fun k -> continue k fiber)
+          | Enter fn -> Some (fun k ->
+              match Fiber_context.get_error fiber with
+              | Some e -> discontinue k e
+              | None -> (
+                  fn st { Suspended.k; fiber };
+                  schedule st
+                )
             )
-        | Eio.Private.Effects.Get_context -> Some (fun k -> continue k fiber)
-        | Enter fn -> Some (fun k ->
-            match Fiber_context.get_error fiber with
-            | Some e -> discontinue k e
-            | None -> (
-              fn st { Suspended.k; fiber };
-              schedule st
-            ) 
-          )
-        | Eio.Private.Effects.Suspend fn ->
-          Some (fun k ->
-              let k = { Suspended.k; fiber } in
-              fn fiber (function
-              | Ok v -> enqueue_thread ~msg:"suspend" st k v
-              | Error ex -> enqueue_failed_thread ~msg:"suspend" st k ex
-              );
-              schedule st
+          | Eio_unix.Private.Get_monotonic_clock -> Some (fun k -> continue k mono_clock)
+          | Eio.Private.Effects.Suspend fn ->
+            Some (fun k ->
+                let k = { Suspended.k; fiber } in
+                fn fiber (function
+                    | Ok v -> enqueue_thread ~msg:"suspend" st k v
+                    | Error ex -> enqueue_failed_thread ~msg:"suspend" st k ex
+                  );
+                schedule st
+              )
+          | Eio_unix.Private.Pipe sw -> Some (fun k ->
+              let r, w = Unix.pipe ~cloexec:true () in
+              (* See issue #319, PR #327 *)
+              Unix.set_nonblock r;
+              Unix.set_nonblock w;
+              let r = Dispatch.Io.(create Stream Fd.(of_unix r) async) in
+              let w = Dispatch.Io.(create Stream Fd.(of_unix w) async) in
+              let r = (flow (File.of_gcd ~sw r) :> <Eio.Flow.source; Eio.Flow.close; Eio_unix.unix_fd>) in
+              let w = (flow (File.of_gcd ~sw w) :> <Eio.Flow.sink; Eio.Flow.close; Eio_unix.unix_fd>) in
+              continue k (r, w)
             )
-        | Eio_unix.Private.Pipe _ -> Some (fun k ->
-            discontinue k (Failure "Pipes not supported by GCD backend yet")
-          )
-        | Eio_unix.Private.Socketpair _ -> Some (fun k ->
-            discontinue k (Failure "Socketpair not supported by GCD backend yet")
-          )
-        | _ -> None
-    }
+          | Eio_unix.Private.Socketpair _ -> Some (fun k ->
+              discontinue k (Failure "Socketpair not supported by GCD backend yet")
+            )
+          | _ -> None
+      }
   in
   let result = ref None in
   let finished = Dispatch.Group.create () in
