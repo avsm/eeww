@@ -56,6 +56,8 @@ type receive_completion =
 
 val receive : min:int -> max:int -> completion:receive_completion -> t -> unit
 
+val receive_message : completion:receive_completion -> t -> unit
+
 type send_completion = Error.t -> unit
 
 val send :

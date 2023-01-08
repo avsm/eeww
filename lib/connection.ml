@@ -60,8 +60,13 @@ external network_connection_receive :
   int -> int -> receive_completion -> t -> unit
   = "ocaml_network_connection_receive"
 
+external network_connection_receive_message : t -> receive_completion -> unit
+  = "ocaml_network_connection_receive_message"
+
 let receive ~min ~max ~completion t =
   network_connection_receive min max completion t
+
+let receive_message ~completion t = network_connection_receive_message t completion
 
 type send_completion = Error.t -> unit
 
