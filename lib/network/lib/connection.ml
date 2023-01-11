@@ -60,14 +60,19 @@ external network_connection_receive :
   int -> int -> receive_completion -> t -> unit
   = "ocaml_network_connection_receive"
 
+external network_connection_receive_message : t -> receive_completion -> unit
+  = "ocaml_network_connection_receive_message"
+
 let receive ~min ~max ~completion t =
   network_connection_receive min max completion t
+
+let receive_message ~completion t = network_connection_receive_message t completion
 
 type send_completion = Error.t -> unit
 
 external network_connection_send :
-  Dispatch.Data.t -> Context.t -> bool -> send_completion -> t -> unit
+  Dispatch.Data.t option -> Context.t -> bool -> send_completion -> t -> unit
   = "ocaml_network_connection_send"
 
-let send ~is_complete ~completion ~context ~data t =
+let send ?data ~is_complete ~completion ~context t =
   network_connection_send data context is_complete completion t

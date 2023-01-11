@@ -1,7 +1,7 @@
 (library
  (name network)
  (public_name network)
- (c_library_flags -framework Network)
+ (c_library_flags -framework Network -framework CoreFoundation)
  (libraries gcd)
  (foreign_stubs
   (language c)

@@ -56,13 +56,15 @@ type receive_completion =
 
 val receive : min:int -> max:int -> completion:receive_completion -> t -> unit
 
+val receive_message : completion:receive_completion -> t -> unit
+
 type send_completion = Error.t -> unit
 
 val send :
+  ?data:Dispatch.Data.t ->
   is_complete:bool ->
   completion:send_completion ->
   context:Context.t ->
-  data:Dispatch.Data.t ->
   t ->
   unit
 (** [send ~context ~is_complete ~completion ~data t] sends [data] on the
