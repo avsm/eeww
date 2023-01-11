@@ -1,4 +1,0 @@
-(library
- (name eio_unix)
- (public_name eio.unix)
- (libraries eio unix threads mtime.clock.os))
