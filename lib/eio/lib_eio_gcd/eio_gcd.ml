@@ -460,12 +460,7 @@ type stdenv = <
   stderr : sink;
   net : Eio.Net.t;
   fs : Eio.Fs.dir Eio.Path.t;
-  clock: Eio.Time.clock;
-  cwd : Eio.Fs.dir Eio.Path.t;
-  debug : Eio.Debug.t;
-  domain_mgr : Eio.Domain_manager.t;
-  mono_clock : Eio.Time.Mono.t;
-  secure_random : Eio.Flow.source;
+  (* cwd : Eio.Dir.t; *)
 >
 
 let stdenv =
@@ -479,12 +474,6 @@ let stdenv =
     method stderr = failwith "unimplemented"
     method net = net
     method fs = failwith "unimplemented"
-    method clock = failwith "unimplemented"
-    method cwd = failwith "unimplemented"
-    method debug = failwith "unimplemented"
-    method domain_mgr = failwith "unimplemented"
-    method mono_clock = failwith "unimplemented"
-    method secure_random = failwith "unimplemented"
   end
 
 let rec wakeup ~async ~io_queued run_q =
