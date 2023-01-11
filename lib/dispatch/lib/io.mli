@@ -11,7 +11,8 @@ module Fd : sig
   type t
   val stdout : t
   val stdin : t
-  (* Would be good to remove *)
+  val stderr : t
+
   val of_unix : Unix.file_descr -> t
 end
 
@@ -46,5 +47,7 @@ val set_low_water : t -> int -> unit
 val close : t -> unit
 (** [close io] closes the [io] channel and stops any in-progress reads and writes *)
 
-
-
+val get_unix : t -> Unix.file_descr option
+(** [get_unix c] tries to get the underlying file descriptor associated with the
+    IO channel [c]. Note, IO channels won't have an FD until they are actually used
+    i.e. read from/written to. *)
