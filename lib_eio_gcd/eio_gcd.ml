@@ -89,7 +89,7 @@ let enqueue_failed_thread ~msg t k ex =
 let set_cancel_fn fiber f =
   let cancelled = ref false in
   Fiber_context.set_cancel_fn fiber (fun ex -> f ex cancelled);
-  fun () -> Fiber_context.clear_cancel_fn fiber; !cancelled
+  (fun () -> Fiber_context.clear_cancel_fn fiber; not !cancelled)
 
 module Low_level = struct
 
