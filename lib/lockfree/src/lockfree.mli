@@ -4,9 +4,7 @@
    %%NAME%% %%VERSION%%
   ---------------------------------------------------------------------------*)
 
-(** Lock-free data structures for Multicore OCaml
-
-    {e %%VERSION%% — {{:%%PKG_HOMEPAGE%% }homepage}} *)
+(** Lock-free data structures for Multicore OCaml *)
 
 (** {1 Lockfree} *)
 
@@ -32,20 +30,10 @@ Copyright (c) 2017, Nicolas ASSOUAD <nicolas.assouad@ens.fr>
 ########
 *)
 
-module type CoreDesc = sig
-  val nb_domains : int;;
-end;;
-
-module type HashDesc = sig
-  val load : int;;
-  val nb_bucket : int;;
-  val hash_function : int -> int;;
-end;;
-
-module MSQueue : Lf_msqueue.S;;
-module WSQueue : Lf_wsqueue.S;;
-module List : Lf_list.S;;
-module Bag_Custom(Desc : CoreDesc) : Lf_bag.S;;
-module Bag : Lf_bag.S;;
-module Hash_Custom(Desc : HashDesc) : Lf_hash.S;;
-module Hash : Lf_hash.S;;
+module Ws_deque = Ws_deque
+module Spsc_queue = Spsc_queue
+module Mpsc_queue = Mpsc_queue
+module Treiber_stack = Treiber_stack
+module Michael_scott_queue = Michael_scott_queue
+module Mpmc_relaxed_queue = Mpmc_relaxed_queue
+module Backoff = Backoff
