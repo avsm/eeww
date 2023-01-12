@@ -10,13 +10,13 @@ let () = setup_log ()
 type exn += Graceful_shutdown
 
 let file_io env =
-  let test = Path.(env#fs / "test.txt") in 
+  let test = Path.(env#fs / "test.txt") in
   let _write =
     Eio.Path.(with_open_out ~create:(`If_missing 0o644) test) @@ fun f ->
     Flow.copy_string "Copying `Hello GCD!' to file\n" env#stdout;
     Flow.copy_string "Hello GCD!\n" f
   in
-  let _read = 
+  let _read =
     Eio.Path.(with_open_in test) @@ fun f ->
     let buf = Buffer.create 16 in
     Flow.copy f Flow.(buffer_sink buf);
@@ -101,12 +101,15 @@ let big_flow_copy env =
   Path.unlink big_file;
   ()
 
+let domains env =
+  Domain_manager.run env#domain_mgr (fun () -> Switch.run @@ fun sw -> Fiber.fork ~sw (fun () -> Eio.traceln "Hello from domain"))
+
 let cancellation env =
   Fiber.first
     (fun () -> Eio.Time.sleep env#clock 5.)
     (fun () -> Eio.traceln "All done, stop the clock!")
 
-let () = 
+let () =
   Eio_gcd.run @@ fun env ->
   (* file_io env *)
   (* network env *)
@@ -114,4 +117,5 @@ let () =
   (* random env *)
   (* timer env *)
   (* big_flow_copy env *)
-  cancellation env
+  (* cancellation env *)
+  domains env

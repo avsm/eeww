@@ -86,6 +86,11 @@ let enqueue_failed_thread ~msg t k ex =
   Lf_queue.push t.run_q (Thread (msg, fun () -> Suspended.discontinue k ex));
   if Atomic.get t.need_wakeup then wakeup t
 
+let set_cancel_fn fiber f =
+  let cancelled = ref false in
+  Fiber_context.set_cancel_fn fiber (fun ex -> f ex cancelled);
+  fun () -> Fiber_context.clear_cancel_fn fiber; !cancelled
+
 module Low_level = struct
 
   let sleep_until ~queue due =
@@ -93,19 +98,21 @@ module Low_level = struct
     enter @@ fun t k ->
     Dispatch.Group.enter t.pending_io;
     (* TODO: Dispatch work items are properly cancellable! *)
-    Fiber_context.set_cancel_fn k.fiber (fun ex ->
+    let clear_cancel = set_cancel_fn k.fiber (fun ex cancelled ->
         enqueue_failed_thread ~msg:"Timeout stopped!" t k ex;
+        cancelled := true;
         Dispatch.Group.leave t.pending_io
-      );
+      )
+    in
     Dispatch.after ~delay queue (fun () ->
         match Fiber_context.get_error k.fiber with
         | None ->
-          if Fiber_context.clear_cancel_fn k.fiber then begin
+          if clear_cancel () then begin
             enqueue_thread ~msg:"Sleepy" t k ();
             Dispatch.Group.leave t.pending_io
           end
         | Some exn ->
-          if Fiber_context.clear_cancel_fn k.fiber then begin
+          if clear_cancel () then begin
             enqueue_failed_thread ~msg:"Timeout stopped!" t k exn;
             Dispatch.Group.leave t.pending_io
           end
@@ -118,15 +125,17 @@ module Low_level = struct
     let read = ref 0 in
     enter (fun t k ->
         Dispatch.Group.enter t.pending_io;
-        Fiber_context.set_cancel_fn k.fiber (fun _ ->
+        let clear_cancel = set_cancel_fn k.fiber (fun _ cancelled ->
             enqueue_failed_thread ~msg:"cancelled" t k (Eio.Cancel.Cancelled Exit);
+            cancelled := true;
             Dispatch.Group.leave t.pending_io
-          );
+          )
+        in
         Dispatch.Io.with_read ~off ~length ~queue:io_queue fd ~f:(fun ~err ~finished r ->
             let size = Dispatch.Data.size r in
             if err = 0 && finished then begin
               if size = 0 then begin
-                if Fiber_context.clear_cancel_fn k.fiber then begin
+                if clear_cancel () then begin
                   enqueue_thread ~msg:"read of zero" t k !read;
                   Dispatch.Group.leave t.pending_io
                 end
@@ -134,14 +143,14 @@ module Low_level = struct
               else (
                 read := !read + size;
                 buf := Dispatch.Data.concat r !buf;
-                if Fiber_context.clear_cancel_fn k.fiber then begin
+                if clear_cancel () then begin
                   enqueue_thread ~msg:("read not zero: " ^ string_of_int size) t k !read;
                   Dispatch.Group.leave t.pending_io
                 end
               )
             end
             else if err <> 0 then begin
-              if Fiber_context.clear_cancel_fn k.fiber then begin
+              if clear_cancel () then begin
                 enqueue_failed_thread ~msg:"failed read" t k (Failure "Read failed");
                 Dispatch.Group.leave t.pending_io
               end
@@ -253,15 +262,17 @@ module Conn = struct
   let receive ?(max=max_int) (conn : Network.Connection.t) buf =
     let r = enter (fun t k ->
         Dispatch.Group.enter t.pending_io;
-        Fiber_context.set_cancel_fn k.fiber (fun exn ->
+        let clear_cancel = set_cancel_fn k.fiber (fun exn cancelled ->
             (* Can't see any way to actually cancel the receive operation. *)
             enqueue_failed_thread ~msg:"Failed network receive" t k exn;
+            cancelled := true;
             Dispatch.Group.leave t.pending_io
-          );
+          )
+        in
         Network.Connection.receive ~min:0 ~max conn ~completion:(fun data _context is_complete err ->
             match data with
             | None ->
-              if Fiber_context.clear_cancel_fn k.fiber then begin
+              if clear_cancel () then begin
                 enqueue_thread ~msg:"recv no data" t k (Ok (0, true));
                 Dispatch.Group.leave t.pending_io
               end
@@ -274,7 +285,7 @@ module Conn = struct
                   Ok (size, is_complete)
                 end else Error (`Msg (string_of_int err_code))
               in
-              if Fiber_context.clear_cancel_fn k.fiber then begin
+              if clear_cancel () then begin
                 enqueue_thread ~msg:"recv data" t k res;
                 Dispatch.Group.leave t.pending_io
               end
@@ -288,15 +299,17 @@ module Conn = struct
   let _receive_message (conn : Network.Connection.t) buf =
     let r = enter (fun t k ->
         Dispatch.Group.enter t.pending_io;
-        Fiber_context.set_cancel_fn k.fiber (fun exn ->
+        let clear_cancel = set_cancel_fn k.fiber (fun exn cancelled ->
             (* Can't see any way to actually cancel the receive operation. *)
             enqueue_failed_thread ~msg:"Failed network receive" t k exn;
+            cancelled := true;
             Dispatch.Group.leave t.pending_io
-          );
+          )
+        in
         Network.Connection.receive_message conn ~completion:(fun data _context is_complete err ->
             match data with
             | None ->
-              if Fiber_context.clear_cancel_fn k.fiber then begin
+              if clear_cancel () then begin
                 enqueue_thread ~msg:"recv no data" t k (Ok (0, true));
                 Dispatch.Group.leave t.pending_io
               end
@@ -309,7 +322,7 @@ module Conn = struct
                   Ok (size, is_complete)
                 end else Error (`Msg (string_of_int err_code))
               in
-              if Fiber_context.clear_cancel_fn k.fiber then begin
+              if clear_cancel () then begin
                 enqueue_thread ~msg:"recv data" t k res;
                 Dispatch.Group.leave t.pending_io
               end
@@ -323,20 +336,22 @@ module Conn = struct
   let send ?(is_complete=true) ?(context=Network.Connection.Context.Default) (conn : Network.Connection.t) buf =
     enter (fun t k ->
         Dispatch.Group.enter t.pending_io;
-        Fiber_context.set_cancel_fn k.fiber (fun exn ->
+        let clear_cancel = set_cancel_fn k.fiber (fun exn cancelled ->
             (* Can't see any way to actually cancel the receive operation. *)
             enqueue_failed_thread ~msg:"Failed network receive" t k exn;
+            cancelled := true;
             Dispatch.Group.leave t.pending_io
-          );
+          )
+        in
         Network.Connection.send ~is_complete ~context conn ~data:(!buf) ~completion:(fun e ->
             match Network.Error.to_int e with
             | 0 ->
-              if Fiber_context.clear_cancel_fn k.fiber then begin
+              if clear_cancel () then begin
                 enqueue_thread ~msg:"sent" t k (Ok ());
                 Dispatch.Group.leave t.pending_io
               end
             | i ->
-              if Fiber_context.clear_cancel_fn k.fiber then begin
+              if clear_cancel () then begin
                 enqueue_thread ~msg:"send err" t k (Error (`Msg (string_of_int i)));
                 Dispatch.Group.leave t.pending_io
               end
@@ -911,23 +926,34 @@ let clock = object
   method sleep_until due = Low_level.sleep_until ~queue due
 end
 
-let domain_mgr ~run_event_loop = object (self)
-  inherit Eio.Domain_manager.t
-
-  method run_raw fn =
+let domain_mgr ~run_event_loop =
+  let run_raw ~pre_spawn fn =
     let domain = ref None in
     enter (fun t k ->
-        domain := Some (Domain.spawn (fun () -> Fun.protect fn ~finally:(fun () -> enqueue_thread ~msg:"domain run raw" t k ())))
+        pre_spawn k;
+        domain := Some (Domain.spawn (fun () -> Fun.protect fn ~finally:(fun () ->
+          Fiber_context.clear_cancel_fn k.fiber;
+          enqueue_thread ~msg:"domain run raw" t k ()))
+        )
       );
     Domain.join (Option.get !domain)
+  in
+  object
+    inherit Eio.Domain_manager.t
 
-  method run fn =
-    self#run_raw (fun () ->
-        let result = ref None in
-        run_event_loop (fun _ -> result := Some (fn ()));
-        Option.get !result
-      )
-end
+    method run_raw fn = run_raw ~pre_spawn:ignore fn
+
+    method run fn =
+      let cancelled, set_cancelled = Promise.create () in
+      let pre_spawn k =
+        Fiber_context.set_cancel_fn k.Suspended.fiber (Promise.resolve set_cancelled)
+      in
+      run_raw ~pre_spawn (fun () ->
+          let result = ref None in
+          run_event_loop (fun _ -> result := Some (fn ~cancelled));
+          Option.get !result
+        )
+  end
 
 type stdenv = <
   stdin  : source;
