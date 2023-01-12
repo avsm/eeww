@@ -1,0 +1,140 @@
+(test
+ (name test_chan)
+ (libraries domainslib)
+ (modules test_chan)
+ (modes native))
+
+(test
+ (name fib)
+ (modules fib)
+ (modes native))
+
+(test
+ (name fib_par)
+ (libraries domainslib)
+ (modules fib_par)
+ (modes native))
+
+(test
+ (name enumerate_par)
+ (libraries domainslib)
+ (modules enumerate_par)
+ (modes native))
+
+(test
+ (name game_of_life)
+ (modules game_of_life)
+ (modes native))
+
+(test
+ (name game_of_life_multicore)
+ (libraries domainslib)
+ (modules game_of_life_multicore)
+ (modes native))
+
+(test
+ (name LU_decomposition_multicore)
+ (libraries domainslib)
+ (flags (:standard -runtime-variant d))
+ (modules LU_decomposition_multicore)
+ (modes native))
+
+
+(test
+ (name spectralnorm2)
+ (modules spectralnorm2)
+ (modes native))
+
+(test
+  (name sum_par)
+  (libraries domainslib)
+	(modules sum_par)
+	(modes native))
+
+(test
+ (name task_throughput)
+ (libraries domainslib mirage-clock-unix)
+ (modules task_throughput)
+ (modes native))
+
+(test
+ (name spectralnorm2_multicore)
+ (libraries domainslib)
+ (modules spectralnorm2_multicore)
+ (modes native))
+
+(test
+ (name summed_area_table)
+ (libraries domainslib)
+ (modules summed_area_table)
+ (modes native))
+
+(test
+ (name prefix_sum)
+ (libraries domainslib unix)
+ (modules prefix_sum)
+ (modes native))
+
+(test
+ (name test_task)
+ (libraries domainslib)
+ (modules test_task)
+ (modes native))
+
+(test
+ (name test_deadlock)
+ (libraries domainslib)
+ (modules test_deadlock)
+ (modes native))
+
+(test
+ (name test_task_crash)
+ (libraries domainslib)
+ (modules test_task_crash)
+ (modes native))
+
+(test
+ (name test_task_empty)
+ (libraries domainslib)
+ (modules test_task_empty)
+ (modes native))
+
+(test
+ (name backtrace)
+ (libraries domainslib)
+ (modules backtrace)
+ (modes native))
+
+(test
+ (name off_by_one)
+ (libraries domainslib)
+ (modules off_by_one)
+ (modes native))
+
+;; Custom property-based tests using QCheck
+
+(test
+ (name task_one_dep)
+ (modules task_one_dep)
+ (libraries qcheck-multicoretests-util qcheck-core qcheck-core.runner domainslib)
+ (action (run %{test} --verbose)))
+
+(test
+ (name task_more_deps)
+ (modules task_more_deps)
+ (libraries qcheck-multicoretests-util qcheck-core qcheck-core.runner domainslib)
+ (action (run %{test} --verbose)))
+
+(test
+ (name task_parallel)
+ (modules task_parallel)
+ (libraries qcheck-multicoretests-util qcheck-core qcheck-core.runner domainslib)
+ (action (run %{test} --verbose)))
+
+;; STM_sequential and STM_domain test of Domainslib.Chan
+
+(test
+ (name chan_stm_tests)
+ (modules chan_stm_tests)
+ (libraries qcheck-stm.sequential qcheck-stm.domain domainslib)
+ (action (run %{test} --verbose)))
