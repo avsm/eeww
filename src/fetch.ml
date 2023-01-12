@@ -80,7 +80,7 @@ end
 
 let _ =
   (* the scheduler setup *)
-  Bars.run ();
+  (* Bars.run (); *)
 
   Eio_main.run @@ fun env ->
   Eio.Ctf.with_tracing @@ fun () ->
