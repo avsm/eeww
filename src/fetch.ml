@@ -63,6 +63,9 @@ module Url = struct
       https: Https.S.t;
       (* TODO protocols *)
     }
+
+    type Eio.Domain_manager.system += HTTP
+
     let v ~label ~net =
       Conn.S.v ~label:"conns" ~net |> fun conns ->
       Https.S.v ~label:"https" ~net ~conns |> fun https ->
@@ -74,7 +77,11 @@ module Url = struct
   let fetch s uri =
     match Uri.scheme uri with
     | Some "https" ->
-        Https.fetch s.S.https ((Option.get (Uri.host uri)), (Uri.path uri))
+        let task () =
+          Eio.traceln "starting HTTP fetch";
+          Https.fetch s.S.https ((Option.get (Uri.host uri)), (Uri.path uri))
+        in
+        Eio.Domain_manager.submit S.HTTP task
     | _ -> failwith "unknown schema"
 end
 

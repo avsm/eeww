@@ -79,6 +79,7 @@ let wakeup t =
   assert (sent = 8)
 
 let enqueue_thread ~msg t k v =
+  Eio.traceln "enqueue_thread %s" msg;
   Lf_queue.push t.run_q (Thread (msg, fun () -> Suspended.continue k v));
   if Atomic.get t.need_wakeup then wakeup t
 
@@ -997,8 +998,8 @@ let io_finished t =
 
 let rec schedule st : [ `Exit_scheduler ] =
   match Lf_queue.pop st.run_q with
-  | Some (Thread (_msg, f)) ->
-    (* Eio.traceln "Scheduler: %s" msg; *)
+  | Some (Thread (msg, f)) ->
+    Eio.traceln "Scheduler: %s" msg;
     f ()
   | Some IO ->
     (* If threads keep yielding they could prevent pending IO from being processed.
@@ -1056,6 +1057,9 @@ let rec run : type a. (_ -> a) -> a = fun main ->
   in
   let need_wakeup = Atomic.make false in
   let st = { async; pending_io; eventfd; run_q; need_wakeup } in
+  let pool = Domainslib.Task.setup_pool ~num_domains:4 () in
+  let par_table = Hashtbl.create 128 in
+  let par_alloc = Hashtbl.create 8 in
   let rec fork ~new_fiber:fiber fn =
     Ctf.note_switch (Fiber_context.tid fiber);
     let open Effect.Deep in
@@ -1102,6 +1106,42 @@ let rec run : type a. (_ -> a) -> a = fun main ->
             )
           | Eio_unix.Private.Socketpair _ -> Some (fun k ->
               discontinue k (Failure "Socketpair not supported by GCD backend yet")
+            )
+          | Eio.Domain_manager.Submit (system, task) -> Some (fun k ->
+              let tasks =
+                match Hashtbl.find_opt par_table system with
+                | Some i -> i
+                | None -> []
+              in
+              let alloc = match Hashtbl.find_opt par_alloc system with
+                | Some i -> i
+                | None ->
+                  (* Should be smarter and check how many domains to allocate,
+                     here I've just thrown in 4. *)
+                  Hashtbl.add par_alloc system 4;
+                  4
+              in
+              let () =
+                if List.length tasks = alloc then begin
+                  let () =
+                    Domainslib.Task.run pool @@ fun () ->
+                    List.iter (Domainslib.Task.await pool) tasks;
+                  in
+                  let task = Domainslib.Task.async pool (fun () ->
+                    let v = task () in
+                    let k = { Suspended.k; fiber } in
+                    enqueue_thread ~msg:"enqueue alloc" st k v
+                  ) in
+                  Hashtbl.replace par_table system (task :: [])
+                end else begin
+                  let task = Domainslib.Task.async pool (fun () ->
+                    let v = task () in
+                    let k = { Suspended.k; fiber } in
+                    enqueue_thread ~msg:"enqueue no alloc" st k v
+                  ) in
+                  Hashtbl.replace par_table system (task :: tasks)
+              end in
+              schedule st
             )
           | _ -> None
       }

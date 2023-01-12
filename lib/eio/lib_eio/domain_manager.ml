@@ -3,6 +3,10 @@ class virtual t = object
   method virtual run_raw : 'a. (unit -> 'a) -> 'a
 end
 
+type system = ..
+type _ Effect.t += Submit : system * (unit -> 'a) -> 'a Effect.t
+let submit sys f = Effect.perform (Submit (sys, f))
+
 let run_raw (t : #t) = t#run_raw
 
 let run (t : #t) fn =

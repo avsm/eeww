@@ -100,6 +100,12 @@ module Domain_manager : sig
         [fn] should cancel itself in this case. *)
   end
 
+  type system = ..
+  type _ Effect.t += Submit : system * (unit -> 'a) -> 'a Effect.t
+
+  val submit : system -> (unit -> 'a) -> 'a
+  (** Submit a task to be run in parallel for a particular subsystem *)
+
   val run : #t -> (unit -> 'a) -> 'a
   (** [run t f] runs [f ()] in a newly-created domain and returns the result.
 
