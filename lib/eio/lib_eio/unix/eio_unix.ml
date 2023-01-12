@@ -63,8 +63,6 @@ module Ipaddr = struct
   let of_unix : Unix.inet_addr -> _ Eio.Net.Ipaddr.t = Obj.magic
 end
 
-module Ctf = Ctf_unix
-
 let getnameinfo (sockaddr : Eio.Net.Sockaddr.t) =
   let sockaddr, options =
     match sockaddr with
