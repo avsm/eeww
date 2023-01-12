@@ -70,5 +70,8 @@ git subtree add --prefix lib/uucp https://github.com/dune-universe/uucp.git duni
 git subtree add --prefix lib/progress https://github.com/craigfe/progress main
 git subtree add --prefix lib/ocaml-print-intf https://github.com/avsm/ocaml-print-intf master
 git subtree add --prefix lib/bos https://github.com/dune-universe/bos duniverse-master
+git subtree add --prefix lib/kcas https://github.com/ocaml-multicore/kcas main
+git subtree add --prefix lib/lockfree https://github.com/ocaml-multicore/lockfree main
+git subtree add --prefix lib/domainslib https://github.com/ocaml-multicore/domainslib master
 ```
 
