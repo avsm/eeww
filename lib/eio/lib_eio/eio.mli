@@ -88,8 +88,16 @@ module Buf_write = Buf_write
 (** Networking. *)
 module Net = Net
 
+module Idle_domains = Idle_domains
+
 (** Parallel computation across multiple CPU cores. *)
 module Domain_manager : sig
+  type 'a handle = ((unit, unit) Effect.Deep.handler * ('a Promise.u * (unit -> 'a)) Queue.t) Hmap.key
+
+  val register_handler : (unit, unit) Effect.Deep.handler -> 'a handle
+
+  val lookup_handler_exn : 'a handle -> (unit, unit) Effect.Deep.handler * ('a Promise.u * (unit -> 'a)) Queue.t
+
   class virtual t : object
     method virtual run_raw : 'a. (unit -> 'a) -> 'a
 
@@ -98,12 +106,11 @@ module Domain_manager : sig
 
         If the calling fiber is cancelled, [cancelled] becomes resolved to the {!Cancel.Cancelled} exception.
         [fn] should cancel itself in this case. *)
+    
+    method virtual submit : 'a 'b. 'a handle -> (unit -> 'a) -> 'a
   end
 
-  type system = ..
-  type _ Effect.t += Submit : system * (unit -> 'a) -> 'a Effect.t
-
-  val submit : system -> (unit -> 'a) -> 'a
+  val submit : #t -> 'a handle -> (unit -> 'a) -> 'a
   (** Submit a task to be run in parallel for a particular subsystem *)
 
   val run : #t -> (unit -> 'a) -> 'a
