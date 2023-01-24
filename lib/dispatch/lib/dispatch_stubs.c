@@ -18,6 +18,7 @@
 #define Source_val(v) (*((dispatch_source_t *)Data_custom_val(v)))
 #define Channel_val(v) (*((dispatch_io_t *)Data_custom_val(v)))
 #define Group_val(v) (*((dispatch_group_t *)Data_custom_val(v)))
+#define Semaphore_val(v) (*((dispatch_semaphore_t *)Data_custom_val(v)))
 #define Data_val(v) (*((dispatch_data_t *)Data_custom_val(v)))
 #define Block_val(v) (*((dispatch_block_t *)Data_custom_val(v)))
 
@@ -91,17 +92,17 @@ value ocaml_dispatch_block_exec(value v_block) {
   int res = caml_c_thread_register();
     if (res)
       caml_acquire_runtime_system();
-  
+
   CAMLparam1(v_block);
 
   dispatch_block_t block = Block_val(v_block);
-  
+
   if (res)
     {
       caml_release_runtime_system();
       caml_c_thread_unregister();
     }
-  
+
   CAMLreturn(Val_unit);
 }
 
@@ -142,7 +143,7 @@ value ocaml_dispatch_sync(value v_queue, value v_fun)
     caml_callback(*m_fun, Val_unit);
 
     caml_release_runtime_system();
-    
+
     if (res)
     {
       caml_c_thread_unregister();
@@ -198,7 +199,7 @@ value ocaml_dispatch_get_global_queue(value v_qos) {
     ident = QOS_CLASS_USER_INITIATED;
   } else if (v_qos == 5) {
     ident = QOS_CLASS_UTILITY;
-  } else {  
+  } else {
     ident = QOS_CLASS_BACKGROUND;
   }
 
@@ -281,15 +282,17 @@ value ocaml_dispatch_group_wait(value v_group, value v_time)
 {
   CAMLparam2(v_group, v_time);
   CAMLlocal1(v_res);
-  value *g = caml_stat_alloc(sizeof(dispatch_group_t));
-  *g = v_group;
-  caml_register_generational_global_root(&(*g));
-  value *t = caml_stat_alloc(sizeof(dispatch_group_t));
-  *t = v_time;
-  caml_register_generational_global_root(&(*t));
+  // value *g = caml_stat_alloc(sizeof(dispatch_group_t));
+  // *g = v_group;
+  // caml_register_generational_global_root(&(*g));
+  // value *t = caml_stat_alloc(sizeof(dispatch_group_t));
+  // *t = v_time;
+  // caml_register_generational_global_root(&(*t));
+  dispatch_group_t g = Group_val(v_group);
+  dispatch_time_t t = Int_val(v_time);
 
   caml_release_runtime_system();
-  int v = dispatch_group_wait(Group_val(*g), Val_int(*t));
+  int v = dispatch_group_wait(g, t);
   if (v != 0)
   {
     v_res = 3;
@@ -299,10 +302,10 @@ value ocaml_dispatch_group_wait(value v_group, value v_time)
     v_res = 1;
   }
 
-  caml_remove_generational_global_root(g);
-  caml_remove_generational_global_root(t);
-  caml_stat_free(g);
-  caml_stat_free(t);
+  // caml_remove_generational_global_root(g);
+  // caml_remove_generational_global_root(t);
+  // caml_stat_free(g);
+  // caml_stat_free(t);
   caml_acquire_runtime_system();
   CAMLreturn(v_res);
 }
@@ -318,6 +321,52 @@ value ocaml_dispatch_group_leave(value v_group)
 {
   CAMLparam1(v_group);
   dispatch_group_leave(Group_val(v_group));
+  CAMLreturn(Val_unit);
+}
+
+// ~~~ Semaphore ~~~
+
+static struct custom_operations semaphore_ops = {
+    "dispatch.semaphore",
+    custom_finalize_default,
+    custom_compare_default,
+    custom_hash_default,
+    custom_serialize_default,
+    custom_deserialize_default,
+    custom_compare_ext_default,
+    custom_fixed_length_default,
+};
+
+value ocaml_dispatch_semaphore_create(value v_int)
+{
+  CAMLparam1(v_int);
+  dispatch_semaphore_t sema = dispatch_semaphore_create(Int_val(v_int));
+  dispatch_retain(sema);
+  value v_sema = caml_alloc_custom(&queue_ops, sizeof(dispatch_semaphore_t), 0, 1);
+  Semaphore_val(v_sema) = sema;
+  CAMLreturn(v_sema);
+}
+
+value ocaml_dispatch_semaphore_wait(value v_sema, value v_time)
+{
+  CAMLparam2(v_sema, v_time);
+  int res;
+
+  dispatch_semaphore_t sema = Semaphore_val(v_sema);
+  dispatch_time_t time = Int_val(v_time);
+
+  // Release runtime and await the semahore.
+  caml_release_runtime_system();
+  res = dispatch_semaphore_wait(sema, time);
+  caml_acquire_runtime_system();
+
+  CAMLreturn(Val_int(res));
+}
+
+value ocaml_dispatch_semaphore_signal(value v_sema)
+{
+  CAMLparam1(v_sema);
+  dispatch_semaphore_signal(Semaphore_val(v_sema));
   CAMLreturn(Val_unit);
 }
 
@@ -344,7 +393,7 @@ value ocaml_dispatch_data_to_ba(value v_off, value v_len, value v_data) {
   const void *buff = NULL;
   size_t size = 0;
   dispatch_data_t data = dispatch_data_create_map(dispersed_data, &buff, &size);
-  // Copy contents of buff into the big array 
+  // Copy contents of buff into the big array
   void *dest = caml_stat_alloc(size);
   void *copy = memcpy(dest, buff, size);
 
@@ -530,7 +579,7 @@ value ocaml_dispatch_with_read(value v_channel, value v_off, value v_len, value 
 
     if (res)
       caml_acquire_runtime_system();
-    
+
     ocaml_dispatch_io_handler(m_handler, done, data, error);
 
     if (done) {
