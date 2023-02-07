@@ -134,6 +134,7 @@ let main email org domain prod site cert http_port () =
     let endpoint = if prod then Letsencrypt.letsencrypt_production_url else Letsencrypt.letsencrypt_staging_url in
     let cert_root = Eio.Path.open_dir ~sw (env#cwd / cert) in
     let config = Tls_le.tls_config ~cert_root ~org ~email ~domain ~endpoint env in
+    Eio.traceln "Starting TLS with LetsEncrypt endpoint: %a" Uri.pp endpoint;
     run_https_server ~docroot ~config ~port:443 env
 
 let setup_log style_renderer level =
