@@ -2,6 +2,7 @@ module Queue = Queue
 module Block = Block
 module Io = Io
 module Group = Group
+module Semaphore = Semaphore
 module Data = Data
 module Time = Time
 module Source = Source

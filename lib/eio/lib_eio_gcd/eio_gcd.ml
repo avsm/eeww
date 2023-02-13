@@ -15,14 +15,25 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *)
 
-let src = Logs.Src.create "eio_gcd" ~doc:"Eio backend using gcd and luv"
-module Log = (val Logs.src_log src : Logs.LOG)
-
 open Eio.Std
 open Eio.Private
 open Eio_utils
 
 module Ctf = Eio.Private.Ctf
+
+module PendingIO = struct
+  type t = int Atomic.t
+
+  let enter msg t =
+    Atomic.incr t
+
+  let leave msg t =
+    Atomic.decr t
+
+  let is_finished t = Int.equal (Atomic.get t) 0
+
+  let create () = Atomic.make 0
+end
 
 (* SIGPIPE makes no sense in a modern application. *)
 let () = Sys.(set_signal sigpipe Signal_ignore)
@@ -46,17 +57,14 @@ type runnable =
   | IO
   | Thread of string * (unit -> [`Exit_scheduler])
 
-type eventfd = {
-  r : Dispatch.Io.t;
-  w : Dispatch.Io.t;
-} (* A pipe *)
-
 type t = {
+  name : string;
   async : Dispatch.Queue.t;       (* Will process [run_q] when prodded. *)
-  eventfd : eventfd;
   run_q : runnable Lf_queue.t;
   need_wakeup : bool Atomic.t;
-  pending_io : Dispatch.Group.t;  (* All IO operations enter and leave this group. *)
+  pending_io : PendingIO.t;  (* All IO operations enter and leave this PendingIO. *)
+  wakeup : Dispatch.Semaphore.t;
+  wakeup_lock : Mutex.t;
 }
 
 type _ Effect.t += Enter : (t -> 'a Suspended.t -> unit) -> 'a Effect.t
@@ -75,17 +83,31 @@ let option_get ~msg = function
 
 let wakeup t =
   Atomic.set t.need_wakeup false; (* [t] will check [run_q] after getting the event below *)
-  let sent = Unix.single_write (Dispatch.Io.get_unix t.eventfd.w |> option_get ~msg:"wakeup write") wake_buffer 0 8 in
-  assert (sent = 8)
+  Dispatch.Semaphore.signal t.wakeup
 
-let enqueue_thread ~msg t k v =
-  Eio.traceln "enqueue_thread %s" msg;
+let enqueue_thread ?(leave_io=false) ~msg t k v =
   Lf_queue.push t.run_q (Thread (msg, fun () -> Suspended.continue k v));
-  if Atomic.get t.need_wakeup then wakeup t
+  Mutex.lock t.wakeup_lock;
+  if Atomic.get t.need_wakeup then begin
+    wakeup t;
+    if leave_io then PendingIO.leave msg t.pending_io;
+    Mutex.unlock t.wakeup_lock;
+  end else (
+    if leave_io then PendingIO.leave msg t.pending_io;
+    Mutex.unlock t.wakeup_lock
+  )
 
-let enqueue_failed_thread ~msg t k ex =
+let enqueue_failed_thread ?(leave_io=false) ~msg t k ex =
   Lf_queue.push t.run_q (Thread (msg, fun () -> Suspended.discontinue k ex));
-  if Atomic.get t.need_wakeup then wakeup t
+  Mutex.lock t.wakeup_lock;
+  if Atomic.get t.need_wakeup then begin
+    wakeup t;
+    if leave_io then PendingIO.leave msg t.pending_io;
+    Mutex.unlock t.wakeup_lock
+  end else (
+    if leave_io then PendingIO.leave msg t.pending_io;
+    Mutex.unlock t.wakeup_lock
+  )
 
 let set_cancel_fn fiber f =
   let cancelled = ref false in
@@ -94,28 +116,24 @@ let set_cancel_fn fiber f =
 
 module Low_level = struct
 
-  let sleep_until ~queue due =
-    let delay = 1_000_000_000. *. (due -. Unix.gettimeofday ()) |> ceil |> Int64.of_float |> Int64.max 0L in
+  let sleep_ns ~queue delay =
     enter @@ fun t k ->
-    Dispatch.Group.enter t.pending_io;
+    PendingIO.enter "sleepns" t.pending_io;
     (* TODO: Dispatch work items are properly cancellable! *)
     let clear_cancel = set_cancel_fn k.fiber (fun ex cancelled ->
-        enqueue_failed_thread ~msg:"Timeout stopped!" t k ex;
-        cancelled := true;
-        Dispatch.Group.leave t.pending_io
+      cancelled := true;
+      enqueue_failed_thread ~leave_io:true ~msg:"Timeout stopped!" t k ex
       )
     in
     Dispatch.after ~delay queue (fun () ->
         match Fiber_context.get_error k.fiber with
         | None ->
           if clear_cancel () then begin
-            enqueue_thread ~msg:"Sleepy" t k ();
-            Dispatch.Group.leave t.pending_io
+            enqueue_thread ~leave_io:true ~msg:"Sleepy" t k ()
           end
         | Some exn ->
           if clear_cancel () then begin
-            enqueue_failed_thread ~msg:"Timeout stopped!" t k exn;
-            Dispatch.Group.leave t.pending_io
+            enqueue_failed_thread ~leave_io:true ~msg:"Timeout stopped!" t k exn
           end
       )
 
@@ -125,11 +143,10 @@ module Low_level = struct
   let read ~off ~length fd io_queue (buf : Buffer.t) =
     let read = ref 0 in
     enter (fun t k ->
-        Dispatch.Group.enter t.pending_io;
+        PendingIO.enter "read" t.pending_io;
         let clear_cancel = set_cancel_fn k.fiber (fun _ cancelled ->
-            enqueue_failed_thread ~msg:"cancelled" t k (Eio.Cancel.Cancelled Exit);
             cancelled := true;
-            Dispatch.Group.leave t.pending_io
+            enqueue_failed_thread ~leave_io:true ~msg:"cancelled" t k (Eio.Cancel.Cancelled Exit)
           )
         in
         Dispatch.Io.with_read ~off ~length ~queue:io_queue fd ~f:(fun ~err ~finished r ->
@@ -137,23 +154,20 @@ module Low_level = struct
             if err = 0 && finished then begin
               if size = 0 then begin
                 if clear_cancel () then begin
-                  enqueue_thread ~msg:"read of zero" t k !read;
-                  Dispatch.Group.leave t.pending_io
+                  enqueue_thread ~leave_io:true ~msg:"read of zero" t k !read
                 end
               end
               else (
                 read := !read + size;
                 buf := Dispatch.Data.concat r !buf;
                 if clear_cancel () then begin
-                  enqueue_thread ~msg:("read not zero: " ^ string_of_int size) t k !read;
-                  Dispatch.Group.leave t.pending_io
+                  enqueue_thread ~leave_io:true ~msg:("read not zero: " ^ string_of_int size) t k !read
                 end
               )
             end
             else if err <> 0 then begin
               if clear_cancel () then begin
-                enqueue_failed_thread ~msg:"failed read" t k (Failure "Read failed");
-                Dispatch.Group.leave t.pending_io
+                enqueue_failed_thread ~leave_io:true ~msg:"failed read" t k (Failure "Read failed")
               end
             end
             else begin
@@ -165,15 +179,22 @@ module Low_level = struct
 
   let write fd io_queue (bufs : Buffer.t) =
     enter (fun t k ->
-        Dispatch.Group.enter t.pending_io;
+        PendingIO.enter "write" t.pending_io;
+        let clear_cancel = set_cancel_fn k.fiber (fun _ cancelled ->
+            cancelled := true;
+            enqueue_failed_thread ~leave_io:true ~msg:"cancelled" t k (Eio.Cancel.Cancelled Exit)
+          )
+        in
         Dispatch.Io.with_write ~off:0 ~data:(!bufs) ~queue:io_queue fd ~f:(fun ~err ~finished _remaining ->
             if err <> 0 then begin
-              enqueue_failed_thread ~msg:"failed write" t k (Failure "Write failed");
-              Dispatch.Group.leave t.pending_io
+              if clear_cancel () then begin
+                enqueue_failed_thread ~leave_io:true ~msg:"failed write" t k (Failure "Write failed");
+              end
             end else
             if finished then begin
-              enqueue_thread ~msg:"write finished" t k ();
-              Dispatch.Group.leave t.pending_io
+              if clear_cancel () then begin
+                enqueue_thread ~leave_io:true ~msg:"write finished" t k ()
+              end
             end
             else ()
           )
@@ -225,26 +246,17 @@ module File = struct
       fd
 
 
-  (* Dispatch Queue
-     Ideally, I think, this would be [Concurrent] but then the OCaml
-     runtime lock would block the thread and cause GCD to "thread explode".
-
-     BUG: Something in ocaml-dispatch needs to change with the retention/allocation of
-     queues, if this `lazy` is removed then this is initialised when the module is and
-     sometimes causes segfaults *)
-  let io_queue = lazy Dispatch.Queue.(create ~typ:Serial ())
-
   let realpath p = try Ok (Unix.realpath p) with exn -> Error exn
 
   let mkdir ~mode p = try Ok (Unix.mkdir p mode) with exn -> Error exn
 
   (* We use `Unix.openfile` here because dispatch tries to be clever otherwise and will not open a
      file descriptor until the first IO operation. *)
-  let open_ ~sw ?mode path flags =
+  let open_ ~sw ?mode io_queue path flags =
     let create path =
       try
         let fd = Unix.openfile path flags (Option.value ~default:0 mode) in
-        let io_channel = Dispatch.Io.create Stream (Dispatch.Io.Fd.of_unix fd) (Lazy.force io_queue) in
+        let io_channel = Dispatch.Io.create Stream (Dispatch.Io.Fd.of_unix fd) io_queue in
         Ok (of_gcd ~sw io_channel)
       with
       | exn -> Error exn
@@ -260,25 +272,26 @@ module File = struct
 end
 
 module Conn = struct
-  let receive ?(max=max_int) (conn : Network.Connection.t) buf =
+  let receive ~max (conn : Network.Connection.t) buf =
     let r = enter (fun t k ->
-        Dispatch.Group.enter t.pending_io;
+        PendingIO.enter "receive" t.pending_io;
         let clear_cancel = set_cancel_fn k.fiber (fun exn cancelled ->
             (* Can't see any way to actually cancel the receive operation. *)
-            enqueue_failed_thread ~msg:"Failed network receive" t k exn;
             cancelled := true;
-            Dispatch.Group.leave t.pending_io
+            enqueue_failed_thread ~leave_io:true ~msg:"Failed network receive" t k exn
           )
         in
         Network.Connection.receive ~min:0 ~max conn ~completion:(fun data _context is_complete err ->
+            let err_code = Network.Error.to_int err in
             match data with
             | None ->
               if clear_cancel () then begin
-                enqueue_thread ~msg:"recv no data" t k (Ok (0, true));
-                Dispatch.Group.leave t.pending_io
+                if err_code <> 0 then
+                  enqueue_failed_thread ~leave_io:true ~msg:"rev" t k (Failure (string_of_int err_code))
+                else
+                  enqueue_thread ~leave_io:true ~msg:"recv no data" t k (Ok (0, true))
               end
             | Some data ->
-              let err_code = Network.Error.to_int err in
               let res =
                 if err_code = 0 then begin
                   let size = Dispatch.Data.size data in
@@ -287,8 +300,7 @@ module Conn = struct
                 end else Error (`Msg (string_of_int err_code))
               in
               if clear_cancel () then begin
-                enqueue_thread ~msg:"recv data" t k res;
-                Dispatch.Group.leave t.pending_io
+                enqueue_thread ~leave_io:true ~msg:"recv data" t k res
               end
           )
       ) in match r with
@@ -299,20 +311,18 @@ module Conn = struct
 
   let _receive_message (conn : Network.Connection.t) buf =
     let r = enter (fun t k ->
-        Dispatch.Group.enter t.pending_io;
+        PendingIO.enter "recv" t.pending_io;
         let clear_cancel = set_cancel_fn k.fiber (fun exn cancelled ->
             (* Can't see any way to actually cancel the receive operation. *)
-            enqueue_failed_thread ~msg:"Failed network receive" t k exn;
             cancelled := true;
-            Dispatch.Group.leave t.pending_io
+            enqueue_failed_thread ~leave_io:true ~msg:"Failed network receive" t k exn
           )
         in
         Network.Connection.receive_message conn ~completion:(fun data _context is_complete err ->
             match data with
             | None ->
               if clear_cancel () then begin
-                enqueue_thread ~msg:"recv no data" t k (Ok (0, true));
-                Dispatch.Group.leave t.pending_io
+                enqueue_thread ~leave_io:true ~msg:"recv no data" t k (Ok (0, true))
               end
             | Some data ->
               let err_code = Network.Error.to_int err in
@@ -324,8 +334,7 @@ module Conn = struct
                 end else Error (`Msg (string_of_int err_code))
               in
               if clear_cancel () then begin
-                enqueue_thread ~msg:"recv data" t k res;
-                Dispatch.Group.leave t.pending_io
+                enqueue_thread ~leave_io:true ~msg:"recv data" t k res
               end
           )
       ) in match r with
@@ -336,25 +345,22 @@ module Conn = struct
 
   let send ?(is_complete=true) ?(context=Network.Connection.Context.Default) (conn : Network.Connection.t) buf =
     enter (fun t k ->
-        Dispatch.Group.enter t.pending_io;
+        PendingIO.enter "send" t.pending_io;
         let clear_cancel = set_cancel_fn k.fiber (fun exn cancelled ->
             (* Can't see any way to actually cancel the receive operation. *)
-            enqueue_failed_thread ~msg:"Failed network receive" t k exn;
             cancelled := true;
-            Dispatch.Group.leave t.pending_io
+            enqueue_failed_thread ~leave_io:true ~msg:"Failed network receive" t k exn
           )
         in
         Network.Connection.send ~is_complete ~context conn ~data:(!buf) ~completion:(fun e ->
             match Network.Error.to_int e with
             | 0 ->
               if clear_cancel () then begin
-                enqueue_thread ~msg:"sent" t k (Ok ());
-                Dispatch.Group.leave t.pending_io
+                enqueue_thread ~leave_io:true ~msg:"sent" t k (Ok ())
               end
             | i ->
               if clear_cancel () then begin
-                enqueue_thread ~msg:"send err" t k (Error (`Msg (string_of_int i)));
-                Dispatch.Group.leave t.pending_io
+                enqueue_thread ~leave_io:true ~msg:"send err" t k (Error (`Msg (string_of_int i)))
               end
           )
       )
@@ -401,19 +407,16 @@ let socket sock = object
             Network.Connection.send ~is_complete:true ~context:Final sock ~completion:(fun e ->
                 match Network.Error.to_int e with
                 | 0 ->
-                  Logs.debug (fun f -> f "Sending 'write close' to connection");
-                  enqueue_thread ~msg:"shutdown write" t k (Ok ())
+                  enqueue_thread ~leave_io:true ~msg:"shutdown write" t k (Ok ())
                 | i ->
-                  Logs.debug (fun f -> f "Got error %i" i);
-                  enqueue_thread ~msg:"shutdown err" t k (Error (`Msg (string_of_int i)))
+                  enqueue_thread ~leave_io:true ~msg:"shutdown err" t k (Error (`Msg (string_of_int i)))
               )
           ) in match r with
         | Ok () -> ()
         | Error (`Msg m) -> failwith m
       )
     | `Receive -> failwith "shutdown receive not supported"
-    | `All ->
-      Log.warn (fun f -> f "shutdown receive not supported")
+    | `All -> ()
 end
 
 let udp_socket local_addr (listener : Network.Listener.t) = object
@@ -454,15 +457,12 @@ let udp_socket local_addr (listener : Network.Listener.t) = object
       if Network.Error.to_int e <> 0 then enqueue_failed_thread ~msg:"connection" t k (Failure "UDP Connection")
       else
         match state with
-        | Waiting ->
-          Logs.debug (fun f -> f "Connection is waiting...")
-        | Ready ->
-          Logs.debug (fun f -> f "Connection is ready");
-          enqueue_thread ~msg:"connection" t k connection
-        | Invalid -> Logs.warn (fun f -> f "Invalid connection")
-        | Preparing -> Logs.debug (fun f -> f "Connection is being prepared")
-        | Failed -> Logs.warn (fun f -> f "Connection failed")
-        | Cancelled -> Logs.debug (fun f -> f "Connection has been cancelled")
+        | Waiting -> ()
+        | Ready -> enqueue_thread ~msg:"ready connection" t k connection
+        | Invalid -> ()
+        | Preparing -> ()
+        | Failed -> ()
+        | Cancelled -> ()
     in
     let connection =
       enter (fun t k ->
@@ -488,14 +488,12 @@ let udp_socket local_addr (listener : Network.Listener.t) = object
       in
       let handler (state : Network.Connection.State.t) _ =
         match state with
-        | Waiting ->
-          Logs.debug (fun f -> f "Connection is waiting...")
-        | Ready ->
-          Logs.debug (fun f -> f "Connection is ready")
-        | Invalid -> Logs.warn (fun f -> f "Invalid connection")
-        | Preparing -> Logs.debug (fun f -> f "Connection is being prepared")
-        | Failed -> Logs.warn (fun f -> f "Connection failed")
-        | Cancelled -> Logs.debug (fun f -> f "Connection has been cancelled")
+        | Waiting -> ()
+        | Ready -> ()
+        | Invalid -> ()
+        | Preparing -> ()
+        | Failed -> ()
+        | Cancelled -> ()
       in
       Connection.set_state_changed_handler ~handler conn;
       Connection.start conn;
@@ -519,9 +517,9 @@ let udp_socket local_addr (listener : Network.Listener.t) = object
       | i, _ when i <> 0 -> failwith ("Listener failed with error code: " ^ string_of_int i)
       | _, Ready -> enqueue_thread ~msg:"UDP listener ready" t k ()
       | i, Failed -> failwith ("Network listener failed: " ^ string_of_int i)
-      | _, Invalid -> Logs.debug (fun f -> f "Listener changed to invalid state")
-      | _, Waiting -> Logs.debug (fun f -> f "Listener is waiting...")
-      | _, Cancelled -> Logs.debug (fun f -> f "Listener is cancelled")
+      | _, Invalid -> ()
+      | _, Waiting -> ()
+      | _, Cancelled -> ()
     in
     Listener.retain listener;
     Listener.set_queue ~queue listener;
@@ -556,11 +554,11 @@ class virtual ['a] listening_socket ~backlog:_ net_queue sock = object (self)
     let handler (state : Network.Listener.State.t) err =
       match (Network.Error.to_int err, state) with
       | i, _ when i <> 0 -> failwith ("Listener failed with error code: " ^ string_of_int i)
-      | _, Ready -> Log.debug (fun f -> f "Listening on port %i..." (Network.Listener.get_port sock));
+      | _, Ready -> ()
       | _, Failed -> failwith "Network listener failed"
-      | _, Invalid -> Logs.debug (fun f -> f "Listener changed to invalid state")
-      | _, Waiting ->Logs.debug (fun f -> f "Listener is waiting...")
-      | _, Cancelled -> Logs.debug (fun f -> f "Listener is cancelled")
+      | _, Invalid -> ()
+      | _, Waiting -> ()
+      | _, Cancelled -> ()
     in
     let conn_handler conn =
       Network.Connection.retain conn;
@@ -571,7 +569,6 @@ class virtual ['a] listening_socket ~backlog:_ net_queue sock = object (self)
       conn_sock <- Some (conn, sockaddr);
       Eio.Semaphore.release connected
     in
-    Logs.debug (fun f -> f "Initialising socket");
     Network.Listener.set_state_changed_handler ~handler sock;
     Network.Listener.set_new_connection_handler ~handler:conn_handler sock;
     Network.Listener.start sock
@@ -587,7 +584,7 @@ let listening_socket ~backlog net_queue sock = object
     | Unix.ADDR_INET (host, port) -> `Tcp (Eio_unix.Ipaddr.of_unix host, port)
 end
 
-let net = object
+let net () = object
   inherit Eio.Net.t
 
   val queue = Dispatch.Queue.create ~typ:Serial ()
@@ -634,7 +631,6 @@ let net = object
 
   method connect ~sw:_ = function
     | `Tcp (hostname, port) ->
-      Logs.debug (fun f -> f "Connecting...");
       let open Network in
       let params = Parameters.create_tcp () in
       let endpoint = Endpoint.create_address Unix.(ADDR_INET (Eio_unix.Ipaddr.to_unix hostname, port)) in
@@ -645,19 +641,17 @@ let net = object
       let _ = Endpoint.release endpoint in
       Connection.retain connection;
       Connection.set_queue ~queue connection;
-      let handler t k (state : Network.Connection.State.t) _ =
+      let handler t k (state : Network.Connection.State.t) e =
         match state with
-        | Waiting ->
-          Logs.debug (fun f -> f "Connection is waiting...")
-        | Ready ->
-          Logs.debug (fun f -> f "Connection is ready");
-          enqueue_thread ~msg:"connection" t k (socket connection)
-        | Invalid -> Logs.warn (fun f -> f "Invalid connection")
-        | Preparing -> Logs.debug (fun f -> f "Connection is being prepared")
-        | Failed -> Logs.warn (fun f -> f "Connection failed")
-        | Cancelled -> Logs.debug (fun f -> f "Connection has been cancelled")
+        | Waiting -> ()
+        | Ready -> enqueue_thread ~leave_io:true ~msg:"connection" t k (socket connection)
+        | Invalid -> enqueue_failed_thread ~leave_io:true ~msg:"connection" t k (Failure (string_of_int @@ Network.Error.to_int e))
+        | Preparing -> ()
+        | Failed -> enqueue_failed_thread ~leave_io:true ~msg:"connection" t k (Failure (string_of_int @@ Network.Error.to_int e))
+        | Cancelled -> enqueue_failed_thread ~leave_io:true ~msg:"connection" t k (Failure (string_of_int @@ Network.Error.to_int e))
       in
       enter (fun t k ->
+          PendingIO.enter "conn start" t.pending_io;
           Connection.set_state_changed_handler ~handler:(handler t k) connection;
           Connection.start connection)
     | _ -> assert false
@@ -810,8 +804,10 @@ class dir ~label (dir_path : string) = object (self)
       let dir = self#resolve dir in
       Filename.concat dir leaf
 
+  val clean_up_queue = Dispatch.Queue.create ~typ:Serial ()
+
   method open_in ~sw path =
-    let fd = File.open_ ~sw (self#resolve path) [ Unix.O_RDONLY ] |> or_raise_fs in
+    let fd = File.open_ ~sw clean_up_queue (self#resolve path) [ Unix.O_RDONLY ] |> or_raise_fs in
     (flow fd :> <Eio.File.ro; Eio.Flow.close>)
 
   method open_out ~sw ~append ~create path =
@@ -828,7 +824,7 @@ class dir ~label (dir_path : string) = object (self)
       if create = `Never then self#resolve path
       else self#resolve_new path
     in
-    let fd = File.open_ ~sw real_path flags ~mode |> or_raise_fs in
+    let fd = File.open_ ~sw clean_up_queue real_path flags ~mode |> or_raise_fs in
     (flow fd :> <Eio.File.rw; Eio.Flow.close>)
 
   method open_dir ~sw path =
@@ -911,9 +907,8 @@ let mono_clock = object
     let time = Mtime.to_uint64_ns time in
     if Int64.unsigned_compare now time >= 0 then Fiber.yield ()
     else (
-      let delay_ns = Int64.sub time now |> Int64.to_float in
-      let delay_ms = delay_ns /. 1e6 |> ceil |> truncate |> max 0 in
-      Low_level.sleep_until ~queue (float_of_int delay_ms)
+      let delay_ns = Int64.sub time now |> Int64.max 0L in
+      Low_level.sleep_ns ~queue delay_ns
     )
 end
 
@@ -924,10 +919,12 @@ let clock = object
 
   method now = Unix.gettimeofday ()
 
-  method sleep_until due = Low_level.sleep_until ~queue due
+  method sleep_until due =
+    let delay = 1_000_000_000. *. (due -. Unix.gettimeofday ()) |> ceil |> Int64.of_float |> Int64.max 0L in
+    Low_level.sleep_ns ~queue delay
 end
 
-let domain_mgr ~run_event_loop =
+let domain_mgr ~run_queues ~run_event_loop =
   let run_raw ~pre_spawn fn =
     let domain = ref None in
     enter (fun t k ->
@@ -954,6 +951,56 @@ let domain_mgr ~run_event_loop =
           run_event_loop (fun _ -> result := Some (fn ~cancelled));
           Option.get !result
         )
+
+    method submit (type a) (uid : a Eio.Domain_manager.handle) (fn : unit -> a) : a =
+      match Hashtbl.find_opt run_queues (Hmap.Key.hide_type uid) with
+      | Some (active, cap) when !active >= cap ->
+        let p, r = Eio.Promise.create () in
+        let _handler, queue = Eio.Domain_manager.lookup_handler_exn uid in
+        Queue.push (r, fn) queue;
+        Eio.Promise.await p
+      | None | Some _ as t ->
+          let active = match t with
+            | Some (active, _) -> active
+            | None ->
+              let active = ref 0 in
+              (* 3 is an arbitrary number -- we need to be smarter than this when
+                  scheduling to ensure no subsystem gets starved. We could potentially
+                  know statically ahead of time how many 'subsystems' have registered to
+                  submit things to domains, provided they all register at module initialisation
+                  time and naively we could do the initial capacities fairly spread amongst
+                  these subsystems. *)
+              Hashtbl.add run_queues (Hmap.Key.hide_type uid) (active, 3);
+              active
+          in
+          let p, r = Eio.Promise.create () in
+          let handler, queue = Eio.Domain_manager.lookup_handler_exn uid in
+          Queue.push (r, fn) queue;
+          (* Each scheduler is a new Eio loop + the subsystems handler. *)
+          let scheduler _ =
+            run_event_loop @@ fun _ ->
+            Effect.Deep.match_with (fun () ->
+              let rec loop () = match Queue.peek_opt queue with
+                | Some _ ->
+                  let r, task = Queue.pop queue in
+                  let v = task () in
+                  Eio.Promise.resolve r v;
+                  loop ()
+                | None ->
+                  (* Instead of just leaving immediately we could instead linger
+                      a little bit in case some extra work turns up, or block on
+                      some condition variable which is broadcast to that will wake
+                      us up when the task queue has been modified. *)
+                  decr active
+              in
+                loop ()
+            ) () handler
+          in
+          while not (Eio.Idle_domains.try_spawn ~scheduler) do
+            Domain.cpu_relax ();
+          done;
+          incr active;
+          Eio.Promise.await p
   end
 
 type stdenv = <
@@ -970,56 +1017,52 @@ type stdenv = <
   domain_mgr : Eio.Domain_manager.t;
 >
 
-let stdenv ~run_event_loop =
-  let stdin = lazy (source (File.of_gcd_no_hook @@ Dispatch.Io.(create Stream Fd.stdin (Lazy.force File.io_queue)))) in
-  let stdout = lazy (sink (File.of_gcd_no_hook @@ Dispatch.Io.(create Stream Fd.stdout (Lazy.force File.io_queue)))) in
-  let stderr = lazy (sink (File.of_gcd_no_hook @@ Dispatch.Io.(create Stream Fd.stderr (Lazy.force File.io_queue)))) in
+let stdenv ~run_queues ~run_event_loop =
+  let io_queue = Dispatch.Queue.create ~typ:Serial () in
+  let stdin = lazy (source (File.of_gcd_no_hook @@ Dispatch.Io.(create Stream Fd.stdin io_queue))) in
+  let stdout = lazy (sink (File.of_gcd_no_hook @@ Dispatch.Io.(create Stream Fd.stdout io_queue))) in
+  let stderr = lazy (sink (File.of_gcd_no_hook @@ Dispatch.Io.(create Stream Fd.stderr io_queue))) in
   object (_ : stdenv)
     method stdin  = (Lazy.force stdin)
     method stdout = (Lazy.force stdout)
     method stderr = (Lazy.force stderr)
-    method net = net
+    method net = net ()
     method fs = (fs :> Eio.Fs.dir), "."
     method cwd = (cwd :> Eio.Fs.dir), "."
     method secure_random = secure_random
     method clock = clock
     method mono_clock = mono_clock
     method debug = Eio.Private.Debug.v
-    method domain_mgr = domain_mgr ~run_event_loop
+    method domain_mgr = domain_mgr ~run_queues ~run_event_loop
   end
 
-let io_finished t =
-  match Dispatch.(Group.wait t.pending_io (Time.now ())) with
-  | Pending -> false
-  | Ready -> true
+let io_finished t = PendingIO.is_finished t.pending_io
 
 (* This is a mix of the uring-based linux scheduler and the
    luv-based scheduler. *)
 
 let rec schedule st : [ `Exit_scheduler ] =
   match Lf_queue.pop st.run_q with
-  | Some (Thread (msg, f)) ->
-    Eio.traceln "Scheduler: %s" msg;
+  | Some (Thread (_msg, f)) ->
     f ()
   | Some IO ->
-    (* If threads keep yielding they could prevent pending IO from being processed.
-       Therefore, we keep an [IO] job on the queue to force us to check from time to time. *)
     if not (Lf_queue.is_empty st.run_q) then (
       Lf_queue.push st.run_q IO;
       schedule st
+    ) else if io_finished st then (
+      `Exit_scheduler
     ) else (
-      let finished = io_finished st in
+      Mutex.lock st.wakeup_lock;
       Atomic.set st.need_wakeup true;
-      if not finished && Lf_queue.is_empty st.run_q then (
+      if Lf_queue.is_empty st.run_q then (
+        Mutex.unlock st.wakeup_lock;
+        let v = Dispatch.(Semaphore.wait st.wakeup (Time.forever ())) in
         Atomic.set st.need_wakeup false;
         Lf_queue.push st.run_q IO;
         schedule st
-      ) else if finished then (
+      ) else (
         Atomic.set st.need_wakeup false;
-        `Exit_scheduler
-      )
-      else (
-        Atomic.set st.need_wakeup false;
+        Mutex.unlock st.wakeup_lock;
         Lf_queue.push st.run_q IO;
         schedule st
       )
@@ -1030,36 +1073,24 @@ let enqueue_at_head t k v =
   Lf_queue.push_head t.run_q (Thread ("fork", fun () -> Suspended.continue k v));
   if Atomic.get t.need_wakeup then wakeup t
 
-let monitor_event_fd t =
-  let buf = ref (Dispatch.Data.empty ()) in
-  while true do
-    let got = Low_level.read ~off:0 ~length:8 t.eventfd.r t.async buf in
-    Log.debug (fun f -> f "Received wakeup on eventfd");
-    assert (got = 8);
-    (* We just go back to sleep now, but this will cause the scheduler to look
-        at the run queue again and notice any new items. *)
-  done;
-  assert false
+let run_queues =
+  Eio.Idle_domains.prepare 4;
+  Hashtbl.create 16
+
+let name =
+  let i = ref 0 in
+  fun () -> incr i; string_of_int !i
 
 let rec run : type a. (_ -> a) -> a = fun main ->
   let open Eio.Private in
-  Log.debug (fun l -> l "starting run");
   let run_q = Lf_queue.create () in
   Lf_queue.push run_q IO;
-  let pending_io = Dispatch.Group.create () in
+  let pending_io = PendingIO.create () in
   let async = Dispatch.Queue.create () in
-  let eventfd =
-    let r, w = Unix.pipe () in
-    {
-      r = Dispatch.Io.(create Stream Fd.(of_unix r) async);
-      w = Dispatch.Io.(create Stream Fd.(of_unix w) async)
-    }
-  in
+  let wakeup = Dispatch.Semaphore.create 0 in
   let need_wakeup = Atomic.make false in
-  let st = { async; pending_io; eventfd; run_q; need_wakeup } in
-  let pool = Domainslib.Task.setup_pool ~num_domains:4 () in
-  let par_table = Hashtbl.create 128 in
-  let par_alloc = Hashtbl.create 8 in
+  let wakeup_lock = Mutex.create () in
+  let st = { async; pending_io; run_q; need_wakeup; wakeup; wakeup_lock; name = name (); } in
   let rec fork ~new_fiber:fiber fn =
     Ctf.note_switch (Fiber_context.tid fiber);
     let open Effect.Deep in
@@ -1107,66 +1138,23 @@ let rec run : type a. (_ -> a) -> a = fun main ->
           | Eio_unix.Private.Socketpair _ -> Some (fun k ->
               discontinue k (Failure "Socketpair not supported by GCD backend yet")
             )
-          | Eio.Domain_manager.Submit (system, task) -> Some (fun k ->
-              let tasks =
-                match Hashtbl.find_opt par_table system with
-                | Some i -> i
-                | None -> []
-              in
-              let alloc = match Hashtbl.find_opt par_alloc system with
-                | Some i -> i
-                | None ->
-                  (* Should be smarter and check how many domains to allocate,
-                     here I've just thrown in 4. *)
-                  Hashtbl.add par_alloc system 4;
-                  4
-              in
-              let () =
-                if List.length tasks = alloc then begin
-                  let () =
-                    Domainslib.Task.run pool @@ fun () ->
-                    List.iter (Domainslib.Task.await pool) tasks;
-                  in
-                  let task = Domainslib.Task.async pool (fun () ->
-                    let v = task () in
-                    let k = { Suspended.k; fiber } in
-                    enqueue_thread ~msg:"enqueue alloc" st k v
-                  ) in
-                  Hashtbl.replace par_table system (task :: [])
-                end else begin
-                  let task = Domainslib.Task.async pool (fun () ->
-                    let v = task () in
-                    let k = { Suspended.k; fiber } in
-                    enqueue_thread ~msg:"enqueue no alloc" st k v
-                  ) in
-                  Hashtbl.replace par_table system (task :: tasks)
-              end in
-              schedule st
-            )
           | _ -> None
       }
   in
   let result = ref None in
-  let finished = Dispatch.Group.create () in
+  let exit_group = Dispatch.Group.create () in
   let `Exit_scheduler =
     let new_fiber = Fiber_context.make_root () in
-    Dispatch.Group.enter finished;
+    Dispatch.Group.enter exit_group;
     fork ~new_fiber (fun () ->
         Switch.run_protected (fun sw ->
-            Switch.on_release sw (fun () ->
-                (* TODO *)()
-              );
-            Log.debug (fun f -> f "Monitoring dispatch async queue");
-            result := Some (
-                Fiber.first
-                  (fun () -> main (stdenv ~run_event_loop:run))
-                  (fun () -> monitor_event_fd st)
-              );
-            Dispatch.Group.leave finished
+            Switch.on_release sw (fun () -> ());
+            let v = main (stdenv ~run_queues ~run_event_loop:run) in
+            result := Some v;
+            Dispatch.Group.leave exit_group
           )
       )
   in
-  let _ = Dispatch.Group.wait finished (Dispatch.Time.dispatch_forever ()) in
-  (* Can't do this yet because cancellation isn't implemented everywhere *)
-  (* Lf_queue.close st.run_q; *)
+  let _state = Dispatch.Group.wait exit_group (Dispatch.Time.forever ()) in
+  Lf_queue.close st.run_q;
   option_get ~msg:"end result" !result

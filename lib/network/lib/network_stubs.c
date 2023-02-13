@@ -198,7 +198,7 @@ value ocaml_network_connection_receive(value v_min, value v_max, value v_comp, v
 
   value *m_comp = network_make_callback(v_comp);
 
-  nw_connection_receive(Connection_val(v_conn), 1, Int_val(v_max),
+  nw_connection_receive(Connection_val(v_conn), Int_val(v_min), Int_val(v_max),
     ^(dispatch_data_t data, nw_content_context_t context, bool is_complete, nw_error_t receive_error) {
       int res = caml_c_thread_register();
       if (res)

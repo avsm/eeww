@@ -10,4 +10,4 @@
  (foreign_stubs
   (language c)
   (names eio_gcd_stubs))
- (libraries eio gcd network eio.utils eio.unix unix logs fmt bigstringaf domainslib))
+ (libraries eio gcd network eio.utils eio.unix unix fmt bigstringaf domainslib))

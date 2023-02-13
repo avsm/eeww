@@ -61,15 +61,32 @@ module Url = struct
     type t = {
       label: string;
       https: Https.S.t;
+      mgr : Eio.Domain_manager.t;
       (* TODO protocols *)
     }
 
-    type Eio.Domain_manager.system += HTTP
+    type _ Effect.t += Dummy : unit Effect.t
 
-    let v ~label ~net =
+    (* A dummy handler. And HTTP implementation will want to schedule based
+       on connections perhaps or something like that. Here we just need to
+       perform an effect to make sure we are doing things correctly. *)
+    let handler =
+      let open Effect.Deep in
+      {
+        retc = (fun v -> v);
+        exnc = raise;
+        effc = (fun (type a) (e : a Effect.t) -> match e with
+          | Dummy -> Some (fun (k : (a, _) continuation) -> continue k ())
+          | _ -> None
+        );
+      }
+
+    let http = Eio.Domain_manager.register_handler handler
+
+    let v ~label ~mgr ~net =
       Conn.S.v ~label:"conns" ~net |> fun conns ->
       Https.S.v ~label:"https" ~net ~conns |> fun https ->
-      {label; https}
+      { label; https; mgr }
 
     let _pp fmt t = Fmt.str fmt "%s" t.label
   end
@@ -79,9 +96,15 @@ module Url = struct
     | Some "https" ->
         let task () =
           Eio.traceln "starting HTTP fetch";
+          (* Perform the dummy effect to ensure the appropriate handler
+             has been installed into the domain where we run. *)
+          Effect.perform S.Dummy;
+          (* A bit of computational work to see the parallelism, otherwise
+             our program is just IO bound. *)
+          Unix.sleep 1;
           Https.fetch s.S.https ((Option.get (Uri.host uri)), (Uri.path uri))
         in
-        Eio.Domain_manager.submit S.HTTP task
+        Eio.Domain_manager.submit s.S.mgr S.http task
     | _ -> failwith "unknown schema"
 end
 
@@ -93,9 +116,9 @@ let _ =
   Eio.Ctf.with_tracing @@ fun () ->
   Mirage_crypto_rng_eio.run (module Mirage_crypto_rng.Fortuna) env @@ fun () ->
   (* TODO turn this into handler *)
-  Url.S.v ~label:"url" ~net:env#net |> fun url_s ->
+  Url.S.v ~label:"url" ~mgr:env#domain_mgr ~net:env#net |> fun url_s ->
 
   (* start of app code *)
   let url = Uri.of_string "https://anil.recoil.org/" in
-  let body = Url.fetch url_s url  in
-  Eio.traceln "body: %d" (String.length body)
+  let bodies = Eio.Fiber.List.map (fun v -> Url.fetch url_s v |> String.length) [ url; url; url; url; url ]  in
+  Eio.traceln "bodies: %a" Fmt.(list ~sep:(any ", ") int) bodies

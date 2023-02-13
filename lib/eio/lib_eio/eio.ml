@@ -34,6 +34,7 @@ module Time = Time
 module File = File
 module Fs = Fs
 module Path = Path
+module Idle_domains = Idle_domains
 
 module Stdenv = struct
   type t = <

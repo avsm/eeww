@@ -1,13 +1,30 @@
+module IntMap = Map.Make(Int)
+
+(* Should be LF queue! *)
+type 'a handle = ((unit, unit) Effect.Deep.handler * ('a Promise.u * (unit -> 'a)) Queue.t) Hmap.key
+
+let _registered_handlers : Hmap.t ref = ref Hmap.empty
+let registered_handlers () = _registered_handlers
+
+let register_handler handler =
+  let handlers_ref = registered_handlers () in
+  let handlers = !handlers_ref in
+  let uid = Hmap.Key.create () in
+  let new_handlers = Hmap.add uid (handler, Queue.create ()) handlers in
+  handlers_ref := new_handlers;
+  uid
+
+let lookup_handler_exn i = Hmap.get i !(registered_handlers ())
+
 class virtual t = object
   method virtual run : 'a. (cancelled:exn Promise.t -> 'a) -> 'a
   method virtual run_raw : 'a. (unit -> 'a) -> 'a
+  method virtual submit : 'a. 'a handle -> (unit -> 'a) -> 'a
 end
 
-type system = ..
-type _ Effect.t += Submit : system * (unit -> 'a) -> 'a Effect.t
-let submit sys f = Effect.perform (Submit (sys, f))
-
 let run_raw (t : #t) = t#run_raw
+
+let submit (t : #t) = t#submit
 
 let run (t : #t) fn =
   t#run @@ fun ~cancelled ->
