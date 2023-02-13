@@ -1,0 +1,15 @@
+(library
+ (name kqueue)
+ (public_name kqueue)
+ (foreign_stubs
+  (language c)
+  (names kqueue_stubs))
+ (preprocessor_deps config.h)
+ (preprocess
+  (pps ppx_optcomp))
+ (libraries unix))
+
+(rule
+ (targets config.h)
+ (action
+  (run ./config/config.exe)))

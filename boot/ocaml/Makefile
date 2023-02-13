@@ -31,7 +31,7 @@ include stdlib/StdlibModules
 
 CAMLC = $(BOOT_OCAMLC) $(BOOT_STDLIBFLAGS) -use-prims runtime/primitives
 CAMLOPT=$(OCAMLRUN) ./ocamlopt$(EXE) $(STDLIBFLAGS) -I otherlibs/dynlink
-ARCHES=amd64 i386 arm arm64 power s390x riscv
+ARCHES=amd64 arm64 power s390x riscv
 VPATH = utils parsing typing bytecomp file_formats lambda middle_end \
   middle_end/closure middle_end/flambda middle_end/flambda/base_types \
   asmcomp driver toplevel tools
@@ -237,9 +237,9 @@ compare:
 # The core system has to be rebuilt after bootstrap anyway, so strip ocamlc
 # and ocamllex, which means the artefacts should be identical.
 	mv ocamlc$(EXE) ocamlc.tmp
-	$(OCAMLRUN) tools/stripdebug ocamlc.tmp ocamlc$(EXE)
+	$(OCAMLRUN) tools/stripdebug -all ocamlc.tmp ocamlc$(EXE)
 	mv lex/ocamllex$(EXE) ocamllex.tmp
-	$(OCAMLRUN) tools/stripdebug ocamllex.tmp lex/ocamllex$(EXE)
+	$(OCAMLRUN) tools/stripdebug -all ocamllex.tmp lex/ocamllex$(EXE)
 	rm -f ocamllex.tmp ocamlc.tmp
 	@if $(CMPCMD) boot/ocamlc ocamlc$(EXE) \
          && $(CMPCMD) boot/ocamllex lex/ocamllex$(EXE); \
@@ -267,7 +267,7 @@ promote-cross: promote-common
 # Promote the newly compiled system to the rank of bootstrap compiler
 # (Runs on the new runtime, produces code for the new runtime)
 .PHONY: promote
-promote: PROMOTE = $(OCAMLRUN) tools/stripdebug
+promote: PROMOTE = $(OCAMLRUN) tools/stripdebug -all
 promote: promote-common
 	rm -f boot/ocamlrun$(EXE)
 	cp runtime/ocamlrun$(EXE) boot/ocamlrun$(EXE)
@@ -423,7 +423,7 @@ endif # ifeq "$(BOOTSTRAPPING_FLEXDLL)" "false"
 
 INSTALL_COMPLIBDIR = $(DESTDIR)$(COMPLIBDIR)
 INSTALL_FLEXDLLDIR = $(INSTALL_LIBDIR)/flexdll
-FLEXDLL_MANIFEST = default$(filter-out _i386,_$(ARCH)).manifest
+FLEXDLL_MANIFEST = default_$(ARCH).manifest
 
 DOC_FILES=\
   Changes \
@@ -467,7 +467,7 @@ ocamlc_LIBRARIES = $(addprefix compilerlibs/,ocamlcommon ocamlbytecomp)
 
 ocamlc_MODULES = driver/main
 
-ocamlc$(EXE): OC_BYTECODE_LDFLAGS += -compat-32
+ocamlc$(EXE): OC_BYTECODE_LDFLAGS += -compat-32 -g
 
 ocamlc.opt$(EXE): OC_NATIVE_LDFLAGS += $(addprefix -cclib ,$(BYTECCLIBS))
 
@@ -480,6 +480,8 @@ ocamlopt_LIBRARIES = $(addprefix compilerlibs/,ocamlcommon ocamloptcomp)
 
 ocamlopt_MODULES = driver/optmain
 
+ocamlopt$(EXE): OC_BYTECODE_LDFLAGS += -g
+
 partialclean::
 	rm -f ocamlopt ocamlopt.exe ocamlopt.opt ocamlopt.opt.exe
 
@@ -491,7 +493,7 @@ ocaml_LIBRARIES = \
 ocaml_MODULES = toplevel/topstart
 
 .INTERMEDIATE: ocaml.tmp
-ocaml.tmp: OC_BYTECODE_LDFLAGS += -I toplevel/byte -linkall
+ocaml.tmp: OC_BYTECODE_LDFLAGS += -I toplevel/byte -linkall -g
 ocaml.tmp: $(ocaml_LIBRARIES:=.cma) $(ocaml_MODULES:=.cmo)
 	$(V_LINKC)$(LINK_BYTECODE_PROGRAM) -o $@ $^
 
@@ -1000,19 +1002,10 @@ runtime/domain_state32.inc: \
 runtime/amd64nt.obj: runtime/amd64nt.asm runtime/domain_state64.inc
 	$(V_ASM)$(ASM)$@ $<
 
-runtime/i386nt.obj: runtime/i386nt.asm runtime/domain_state32.inc
-	$(V_ASM)$(ASM)$@ $<
-
 runtime/amd64nt.d.obj: runtime/amd64nt.asm runtime/domain_state64.inc
 	$(V_ASM)$(ASM)$@ $(ocamlrund_CPPFLAGS) $<
 
-runtime/i386nt.d.obj: runtime/i386nt.asm runtime/domain_state32.inc
-	$(V_ASM)$(ASM)$@ $(ocmalrund_CPPFLAGS) $<
-
 runtime/amd64nt.i.obj: runtime/amd64nt.asm runtime/domain_state64.inc
-	$(V_ASM)$(ASM)$@ $(ocamlruni_CPPFLAGS) $<
-
-runtime/i386nt.i.obj: runtime/i386nt.asm runtime/domain_state32.inc
 	$(V_ASM)$(ASM)$@ $(ocamlruni_CPPFLAGS) $<
 
 runtime/%_libasmrunpic.obj: runtime/%.asm
@@ -1617,7 +1610,8 @@ endif
 	  "$(INSTALL_INCDIR)"
 	$(INSTALL_PROG) ocaml$(EXE) "$(INSTALL_BINDIR)"
 ifeq "$(INSTALL_BYTECODE_PROGRAMS)" "true"
-	$(INSTALL_PROG) ocamlc$(EXE) "$(INSTALL_BINDIR)/ocamlc.byte$(EXE)"
+	$(call INSTALL_STRIPPED_BYTE_PROG,\
+               ocamlc$(EXE),"$(INSTALL_BINDIR)/ocamlc.byte$(EXE)")
 endif
 	$(MAKE) -C stdlib install
 ifeq "$(INSTALL_BYTECODE_PROGRAMS)" "true"
@@ -1744,7 +1738,8 @@ ifneq "$(runtime_NATIVE_SHARED_LIBRARIES)" ""
 	$(INSTALL_PROG) $(runtime_NATIVE_SHARED_LIBRARIES) "$(INSTALL_LIBDIR)"
 endif
 ifeq "$(INSTALL_BYTECODE_PROGRAMS)" "true"
-	$(INSTALL_PROG) ocamlopt$(EXE) "$(INSTALL_BINDIR)/ocamlopt.byte$(EXE)"
+	$(call INSTALL_STRIPPED_BYTE_PROG,\
+               ocamlopt$(EXE),"$(INSTALL_BINDIR)/ocamlopt.byte$(EXE)")
 endif
 	$(MAKE) -C stdlib installopt
 	$(INSTALL_DATA) \
