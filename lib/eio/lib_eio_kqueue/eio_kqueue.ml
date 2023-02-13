@@ -787,7 +787,7 @@ let monitor_event_fd t =
   done;
   assert false
 
-let domain_mgr ~run_event_loop = object
+let domain_mgr ~run_queues ~run_event_loop = object
   inherit Eio.Domain_manager.t
 
   method run_raw fn =
@@ -812,6 +812,72 @@ let domain_mgr ~run_event_loop = object
               ~finally:(fun () -> enqueue_thread t k ())))
       );
     Domain.join (Option.get !domain)
+
+
+  (* When submitting tasks to run on different domains we need a few things:
+      - We need the tasks effect handler to install in an idle domain
+      - We need the handle's task queue to push new items onto
+      - We need to know how many of the "idle domains" are currently active
+        for our 'subsystem'.
+         - If we have reach capacity then we can push items to the work queue
+           and one of the active domains will pick it up.
+         - If we haven't reached capacity then we can spin up a new idle domain
+           for our subsystem.
+
+      ... all of this modulo making it domain safe ^^'
+  *)
+  method submit (type a) (uid : a Eio.Domain_manager.handle) (fn : unit -> a) : a =
+    match Hashtbl.find_opt run_queues (Hmap.Key.hide_type uid) with
+    | Some (active, cap) when !active >= cap ->
+      Eio.traceln "At capacity, pushing items to work queue.";
+      let p, r = Eio.Promise.create () in
+      let _handler, queue = Eio.Domain_manager.lookup_handler_exn uid in
+      Queue.push (r, fn) queue;
+      Eio.Promise.await p
+    | None | Some _ as t ->
+        let active = match t with
+          | Some (active, _) -> active
+          | None ->
+            let active = ref 0 in
+            (* 3 is an arbitrary number -- we need to be smarter than this when
+               scheduling to ensure no subsystem gets starved. We could potentially
+               know statically ahead of time how many 'subsystems' have registered to
+               submit things to domains, provided they all register at module initialisation
+               time and naively we could do the initial capacities fairly spread amongst
+               these subsystems. *)
+            Hashtbl.add run_queues (Hmap.Key.hide_type uid) (active, 3);
+            active
+        in
+        let p, r = Eio.Promise.create () in
+        let handler, queue = Eio.Domain_manager.lookup_handler_exn uid in
+        Queue.push (r, fn) queue;
+        (* Each scheduler is a new Eio loop + the subsystems handler. *)
+        let scheduler _ =
+          run_event_loop @@ fun _ ->
+          Effect.Deep.match_with (fun () ->
+            let rec loop () = match Queue.peek_opt queue with
+              | Some _ ->
+                let r, task = Queue.pop queue in
+                let v = task () in
+                Eio.Promise.resolve r v;
+                loop ()
+              | None ->
+                (* Instead of just leaving immediately we could instead linger
+                   a little bit in case some extra work turns up, or block on
+                   some condition variable which is broadcast to that will wake
+                   us up when the task queue has been modified. *)
+                decr active
+            in
+              loop ()
+          ) () handler
+        in
+        while not (Eio.Idle_domains.try_spawn ~scheduler) do
+          Domain.cpu_relax ();
+        done;
+        incr active;
+        Eio.Promise.await p
+
+
 end
 
 let fs = object
@@ -856,7 +922,7 @@ let secure_random = object
   method read_into buf = Low_level.arc4random buf; Cstruct.length buf
 end
 
-let stdenv ~run_event_loop =
+let stdenv ~run_queues ~run_event_loop =
   let of_unix fd = FD.of_unix_no_hook ~seekable:(FD.is_seekable fd) ~close_unix:true fd in
   let stdout = lazy (flow (of_unix Unix.stdout)) in
   let stderr = lazy (flow (of_unix Unix.stderr)) in
@@ -866,7 +932,7 @@ let stdenv ~run_event_loop =
     method stdout = (Lazy.force stdout :> Flow.sink)
     method stderr = (Lazy.force stderr :> Flow.sink)
     method net = net
-    method domain_mgr = domain_mgr ~run_event_loop
+    method domain_mgr = domain_mgr ~run_queues ~run_event_loop
     method clock = clock
     method mono_clock = mono_clock
     method fs = (fs :> Eio.Fs.dir), "."
@@ -877,8 +943,12 @@ let stdenv ~run_event_loop =
 
 let no_fallback (`Msg msg) = failwith msg
 
+let run_queues =
+  Eio.Idle_domains.prepare 4;
+  Hashtbl.create 16
+
 let rec run : type a. (_ -> a) -> a = fun main ->
-  let stdenv = stdenv ~run_event_loop:run in
+  let stdenv = stdenv ~run_queues ~run_event_loop:run in
   let run_q = Lf_queue.create () in
   Lf_queue.push run_q IO;
   let kqueue = Kq.create () in
