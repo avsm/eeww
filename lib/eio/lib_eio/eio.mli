@@ -92,11 +92,11 @@ module Idle_domains = Idle_domains
 
 (** Parallel computation across multiple CPU cores. *)
 module Domain_manager : sig
-  type 'a handle = ((unit, unit) Effect.Deep.handler * ('a Promise.u * (unit -> 'a)) Queue.t) Hmap.key
+  type 'a handle = ((unit, unit) Effect.Deep.handler * (('a, exn) result Promise.u * (unit -> 'a)) Queue.t) Hmap.key
 
   val register_handler : (unit, unit) Effect.Deep.handler -> 'a handle
 
-  val lookup_handler_exn : 'a handle -> (unit, unit) Effect.Deep.handler * ('a Promise.u * (unit -> 'a)) Queue.t
+  val lookup_handler_exn : 'a handle -> (unit, unit) Effect.Deep.handler * (('a, exn) result Promise.u * (unit -> 'a)) Queue.t
 
   class virtual t : object
     method virtual run_raw : 'a. (unit -> 'a) -> 'a

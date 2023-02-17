@@ -1261,7 +1261,7 @@ let domain_mgr ~run_queues ~run_event_loop = object
       let p, r = Eio.Promise.create () in
       let _handler, queue = Eio.Domain_manager.lookup_handler_exn uid in
       Queue.push (r, fn) queue;
-      Eio.Promise.await p
+      Eio.Promise.await_exn p
     | None | Some _ as t ->
         let active = match t with 
           | Some (active, _) -> active
@@ -1286,7 +1286,9 @@ let domain_mgr ~run_queues ~run_event_loop = object
             let rec loop () = match Queue.peek_opt queue with
               | Some _ -> 
                 let r, task = Queue.pop queue in
-                let v = task () in
+                let v = 
+                  try Ok (task ()) with exn -> Error exn 
+                in
                 Eio.Promise.resolve r v;
                 loop ()
               | None -> 
@@ -1303,7 +1305,7 @@ let domain_mgr ~run_queues ~run_event_loop = object
           Domain.cpu_relax ();
         done;
         incr active;
-        Eio.Promise.await p
+        Eio.Promise.await_exn p
 
 end
 

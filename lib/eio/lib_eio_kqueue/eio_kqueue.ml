@@ -833,13 +833,13 @@ let domain_mgr ~run_queues ~run_event_loop = object
       let p, r = Eio.Promise.create () in
       let _handler, queue = Eio.Domain_manager.lookup_handler_exn uid in
       Queue.push (r, fn) queue;
-      Eio.Promise.await p
+      Eio.Promise.await_exn p
     | None | Some _ as t ->
-        let active = match t with
+        let active = match t with 
           | Some (active, _) -> active
           | None ->
             let active = ref 0 in
-            (* 3 is an arbitrary number -- we need to be smarter than this when
+            (* 3 is an arbitrary number -- we need to be smarter than this when 
                scheduling to ensure no subsystem gets starved. We could potentially
                know statically ahead of time how many 'subsystems' have registered to
                submit things to domains, provided they all register at module initialisation
@@ -856,12 +856,14 @@ let domain_mgr ~run_queues ~run_event_loop = object
           run_event_loop @@ fun _ ->
           Effect.Deep.match_with (fun () ->
             let rec loop () = match Queue.peek_opt queue with
-              | Some _ ->
+              | Some _ -> 
                 let r, task = Queue.pop queue in
-                let v = task () in
+                let v = 
+                  try Ok (task ()) with exn -> Error exn 
+                in
                 Eio.Promise.resolve r v;
                 loop ()
-              | None ->
+              | None -> 
                 (* Instead of just leaving immediately we could instead linger
                    a little bit in case some extra work turns up, or block on
                    some condition variable which is broadcast to that will wake
@@ -875,7 +877,7 @@ let domain_mgr ~run_queues ~run_event_loop = object
           Domain.cpu_relax ();
         done;
         incr active;
-        Eio.Promise.await p
+        Eio.Promise.await_exn p
 
 
 end

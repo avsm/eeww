@@ -1,7 +1,7 @@
 module IntMap = Map.Make(Int)
 
 (* Should be LF queue! *)
-type 'a handle = ((unit, unit) Effect.Deep.handler * ('a Promise.u * (unit -> 'a)) Queue.t) Hmap.key
+type 'a handle = ((unit, unit) Effect.Deep.handler * (('a, exn) result Promise.u * (unit -> 'a)) Queue.t) Hmap.key
 
 let _registered_handlers : Hmap.t ref = ref Hmap.empty
 let registered_handlers () = _registered_handlers
