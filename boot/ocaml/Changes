@@ -18,7 +18,20 @@ Working version
   in patterns, or for objects -- when `t` is a class type.
   (Stefan Muenzel, review by Gabriel Scherer and Jacques Garrigue)
 
+- #11984: Add dedicated syntax for generative functor application.
+  Previously, OCaml did not disinguish between `F ()` and
+  `F (struct end)`, even though the latter looks applicative. Instead,
+  the decision between generative and applicative functor application
+  was made based on the type of `F`. With this patch, we now distinguish
+  these two application forms; writing `F (struct end)` for a generative
+  functor leads to new warning 73.
+  (Frederic Bour and Richard Eisenberg, review by Florian Angeletti)
+
 ### Runtime system:
+
+- #12001: Fix book keeping for last finalisers during the minor cycle
+  (KC Sivaramakrishnan and Enguerrand Decorne, report by Guillaume Bury
+   and Vincent Laviron, review by Sadiq Jaffer and KC Sivaramakrishnan)
 
 - #11919: New runtime events counters for major heap stats and minor heap
   resizing.
@@ -80,6 +93,9 @@ Working version
   inheriting or including a class belonging to a mutually-recursive module
   would previous behave incorrectly, and now results in a clean error.
   (Leo White, review by Gabriel Scherer and Florian Angeletti)
+
+- #11912: Refactoring handling of scoped type variables
+  (Richard Eisenberg, review by Gabriel Scherer and Florian Angeletti)
 
 ### Code generation and optimizations:
 
@@ -364,6 +380,14 @@ Working version
 - #8602, #11863: Add -stop-after lambda flag option
   (Douglas Smith and Dmitrii Kosarev, review by Gabriel Scherer)
 
+- #11888: Improve the error message when type variables cannot be deduced from
+  the type parameters.
+  (Stefan Muenzel, review by Florian Angeletti and Gabriel Scherer)
+
+- #11910: Simplify naming convention for shadowed or ephemeral identifiers in
+  error messages (eg: `Illegal shadowing of included type t/2 by t`)
+  (Florian Angeletti, review by Jules Aguillon)
+
 ### Internal/compiler-libs changes:
 
 - #11990: Improve comments and macros around frame descriptors.
@@ -463,6 +487,9 @@ Working version
 
 ### Bug fixes:
 
+- #12017: Re-register finaliser only after calling user alarm in Gc.create_alarm
+  (Fabrice Buoro, report by Sam Goldman, review by Guillaume Munch-Maccagnoni)
+
 - #11887, #11893: Code duplication in pattern-matching compilation
   (Vincent Laviron, report par Greta Yorsh, review by Luc Maranget and
    Gabriel Scherer)
@@ -530,6 +557,10 @@ Working version
 
 - #11879: Bugfix for Ctype.nondep_type
   (Stephen Dolan, review by Gabriel Scherer)
+
+- #12004: Don't ignore function attributes on lambdas with locally abstract
+  types.
+  (Chris Casinghino, review by Gabriel Scherer)
 
 OCaml 5.0.0 (15 December 2022)
 ------------------------------
