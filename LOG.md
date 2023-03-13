@@ -76,5 +76,6 @@ git subtree add --prefix lib/domainslib https://github.com/ocaml-multicore/domai
 git subtree add --prefix lib/kqueue https://github.com/anuragsoni/kqueue-ml main
 git subtree add --prefix lib/stdio https://github.com/janestreet/stdio master
 git subtree pull --prefix lib/cstruct https://github.com/djs55/ocaml-cstruct writev
+git subtree add --prefix src/aeon git@github.com:RyanGibb/aeon.git main --squash
 ```
 
