@@ -10,4 +10,8 @@
  (modules fetch bars)
  (libraries cohttp-eio eio_main eio.unix eio tls tls-eio mirage-crypto-rng-eio progress vector))
 
-
+(executable
+ (name serve)
+ (public_name eeww-serve)
+ (modules serve)
+ (libraries cohttp-eio eio_main eio.unix eio tls tls-eio mirage-crypto-rng-eio fpath uri magic-mime tls_le goose fmt.cli fmt.tty logs.fmt logs.cli))
