@@ -1,0 +1,7 @@
+(melange.emit
+ (target output)
+ (entries c)
+ (libraries app)
+ (alias melange)
+ (module_system es6)
+ (javascript_extension mjs))
