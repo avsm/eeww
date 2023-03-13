@@ -30,6 +30,10 @@ type stdenv = <
   debug : Eio.Debug.t;
 >
 
+let run_queues =
+  Eio.Idle_domains.prepare 4;
+  Hashtbl.create 16
+
 let run main =
   (* SIGPIPE makes no sense in a modern application. *)
   Sys.(set_signal sigpipe Signal_ignore);
@@ -44,7 +48,7 @@ let run main =
     method clock = Time.clock
     method mono_clock = Time.mono_clock
     method net = Net.v
-    method domain_mgr = Domain_mgr.v
+    method domain_mgr = Domain_mgr.v ~run_queues
     method cwd = ((Fs.cwd, "") :> Eio.Fs.dir Eio.Path.t)
     method fs = ((Fs.fs, "") :> Eio.Fs.dir Eio.Path.t)
     method secure_random = Flow.secure_random
