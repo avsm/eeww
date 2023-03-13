@@ -1,4 +1,4 @@
-[API reference](https://ocaml-multicore.github.io/eio/)
+[API reference][Eio API] | [#eio Matrix chat](https://matrix.to/#/#eio:roscidus.com)
 
 # Eio -- Effects-Based Parallel IO for OCaml
 
@@ -91,10 +91,11 @@ See [Awesome Multicore OCaml][] for links to work migrating other projects to Ei
 ## Structure of the Code
 
 - [Eio][] provides concurrency primitives (promises, etc.) and a high-level, cross-platform OS API.
+- [Eio_posix][] provides a cross-platform backend for these APIs for POSIX-type systems.
 - [Eio_luv][] provides a cross-platform backend for these APIs using [luv](https://github.com/aantron/luv) (libuv).
 - [Eio_linux][] provides a Linux io-uring backend for these APIs,
   plus a low-level API that can be used directly (in non-portable code).
-- [Eio_main][] selects an appropriate backend (e.g. `eio_linux` or `eio_luv`), depending on your platform.
+- [Eio_main][] selects an appropriate backend (e.g. `eio_linux`, `eio_posix` or `eio_luv`), depending on your platform.
 
 ## Getting OCaml 5.0
 
@@ -113,20 +114,13 @@ To install it yourself:
 
 ## Getting Eio
 
-If you want to run the latest development version from Git, run these commands
-(otherwise, skip them and you'll get the latest release from opam):
-
-```
-git clone https://github.com/ocaml-multicore/eio.git
-cd eio
-opam pin -yn .
-```
-
-Either way, install `eio_main` (and `utop` if you want to try it interactively):
+Install `eio_main` (and `utop` if you want to try it interactively):
 
 ```
 opam install eio_main utop
 ```
+
+If you want to install the latest unreleased development version of Eio, see [HACKING.md](./HACKING.md).
 
 ## Running Eio
 
@@ -382,6 +376,7 @@ Here's a simple implementation of `cat` using the standard OCaml functions:
 
 And here is the equivalent using Eio:
 
+<!-- $MDX non-deterministic=command -->
 ```ocaml
 # let () =
     Eio_main.run @@ fun env ->
@@ -1146,13 +1141,11 @@ let handle_job request =
   Fiber.yield ();       (* (simulated work) *)
   Printf.sprintf "Processed:%d" request
 
-let run_worker id stream =
-  traceln "Worker %s ready" id;
-  while true do
-    let request, reply = Eio.Stream.take stream in
-    traceln "Worker %s processing request %d" id request;
-    Promise.resolve reply (handle_job request)
-  done
+let rec run_worker id stream =
+  let request, reply = Eio.Stream.take stream in
+  traceln "Worker %s processing request %d" id request;
+  Promise.resolve reply (handle_job request);
+  run_worker id stream
 
 let submit stream request =
   let reply, resolve_reply = Promise.create () in
@@ -1166,10 +1159,13 @@ Each item in the stream is a request payload and a resolver for the reply promis
 # Eio_main.run @@ fun env ->
   let domain_mgr = Eio.Stdenv.domain_mgr env in
   Switch.run @@ fun sw ->
-  let stream = Eio.Stream.create 100 in
+  let stream = Eio.Stream.create 0 in
   let spawn_worker name =
-    Fiber.fork ~sw (fun () ->
-       Eio.Domain_manager.run domain_mgr (fun () -> run_worker name stream)
+    Fiber.fork_daemon ~sw (fun () ->
+       Eio.Domain_manager.run domain_mgr (fun () ->
+          traceln "Worker %s ready" name;
+          run_worker name stream
+       )
     )
   in
   spawn_worker "A";
@@ -1181,9 +1177,8 @@ Each item in the stream is a request payload and a resolver for the reply promis
          traceln "Client %d got %s" i (submit stream i)
        );
        Fiber.yield ()
-     done;
-  );
-  raise Exit;;
+     done
+  );;
 +Worker A ready
 +Worker B ready
 +Client 1 submitting job...
@@ -1195,22 +1190,27 @@ Each item in the stream is a request payload and a resolver for the reply promis
 +Worker A processing request 3
 +Client 2 got Processed:2
 +Client 3 got Processed:3
-Exception: Stdlib.Exit.
+- : unit = ()
 ```
+
+We use a zero-capacity stream here, which means that the `Stream.add` doesn't succeed until a worker accepts the job.
+This is a good choice for a worker pool because it means that if the client fiber gets cancelled while waiting for a worker
+then the job will never be run. It's also more efficient, as 0-capacity streams use a lock-free algorithm that is faster
+when there are multiple domains.
+Note that, while the stream itself is 0-capacity, clients still queue up waiting to use it.
 
 In the code above, any exception raised while processing a job will exit the whole program.
 We might prefer to handle exceptions by sending them back to the client and continuing:
 
 ```ocaml
-let run_worker id stream =
-  traceln "Worker %s ready" id;
-  while true do
-    let request, reply = Eio.Stream.take stream in
-    traceln "Worker %s processing request %d" id request;
-    match handle_job request with
+let rec run_worker id stream =
+  let request, reply = Eio.Stream.take stream in
+  traceln "Worker %s processing request %d" id request;
+  begin match handle_job request with
     | result -> Promise.resolve_ok reply result
     | exception ex -> Promise.resolve_error reply ex; Fiber.check ()
-  done
+  end;
+  run_worker id stream
 ```
 
 The `Fiber.check ()` checks whether the worker itself has been cancelled, and exits the loop if so.
@@ -1559,7 +1559,7 @@ See [Dynamic Dispatch](doc/rationale.md#dynamic-dispatch) for more discussion ab
 
 ## Example Applications
 
-- [gemini-eio][] is a simple Gemini browser. It shows how to integrate Eio with `ocaml-tls`, `angstrom`, and `notty`.
+- [gemini-eio][] is a simple Gemini browser. It shows how to integrate Eio with `ocaml-tls` and `notty`.
 - [ocaml-multicore/retro-httpaf-bench](https://github.com/ocaml-multicore/retro-httpaf-bench) includes a simple HTTP server using Eio. It shows how to use Eio with `httpaf`, and how to use multiple domains for increased performance.
 - [Awesome Multicore OCaml][] lists many other projects.
 
@@ -1696,9 +1696,9 @@ end
 
 ## Further Reading
 
-- [lib_eio/eio.mli](lib_eio/eio.mli) documents Eio's public API.
+- [API reference][Eio API]
 - [doc/rationale.md](doc/rationale.md) describes some of Eio's design tradeoffs in more detail.
-- [lib_eio/mock/backend.ml](lib_eio/mock/backend.ml) is a skeleton Eio backend with no actual IO.
+- [HACKING.md](./HACKING.md) describes how to work with the Eio source code.
 
 Some background about the effects system can be found in:
 
@@ -1709,13 +1709,14 @@ Some background about the effects system can be found in:
 - [Concurrent System Programming with Effect Handlers](https://www.repository.cam.ac.uk/bitstream/handle/1810/283239/paper.pdf?sequence=3&isAllowed=y)
 - [Asynchronous effect based IO using effect handlers](https://github.com/kayceesrk/ocaml-aeio)
 
+[Eio API]: https://ocaml-multicore.github.io/eio/
 [Lwt_eio]: https://github.com/ocaml-multicore/lwt_eio
 [mirage-trace-viewer]: https://github.com/talex5/mirage-trace-viewer
 [structured concurrency]: https://en.wikipedia.org/wiki/Structured_concurrency
 [capability-based security]: https://en.wikipedia.org/wiki/Object-capability_model
 [Emily]: https://www.hpl.hp.com/techreports/2006/HPL-2006-116.pdf
 [gemini-eio]: https://gitlab.com/talex5/gemini-eio
-[Awesome Multicore OCaml]: https://github.com/patricoferris/awesome-multicore-ocaml
+[Awesome Multicore OCaml]: https://github.com/ocaml-multicore/awesome-multicore-ocaml
 [Eio]: https://ocaml-multicore.github.io/eio/eio/Eio/index.html
 [Eio.Std]: https://ocaml-multicore.github.io/eio/eio/Eio/Std/index.html
 [Eio.Fiber]: https://ocaml-multicore.github.io/eio/eio/Eio/Fiber/index.html
@@ -1730,6 +1731,7 @@ Some background about the effects system can be found in:
 [Eio.Domain_manager]: https://ocaml-multicore.github.io/eio/eio/Eio/Domain_manager/index.html
 [Eio.Promise]: https://ocaml-multicore.github.io/eio/eio/Eio/Promise/index.html
 [Eio.Stream]: https://ocaml-multicore.github.io/eio/eio/Eio/Stream/index.html
+[Eio_posix]: https://github.com/ocaml-multicore/eio/blob/main/lib_eio_posix/eio_posix.mli
 [Eio_luv]: https://ocaml-multicore.github.io/eio/eio_luv/Eio_luv/index.html
 [Eio_linux]: https://ocaml-multicore.github.io/eio/eio_linux/Eio_linux/index.html
 [Eio_main]: https://ocaml-multicore.github.io/eio/eio_main/Eio_main/index.html

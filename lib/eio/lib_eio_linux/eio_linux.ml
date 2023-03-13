@@ -47,7 +47,7 @@ let wrap_error_fs code name arg =
   match code with
   | Unix.EEXIST -> Eio.Fs.err (Already_exists e)
   | Unix.ENOENT -> Eio.Fs.err (Not_found e)
-  | Unix.EXDEV -> Eio.Fs.err (Permission_denied e)
+  | Unix.EXDEV | EPERM | EACCES -> Eio.Fs.err (Permission_denied e)
   | _ -> wrap_error code name arg
 
 module FD = struct
@@ -1384,15 +1384,18 @@ let with_uring ~queue_depth ?polling_timeout ?(fallback=no_fallback) fn =
   match Uring.create ~queue_depth ?polling_timeout () with
   | exception Unix.Unix_error(Unix.ENOSYS, _, _) -> fallback (`Msg "io_uring is not available on this system")
   | uring ->
-    match fn uring with
-    | x -> Uring.exit uring; x
-    | exception ex ->
-      let bt = Printexc.get_raw_backtrace () in
-      begin
-        try Uring.exit uring
-        with ex2 -> Log.warn (fun f -> f "Uring.exit failed (%a) while handling another error" Fmt.exn ex2)
-      end;
-      Printexc.raise_with_backtrace ex bt
+    let probe = Uring.get_probe uring in
+    if not (Uring.op_supported probe Uring.Op.shutdown) then
+      fallback (`Msg "Linux >= 5.11 is required for io_uring support")
+    else match fn uring with
+      | x -> Uring.exit uring; x
+      | exception ex ->
+        let bt = Printexc.get_raw_backtrace () in
+        begin
+          try Uring.exit uring
+          with ex2 -> Log.warn (fun f -> f "Uring.exit failed (%a) while handling another error" Fmt.exn ex2)
+        end;
+        Printexc.raise_with_backtrace ex bt
 
 let run_queues = 
   Eio.Idle_domains.prepare 4;

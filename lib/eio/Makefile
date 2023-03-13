@@ -15,8 +15,10 @@ bench:
 	dune exec -- ./lib_eio_linux/tests/bench_noop.exe
 
 test_luv:
-	rm -rf _build
 	EIO_BACKEND=luv dune runtest
+
+test_posix:
+	EIO_BACKEND=posix dune runtest
 
 dscheck:
 	dune exec -- ./lib_eio/tests/dscheck/test_rcfd.exe
