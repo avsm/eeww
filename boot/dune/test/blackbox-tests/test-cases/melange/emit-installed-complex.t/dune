@@ -1,5 +1,0 @@
-(melange.emit
- (target dist)
- (alias dist)
- (libraries lib)
- (module_system commonjs))

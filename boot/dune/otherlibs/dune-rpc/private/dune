@@ -1,9 +1,0 @@
-(library
- (name dune_rpc_private)
- (public_name dune-rpc.private)
- (libraries stdune ordering pp csexp dyn xdg)
- (synopsis "for internal use only")
- (instrumentation
-  (backend bisect_ppx)))
-
-(ocamllex dbus_address)
