@@ -38,13 +38,12 @@ let http_app ~docroot (req, _reader, _client_addr) =
   let open Cohttp_eio in
   let uri = Uri.of_string @@ Http.Request.resource req in
   let meth = Http.Request.meth req in
-  Eio.traceln "http %a %a" Http.Method.pp meth Http.Request.pp req;
+  (* Eio.traceln "%a" Http.Request.pp req; *)
   match meth with
   | (`GET|`HEAD) -> http_serve ~docroot ~uri
   | _ -> Server.not_found_response
 
 let on_error exn = Eio.traceln "Error handling connection: %s\n%!" (Printexc.to_string exn) 
-
 let run_http_server ~docroot conn =
   Eio.Switch.run @@ fun sw ->
   Conn.accept ~sw ~on_error conn 
