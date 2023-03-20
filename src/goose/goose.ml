@@ -47,11 +47,17 @@ end = struct
         (fun flow client_addr ->
            Atomic.incr conn.S.active;
            Eio.traceln "accepted: %a active=%d" Eio.Net.Sockaddr.pp client_addr (Atomic.get conn.S.active);
-           let fn () = handler flow client_addr in
-           let r = task conn fn in
+           let () =
+             try
+               let fn () = handler flow client_addr in
+               task conn fn;
+               Eio.traceln "done task";
+             with exn -> (
+               Eio.traceln "tcp exn: %s" (Printexc.to_string exn);
+               Eio.traceln "done task with exn")
+           in
            Atomic.decr conn.S.active;
-           Eio.traceln "closed: %a active=%d" Eio.Net.Sockaddr.pp client_addr (Atomic.get conn.S.active);
-           r
+           Eio.traceln "closed: %a active=%d" Eio.Net.Sockaddr.pp client_addr (Atomic.get conn.S.active)
         )
     done
   
