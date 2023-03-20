@@ -1,4 +1,4 @@
-Unreleased
+0.1.1 2023-03-19
 --------------
 
 - Set file descriptors in non-blocking mode
@@ -6,7 +6,7 @@ Unreleased
   - OpenSSL requires file descriptors to be in non-blocking mode to avoid
     blocking the entire OCaml domain
 
-0.1.0 2021-10-21
+0.1.0 2022-10-21
 --------------
 
 - Initial public release

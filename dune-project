@@ -10,7 +10,7 @@
  (authors "Antonio Nuno Monteiro <anmonteiro@gmail.com>")
  (homepage "https://github.com/anmonteiro/eio-ssl")
  (bug_reports "https://github.com/anmonteiro/eio-ssl/issues")
- (license "LGPL with OpenSSL linking exception")
+ (license "LicenseRef-LGPL-WITH-OpenSSL-linking-exception")
  (source
   (github melange-re/melange-compiler-libs))
  (synopsis "OpenSSL binding to EIO")
@@ -19,5 +19,5 @@
    (>= "5.0"))
   (ssl
    (>= "0.5.13"))
-  eio
-  eio_main))
+  (eio_main
+   (>= "0.7"))))

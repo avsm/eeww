@@ -12,16 +12,13 @@ buildDunePackage {
       "dune"
       "eio-ssl.opam"
       "dune-project"
-    ] ++ (builtins.map inDirectory [ "src" ]);
+      "src"
+    ];
   };
 
-  useDune2 = true;
+  duneVersion = "3";
 
-  nativeBuildInputs = [ ocaml dune findlib ];
-  propagatedBuildInputs = [
-    ssl
-    eio_main
-  ];
+  propagatedBuildInputs = [ ssl eio ];
   inherit doCheck;
 
   meta = {

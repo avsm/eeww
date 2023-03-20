@@ -1,4 +1,4 @@
 (library
  (name eio_ssl)
  (public_name eio-ssl)
- (libraries ssl eio_main))
+ (libraries ssl eio.unix))
