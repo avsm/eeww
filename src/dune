@@ -11,6 +11,12 @@
  (libraries cohttp-eio eio_main eio.unix eio tls tls-eio mirage-crypto-rng-eio progress vector))
 
 (executable
+ (name iperf_serve)
+ (public_name eeww-iperf-server)
+ (modules iperf_serve)
+ (libraries iperf eio_main eio))
+
+(executable
  (name serve)
  (public_name eeww-serve)
  (modules serve)
