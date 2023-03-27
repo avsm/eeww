@@ -389,6 +389,8 @@ let safe_decode buf =
     rx_metrics v.Packet.data;
     Ok v
 
+type packet_callback = Packet.t -> Packet.t option
+
 let handle_question t (name, typ) =
   (* TODO allow/disallowlist of allowed qtypes? what about ANY and UDP? *)
   match typ with
@@ -1073,7 +1075,7 @@ module Primary = struct
       Log.err (fun m -> m "ignoring unsolicited %a" Packet.pp_data p);
       (t, m, l, ns), None, [], None
 
-  let handle_buf t now ts proto ip port buf =
+  let handle_buf ?(packet_callback = fun _q -> None) t now ts proto ip port buf =
     match
       let* res = safe_decode buf in
       Log.debug (fun m -> m "from %a received:@[%a@]" Ipaddr.pp ip
@@ -1091,7 +1093,9 @@ module Primary = struct
     | Ok p ->
       let handle_inner tsig_size keyname =
         let t, answer, out, notify =
-          handle_packet t now ts proto ip port p keyname
+          match packet_callback p with
+          | None -> handle_packet t now ts proto ip port p keyname
+          | answer -> t, answer, [], None
         in
         let answer = match answer with
           | Some answer ->
@@ -1834,7 +1838,7 @@ module Secondary = struct
         | Some (Processing_axfr (_, _, mac, _, _), _, _) -> Some mac
         | _ -> None
 
-  let handle_buf t now ts proto ip buf =
+  let handle_buf ?(packet_callback = fun _q -> None) t now ts proto ip buf =
     match
       let* res = safe_decode buf in
       Log.debug (fun m -> m "received a packet from %a: %a" Ipaddr.pp ip
@@ -1846,7 +1850,11 @@ module Secondary = struct
       t, Packet.raw_error buf rcode, None
     | Ok p ->
       let handle_inner keyname =
-        let t, answer, out = handle_packet t now ts ip p keyname in
+        let t, answer, out =
+          match packet_callback p with
+          | None -> handle_packet t now ts ip p keyname
+          | answer -> t, answer, None
+        in
         let answer = match answer with
           | Some answer ->
             let max_size, edns = Edns.reply p.edns in
