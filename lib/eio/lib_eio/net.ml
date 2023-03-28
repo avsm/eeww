@@ -177,7 +177,7 @@ let accept ~sw (t : #listening_socket) = t#accept ~sw
 let[@inline never] accept_fork ~loc ~sw (t : #listening_socket) ~on_error handle =
   let child_started = ref false in
   let flow, addr = accept ~sw t in
-  Fun.protect ~finally:(fun () -> if !child_started = false then Flow.close flow)
+  Fun.protect ~finally:(fun () -> if !child_started = false then begin Debug.traceln "CLOSING FLOW"; Flow.close flow end)
     (fun () ->
        Fiber.fork ~loc ~sw (fun () ->
            match child_started := true; handle (flow :> stream_socket) addr with
