@@ -40,7 +40,7 @@ end = struct
 
   let conn = Eio.Domain_manager.register_handler handler
   type t = S.t
-  let task t ts = Eio.Domain_manager.submit t.S.mgr conn ts
+  let _task t ts = Eio.Domain_manager.submit t.S.mgr conn ts
   let accept ~sw ~on_error conn handler =
     while true do
       Net.accept_fork ~sw conn.S.sock ~on_error 
@@ -50,7 +50,9 @@ end = struct
            let () =
              try
                let fn () = handler flow client_addr in
-               task conn fn;
+               fn ();
+               (* Eio.Domain_manager.run conn.S.mgr fn; *)
+               (* task conn fn; *)
                Eio.traceln "done task";
              with exn -> (
                Eio.traceln "tcp exn: %s" (Printexc.to_string exn);
@@ -119,24 +121,22 @@ end = struct
   let accept ~sw ~on_error conn handler =
     let server_config = conn.S.server_config in
     let tcp_conn = conn.S.tcp in
-    while true do
-       Conn.accept ~sw ~on_error tcp_conn (fun flow client_addr ->
-         let fn () =
-           Atomic.incr conn.S.active;
-           Eio.traceln "Tls: start active=%d" (Atomic.get conn.S.active);
-           let () =
-             try
-               let flow = Tls_eio.server_of_flow server_config flow in
-               handler flow client_addr 
-             with exn ->
-                Eio.traceln "tls exn: %s" (Printexc.to_string exn)
-           in
-           Atomic.decr conn.S.active;
-           Eio.traceln "Tls: close active=%d" (Atomic.get conn.S.active)
-         in
-         task conn fn
-       )
-    done
+      Conn.accept ~sw ~on_error tcp_conn (fun flow client_addr ->
+        let fn () =
+          Atomic.incr conn.S.active;
+          Eio.traceln "Tls: start active=%d" (Atomic.get conn.S.active);
+          let () =
+            try
+              let flow = Tls_eio.server_of_flow server_config flow in
+              handler flow client_addr 
+            with exn ->
+              Eio.traceln "tls exn: %s" (Printexc.to_string exn)
+          in
+          Atomic.decr conn.S.active;
+          Eio.traceln "Tls: close active=%d" (Atomic.get conn.S.active)
+        in
+        task conn fn
+      )
 
   let v ~label ~mgr ~tcp ~server_config =
     traceln "Tls_conn: listening";

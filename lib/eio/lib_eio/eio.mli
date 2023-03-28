@@ -101,13 +101,13 @@ module Domain_manager : sig
   class virtual t : object
     method virtual run_raw : 'a. (unit -> 'a) -> 'a
 
-    method virtual run : 'a. (cancelled:exn Promise.t -> 'a) -> 'a
+    method virtual run : 'a. ?loc:string -> (cancelled:exn Promise.t -> 'a) -> 'a
     (** [t#run fn] runs [fn ~cancelled] in a new domain.
 
         If the calling fiber is cancelled, [cancelled] becomes resolved to the {!Cancel.Cancelled} exception.
         [fn] should cancel itself in this case. *)
     
-    method virtual submit : 'a 'b. 'a handle -> (unit -> 'a) -> 'a
+    method virtual submit : 'a 'b. ?loc:string -> 'a handle -> (unit -> 'a) -> 'a
   end
 
   val submit : #t -> 'a handle -> (unit -> 'a) -> 'a

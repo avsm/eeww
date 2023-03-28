@@ -17,20 +17,20 @@ let register_handler handler =
 let lookup_handler_exn i = Hmap.get i !(registered_handlers ())
 
 class virtual t = object
-  method virtual run : 'a. (cancelled:exn Promise.t -> 'a) -> 'a
+  method virtual run : 'a. ?loc:string -> (cancelled:exn Promise.t -> 'a) -> 'a
   method virtual run_raw : 'a. (unit -> 'a) -> 'a
-  method virtual submit : 'a. 'a handle -> (unit -> 'a) -> 'a
+  method virtual submit : 'a. ?loc:string -> 'a handle -> (unit -> 'a) -> 'a
 end
 
 let run_raw (t : #t) = t#run_raw
 
-let submit (t : #t) = t#submit
+let submit ~loc (t : #t) = t#submit ~loc
 
-let run (t : #t) fn =
-  t#run @@ fun ~cancelled ->
+let run ~loc (t : #t) fn =
+  t#run ~loc @@ fun ~cancelled ->
   (* If the spawning fiber is cancelled, [cancelled] gets set to the exception. *)
   try
-    Fiber.first
+    Fiber.first ~loc
       (fun () ->
          match Promise.await cancelled with
          | Cancel.Cancelled ex -> raise ex    (* To avoid [Cancelled (Cancelled ex))] *)
@@ -45,3 +45,11 @@ let run (t : #t) fn =
          which isn't what we want. *)
       raise cex
     | _ -> raise ex
+
+let[@inline always] run (t : #t) fn =
+  let loc = Ctf.get_caller () in
+  run ~loc t fn
+
+let[@inline always] submit (t : #t) fn =
+  let loc = Ctf.get_caller () in
+  submit ~loc t fn

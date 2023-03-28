@@ -96,4 +96,7 @@ let ui task =
       ~attr:Notty.A.(st bold ++ fg green)
       "Task %i in domain %i busy stats" task.id task.domain
   in
-  Ui.vcat (title :: stats :: percentiles)
+  let logs = 
+    W.string ~attr:Notty.A.(st bold ++ fg red) "LOGS" ::
+    List.map W.string task.logs in
+  Ui.vcat (title :: stats :: (percentiles @ logs))
