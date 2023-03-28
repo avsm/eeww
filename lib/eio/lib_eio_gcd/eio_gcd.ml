@@ -216,7 +216,7 @@ module File = struct
     | { fd = `Closed; _ } -> false
 
   let close t =
-    Ctf.label "close";
+    Ctf.log "close";
     let fd = get "close" t in
     t.fd <- `Closed;
     Eio.Switch.remove_hook t.release_hook;

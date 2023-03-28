@@ -15,7 +15,7 @@ type stdenv = <
 >
 (** An extended version of {!Eio.Stdenv.t} with some extra features available on POSIX systems. *)
 
-val run : (stdenv -> 'a) -> 'a
+val run : ?loc:string -> (stdenv -> 'a) -> 'a
 (** [run main] runs an event loop and calls [main stdenv] inside it.
 
     For portable code, you should use {!Eio_main.run} instead, which will call this for you if appropriate. *)

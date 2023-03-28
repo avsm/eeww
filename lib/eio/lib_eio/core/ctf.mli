@@ -1,13 +1,19 @@
 (** This library is used to write event traces in mirage-profile's CTF format. *)
 
 type id = private int
-(** Each thread/fiber/promise is identified by a unique ID. *) 
+(** Each thread/fiber/promise is identified by a unique ID. *)
 
 (** {2 Recording events}
     Libraries and applications can use these functions to make the traces more useful. *)
 
-val label : string -> unit
-(** [label msg] attaches text [msg] to the current thread. *)
+val log : string -> unit
+(** [log msg] attaches text [msg] to the current thread. *)
+
+val set_loc : string -> unit
+(** [set_loc msg] attaches location [msg] to the current thread. *)
+
+val set_name : string -> unit
+(** [set_name msg] attaches name [msg] to the current thread. *)
 
 val note_increase : string -> int -> unit
 (** [note_increase counter delta] records that [counter] increased by [delta].
@@ -55,7 +61,7 @@ val event_to_string : event -> string
 val mint_id : unit -> id
 (** [mint_id ()] is a fresh unique [id]. *)
 
-val note_created : ?label:string -> id -> event -> unit
+val note_created : ?label:string -> ?loc:string -> id -> event -> unit
 (** [note_created t id ty] records the creation of [id]. *)
 
 val note_read : ?reader:id -> id -> unit
@@ -98,23 +104,27 @@ module Control : sig
   (** [stop t] stops recording to [t] (which must be the current trace buffer). *)
 end
 
-(** Types *)
-
-type Runtime_events.User.tag += Created
-type Runtime_events.User.tag += Failed
-type Runtime_events.User.tag += Read
-type Runtime_events.User.tag += Try_read
-type Runtime_events.User.tag += Resolved
-type Runtime_events.User.tag += Label
-type Runtime_events.User.tag += Switch
-type Runtime_events.User.tag += Increase
-type Runtime_events.User.tag += Value
-type Runtime_events.User.tag += Signal
-type Runtime_events.User.tag += Suspend
+(** Types and their associated tags *)
 
 val created_type : (id * event) Runtime_events.Type.t
+
+type Runtime_events.User.tag += Created
+
 val labelled_type : (id * string) Runtime_events.Type.t
+
+type Runtime_events.User.tag += Failed | Log | Name | Loc | Increase | Value
+
 val two_ids_type : (id * id) Runtime_events.Type.t
+
+type Runtime_events.User.tag += Read |Try_read | Signal
+
+(* int type *)
+
+type Runtime_events.User.tag += Resolved | Switch
+
+(* unit type *)
+
+type Runtime_events.User.tag += Suspend
 
 (**/**)
 

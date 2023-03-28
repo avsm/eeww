@@ -78,6 +78,7 @@ val get_fd_opt : #Eio.Generic.t -> FD.t option
 (** {1 Main Loop} *)
 
 val run :
+  ?loc:string ->
   ?queue_depth:int ->
   ?n_blocks:int ->
   ?block_size:int ->

@@ -19,7 +19,7 @@ open Eio.Std
 [@@@alert "-unstable"]
 
 (* Run an event loop in the current domain, using [fn x] as the root fiber. *)
-let run_event_loop fn x =
+let run_event_loop ~loc fn x =
   Sched.with_sched @@ fun sched ->
   let open Effect.Deep in
   let extra_effects : _ effect_handler = {
@@ -62,7 +62,7 @@ let run_event_loop fn x =
       | _ -> None
   }
   in
-  Sched.run ~extra_effects sched fn x
+  Sched.run ~loc ~extra_effects sched fn x
 
 let v ~run_queues = object
   inherit Eio.Domain_manager.t
@@ -74,13 +74,13 @@ let v ~run_queues = object
       );
     Domain.join (Option.get !domain)
 
-  method run fn =
+  method run ?(loc=Eio.Private.Ctf.get_caller ()) fn =
     let domain = ref None in
     Eio.Private.Suspend.enter (fun ctx enqueue ->
         let cancelled, set_cancelled = Promise.create () in
         Eio.Private.Fiber_context.set_cancel_fn ctx (Promise.resolve set_cancelled);
         domain := Some (Domain.spawn (fun () ->
-            Fun.protect (run_event_loop (fun () -> fn ~cancelled))
+            Fun.protect (run_event_loop ~loc (fun () -> fn ~cancelled))
               ~finally:(fun () -> enqueue (Ok ()))))
       );
     Domain.join (Option.get !domain)
@@ -97,7 +97,7 @@ let v ~run_queues = object
 
       ... all of this modulo making it domain safe ^^'
   *)
-  method submit (type a) (uid : a Eio.Domain_manager.handle) (fn : unit -> a) : a =
+  method submit ?(loc=Eio.Private.Ctf.get_caller ()) (type a) (uid : a Eio.Domain_manager.handle) (fn : unit -> a) : a =
     match Hashtbl.find_opt run_queues (Hmap.Key.hide_type uid) with
     | Some (active, cap) when !active >= cap ->
       Eio.traceln "At capacity, pushing items to work queue.";
@@ -124,7 +124,7 @@ let v ~run_queues = object
         Queue.push (r, fn) queue;
         (* Each scheduler is a new Eio loop + the subsystems handler. *)
         let scheduler =
-          run_event_loop @@ fun _ ->
+          run_event_loop ~loc @@ fun _ ->
           Effect.Deep.match_with (fun () ->
             let rec loop () = match Queue.peek_opt queue with
               | Some _ -> 

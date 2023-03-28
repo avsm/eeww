@@ -43,8 +43,13 @@ module Mono = struct
     sleep_span t (span_of_s s)
 end
 
-let with_timeout t d = Fiber.first (fun () -> sleep t d; Error `Timeout)
-let with_timeout_exn t d = Fiber.first (fun () -> sleep t d; raise Timeout)
+let[@inline always] with_timeout t d =
+  let loc = Ctf.get_caller () in
+  Fiber.first ~loc (fun () -> sleep t d; Error `Timeout)
+
+let[@inline always] with_timeout_exn t d =
+  let loc = Ctf.get_caller () in
+  Fiber.first ~loc (fun () -> sleep t d; raise Timeout)
 
 module Timeout = struct
   type t =
@@ -61,21 +66,25 @@ module Timeout = struct
   let of_s clock time =
     Deprecated ((clock :> clock), time)
 
-  let run t fn =
+  let[@inline always] run t fn =
     match t with
     | Unlimited -> fn ()
     | Timeout (clock, d) ->
-      Fiber.first (fun () -> Mono.sleep_span clock d; Error `Timeout) fn
+      let loc = Ctf.get_caller () in
+      Fiber.first ~loc (fun () -> Mono.sleep_span clock d; Error `Timeout) fn
     | Deprecated (clock, d) ->
-      Fiber.first (fun () -> sleep clock d; Error `Timeout) fn
+      let loc = Ctf.get_caller () in
+      Fiber.first ~loc (fun () -> sleep clock d; Error `Timeout) fn
 
-  let run_exn t fn =
+  let[@inline always] run_exn t fn =
     match t with
     | Unlimited -> fn ()
     | Timeout (clock, d) ->
-      Fiber.first (fun () -> Mono.sleep_span clock d; raise Timeout) fn
+      let loc = Ctf.get_caller () in
+      Fiber.first ~loc (fun () -> Mono.sleep_span clock d; raise Timeout) fn
     | Deprecated (clock, d) ->
-      Fiber.first (fun () -> sleep clock d; raise Timeout) fn
+      let loc = Ctf.get_caller () in
+      Fiber.first ~loc (fun () -> sleep clock d; raise Timeout) fn
 
   let pp_duration f d =
     if d >= 0.001 && d < 0.1 then
