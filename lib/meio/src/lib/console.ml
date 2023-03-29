@@ -11,10 +11,10 @@ let set_prev_now now =
   let _, old = Lwd.peek prev_now in
   Lwd.set prev_now (old, now)
 
-let set_selected = function
+let set_selected t = function
   | `Next ->
       let set = ref false in
-      Task_table.iter_with_prev (fun ~prev c ->
+      Task_table.iter_with_prev t (fun ~prev c ->
           if !set then ()
           else
             match prev with
@@ -25,7 +25,7 @@ let set_selected = function
                   c.Task.selected <- true;
                   set := true))
   | `Prev ->
-      Task_table.iter_with_prev (fun ~prev c ->
+      Task_table.iter_with_prev t (fun ~prev c ->
           match prev with
           | None -> ()
           | Some p ->
@@ -52,8 +52,25 @@ let resolved_attr = Notty.A.(fg (gray 10))
 let resize_uis widths (bg, _, uis) =
   List.map2 (fun w ui -> Ui.resize ~bg ~w ~pad:gravity_pad ui) widths uis
 
-let render_task now _
-    ({ Task.id; domain; start; loc; name; busy; selected; status; _ } as t) =
+let render_tree_line depth attr =
+  let line =
+    let depth = List.tl (List.rev depth) in
+    let l = List.length depth in
+    List.mapi
+      (fun i v ->
+        match (i = l - 1, v) with
+        | true, false -> " ├─"
+        | true, true -> " └─"
+        | false, false -> " │ "
+        | false, true -> "   ")
+      depth
+    |> String.concat ""
+  in
+  W.string ~attr (line ^ " ")
+
+let render_task sort now _
+    ({ Task.id; domain; start; loc; name; busy; selected; status; depth; _ } as
+    t) =
   let attr =
     let open Notty.A in
     let fg_attr =
@@ -76,6 +93,10 @@ let render_task now _
   let loc = W.string ~attr (String.concat "\n" loc) in
   let name = W.string ~attr (String.concat "\n" name) in
   let entered = W.int ~attr (Task.Busy.count t.busy) in
+  let name =
+    if sort = Sort.Tree then Ui.hcat [ render_tree_line depth attr; name ]
+    else name
+  in
   [ (attr, selected, [ domain; id; name; busy; idle; entered; loc ]) ]
 
 let ui_monoid_list : (Notty.attr * bool * ui list) list Lwd_utils.monoid =
@@ -94,12 +115,13 @@ let header =
 
 let init_widths = List.init (List.length header) (fun _ -> width)
 
-let root () =
+let root sort =
   let task_list =
     Lwd.bind
-      ~f:(fun (_, now) ->
-        Lwd_table.map_reduce (render_task now) ui_monoid_list State.tasks.table)
-      (Lwd.get prev_now)
+      ~f:(fun ((_, now), sort) ->
+        Lwd_table.map_reduce (render_task sort now) ui_monoid_list
+          State.tasks.table)
+      (Lwd.pair (Lwd.get prev_now) sort)
   in
   let widths =
     Lwd.map
@@ -112,7 +134,9 @@ let root () =
         widths)
       task_list
   in
-  let sensor_y var ~x:_ ~y ~w:_ ~h:_ () = if Lwd.peek var <> y then Lwd.set var y in
+  let sensor_y var ~x:_ ~y ~w:_ ~h:_ () =
+    if Lwd.peek var <> y then Lwd.set var y
+  in
   let h_top = Lwd.var 0 in
   let h_selected = Lwd.var 0 in
   let h_bottom = Lwd.var 0 in
@@ -151,7 +175,7 @@ let root () =
     and$ bottom = Lwd.get h_bottom in
     Some (top, selected, bottom)
   in
-  let footer = Lwd_utils.pack Ui.pack_x (List.map Lwd.pure Help.footer) in
+  let footer = Lwd.map ~f:Ui.hcat (Help.footer sort) in
   ( [
       W.vbox
         [

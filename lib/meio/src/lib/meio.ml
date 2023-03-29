@@ -4,6 +4,7 @@ let add_callback = Runtime_events.Callbacks.add_user_event
 let timestamp s = Runtime_events.Timestamp.to_int64 s |> Int64.to_string
 
 let task_events ~latency_begin ~latency_end q =
+  let current_id = ref (-1) in
   let module Queue = Eio_utils.Lf_queue in
   let evs =
     Runtime_events.Callbacks.create ~runtime_begin:latency_begin
@@ -11,25 +12,30 @@ let task_events ~latency_begin ~latency_end q =
   in
   let id_event_callback d ts c ((i : Ctf.id), v) =
     match (Runtime_events.User.tag c, v) with
-    | Ctf.Created, Ctf.Task -> Queue.push q (`Created ((i :> int), d, ts))
+    | Ctf.Created, Ctf.Task ->
+        Queue.push q (`Created ((i :> int), !current_id, d, ts))
     | _ -> ()
   in
   let unit_callback d ts c () =
     match Runtime_events.User.tag c with
-    | Ctf.Suspend -> Queue.push q (`Suspend (d, ts))
+    | Ctf.Suspend ->
+        current_id := -1;
+        Queue.push q (`Suspend (d, ts))
     | _ -> ()
   in
   let id_callback d ts c i =
     match Runtime_events.User.tag c with
     | Ctf.Resolved -> Queue.push q (`Resolved (i, d, ts))
-    | Ctf.Switch -> Queue.push q (`Switch ((i :> int), d, ts))
+    | Ctf.Switch ->
+        current_id := i;
+        Queue.push q (`Switch ((i :> int), d, ts))
     | _ -> ()
   in
-  let id_label_callback _d _ts c (i, s) =
+  let id_label_callback _d _ts c ((i : Ctf.id), s) =
     match Runtime_events.User.tag c with
-    | Ctf.Name -> Queue.push q (`Name (i, s))
-    | Ctf.Log -> Queue.push q (`Log (i, s))
-    | Ctf.Loc -> Queue.push q (`Loc (i, s))
+    | Ctf.Name -> Queue.push q (`Name ((i :> int), s))
+    | Ctf.Log -> Queue.push q (`Log ((i :> int), s))
+    | Ctf.Loc -> Queue.push q (`Loc ((i :> int), s))
     | _ -> ()
   in
   add_callback Ctf.created_type id_event_callback evs
@@ -43,10 +49,10 @@ let get_selected () =
     (Lwd_table.first State.tasks.table)
   |> fun v -> Option.bind v Lwd_table.get |> Option.get
 
-let screens duration hist =
+let screens duration hist sort =
   [
     (`Help, fun () -> (Lwd.return Help.help, Lwd.return None));
-    (`Main, fun () -> Console.root ());
+    (`Main, fun () -> Console.root sort);
     ( `Task,
       fun () ->
         ( Nottui_widgets.scroll_area @@ Lwd.return @@ Task.ui @@ get_selected (),
@@ -71,14 +77,13 @@ let runtime_event_loop ~stop ~cursor ~callbacks =
       Unix.sleepf !sleep)
   done
 
-let ui handle =
-  let module Queue = Eio_utils.Lf_queue in
-  let q = Queue.create () in
-  let cursor = Runtime_events.create_cursor (Some handle) in
+module Queue = Eio_utils.Lf_queue
+
+let ui_loop ~q ~hist =
   let screen = Lwd.var `Main in
+  let sort = Lwd.var Sort.Tree in
   let duration = Lwd.var 0L in
-  let hist, latency_begin, latency_end = Latency.init () in
-  let screens = screens duration hist in
+  let screens = screens duration hist (Lwd.get sort) in
   let ui =
     Lwd.bind
       ~f:(fun screen ->
@@ -94,10 +99,10 @@ let ui handle =
           (fun ev ->
             match (ev, selected_position) with
             | `Key (`Arrow `Down, _), Some (_, pos, bot) ->
-                Console.set_selected `Prev (Lwd_table.first State.tasks.table);
+                Console.set_selected State.tasks `Prev;
                 if pos = bot - 1 then `Unhandled else `Handled
             | `Key (`Arrow `Up, _), Some (top, pos, _) ->
-                Console.set_selected `Next (Lwd_table.first State.tasks.table);
+                Console.set_selected State.tasks `Next;
                 if pos = top + 1 then `Unhandled else `Handled
             | `Key (`ASCII 'h', _), _ ->
                 Lwd.set screen `Help;
@@ -111,18 +116,20 @@ let ui handle =
             | `Key (`ASCII 'g', _), _ ->
                 Lwd.set screen `Gc;
                 `Handled
+            | `Key (`ASCII 'q', _), _ ->
+                Lwd.set quit true;
+                `Handled
+            | `Key (`ASCII 's', _), _ ->
+                let s = Sort.next (Lwd.peek sort) in
+                Lwd.set sort s;
+                State.set_sort_mode s;
+                `Handled
             | `Key (`Escape, _), _ ->
                 if s = `Main then Lwd.set quit true else Lwd.set screen `Main;
                 `Handled
             | _ -> `Unhandled)
           ui)
       ui (Lwd.get screen)
-  in
-
-  let callbacks = task_events q ~latency_begin ~latency_end in
-  let stop = Atomic.make false in
-  let domain =
-    Domain.spawn (fun () -> runtime_event_loop ~stop ~cursor ~callbacks)
   in
   Nottui.Ui_loop.run ~quit_on_escape:false ~quit
     ~tick:(fun () ->
@@ -144,7 +151,20 @@ let ui handle =
         | Some (`Loc (i, l)) -> State.update_loc (i :> int) l
         | Some (`Name (i, l)) -> State.update_name (i :> int) l
         | Some (`Log (i, l)) -> State.update_logs (i :> int) l
-      done)
-    ~tick_period:0.05 ui;
+      done;
+      State.sort ())
+    ~tick_period:0.05 ui
+
+let ui handle =
+  let q = Queue.create () in
+  let cursor = Runtime_events.create_cursor (Some handle) in
+  let hist, latency_begin, latency_end = Latency.init () in
+
+  let callbacks = task_events q ~latency_begin ~latency_end in
+  let stop = Atomic.make false in
+  let domain =
+    Domain.spawn (fun () -> runtime_event_loop ~stop ~cursor ~callbacks)
+  in
+  ui_loop ~q ~hist;
   Atomic.set stop true;
   Domain.join domain
