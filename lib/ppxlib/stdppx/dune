@@ -1,6 +1,0 @@
-(library
- (name stdppx)
- (public_name ppxlib.stdppx)
- (libraries sexplib0)
- (flags
-  (:standard -safe-string)))

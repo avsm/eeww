@@ -1,6 +1,0 @@
-(executable
- (name print_stuff)
- (libraries ppxlib))
-
-(cram
- (deps print_stuff.exe))

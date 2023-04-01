@@ -1,6 +1,0 @@
-(executables
- (names raiser pp)
- (libraries ppxlib))
-
-(cram
- (deps raiser.exe pp.exe))
