@@ -777,9 +777,7 @@ struct
     match dispatch_raw_key st key, key with
     | `Handled, _ -> `Handled
     | `Unhandled, (`Arrow dir, [`Meta]) ->
-      let dir : [`Down | `Left | `Right | `Up] :>
-          [`Down | `Left | `Right | `Up | `Next | `Prev] = dir in
-      dispatch_key st (`Focus dir, [`Meta])
+      dispatch_key st (`Focus (dir :> [`Down | `Left | `Right | `Up | `Next | `Prev]) , [`Meta])
     | `Unhandled, (`Tab, mods) ->
       let dir = if List.mem `Shift mods then `Prev else `Next in
       dispatch_key st (`Focus dir, mods)
