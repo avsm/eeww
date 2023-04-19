@@ -171,7 +171,8 @@ let create_server ?tags ?restore ~sw ~net config =
     | `TCP (host, port) ->
       let addr = Network.addr_of_host host in
       let socket = Eio.Net.listen ~sw ~backlog ~reuse_addr:true net (`Tcp (addr, port)) in
-      let unix_socket = Option.get (Eio_unix.FD.peek_opt socket) in
+      let unix_socket = Eio_unix.Resource.fd_opt socket |> Option.get in
+      Eio_unix.Fd.use_exn "keep-alive" unix_socket @@ fun unix_socket ->
       Unix.setsockopt unix_socket Unix.SO_KEEPALIVE true;
       Keepalive.try_set_idle unix_socket 60;
       socket
