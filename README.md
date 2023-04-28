@@ -18,6 +18,12 @@ to support blocking while the scheduler is running. In addition, domain local
 await provides a default implementation that works with plain domains and
 systhreads.
 
+## References
+
+DLA is used to implement blocking operations by the following libraries:
+
+- [kcas](https://github.com/ocaml-multicore/kcas)
+
 ## Example: Awaitable atomic locations
 
 Let's implement a simple awaitable atomic location abstraction. First we need
