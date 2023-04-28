@@ -24,6 +24,12 @@ DLA is used to implement blocking operations by the following libraries:
 
 - [kcas](https://github.com/ocaml-multicore/kcas)
 
+DLA support is provided by the following schedulers:
+
+- [Eio](https://github.com/ocaml-multicore/eio) <sup>(> 0.9)</sup>
+- [Domainslib](https://github.com/ocaml-multicore/domainslib) <sup>(>
+  0.5.0)</sup>
+
 ## Example: Awaitable atomic locations
 
 Let's implement a simple awaitable atomic location abstraction. First we need
