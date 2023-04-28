@@ -10,15 +10,15 @@ This library provides a scheduler independent blocking mechanism.
 > level libraries for concurrent programming and is likely to be replaced by an
 > official standard blocking mechanism in the future.
 
-The idea behind domain local await is to allow one to create blocking operations
-that can work with any scheduler that provides the mechanism by
+The idea behind domain local await (DLA) is to allow one to create blocking
+operations that can work with any scheduler that provides the mechanism by
 [registering a function](https://ocaml-multicore.github.io/domain-local-await/doc/domain-local-await/Domain_local_await/index.html#val-using)
 for the current domain (or, if desired, the current systhread within a domain)
 to support blocking while the scheduler is running. In addition, domain local
 await provides a default implementation that works with plain domains and
 systhreads.
 
-## Awaitable atomic locations
+## Example: Awaitable atomic locations
 
 Let's implement a simple awaitable atomic location abstraction. First we need
 the domain local await library:
