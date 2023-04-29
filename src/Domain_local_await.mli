@@ -36,6 +36,23 @@ val prepare_for_await : unit -> t
 
 (** {1 Interface for schedulers} *)
 
+val using : prepare_for_await:(unit -> t) -> while_running:(unit -> 'a) -> 'a
+(** [using ~prepare_for_await ~while_running] registers the given asynchronous
+    trigger mechanism for the current domain, or, if the domain has been
+    configured to use {!per_thread} schedulers, the current systhread, for the
+    duration of running the given scheduler.  In other words, this sets the
+    implementation of {!prepare_for_await} for blocking under the scheduler.
+
+    {b NOTE}: The given [prepare_for_await] function is called every time
+    {!prepare_for_await} is called while the scheduler is running.
+
+    {b NOTE}: This is normally only called by libraries that implement
+    schedulers and the specified [prepare_for_await] typically returns a trigger
+    mechanism {!t} that tightly integrates with the scheduler by e.g. performing
+    an effect to suspend the current fiber when {!t.await} is called. *)
+
+(** {2 Per thread configuration} *)
+
 (** Signature for a minimal subset of the [Stdlib.Thread] module needed by
     domain local await. *)
 module type Thread = sig
@@ -82,18 +99,3 @@ val per_thread : 'handle thread -> unit
 
     {b NOTE}: It is not necessary to use per systhread configuration on a domain
     unless you want different systhreads to use different schedulers. *)
-
-val using : prepare_for_await:(unit -> t) -> while_running:(unit -> 'a) -> 'a
-(** [using ~prepare_for_await ~while_running] registers the given asynchronous
-    trigger mechanism for the current domain, or, if the domain has been
-    configured to use {!per_thread} schedulers, the current systhread, for the
-    duration of running the given scheduler.  In other words, this sets the
-    implementation of {!prepare_for_await} for blocking under the scheduler.
-
-    {b NOTE}: The given [prepare_for_await] function is called every time
-    {!prepare_for_await} is called while the scheduler is running.
-
-    {b NOTE}: This is normally only called by libraries that implement
-    schedulers and the specified [prepare_for_await] typically returns a trigger
-    mechanism {!t} that tightly integrates with the scheduler by e.g. performing
-    an effect to suspend the current fiber when {!t.await} is called. *)
