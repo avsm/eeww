@@ -36,4 +36,4 @@ jobs:
         run: brew install cmake gmp
       -
         name: Build
-        run: env DUNE_PROFILE=release make
+        run: env DUNE_PROFILE=dev make
