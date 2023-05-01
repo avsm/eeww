@@ -1,6 +1,0 @@
-(executable
- (name identity_standalone)
- (libraries ppxlib))
-
-(cram
- (deps identity_standalone.exe))
