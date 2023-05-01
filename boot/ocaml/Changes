@@ -1,4 +1,4 @@
-Working version
+OCaml 5.1.0
 ---------------
 
 ### Language features:
@@ -28,6 +28,22 @@ Working version
   (Frederic Bour and Richard Eisenberg, review by Florian Angeletti)
 
 ### Runtime system:
+
+* #11865, #11868, #11876: Clarify that the operations of a custom
+  block must never access the OCaml runtime. The previous
+  documentation only mentioned the main illicit usages. In particular,
+  since OCaml 5.0, it is no longer safe to call
+  `caml_remove_global_root` or `caml_remove_generational_global_root`
+  from within the C finalizer of a custom block, or within the
+  finalization function passed to `caml_alloc_final`. As a workaround,
+  such a finalization operation can be registered with `Gc.finalize`
+  instead, which guarantees to run the finalizer at a safe point.
+  (Report by Timothy Bourke, discussion by Yotam Barnoy, Timothy
+  Bourke, Sadiq Jaffer, Xavier Leroy, Guillaume Munch-Maccagnoni, and
+  Gabriel Scherer)
+
+- #12130: Fix multicore crashes with weak hash sets. Fixes #11934.
+  (Nick Barnes, review by François Bobot)
 
 - #12099: Add ocamlrund option, -events, to produce a trace of
   debug events during bytecode interpretation. Fixes #12098.
@@ -110,6 +126,11 @@ Working version
 
 - #12132: Fix overcounting of minor collections in GC stats.
   (Damien Doligez, review by Gabriel Scherer)
+
+- #3921, #12039, #12128: poll for signals in long-running polymorphic
+  comparisons.
+  (B. Szilvasy, Gabriel Scherer and Xavier Leroy, review by
+   Stefan Muenzel, Guillaume Munch-Maccagnoni and Damien Doligez)
 
 ### Type system:
 
@@ -364,6 +385,9 @@ Working version
   reduction in size.
   (Xavier Leroy, review by Edwin Török and Gabriel Scherer)
 
+- #12165: ocamldoc, use standard doctype to avoid quirk mode.
+  (Florian Angeletti, review by Gabriel Scherer)
+
 ### Manual and documentation:
 
 - #12095, #12097: Put the sample code of the user's manual and reference
@@ -558,6 +582,9 @@ Working version
   (Sébastien Hinderer, review by Xavier Leroy, Nicolás Ojeda Bär and
   Hugo Heuzard)
 
+- #12011: remove Ctype.reified_var_counter
+  (Takafumi Saikawa and Jacques Garrigue, review by Gabriel Scherer)
+
 - #12012: move calls to Typetexp.TyVarEnv.reset inside with_local_level etc.
   (Jacques Garrigue and Takafumi Saikawa, review by Gabriel Scherer)
 
@@ -566,6 +593,9 @@ Working version
 
 - #12092: remove Lev_module_definition from lambda
   (Nick Roberts, review by Gabriel Scherer)
+
+- #12117: Remove arity-interrupting elaboration of module unpacks
+  (Nick Roberts, review by Richard Eisenberg and Jacques Garrigue)
 
 - #12118: stop storing names of predefined exceptions in the
   cu_required_globals field of compilation unit descriptors.
@@ -674,6 +704,14 @@ Working version
   (Jérôme Vouillon, review by Nicolás Ojeda Bär, Stephen Dolan and
    Hugo Heuzard)
 
+- #11846: Mark rbx as destroyed at C call for Win64 (mingw-w64 and Cygwin64).
+  Reserve the shadow store for the ABI in the c_stack_link struct instead of
+  explictly when calling C functions. This simultaneously reduces the number of
+  stack pointer manipulations and also fixes a bug when calling noalloc
+  functions where the shadow store was not being reserved.
+  (David Allsopp, report by Vesa Karvonen, review by Xavier Leroy and
+   KC Sivaramakrishnan)
+
 - #11850: When stopping before the `emit` phase (using `-stop-after`), an empty
   temporary assembly file is no longer left in the file system.
   (Nicolás Ojeda Bär, review by Gabriel Scherer and Xavier Leroy)
@@ -707,6 +745,24 @@ Working version
 
 - #12112: Fix caml_callback{2,3}_exn when used with effect handlers.
   (Lucas Pluvinage, review by Gabriel Scherer, David Allsopp and Xavier Leroy)
+
+- #12134: Use ghost location for nodes created when handling defaults in
+  optional arguments.
+  (Paul-Elliot Anglès d'Auriac, review by Gabriel Scherer)
+
+- #12153: Fix segfault in bytecode programs involving recursive value
+  definitions of values of size 0
+  (Vincent Laviron, Xavier Leroy, Gabriel Scherer,
+   review by Xavier Leroy, report by Nick Roberts)
+
+- #12162: Fix miscompilation on amd64 backends involving integer overflows
+  (Vincent Laviron and Greta Yorsh, review by Stefan Muenzel)
+
+- #12170: fix pthread_geaffinity_np configure check for android
+  (David Allsopp, review by Sébastien Hinderer)
+
+- #12178: Fix runtime events consumer poll function returning an invalid value
+  instead of an OCaml integer value. (Lucas Pluvinage)
 
 OCaml 5.0.0 (15 December 2022)
 ------------------------------
