@@ -174,7 +174,7 @@ static int __cpu_rng = RNG_NONE;
 
 #define RETRIES 10
 
-static void detect () {
+static void detect (void) {
 #ifdef __mc_ENTROPY__
   random_t r = 0;
 
