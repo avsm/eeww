@@ -3,7 +3,7 @@ open Astring
 
 module Log = Capnp_rpc.Debug.Log
 
-let () = Mirage_crypto_rng_lwt.initialize ()
+let () = Mirage_crypto_rng_lwt.initialize (module Mirage_crypto_rng.Fortuna)
 
 module CapTP = Vat_network.CapTP
 module Vat = Vat_network.Vat
