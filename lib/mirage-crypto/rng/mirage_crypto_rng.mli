@@ -20,8 +20,8 @@
     generation suite. For proper operation, they need to be seeded with a
     high-quality entropy source.
 
-    Suitable entropy feeding of generators are provided by sub-libraries
-    {{!Mirage_crypto_rng_lwt}mirage-crypto-rng.lwt} (for Lwt),
+    Suitable entropy feeding of generators are provided by other libraries
+    {{!Mirage_crypto_rng_lwt}mirage-crypto-rng-lwt} (for Lwt),
     {{!Mirage_crypto_rng_async}mirage-crypto-rng-async} (for Async),
     {{!Mirage_crypto_rng_mirage}mirage-crypto-rng-mirage} (for MirageOS),
     {{!Mirage_crypto_rng_unix}mirage-crypto-rng.unix},
@@ -73,7 +73,7 @@ exception Unseeded_generator
 (** Thrown when using an uninitialized {{!g}generator}. *)
 
 exception No_default_generator
-(** Thrown when {!set_generator} has not been called. *)
+(** Thrown when {!set_default_generator} has not been called. *)
 
 (** Entropy sources and collection *)
 module Entropy : sig
@@ -214,7 +214,7 @@ val default_generator : unit -> g
 (** [default_generator ()] is the default generator. Functions in this module
     use this generator when not explicitly supplied one.
 
-    @raise No_default_generator if {!set_generator} has not been called. *)
+    @raise No_default_generator if {!set_default_generator} has not been called. *)
 
 val set_default_generator : g -> unit
 (** [set_default_generator g] sets the default generator to [g]. This function

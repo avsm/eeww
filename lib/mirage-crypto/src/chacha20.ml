@@ -53,6 +53,7 @@ let crypt ~key ~nonce ?(ctr = 0L) data =
   in
   let key_stream = Cstruct.create_unsafe len in
   let rec loop i = function
+    | 0 -> ()
     | 1 ->
       chacha20_block state i key_stream ;
       Native.xor_into data.buffer (data.off + i) key_stream.buffer i last_len
@@ -88,18 +89,27 @@ let mac ~key ~adata ciphertext =
   let ctx = P.feed ctx len in
   P.get ctx
 
-let authenticate_encrypt ~key ~nonce ?(adata = Cstruct.empty) data =
+let authenticate_encrypt_tag ~key ~nonce ?(adata = Cstruct.empty) data =
   let poly1305_key = generate_poly1305_key ~key ~nonce in
   let ciphertext = crypt ~key ~nonce ~ctr:1L data in
   let mac = mac ~key:poly1305_key ~adata ciphertext in
-  Cstruct.append ciphertext mac
+  ciphertext, mac
 
-let authenticate_decrypt ~key ~nonce ?(adata = Cstruct.empty) data =
+let authenticate_encrypt ~key ~nonce ?adata data =
+  let cdata, ctag = authenticate_encrypt_tag ~key ~nonce ?adata data in
+  Cstruct.append cdata ctag
+
+let authenticate_decrypt_tag ~key ~nonce ?(adata = Cstruct.empty) ~tag data =
+  let poly1305_key = generate_poly1305_key ~key ~nonce in
+  let ctag = mac ~key:poly1305_key ~adata data in
+  let plain = crypt ~key ~nonce ~ctr:1L data in
+  if Eqaf_cstruct.equal tag ctag then Some plain else None
+
+let authenticate_decrypt ~key ~nonce ?adata data =
   if Cstruct.length data < P.mac_size then
     None
   else
     let cipher, tag = Cstruct.split data (Cstruct.length data - P.mac_size) in
-    let poly1305_key = generate_poly1305_key ~key ~nonce in
-    let ctag = mac ~key:poly1305_key ~adata cipher in
-    let plain = crypt ~key ~nonce ~ctr:1L cipher in
-    if Eqaf_cstruct.equal tag ctag then Some plain else None
+    authenticate_decrypt_tag ~key ~nonce ?adata ~tag cipher
+
+let tag_size = P.mac_size
