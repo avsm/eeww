@@ -3,7 +3,7 @@ homepage:     "https://github.com/mirleft/ocaml-tls"
 dev-repo:     "git+https://github.com/mirleft/ocaml-tls.git"
 bug-reports:  "https://github.com/mirleft/ocaml-tls/issues"
 doc:          "https://mirleft.github.io/ocaml-tls/doc"
-author:       ["David Kaloper <david@numm.org>" "Hannes Mehnert <hannes@mehnert.org>" "Eric Ebinger <github@eric.theebingers.com>" "Calascibetta Romain <romain.calascibetta@gmail.com>"]
+author:       ["David Kaloper <david@numm.org>" "Hannes Mehnert <hannes@mehnert.org>"]
 maintainer:   ["Hannes Mehnert <hannes@mehnert.org>" "David Kaloper <david@numm.org>"]
 license:      "BSD-2-Clause"
 
@@ -17,17 +17,14 @@ depends: [
   "ocaml" {>= "4.08.0"}
   "dune" {>= "3.0"}
   "tls" {= version}
-  "x509" {>= "0.14.0"}
-  "ptime" {>= "0.8.1"}
-  "async" {>= "v0.15"}
-  "async_unix" {>= "v0.15"}
-  "core" {>= "v0.15"}
-  "cstruct-async"
-  "ppx_jane" {>= "v0.15"}
-  "mirage-crypto-rng-async"
+  "mirage-crypto-rng-lwt" {>= "0.11.0"}
+  "x509" {>= "0.15.0"}
+  "lwt" {>= "3.0.0"}
+  "cmdliner" {>= "1.1.0"}
 ]
+conflicts: [ "result" {< "1.5"} ]
 tags: [ "org:mirage"]
-synopsis: "Transport Layer Security purely in OCaml, Async layer"
+synopsis: "Transport Layer Security purely in OCaml, Lwt layer"
 description: """
-Tls-async provides Async-friendly tls bindings
+Tls-lwt provides an effectful Tls_lwt module to be used with Lwt.
 """
