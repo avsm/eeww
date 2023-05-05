@@ -5,9 +5,9 @@
 #include <caml/unixsupport.h>
 #include <caml/bigarray.h>
 
-#if defined(__linux)
+#if defined(__linux) || defined(__GNU__)
 # include <errno.h>
-// on Linux, we use getrandom and loop
+// on Linux and GNU/Hurd, we use getrandom and loop
 
 # if __GLIBC__ && __GLIBC__ <= 2 && __GLIBC_MINOR__ < 25
 # include <sys/syscall.h>
@@ -36,7 +36,7 @@ void raw_getrandom (uint8_t *data, uint32_t len) {
 
 void raw_getrandom (uint8_t *data, uint32_t len) {
   int rlen = 0;
-  for (int i = 0; i <= len; i += 256) {
+  for (uint32_t i = 0; i <= len; i += 256) {
     rlen = MIN(256, len - i);
     if (getentropy(data + i, rlen) < 0) uerror("getentropy", Nothing);
   }
