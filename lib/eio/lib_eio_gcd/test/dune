@@ -1,3 +1,0 @@
-(executable
- (name main)
- (libraries eio_gcd fmt.tty logs.fmt))

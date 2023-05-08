@@ -1,4 +1,0 @@
-(library
-  (name eio__core)
-  (public_name eio.core)
-  (libraries astring cstruct hmap lwt-dllist fmt optint runtime_events))

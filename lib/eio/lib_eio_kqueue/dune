@@ -1,9 +1,0 @@
-(library
- (public_name eio_kqueue)
- (name eio_kqueue)
- ; Not sure about these system strings
- (enabled_if (or (= %{system} "macosx") (or (= %{system} "openbsd") (= %{system} "freebsd"))))
- (foreign_stubs
-  (language c)
-  (names eio_kqueue_stubs))
- (libraries eio eio.utils eio.unix kqueue cstruct-unix))
