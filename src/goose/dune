@@ -1,3 +1,0 @@
-(library
-  (name goose)
-  (libraries eio letsencrypt tls_le fpath magic-mime))

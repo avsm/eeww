@@ -5,19 +5,7 @@
  (libraries cohttp-eio eio_main eio.unix eio uri fpath magic-mime tls_le fmt.tty logs.fmt logs.cli fmt.cli cmdliner mirage-crypto-rng-eio))
 
 (executable
- (name fetch)
- (public_name eeww-fetch)
- (modules fetch bars)
- (libraries cohttp-eio eio_main eio.unix eio tls tls-eio mirage-crypto-rng-eio progress vector))
-
-(executable
  (name iperf_serve)
  (public_name eeww-iperf-server)
  (modules iperf_serve)
  (libraries iperf eio_main eio))
-
-(executable
- (name serve)
- (public_name eeww-serve)
- (modules serve)
- (libraries cohttp-eio eio_main eio.unix eio tls tls-eio mirage-crypto-rng-eio fpath uri magic-mime tls_le goose fmt.cli fmt.tty logs.fmt logs.cli))
