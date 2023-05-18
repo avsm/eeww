@@ -34,7 +34,8 @@ end
 
 module Unix_fd = struct
   let get_exn (fd : Eio.Net.stream_socket) =
-    Option.get (Eio_unix.FD.peek_opt fd)
+    let fd = Option.get (Eio_unix.Resource.fd_opt fd) in
+    Eio_unix.Fd.use_exn "Unix_fd.get_exn" fd (fun fd -> fd)
 end
 
 module Context = struct
