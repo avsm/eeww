@@ -1,0 +1,21 @@
+(executable
+ (name bench_with_bechamel)
+ (modules bench_with_bechamel)
+ (libraries bigstringaf ke bechamel bechamel-js))
+
+(rule
+ (targets bench.json)
+ (enabled_if
+  (= %{profile} benchmark))
+ (action
+  (with-stdout-to
+   %{targets}
+   (run ./bench_with_bechamel.exe push&pop))))
+
+(rule
+ (targets bench.html)
+ (mode promote)
+ (enabled_if
+  (= %{profile} benchmark))
+ (action
+  (system "%{bin:bechamel-html} < %{dep:bench.json} > %{targets}")))
