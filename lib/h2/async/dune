@@ -1,0 +1,4 @@
+(library
+ (name h2_async)
+ (public_name h2-async)
+ (libraries async core faraday-async gluten-async h2))
