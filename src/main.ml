@@ -231,10 +231,10 @@ module Alpn_lib = struct
       ~request_handler:H1_handler.request_handler
       ~error_handler:H1_handler.error_handler sa flow
 
-  let h2_handler =
+  let h2_handler flow sa =
     H2_eio.Server.create_connection_handler ?config:None
       ~request_handler:H2_handler.request_handler
-      ~error_handler:H2_handler.error_handler
+      ~error_handler:H2_handler.error_handler sa flow
 
   let start_http_server ~sw ~port env =
     Eio.traceln "listening on %d" port;
@@ -265,7 +265,14 @@ module Alpn_lib = struct
     while true do
       Eio.Net.accept_fork ~sw s ~on_error (fun flow sa ->
         let flow = Tls_eio.server_of_flow config flow in
-        h2_handler sa (flow :> Eio.Flow.two_way)
+        match Tls_eio.epoch flow with
+        | Error () -> failwith "ALPN negotiation failed"
+        | Ok {alpn_protocol;_} ->
+            match alpn_protocol with
+            | None -> ()
+            | Some "http/1.1" -> h1_handler (flow :> Eio.Flow.two_way) sa
+            | Some "h2" -> h2_handler (flow :> Eio.Flow.two_way) sa
+            | Some _ -> Eio.traceln "invalid ALPN response"; ()
       )
       done
 (*
@@ -333,7 +340,8 @@ let main email org domain prod site cert http_port () =
       in
       let cert_root = Eio.Path.open_dir ~sw (env#fs / cert) in
       let config =
-        Tls_le.tls_config ~cert_root ~org ~email ~domain ~endpoint env
+        Tls_le.tls_config ~alpn_protocols:[ "h2"; "http/1.1" ]
+          ~cert_root ~org ~email ~domain ~endpoint env
       in
       Eio.traceln "Starting TLS with LetsEncrypt endpoint: %a" Uri.pp endpoint;
       Alpn_lib.start_https_server ~docroot ~config ~port:443 env
