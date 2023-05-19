@@ -97,7 +97,7 @@ let () =
           let response_handler =
             response_handler ~on_eof:(fun () ->
                 Format.eprintf "eof@.";
-                Client.shutdown connection)
+                Eio.Promise.await @@ Client.shutdown connection)
           in
           let request_body =
             Client.request
