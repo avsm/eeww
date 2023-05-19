@@ -1,7 +1,5 @@
 [@@@warning "-32"]
 
-open Cohttp_eio
-
 let ( / ) = Eio.Path.( / )
 
 exception Invalid_request_path of string
@@ -18,135 +16,56 @@ module Eiox = struct
 
   (* UPSTREAM: need an Eio file exists check without opening *)
   let file_exists f =
-    Eio.Switch.run @@ fun sw ->
-    try
-      ignore (Eio.Path.open_in ~sw f);
-      true
-    with _ -> false
+   Eio.Switch.run @@ fun sw ->
+   try
+     let fin = Eio.Path.open_in ~sw f in
+     match Eio.File.((stat fin).kind) with
+     | `Regular_file -> `Regular_file
+     | `Directory -> `Directory
+     | _ -> `Not_found
+    with _ -> `Not_found
+
 end
-
-module Cohttpx = struct
-  let respond_file fname body =
-    let fname = snd fname in
-    let mime_type = Magic_mime.lookup fname in
-    let headers =
-      Http.Header.of_list
-        [
-          ("content-type", mime_type);
-          ("content-length", string_of_int @@ String.length body);
-        ]
-    in
-    let response =
-      Http.Response.make ~version:`HTTP_1_1 ~status:`OK ~headers ()
-    in
-    (response, Body.Fixed body)
-
-  let tls_connection_handler ~server_config handler flow client_addr =
-    let flow = Tls_eio.server_of_flow server_config flow in
-    Cohttp_eio.Server.connection_handler handler flow client_addr
-
-  let run_domain ~server_config ssock handler =
-    let on_error exn =
-      Eio.traceln "Error handling connection: %s\n%!" (Printexc.to_string exn)
-    in
-    let tls_handler = tls_connection_handler ~server_config handler in
-    Eio.Switch.run (fun sw ->
-        let rec loop () =
-          Eio.Net.accept_fork ~sw ssock ~on_error tls_handler;
-          loop ()
-        in
-        loop ())
-
-  let tls_serve ?(socket_backlog = 128) ?(domains = 8) ~port ~config env handler
-      =
-    Eio.Switch.run @@ fun sw ->
-    let ssock =
-      Eio.Net.listen env#net ~sw ~reuse_addr:true ~reuse_port:true
-        ~backlog:socket_backlog
-        (`Tcp (Eio.Net.Ipaddr.V4.any, port))
-    in
-    for _ = 2 to domains do
-      Eio.Std.Fiber.fork ~sw (fun () ->
-          Eio.Domain_manager.run env#domain_mgr (fun () ->
-              run_domain ~server_config:config ssock handler))
-    done;
-    run_domain ~server_config:config ssock handler
-end
-
-let https_serve ~docroot ~uri path =
-  (* TODO put a URL router here! *)
-  let fname = docroot / Eiox.normalise path in
-  Eio.traceln "uri: %a local file: %a, path %s" Uri.pp uri Eio.Path.pp fname
-    path;
-  Eio.Switch.run (fun sw ->
-      let fin = Eio.Path.open_in ~sw fname in
-      match Eio.File.((stat fin).kind) with
-      | `Directory ->
-          let idx = Eio.Path.(fname / "index.html") in
-          (* if path doesn't end in /, redirect appending / *)
-          if String.length path > 1 && path.[String.length path - 1] != '/' then
-            Server.respond_redirect
-              ~uri:(Uri.of_string (Uri.to_string uri ^ "/"))
-          else if Eiox.file_exists idx then
-            Server.html_response (Eio.Path.load idx)
-          else Server.html_response "not found"
-      | `Regular_file ->
-          (* TODO stream body instead of loading *)
-          let body = Eio.Path.load fname in
-          Cohttpx.respond_file fname body
-      | _ -> Server.html_response "not found")
-
-let http_serve path =
-  (* TODO put a URL router here! *)
-  match Fpath.(v path |> segs) with
-  | [ ""; ".well-known"; "acme-challenge"; token ] ->
-      Server.text_response (Tls_le.Token_cache.get token)
-  | _ -> failwith "TODO redirect to https url"
-
-let http_app (req, _reader, _client_addr) =
-  let uri = Uri.of_string @@ Http.Request.resource req in
-  let path = Uri.path uri in
-  let meth = Http.Request.meth req in
-  Eio.traceln "http %a %s" Http.Method.pp meth path;
-  match meth with
-  | `GET | `HEAD -> http_serve path
-  | _ -> Server.not_found_response
-
-let https_app _fs ~docroot (req, _reader, _client_addr) =
-  let uri = Uri.of_string @@ Http.Request.resource req in
-  let path = Uri.path uri in
-  let meth = Http.Request.meth req in
-  Eio.traceln "https %a %s" Http.Method.pp meth path;
-  match meth with
-  | `GET | `HEAD -> https_serve ~docroot ~uri path
-  | _ -> Server.not_found_response
-
-let run_http_server ~port env =
-  Eio.traceln "Starting HTTP server";
-  Server.run ~domains:2 ~port env http_app
-
-let run_https_server ~docroot ~config ~port env =
-  Eio.traceln "Starting HTTPS server";
-  Cohttpx.tls_serve ~domains:2 ~config ~port env (https_app env#fs ~docroot)
 
 module H2_handler = struct
   open H2
 
-  let request_handler : Eio.Net.Sockaddr.stream -> Reqd.t -> unit =
-   fun _client_address request_descriptor ->
-    let request = Reqd.request request_descriptor in
-    let response_content_type =
-      match Headers.get request.headers "Content-Type" with
-      | Some request_content_type -> request_content_type
-      | None -> "text/plain"
-    in
+  let respond_with_file reqd fname =
+    let body = Eio.Path.load fname in
+    let mime_type = Magic_mime.lookup (snd fname) in
     let response =
       Response.create
-        ~headers:(Headers.of_list [ ("content-type", response_content_type) ])
+        ~headers:(Headers.of_list [ ("content-type", mime_type) ])
         `OK
     in
-    Reqd.respond_with_string request_descriptor response
-      "Welcome to an ALPN-negotiated HTTP/2 connection"
+    Reqd.respond_with_string reqd response body
+
+  let respond_redirect reqd uri =
+    let response =
+      Response.create 
+        ~headers:(Headers.of_list [ ("location", uri) ])
+        `Moved_permanently
+    in
+    Reqd.respond_with_string reqd response ""
+
+  let request_handler ~docroot _ca reqd =
+    let request = Reqd.request reqd in
+    let path = request.target in
+    let fname = docroot / Eiox.normalise path in
+    Eio.traceln "local file: %a path %s" Eio.Path.pp fname path;
+      match Eiox.file_exists fname with
+      | `Directory ->
+          let idx = Eio.Path.(fname / "index.html") in
+          if String.length path > 1 && path.[String.length path - 1] != '/' then
+            respond_redirect reqd (path ^ "/")
+          else if Eiox.file_exists idx = `Regular_file then
+            respond_with_file reqd idx
+          else Reqd.respond_with_string reqd (Response.create `Not_found) "Not found"
+      | `Regular_file ->
+          (* TODO stream body instead of loading *)
+          respond_with_file reqd fname
+      | `Not_found ->
+          Reqd.respond_with_string reqd (Response.create `Not_found) "Not found"
 
   let error_handler :
       Eio.Net.Sockaddr.stream ->
@@ -231,9 +150,9 @@ module Alpn_lib = struct
       ~request_handler:H1_handler.request_handler
       ~error_handler:H1_handler.error_handler sa flow
 
-  let h2_handler flow sa =
+  let h2_handler ~docroot flow sa =
     H2_eio.Server.create_connection_handler ?config:None
-      ~request_handler:H2_handler.request_handler
+      ~request_handler:(H2_handler.request_handler ~docroot)
       ~error_handler:H2_handler.error_handler sa flow
 
   let start_http_server ~sw ~port env =
@@ -252,7 +171,6 @@ module Alpn_lib = struct
     done
 
   let start_https_server ~docroot ~config ~port env =
-    let _ = docroot in
     Eio.Switch.run @@ fun sw ->
     let s =
       Eio.Net.listen env#net ~sw ~reuse_addr:true ~reuse_port:true
@@ -271,48 +189,10 @@ module Alpn_lib = struct
             match alpn_protocol with
             | None -> ()
             | Some "http/1.1" -> h1_handler (flow :> Eio.Flow.two_way) sa
-            | Some "h2" -> h2_handler (flow :> Eio.Flow.two_way) sa
+            | Some "h2" -> h2_handler ~docroot (flow :> Eio.Flow.two_way) sa
             | Some _ -> Eio.traceln "invalid ALPN response"; ()
       )
-      done
-(*
-    let open Lwt.Infix in
-    let listen_address = Unix.(ADDR_INET (inet_addr_loopback, 9443)) in
-    let cert = "./certificates/server.pem" in
-    let priv_key = "./certificates/server.key" in
-    Lwt.async (fun () ->
-        Lwt_io.establish_server_with_client_socket listen_address
-          (fun client_addr fd ->
-            Lwt.catch
-              (fun () ->
-                X509_lwt.private_of_pems ~cert ~priv_key >>= fun certificate ->
-                let config =
-                  Tls.Config.server
-                    ~alpn_protocols:[ "h2"; "http/1.1" ]
-                      (* accept h2 before http/1.1 *)
-                    ~certificates:(`Single certificate) ()
-                in
-                Tls_lwt.Unix.server_of_fd config fd >>= fun tls_server ->
-                match Tls_lwt.Unix.epoch tls_server with
-                | Error () ->
-                    Lwt_io.eprintlf
-                      "Unable to fetch session data. Did the handshake fail?"
-                | Ok { alpn_protocol; _ } -> (
-                    match alpn_protocol with
-                    | None ->
-                        (* Unable to negotiate a protocol *)
-                        Lwt.return_unit
-                    | Some "http/1.1" -> http1_handler client_addr tls_server
-                    | Some "h2" -> h2_handler client_addr tls_server
-                    | _ ->
-                        (* Can't really happen - would mean that TLS negotiated a
-                         * protocol that we didn't specify. *)
-                        assert false))
-              (fun exn -> Lwt_io.eprintlf "EXN: %s" (Printexc.to_string exn)))
-        >>= fun _server -> Lwt.return_unit);
-    let forever, _ = Lwt.wait () in
-    forever
-    *)
+    done
 end
 
 let main email org domain prod site cert http_port () =
