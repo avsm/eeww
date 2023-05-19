@@ -183,16 +183,25 @@ module H1_handler = struct
     let response_body = start_response Headers.empty in
     Body.Writer.close response_body
 
+  let has_token s =
+     match Scanf.sscanf s "/.well-known/acme-challenge/%s" (fun s -> s) with
+     | s -> Some s
+     | exception _ -> None
+
   let request_handler : Eio.Net.Sockaddr.stream -> Reqd.t Gluten.reqd -> unit =
    fun _client_address { Gluten.reqd; _ } ->
-    Eio.traceln "h1 request handler";
     let request = Reqd.request reqd in
+    Eio.traceln "HTTP1 %a" Request.pp_hum request;
     let response_content_type =
       match Headers.get request.headers "Content-Type" with
       | Some request_content_type -> request_content_type
       | None -> "text/plain"
     in
-    let response_body = "Welcome to an ALPN-negotiated HTTP/1.1 connection" in
+    let response_body = 
+      match has_token request.target with
+      | Some token -> Tls_le.Token_cache.get token
+      | None -> "hello alpn world!"
+    in
     let response =
       Response.create
         ~headers:
