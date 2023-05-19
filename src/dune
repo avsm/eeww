@@ -2,7 +2,7 @@
  (name main)
  (public_name eeww)
  (modules main)
- (libraries cohttp-eio eio_main eio.unix eio uri fpath magic-mime tls_le fmt.tty logs.fmt logs.cli fmt.cli cmdliner mirage-crypto-rng-eio))
+ (libraries cohttp-eio eio_main eio.unix eio uri fpath magic-mime tls_le fmt.tty logs.fmt logs.cli fmt.cli cmdliner mirage-crypto-rng-eio h2 gluten-eio httpaf-eio h2-eio))
 
 (executable
  (name iperf_serve)
