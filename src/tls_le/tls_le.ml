@@ -1,13 +1,14 @@
 (* A direct-style interface to LetsEncrypt *)
 module Token_cache = struct
   let h = Hashtbl.create 7
-  let m = Mutex.create ()
 
   let add k v =
-    Mutex.protect m (fun () -> Hashtbl.replace h k v)
+    Hashtbl.replace h k v
+    (* TODO mutex *)
 
   let get k =
-    Mutex.protect m (fun () -> Hashtbl.find h k)
+    Hashtbl.find h k
+    (* TODO mutex *)
 end
 
 exception Le_error of string
