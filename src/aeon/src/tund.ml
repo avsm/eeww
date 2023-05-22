@@ -25,7 +25,7 @@ let run zonefiles log_level addressStrings subdomain port no_tcp no_udp netmask
       ~mono_clock:env#mono_clock ~tcp ~udp subdomain server_state log addresses
   in
   let tun_fd, tun_name = Tuntap.opentun ~devname:"tun-dnsd" () in
-  let tun = Eio_unix.FD.as_socket ~sw ~close_unix:false tun_fd in
+  let tun = Eio_unix.import_socket_stream ~sw ~close_unix:false tun_fd in
   Tuntap.set_ipv4 tun_name
     ~netmask:(Ipaddr.V4.Prefix.of_string_exn netmask)
     (Ipaddr.V4.of_string_exn tunnel_ip);
