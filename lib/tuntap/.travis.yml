@@ -1,0 +1,11 @@
+language: c
+install: wget https://raw.githubusercontent.com/ocaml/ocaml-travisci-skeleton/master/.travis-opam.sh
+script: bash -ex .travis-opam.sh
+env:
+  - PACKAGE=tuntap OCAML_VERSION=4.04
+  - PACKAGE=tuntap OCAML_VERSION=4.05
+  - PACKAGE=tuntap OCAML_VERSION=4.06
+  - PACKAGE=tuntap OCAML_VERSION=4.07
+  - PACKAGE=tuntap OCAML_VERSION=4.08
+  - PACKAGE=tuntap OCAML_VERSION=4.09
+  - PACKAGE=tuntap OCAML_VERSION=4.10

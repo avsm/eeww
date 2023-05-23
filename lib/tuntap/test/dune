@@ -1,0 +1,12 @@
+(executables
+ (names getifaddrs_test nonblock_read open_close_test set_ipv4_test nonblock_test sendfd_test)
+ (libraries lwt.unix tuntap macaddr ipaddr oUnit))
+
+(alias
+ (name    runtest)
+ (deps    getifaddrs_test.exe)
+ (action  (run %{deps})))
+
+(alias
+ (name   runtest)
+ (deps   nonblock_read.exe open_close_test.exe set_ipv4_test.exe nonblock_test.exe sendfd_test.exe))
