@@ -1,21 +1,21 @@
-(executable
- (name sodd)
- (modules sodd)
- (public_name sodd)
- (libraries
-  pty
-  fork_actions
-  eio_main
-  eio_linux
-  cmdliner
-  aeon.transport
-  aeon.server-args))
-
-(executable
- (name sod)
- (modules sod)
- (public_name sod)
- (libraries pty eio_main eio_linux cmdliner aeon.transport aeon.server-args))
+;(executable
+; (name sodd)
+; (modules sodd)
+; (public_name sodd)
+; (libraries
+;  pty
+;  fork_actions
+;  eio_main
+;  eio_linux
+;  cmdliner
+;  aeon.transport
+;  aeon.server-args))
+;
+;(executable
+; (name sod)
+; (modules sod)
+; (public_name sod)
+; (libraries pty eio_main eio_linux cmdliner aeon.transport aeon.server-args))
 
 (library
  (name pty)
