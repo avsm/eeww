@@ -1,0 +1,7 @@
+version=0.25.1
+module-item-spacing=compact
+break-struct=natural
+break-infix=fit-or-vertical
+parens-tuple=always
+wrap-comments=false
+break-collection-expressions=wrap

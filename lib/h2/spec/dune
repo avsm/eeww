@@ -1,0 +1,3 @@
+(executable
+ (name lwt_h2spec)
+ (libraries lwt.unix h2 h2-lwt-unix))

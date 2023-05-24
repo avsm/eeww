@@ -1,0 +1,22 @@
+(tests
+ (libraries bigstringaf h2 alcotest test_common)
+ (modules test_h2 test_h2_client test_h2_server test_priority)
+ (names test_h2 test_h2_client test_h2_server test_priority))
+
+(library
+ (name test_common)
+ (libraries base64 bigstringaf hex h2 alcotest)
+ (modules test_common))
+
+(executable
+ (name test_frames)
+ (libraries h2 alcotest yojson hex angstrom test_common)
+ (modules test_frames))
+
+(rule
+ (alias runtest)
+ (deps
+  (:test_exe test_frames.exe)
+  (source_tree "http2-frame-test-case/"))
+ (action
+  (run %{test_exe})))

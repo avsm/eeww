@@ -31,6 +31,7 @@ val gen_cert :
   and [email], using the ACME endpoint [endpoint]. *)
 
 val tls_config :
+  ?alpn_protocols:string list ->
   cert_root:#Eio.Fs.dir Eio.Path.t ->
   org:string ->
   email:string ->

@@ -1,13 +1,14 @@
 (* A direct-style interface to LetsEncrypt *)
 module Token_cache = struct
   let h = Hashtbl.create 7
-  let m = Mutex.create ()
 
   let add k v =
-    Mutex.protect m (fun () -> Hashtbl.replace h k v)
+    Hashtbl.replace h k v
+    (* TODO mutex *)
 
   let get k =
-    Mutex.protect m (fun () -> Hashtbl.find h k)
+    Hashtbl.find h k
+    (* TODO mutex *)
 end
 
 exception Le_error of string
@@ -46,10 +47,10 @@ let gen_cert ~csr_pem ~account_pem ~email ~cert_file ~endpoint env =
   let cert = Cstruct.to_string @@ X509.Certificate.encode_pem_multiple certs in
   Eio.Path.save ~create:(`Or_truncate 0o600) cert_file cert
 
-let get_tls_server_config ~key_file ~cert_file =
+let get_tls_server_config ?alpn_protocols ~key_file ~cert_file () =
   let certificate = X509_eio.private_of_pems ~cert:cert_file ~priv_key:key_file in
   let certificates = `Single  certificate in
-  Tls.Config.(server ~version:(`TLS_1_0, `TLS_1_3) ~certificates ~ciphers:Ciphers.supported ())
+  Tls.Config.(server ?alpn_protocols ~version:(`TLS_1_0, `TLS_1_3) ~certificates ~ciphers:Ciphers.supported ())
 
 module Eiox = struct
   (* UPSTREAM: need an Eio file exists check without opening *)
@@ -59,7 +60,7 @@ module Eiox = struct
     with _ -> false
 end
 
-let tls_config ~cert_root ~org ~email ~domain ~endpoint env =
+let tls_config ?alpn_protocols ~cert_root ~org ~email ~domain ~endpoint env =
   let account_file = cert_root / "account.pem" in
   let csr_file = cert_root / "csr.pem" in
   let key_file = cert_root / "privkey.pem" in
@@ -78,4 +79,4 @@ let tls_config ~cert_root ~org ~email ~domain ~endpoint env =
     let account_pem = Eio.Path.load account_file in
     gen_cert ~csr_pem ~account_pem ~email ~cert_file ~endpoint env
   end;
-  get_tls_server_config ~key_file ~cert_file
+  get_tls_server_config ?alpn_protocols ~key_file ~cert_file ()

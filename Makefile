@@ -1,7 +1,7 @@
 .PHONY: clean distclean all boot
 
 all: _obj/bin/dune
-	@env PATH="`pwd`/_obj/bin:$$PATH" dune build @install #lib/meio/src/bin/meio.exe lib/letsencrypt/bin/oacmel.exe
+	@env PATH="`pwd`/_obj/bin:$$PATH" dune build @install lib/h2/examples/eio/eio_get.exe #lib/meio/src/bin/meio.exe lib/letsencrypt/bin/oacmel.exe 
 
 boot: _obj/bin/dune
 	@:

@@ -1,0 +1,13 @@
+(executable
+ (name test)
+ (libraries hpack yojson hex alcotest))
+
+(include_subdirs unqualified)
+
+(rule
+ (alias slowtests)
+ (deps
+  (:test_exe test.exe)
+  (source_tree "hpack-test-case/"))
+ (action
+  (run %{test_exe})))
