@@ -1,5 +1,3 @@
-[@@@warning "-32"]
-
 let ( / ) = Eio.Path.( / )
 
 exception Invalid_request_path of string
@@ -80,27 +78,6 @@ end
 
 module H1_handler = struct
   open Httpaf
-
-  let redirect_handler : Eio.Net.Sockaddr.stream -> Reqd.t Gluten.reqd -> unit =
-   fun _client_address { Gluten.reqd; _ } ->
-    let response =
-      Response.create
-        ~headers:
-          (Headers.of_list
-             [ ("Location", "https://localhost:9443"); ("Connection", "close") ])
-        `Moved_permanently
-    in
-    Reqd.respond_with_string reqd response ""
-
-  let redirect_error_handler :
-      Unix.sockaddr ->
-      ?request:Request.t ->
-      _ ->
-      (Headers.t -> Body.Writer.t) ->
-      unit =
-   fun _client_address ?request:_ _error start_response ->
-    let response_body = start_response Headers.empty in
-    Body.Writer.close response_body
 
   let has_token s =
      match Scanf.sscanf s "/.well-known/acme-challenge/%s" (fun s -> s) with
