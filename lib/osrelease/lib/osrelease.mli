@@ -95,11 +95,11 @@ module Distro : sig
 
   val pp : Format.formatter -> t -> unit
 
-  val os_release_field : string -> (string option, [> Rresult.R.msg ]) result
+  val os_release_field : string -> (string option,  [> `Msg of string ]) result
 
   val v : unit -> (t, [ `Msg of string ]) result
 end
 
 module Version : sig
-  val v : unit -> (string option, [> Rresult.R.msg ]) result
+  val v : unit -> (string option, [> `Msg of string]) result
 end
