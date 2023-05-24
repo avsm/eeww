@@ -1,4 +1,4 @@
-open Ocluster_api
+open Ark_api
 (** Manage a cluster of agents registering *)
 
 type agent = {

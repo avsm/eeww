@@ -1,5 +1,5 @@
 open Capnp_rpc_net
-open Ocluster
+open Ark
 
 (* Verbose logging *)
 let pp_qid f = function

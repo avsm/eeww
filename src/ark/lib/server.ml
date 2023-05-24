@@ -1,6 +1,6 @@
 open Eio
 open Capnp_rpc_lwt
-module R = Ocluster_api.Raw
+module R = Ark_api.Raw
 
 let process_out stdout_q stderr_q complete_u =
   let module P = R.Service.ProcessOut in
@@ -125,7 +125,7 @@ let agent ~sw env =
 
        method spawn_impl params release_param_caps =
          let open Agent.Spawn in
-         let module PO = Ocluster_api.Client.Process.Out in
+         let module PO = Ark_api.Client.Process.Out in
          let command = Params.cmd_get params in
          let pout = Params.pout_get params in
          release_param_caps ();
@@ -183,7 +183,7 @@ let cluster_member t =
                of_sexp_exn R.Reader.HostInfo.arch_get Osrelease.Arch.t_of_sexp
              in
              Ok
-               Ocluster_api.Client.ClusterMember.
+               Ark_api.Client.ClusterMember.
                  { os_version; os_distrib; arch }
            with
            | Failure msg -> Error (`Msg msg)

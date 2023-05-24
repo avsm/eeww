@@ -1,5 +1,5 @@
 open Capnp_rpc_lwt
-open Ocluster_api
+open Ark_api
 
 (* Verbose logging *)
 let pp_qid f = function
@@ -26,41 +26,31 @@ let reporter =
   in
   { Logs.report }
 
-let run_client ~sw cluster stdin =
+let run_client ~mgr cluster =
+  Eio.Switch.run @@ fun sw ->
+  Eio.Switch.on_release sw (fun () -> Eio.traceln "X2 finished");
   let hostname = "alpha" in
-  let cmd = ("/usr/bin/bash", [| "bash";  |]) in
-  Capability.with_ref cluster @@ fun t ->
-  let agent = Client.ClusterUser.find ~hostname t in
-  let stdout_q = Eio.Stream.create 100 in
-  let stderr_q = Eio.Stream.create 100 in
-  let on_complete_t, on_complete_u = Eio.Promise.create () in
-  let pout = Ocluster.Server.process_out stdout_q stderr_q on_complete_u in
-  let pin = Client.Agent.spawn cmd pout agent in
-  let print_stream q =
-   while true do
-     Eio.Stream.take q |> Cstruct.to_string |> print_endline
-   done
-  in
-  Eio.Fiber.fork ~sw (fun () -> print_stream stdout_q);
-  Eio.Fiber.fork ~sw (fun () -> print_stream stderr_q);
-  Eio.Flow.copy stdin (Ocluster.Server.Eiox.capnp_sink (fun chunk -> Ocluster_api.Client.Process.In.stdin ~chunk pin));
-  let exit_code = Eio.Promise.await on_complete_t in
-  (* TODO flush stdout *)
-  Logs.info (fun l -> l "exit code %ld" exit_code);
-  (* TODO triggers shutdown trace *)
-  (* exit (Int32.to_int exit_code) *)
-  Eio.Fiber.await_cancel ()
+  Capability.with_ref (Ark.Server.agent ~sw mgr) @@ fun callback ->
+  match Ark.Agents.hostinfo () with
+  | Error (`Msg msg) ->
+      Eio.traceln "hostinfo: %s" msg;
+      exit 1
+  | Ok hostinfo ->
+      Client.ClusterMember.register ~hostname ~callback ~hostinfo cluster;
+      Eio.traceln "Registered with cluster";
+      (* TODO register sig handler for unregister *)
+      Eio.Fiber.await_cancel ()
 
 let connect uri =
   Eio_main.run @@ fun env ->
   Mirage_crypto_rng_eio.run (module Mirage_crypto_rng.Fortuna) env @@ fun () ->
   Eio.Switch.run @@ fun sw ->
-  Logs.info (fun l -> l "Connecting to cluster service at: %a" Uri.pp_hum uri);
+  Eio.Switch.on_release sw (fun () -> Eio.traceln "X1 finished");
+  Eio.traceln "Connecting to cluster service at: %a@." Uri.pp_hum uri;
   let client_vat = Capnp_rpc_unix.client_only_vat ~sw (Eio.Stdenv.net env) in
   let sr = Capnp_rpc_unix.Vat.import_exn client_vat uri in
   let proxy_to_service = Sturdy_ref.connect_exn sr in
-  Eio.Switch.run @@ fun sw ->
-  run_client ~sw proxy_to_service (env#stdin)
+  run_client ~mgr:(Eio.Stdenv.process_mgr env) proxy_to_service
 
 open Cmdliner
 
@@ -69,8 +59,8 @@ let connect_addr =
   Arg.(required @@ pos 0 (some Capnp_rpc_unix.sturdy_uri) None i)
 
 let connect_cmd =
-  let doc = "run the client" in
-  Cmd.v (Cmd.info "connect" ~doc) Term.(const connect $ connect_addr)
+  Cmd.v (Cmd.info "agent" ~doc:"run the agent")
+    Term.(const connect $ connect_addr)
 
 let () =
   Fmt_tty.setup_std_outputs ();

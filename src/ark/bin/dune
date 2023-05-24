@@ -1,20 +1,20 @@
 (executable
- (name ocluster_server)
- (public_name ocluster-server)
- (modules ocluster_server)
- (libraries capnp-rpc-unix capnp-rpc-lwt ocluster lwt.unix logs logs.fmt eio_main eio mirage-crypto-rng-eio
+ (name ark_server)
+ (public_name ark-server)
+ (modules ark_server)
+ (libraries capnp-rpc-unix capnp-rpc-lwt ark lwt.unix logs logs.fmt eio_main eio mirage-crypto-rng-eio
    fmt.tty))
 
 (executable
- (name ocluster_agent)
- (public_name ocluster-agent)
- (modules ocluster_agent)
- (libraries capnp-rpc-unix capnp-rpc-lwt ocluster ocluster.api lwt.unix logs eio_main eio mirage-crypto-rng-eio
+ (name ark_agent)
+ (public_name ark-agent)
+ (modules ark_agent)
+ (libraries capnp-rpc-unix capnp-rpc-lwt ark lwt.unix logs eio_main eio mirage-crypto-rng-eio
    logs.fmt fmt.tty))
 
 (executable
- (name ocluster_cli)
- (public_name ocluster-cli)
- (modules ocluster_cli)
- (libraries capnp-rpc-unix capnp-rpc-lwt ocluster ocluster.api lwt.unix logs eio_main eio mirage-crypto-rng-eio
+ (name ark_shell)
+ (public_name ark-shell)
+ (modules ark_shell)
+ (libraries capnp-rpc-unix capnp-rpc-lwt ark ark.api lwt.unix logs eio_main eio mirage-crypto-rng-eio
    logs.fmt fmt.tty))
