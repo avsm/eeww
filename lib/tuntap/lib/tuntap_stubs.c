@@ -98,7 +98,7 @@ tun_alloc(char *dev, int kind, int pi, int persist, int user, int group)
 static int
 tun_alloc(char *dev, int kind, int pi, int persist, int user, int group)
 {
-  // On MacOSX, we need that dev is not NULL, and all options other
+  // On macOS, we need that dev is not NULL, and all options other
   // than kind are to be ignored because not supported.
   char name[IFNAMSIZ];
   int fd;
@@ -142,7 +142,7 @@ get_macaddr(value devname)
   close(fd);
 
   hwaddr = caml_alloc_string(6);
-  memcpy(String_val(hwaddr), ifq.ifr_addr.sa_data, 6);
+  memcpy(Bytes_val(hwaddr), ifq.ifr_addr.sa_data, 6);
 
   CAMLreturn (hwaddr);
 }
@@ -365,13 +365,13 @@ CAMLprim value caml_string_of_sa(struct sockaddr *sa)
     case AF_INET:
       sa_in = (struct sockaddr_in *)sa;
       ret = caml_alloc_string(4);
-      memcpy(String_val(ret), &sa_in->sin_addr.s_addr, 4);
+      memcpy(Bytes_val(ret), &sa_in->sin_addr.s_addr, 4);
       break;
 
     case AF_INET6:
       sa_in6 = (struct sockaddr_in6 *)sa;
       ret = caml_alloc_string(16);
-      memcpy(String_val(ret), sa_in6->sin6_addr.s6_addr, 16);
+      memcpy(Bytes_val(ret), sa_in6->sin6_addr.s6_addr, 16);
       break;
 
     default:
