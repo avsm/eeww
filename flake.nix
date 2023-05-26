@@ -10,6 +10,7 @@
           cmake
           zlib
           gmp
+          openssl
         ];
       in {
         defaultPackage = pkgs.stdenv.mkDerivation {
