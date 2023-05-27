@@ -26,8 +26,7 @@ let reporter =
   in
   { Logs.report }
 
-let run_client ~sw cluster stdin =
-  let hostname = "alpha" in
+let run_client hostname pty cluster env =
   let cmd = ("/usr/bin/bash", [| "bash";  |]) in
   Capability.with_ref cluster @@ fun t ->
   let agent = Client.ClusterUser.find ~hostname t in
@@ -35,23 +34,13 @@ let run_client ~sw cluster stdin =
   let stderr_q = Eio.Stream.create 100 in
   let on_complete_t, on_complete_u = Eio.Promise.create () in
   let pout = Ark.Server.process_out stdout_q stderr_q on_complete_u in
-  let pin = Client.Agent.spawn cmd pout agent in
-  let print_stream q =
-   while true do
-     Eio.Stream.take q |> Cstruct.to_string |> print_endline
-   done
-  in
-  Eio.Fiber.fork ~sw (fun () -> print_stream stdout_q);
-  Eio.Fiber.fork ~sw (fun () -> print_stream stderr_q);
-  Eio.Flow.copy stdin (Ark.Server.Eiox.capnp_sink (fun chunk -> Ark_api.Client.Process.In.stdin ~chunk pin));
-  let exit_code = Eio.Promise.await on_complete_t in
-  (* TODO flush stdout *)
-  Logs.info (fun l -> l "exit code %ld" exit_code);
-  (* TODO triggers shutdown trace *)
-  (* exit (Int32.to_int exit_code) *)
-  Eio.Fiber.await_cancel ()
+  let pin = Client.Agent.spawn ~pty cmd pout agent in
+  let stdin = Ark.Eiox.capnp_sink (fun chunk -> Ark_api.Client.Process.In.stdin ~chunk pin) in
+  let stdout = Ark.Eiox.stream_source stdout_q in
+  let pty_fn = if pty then Ark.Eiox.run_with_raw_term else Ark.Eiox.run in
+  pty_fn env ~stdin ~stdout on_complete_t
 
-let connect uri =
+let connect uri hostname pty =
   Eio_main.run @@ fun env ->
   Mirage_crypto_rng_eio.run (module Mirage_crypto_rng.Fortuna) env @@ fun () ->
   Eio.Switch.run @@ fun sw ->
@@ -59,18 +48,26 @@ let connect uri =
   let client_vat = Capnp_rpc_unix.client_only_vat ~sw (Eio.Stdenv.net env) in
   let sr = Capnp_rpc_unix.Vat.import_exn client_vat uri in
   let proxy_to_service = Sturdy_ref.connect_exn sr in
-  Eio.Switch.run @@ fun sw ->
-  run_client ~sw proxy_to_service (env#stdin)
+  let exit_code = run_client hostname pty proxy_to_service env in
+  exit (Int32.to_int exit_code)
 
 open Cmdliner
+
+let pty =
+  let info = Arg.info ["t"] ~doc:"Force allocation of a pseudoterminal" in
+  Arg.value (Arg.flag info)
 
 let connect_addr =
   let i = Arg.info [] ~docv:"ADDR" ~doc:"Address of server (capnp://...)" in
   Arg.(required @@ pos 0 (some Capnp_rpc_unix.sturdy_uri) None i)
 
+let hostname =
+  let i = Arg.info [] ~docv:"HOSTNAME" ~doc:"Hostname of this node to register with cluster" in
+  Arg.(required @@ pos 1 (some string) None i)
+
 let connect_cmd =
-  let doc = "run the client" in
-  Cmd.v (Cmd.info "connect" ~doc) Term.(const connect $ connect_addr)
+  let doc = "run the remote shell" in
+  Cmd.v (Cmd.info "ark-shell" ~doc) Term.(const connect $ connect_addr $ hostname $ pty)
 
 let () =
   Fmt_tty.setup_std_outputs ();

@@ -94,7 +94,7 @@ module Agent = struct
     Capability.call_for_value t method_id request
     |> Result.map Results.exit_code_get
 
-  let spawn cmd pout t =
+  let spawn ~pty cmd pout t =
     let open Raw.Client.Agent.Spawn in
     let request, params = Capability.Request.create Params.init_pointer in
     let cmd_params = Params.cmd_init params in
@@ -102,5 +102,6 @@ module Agent = struct
     Raw.Builder.Command.binary_set cmd_params binary;
     let _ = Raw.Builder.Command.args_set_array cmd_params args in
     Params.pout_set params (Some pout);
+    Params.pty_set params pty;
     Capability.call_for_caps t method_id request Results.pin_get_pipelined
 end

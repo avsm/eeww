@@ -26,9 +26,8 @@ let reporter =
   in
   { Logs.report }
 
-let clmember_cap_file = "cluster_member.cap"
-
-let cluser_cap_file = "cluster_user.cap"
+let clmember_cap_file = "ark_agent.cap"
+let cluser_cap_file = "ark_shell.cap"
 
 let write_cap vat sid file =
   match Capnp_rpc_unix.Cap_file.save_service vat sid file with

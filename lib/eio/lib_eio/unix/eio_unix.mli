@@ -105,6 +105,9 @@ val pipe : Switch.t -> source * sink
 module Process = Process
 (** Spawning child processes with extra control. *)
 
+module Pty = Pty
+(** Pseudoterminal handling functions. *)
+
 (** The set of resources provided to a process on a Unix-compatible system. *)
 module Stdenv : sig
   type base = <

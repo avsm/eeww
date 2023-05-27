@@ -34,7 +34,7 @@ module Agent : sig
   val exec :
     cmd:command -> t -> (int32, [> `Capnp of Capnp_rpc.Error.t ]) result
 
-  val spawn : command -> Process.Out.t -> t -> Process.In.t
+  val spawn : pty:bool -> command -> Process.Out.t -> t -> Process.In.t
 end
 
 module ClusterMember : sig

@@ -12,20 +12,22 @@ let process_out stdout_q stderr_q complete_u =
          let open P.Stdout in
          let buf = Params.chunk_get params in
          release_param_caps ();
-         Eio.Stream.add stdout_q (Cstruct.of_string buf);
+         Eio.Stream.add stdout_q (Some (Cstruct.of_string buf));
          Service.return @@ Service.Response.create_empty ()
 
        method stderr_impl params release_param_caps =
          let open P.Stderr in
          let buf = Params.chunk_get params in
          release_param_caps ();
-         Eio.Stream.add stderr_q (Cstruct.of_string buf);
+         Eio.Stream.add stderr_q (Some (Cstruct.of_string buf));
          Service.return @@ Service.Response.create_empty ()
 
        method complete_impl params release_param_caps =
          let open P.Complete in
          let exit_code = Params.exit_code_get params in
          release_param_caps ();
+         Eio.Stream.add stdout_q None;
+         Eio.Stream.add stderr_q None;
          Eio.Promise.resolve complete_u exit_code;
          Service.return @@ Service.Response.create_empty ()
      end
@@ -50,56 +52,8 @@ let process_in stdin_push =
          Service.return_empty ()
      end
 
-module Eiox = struct
 
-  let return =
-      function
-      | Ok () -> ()
-      | Error (`Capnp _) ->
-          Eio.traceln "error TODO"
-
-  let stream_source ?(capacity=1) () =
-    let q = Eio.Stream.create capacity in
-    let src = object(self)
-      val mutable data = []
-      inherit Eio.Flow.source
-      method read_into dst =
-        let avail, src = Cstruct.fillv ~dst ~src:data in
-        match avail with
-        | 0 -> begin
-          match Eio.Stream.take q with
-          | None -> raise End_of_file
-          | Some d ->
-             data <- [d];
-             self#read_into dst
-        end
-        | _ ->
-          data <- src;
-          avail
-    end in
-    src, (Eio.Stream.add q)
-
-  let capnp_sink f =
-    let sink = object
-      inherit Eio.Flow.sink
-     
-      method copy src =
-        let buf = Cstruct.create 4096 in
-        try
-          while true do
-            let got = src#read_into buf in
-            let chunk = Cstruct.to_string ~len:got buf in
-            return @@ f chunk
-          done
-       with End_of_file -> ()
-
-      method! write bufs =
-        List.iter (fun buf -> return @@ f @@ Cstruct.to_string buf) bufs
-    end in
-    sink
-end
-
-let agent ~sw env =
+let agent ~sw domain_mgr =
   let module Agent = R.Service.Agent in
   Agent.local
   @@ object
@@ -111,8 +65,7 @@ let agent ~sw env =
          release_param_caps ();
          let binary = R.Reader.Command.binary_get command in
          let args = R.Reader.Command.args_get_list command in
-         traceln "exec: %s %s" binary (String.concat " " args);
-         match Eio.Process.spawn ~sw env ~executable:binary args with
+         match Eio.Process.spawn ~sw domain_mgr ~executable:binary args with
          | exception exn -> Service.fail "%s" (Printexc.to_string exn)
          | proc ->
              match Eio.Process.await proc with
@@ -120,7 +73,6 @@ let agent ~sw env =
              | `Exited exit_code ->
                   let response, results = Service.Response.create Results.init_pointer in
                   Results.exit_code_set results (Int32.of_int exit_code);
-                  traceln "proc return %d" exit_code;
                   Service.return response
 
        method spawn_impl params release_param_caps =
@@ -128,32 +80,35 @@ let agent ~sw env =
          let module PO = Ark_api.Client.Process.Out in
          let command = Params.cmd_get params in
          let pout = Params.pout_get params in
+         let pty = Params.pty_get params in
          release_param_caps ();
          match pout with
          | None -> Service.fail "must specify callback process"
          | Some pout ->
-             let binary = R.Reader.Command.binary_get command in
+             let executable = R.Reader.Command.binary_get command in
              let args = R.Reader.Command.args_get_list command in
-             traceln "spawn: %s %s" binary (String.concat " " args);
              let stdout = Eiox.capnp_sink (fun chunk -> PO.stdout ~chunk pout) in
              let stderr = Eiox.capnp_sink (fun chunk -> PO.stderr ~chunk pout) in
-             let stdin, stdin_push = Eiox.stream_source () in
-             match Eio.Process.spawn ~sw env ~stdin ~stdout ~stderr ~executable:binary args with
-             | exception _exn -> Service.fail "TODO FAIL"
+             let stdin_q = Eio.Stream.create 5 in
+             let stdin_push v = Eio.Stream.add stdin_q v in
+             let stdin = Eiox.stream_source stdin_q in
+             let fork_fn () =
+                if pty then
+                  Eiox.fork_pty_shell ~sw ~stdin ~stdout ~executable args
+                else
+                  Eio.Process.spawn ~sw domain_mgr ~stdin ~stdout ~stderr ~executable args
+             in
+             match fork_fn () with
              | proc ->
                  let pin = process_in stdin_push in
                  Fiber.fork ~sw (fun () ->
-                    match Eio.Process.await proc with
-                    | `Signaled _ -> failwith "XXX"
-                    | `Exited code ->
-                       match PO.complete ~exit_code:(Int32.of_int code) pout with
-                       | Ok () -> ()
-                       | Error (`Capnp _) -> Eio.traceln "XXX await error" 
-                       (* TODO this should be in a Switch.on_release in case the await is cancelled? *)
+                    let code_to_int = function `Exited code -> Int32.of_int code | _ -> -1l in
+                    ignore(PO.complete ~exit_code:(code_to_int @@ proc#await) pout)
                  );
                  let response, results = Service.Response.create Results.init_pointer in
                  Results.pin_set results (Some pin);
                  Service.return response
+             | exception exn -> Service.fail "%s" (Printexc.to_string exn)
      end
 
 let cluster_member t =

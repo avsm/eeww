@@ -24,7 +24,7 @@ struct HostInfo {
 
 interface Agent {
   exec @0 (cmd :Command) -> (exitCode :Int32);
-  spawn @1 (cmd: Command, pout: ProcessOut) -> (pin: ProcessIn);
+  spawn @1 (cmd: Command, pout: ProcessOut, pty: Bool) -> (pin: ProcessIn);
 }
 
 interface ClusterMember {

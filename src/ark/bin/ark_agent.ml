@@ -26,10 +26,8 @@ let reporter =
   in
   { Logs.report }
 
-let run_client ~mgr cluster =
+let run_client ~mgr cluster hostname =
   Eio.Switch.run @@ fun sw ->
-  Eio.Switch.on_release sw (fun () -> Eio.traceln "X2 finished");
-  let hostname = "alpha" in
   Capability.with_ref (Ark.Server.agent ~sw mgr) @@ fun callback ->
   match Ark.Agents.hostinfo () with
   | Error (`Msg msg) ->
@@ -41,18 +39,21 @@ let run_client ~mgr cluster =
       (* TODO register sig handler for unregister *)
       Eio.Fiber.await_cancel ()
 
-let connect uri =
+let connect uri hostname =
   Eio_main.run @@ fun env ->
   Mirage_crypto_rng_eio.run (module Mirage_crypto_rng.Fortuna) env @@ fun () ->
   Eio.Switch.run @@ fun sw ->
-  Eio.Switch.on_release sw (fun () -> Eio.traceln "X1 finished");
   Eio.traceln "Connecting to cluster service at: %a@." Uri.pp_hum uri;
   let client_vat = Capnp_rpc_unix.client_only_vat ~sw (Eio.Stdenv.net env) in
   let sr = Capnp_rpc_unix.Vat.import_exn client_vat uri in
   let proxy_to_service = Sturdy_ref.connect_exn sr in
-  run_client ~mgr:(Eio.Stdenv.process_mgr env) proxy_to_service
+  run_client ~mgr:(Eio.Stdenv.process_mgr env) proxy_to_service hostname
 
 open Cmdliner
+
+let hostname =
+  let i = Arg.info [] ~docv:"HOSTNAME" ~doc:"Hostname of this node to register with cluster" in
+  Arg.(required @@ pos 1 (some string) None i)
 
 let connect_addr =
   let i = Arg.info [] ~docv:"ADDR" ~doc:"Address of server (capnp://...)" in
@@ -60,7 +61,7 @@ let connect_addr =
 
 let connect_cmd =
   Cmd.v (Cmd.info "agent" ~doc:"run the agent")
-    Term.(const connect $ connect_addr)
+    Term.(const connect $ connect_addr $ hostname)
 
 let () =
   Fmt_tty.setup_std_outputs ();
