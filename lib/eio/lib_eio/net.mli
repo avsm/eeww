@@ -91,6 +91,7 @@ module Sockaddr : sig
 
   type datagram = [
     | `Udp of Ipaddr.v4v6 * int
+    | `Unix of string
   ]
   (** Socket addresses that are message-oriented. *)
 
@@ -103,6 +104,7 @@ end
 
 class virtual socket : object
   inherit Generic.t
+  method virtual close : unit
 end
 
 class virtual stream_socket : object
@@ -112,7 +114,7 @@ end
 
 class virtual datagram_socket : object
   inherit socket
-  method virtual send : Sockaddr.datagram -> Cstruct.t -> unit
+  method virtual send : ?dst:Sockaddr.datagram -> Cstruct.t list -> unit
   method virtual recv : Cstruct.t -> Sockaddr.datagram * int
 end
 
@@ -208,8 +210,12 @@ val accept_fork :
     @param on_error Called if [connection_handler] raises an exception.
                     This is typically a good place to log the error and continue.
                     If the exception is an {!Eio.Io} error then the caller's address is added to it.
+
                     If you don't want to handle connection errors,
-                    use [~on_error:raise] to cancel the caller's context. *)
+                    use [~on_error:raise] to cancel the caller's context.
+
+                    [on_error] is not called for {!Cancel.Cancelled} exceptions,
+                    which do not need to be reported. *)
 
 (** {2 Running Servers} *)
 
@@ -263,9 +269,10 @@ val datagram_socket :
       @param reuse_addr Set the {!Unix.SO_REUSEADDR} socket option.
       @param reuse_port Set the {!Unix.SO_REUSEPORT} socket option. *)
 
-val send : #datagram_socket -> Sockaddr.datagram -> Cstruct.t -> unit
-(** [send sock addr buf] sends the data in [buf] to the address [addr] using the 
-    the datagram socket [sock]. *)
+val send : #datagram_socket -> ?dst:Sockaddr.datagram -> Cstruct.t list -> unit
+(** [send sock buf] sends the data in [buf] using the the datagram socket [sock].
+
+    @param dst If [sock] isn't connected, this provides the destination. *)
 
 val recv : #datagram_socket -> Cstruct.t -> Sockaddr.datagram * int
 (** [recv sock buf] receives data from the socket [sock] putting it in [buf]. The number of bytes received is 

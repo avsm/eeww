@@ -31,13 +31,7 @@ let fstat fd =
 
 let write_bufs fd bufs =
   try
-    let rec loop = function
-      | [] -> ()
-      | bufs ->
-        let wrote = Low_level.writev fd (Array.of_list bufs) in
-        loop (Cstruct.shiftv bufs wrote)
-    in
-    loop bufs
+    Low_level.writev fd bufs
   with Unix.Unix_error (code, name, arg) -> raise (Err.wrap code name arg)
 
 let copy src dst =
@@ -50,7 +44,7 @@ let copy src dst =
   with End_of_file -> ()
 
 let read fd buf =
-  match Low_level.readv fd [| buf |] with
+  match Low_level.read_cstruct fd buf with
   | 0 -> raise End_of_file
   | got -> got
   | exception (Unix.Unix_error (code, name, arg)) -> raise (Err.wrap code name arg)

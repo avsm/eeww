@@ -1,4 +1,4 @@
-[API reference][Eio API] | [#eio Matrix chat](https://matrix.to/#/#eio:roscidus.com)
+[API reference][Eio API] | [#eio Matrix chat](https://matrix.to/#/#eio:roscidus.com) | [Dev meetings][]
 
 # Eio -- Effects-Based Parallel IO for OCaml
 
@@ -704,14 +704,13 @@ The `Eio.Io` type is extensible, so libraries can also add additional top-level 
 For example, this HTTP GET function adds the URL to any IO error:
 
 ```ocaml
-# let get ~net ~host ~path =
-    try
-      Eio.Net.with_tcp_connect net ~host ~service:"http" @@ fun _flow ->
-      "..."
-    with Eio.Io _ as ex ->
-      let bt = Printexc.get_raw_backtrace () in
-      Eio.Exn.reraise_with_context ex bt "fetching http://%s/%s" host path;;
-val get : net:#Eio.Net.t -> host:string -> path:string -> string = <fun>
+let get ~net ~host ~path =
+  try
+    Eio.Net.with_tcp_connect net ~host ~service:"http" @@ fun _flow ->
+    "..."
+  with Eio.Io _ as ex ->
+    let bt = Printexc.get_raw_backtrace () in
+    Eio.Exn.reraise_with_context ex bt "fetching http://%s/%s" host path;;
 ```
 
 If we test it using a mock network that returns a timeout,
@@ -1876,3 +1875,4 @@ Some background about the effects system can be found in:
 [Meio]: https://github.com/tarides/meio
 [Lambda Capabilities]: https://roscidus.com/blog/blog/2023/04/26/lambda-capabilities/
 [Eio.Process]: https://github.com/ocaml-multicore/eio/blob/main/lib_eio/process.mli
+[Dev meetings]: https://docs.google.com/document/d/1ZBfbjAkvEkv9ldumpZV5VXrEc_HpPeYjHPW_TiwJe4Q
