@@ -1,0 +1,3 @@
+(library
+ (name ark)
+ (libraries eio.unix eio_posix ark_api osrelease))

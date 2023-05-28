@@ -1,4 +1,6 @@
 _build
 _obj
 .*.swp
+*.key
+*.cap
 .vscode

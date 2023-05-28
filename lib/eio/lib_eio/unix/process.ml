@@ -96,6 +96,7 @@ class virtual mgr = object (self)
       2, stderr_fd, `Blocking;
     ] in
     self#spawn_unix ~sw ?cwd ~env ~fds ~executable args
+
 end
 
 let spawn_unix ~sw (mgr:#mgr) ?cwd ~fds ?env ?executable args =

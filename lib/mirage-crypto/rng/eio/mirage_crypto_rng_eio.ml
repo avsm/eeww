@@ -46,7 +46,7 @@ let running = ref false
 
 let run
     ?g
-    ?(sleep = Duration.of_sec 1)
+    ?(sleep = Duration.of_sec 100)
     generator
     env
     fn
