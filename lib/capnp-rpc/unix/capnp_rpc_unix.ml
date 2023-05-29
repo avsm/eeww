@@ -3,8 +3,6 @@ open Astring
 
 module Log = Capnp_rpc.Debug.Log
 
-let () = Mirage_crypto_rng_lwt.initialize (module Mirage_crypto_rng.Fortuna)
-
 module CapTP = Vat_network.CapTP
 module Vat = Vat_network.Vat
 module Network = Network
@@ -172,9 +170,12 @@ let create_server ?tags ?restore ~sw ~net config =
       let addr = Network.addr_of_host host in
       let socket = Eio.Net.listen ~sw ~backlog ~reuse_addr:true net (`Tcp (addr, port)) in
       let fd = Eio_unix.Resource.fd_opt socket |> Option.get in
+(* TODO add KEEPALIVE to eio *)
+(*
       Eio_unix.Fd.use_exn "keepalive" fd (fun socket ->
           Unix.setsockopt socket Unix.SO_KEEPALIVE true;
           Keepalive.try_set_idle socket 60);
+*)
       socket
   in
   Log.info (fun f -> f ?tags "Waiting for %s connections on %a"
