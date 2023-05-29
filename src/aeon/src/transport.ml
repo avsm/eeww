@@ -371,6 +371,7 @@ let dns_client ~sw ~net ~clock ~random nameserver data_subdomain authority port
             ~v4:(fun _v4 -> `UdpV4)
             ~v6:(fun _v6 -> `UdpV6)
             ipaddr
+      | `Unix _ -> failwith "domain sockets unsupported"
     in
     Eio.Net.datagram_socket ~sw net proto
   in
