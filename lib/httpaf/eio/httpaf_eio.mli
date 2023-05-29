@@ -39,7 +39,7 @@ module Server : sig
     -> request_handler : (Eio.Net.Sockaddr.stream  -> Httpaf.Reqd.t Gluten.reqd -> unit)
     -> error_handler   : (Eio.Net.Sockaddr.stream -> Httpaf.Server_connection.error_handler)
     -> Eio.Net.Sockaddr.stream
-    -> Eio.Flow.two_way
+    -> Eio.Net.stream_socket
     -> unit
 end
 
@@ -50,7 +50,7 @@ module Client : sig
     }
 
   val create_connection
-    :  ?config:Httpaf.Config.t -> sw:Eio.Switch.t -> Eio.Flow.two_way -> t
+    :  ?config:Httpaf.Config.t -> sw:Eio.Switch.t -> Eio.Net.stream_socket -> t
 
   val request
     :  t

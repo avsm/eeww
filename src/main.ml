@@ -65,13 +65,7 @@ module H2_handler = struct
       | `Not_found ->
           Reqd.respond_with_string reqd (Response.create `Not_found) "Not found"
 
-  let error_handler :
-      Eio.Net.Sockaddr.stream ->
-      ?request:H2.Request.t ->
-      _ ->
-      (Headers.t -> Body.Writer.t) ->
-      unit =
-   fun _client_address ?request:_ _error start_response ->
+  let error_handler _client_address ?request:_ _error start_response =
     let response_body = start_response Headers.empty in
     Body.Writer.close response_body
 end
@@ -84,8 +78,7 @@ module H1_handler = struct
      | s -> Some s
      | exception _ -> None
 
-  let request_handler : Eio.Net.Sockaddr.stream -> Reqd.t Gluten.reqd -> unit =
-   fun _client_address { Gluten.reqd; _ } ->
+  let request_handler _client_address { Gluten.reqd; _ } =
     let request = Reqd.request reqd in
     Eio.traceln "HTTP1 %a" Request.pp_hum request;
     let response_content_type =
@@ -110,13 +103,7 @@ module H1_handler = struct
     in
     Reqd.respond_with_string reqd response response_body
 
-  let error_handler :
-      Eio.Net.Sockaddr.stream ->
-      ?request:Request.t ->
-      _ ->
-      (Headers.t -> Body.Writer.t) ->
-      unit =
-   fun _client_address ?request:_ _error start_response ->
+  let error_handler _client_address ?request:_ _error start_response =
     let response_body = start_response Headers.empty in
     Body.Writer.close response_body
 end
@@ -165,8 +152,8 @@ module Alpn_lib = struct
         | Ok {alpn_protocol;_} ->
             match alpn_protocol with
             | None -> ()
-            | Some "http/1.1" -> h1_handler (flow :> Eio.Flow.two_way) sa
-            | Some "h2" -> h2_handler ~docroot (flow :> Eio.Flow.two_way) sa
+            | Some "http/1.1" -> h1_handler (flow :> Eio.Net.stream_socket) sa
+            | Some "h2" -> h2_handler ~docroot (flow :> Eio.Net.stream_socket) sa
             | Some _ -> Eio.traceln "invalid ALPN response"; ()
       )
     done
