@@ -1,34 +1,6 @@
 open Capnp_rpc_lwt
 open Eio.Std
 
-module Metrics = struct
-  open Prometheus
-
-  let namespace = "capnp"
-
-  let subsystem = "net"
-
-  let connections =
-    let help = "Number of live capnp-rpc connections" in
-    Gauge.v ~help ~namespace ~subsystem "connections"
-
-  let messages_inbound_received_total =
-    let help = "Total number of messages received" in
-    Counter.v ~help ~namespace ~subsystem "messages_inbound_received_total"
-
-  let messages_outbound_enqueued_total =
-    let help = "Total number of messages enqueued to be transmitted" in
-    Counter.v ~help ~namespace ~subsystem "messages_outbound_enqueued_total"
-
-  let messages_outbound_sent_total =
-    let help = "Total number of messages transmitted" in
-    Counter.v ~help ~namespace ~subsystem "messages_outbound_sent_total"
-
-  let messages_outbound_dropped_total =
-    let help = "Total number of messages lost due to disconnections" in
-    Counter.v ~help ~namespace ~subsystem "messages_outbound_dropped_total"
-end
-
 module Log = Capnp_rpc.Debug.Log
 
 module Builder = Private.Schema.Builder
@@ -62,7 +34,6 @@ module Make (Network : S.NETWORK) = struct
   let tags t = Conn.tags t.conn
 
   let drop_queue q =
-    Prometheus.Counter.inc Metrics.messages_outbound_dropped_total (float_of_int (Queue.length q));
     Queue.clear q
 
   (* [flush ~xmit_queue endpoint] writes each message in the queue until it is empty.
@@ -82,7 +53,6 @@ module Make (Network : S.NETWORK) = struct
       Endpoint.disconnect endpoint;
       drop_queue xmit_queue
     | Ok () ->
-      Prometheus.Counter.inc_one Metrics.messages_outbound_sent_total;
       ignore (Queue.pop xmit_queue);
       if not (Queue.is_empty xmit_queue) then
         flush ~xmit_queue endpoint
@@ -101,7 +71,6 @@ module Make (Network : S.NETWORK) = struct
                   (M.num_segments message));
     let was_idle = Queue.is_empty xmit_queue in
     Queue.add message xmit_queue;
-    Prometheus.Counter.inc_one Metrics.messages_outbound_enqueued_total;
     if was_idle then Eio.Fiber.fork ~sw (fun () -> flush ~xmit_queue endpoint)
 
   let return_not_implemented t x =
@@ -118,7 +87,6 @@ module Make (Network : S.NETWORK) = struct
       | Ok msg ->
         let open Reader.Message in
         let msg = of_message msg in
-        Prometheus.Counter.inc_one Metrics.messages_inbound_received_total;
         match Parse.message msg with
         | #Endpoint_types.In.t as msg ->
           Log.debug (fun f ->
@@ -175,7 +143,6 @@ module Make (Network : S.NETWORK) = struct
     }
 
   let listen t =
-    Prometheus.Gauge.inc_one Metrics.connections;
     let tags = Conn.tags t.conn in
     begin
       match listen t with
@@ -189,7 +156,6 @@ module Make (Network : S.NETWORK) = struct
         send_abort t (Capnp_rpc.Exception.v ~ty:`Failed (Printexc.to_string ex))
     end;
     Log.info (fun f -> f ~tags "Connection closed");
-    Prometheus.Gauge.dec_one Metrics.connections;
     Eio.Cancel.protect (fun () ->
         disconnect t (Capnp_rpc.Exception.v ~ty:`Disconnected "Connection closed")
       )
