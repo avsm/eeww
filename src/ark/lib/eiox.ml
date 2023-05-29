@@ -59,10 +59,10 @@ let fork_pty_shell ~sw ~stdout ~stdin ~executable argv =
    Fiber.fork ~sw (fun () ->
      Fiber.both
      (fun () ->
-       let sink = Eio_unix.import_socket_stream ~sw ~close_unix:false pty.Eio_unix.Pty.masterfd in
+       let sink = Eio_unix.Net.import_socket_stream ~sw ~close_unix:false pty.Eio_unix.Pty.masterfd in
        Flow.copy stdin sink)
      (fun () ->
-       let source = Eio_unix.import_socket_stream ~sw ~close_unix:false pty.Eio_unix.Pty.masterfd in
+       let source = Eio_unix.Net.import_socket_stream ~sw ~close_unix:false pty.Eio_unix.Pty.masterfd in
        Flow.copy source stdout)
    );
    object
