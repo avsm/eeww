@@ -1,0 +1,45 @@
+(executable
+ (name main)
+ (enabled_if (= %{architecture} amd64))
+ (libraries capnp capnp_unix fast_rand base)
+ (ocamlopt_flags :standard -O3 -inline 2000))
+
+(rule
+ (targets carsales)
+ (enabled_if (= %{architecture} amd64))
+ (deps main.exe)
+ (action
+  (run ln main.exe %{targets})))
+
+(rule
+ (targets catrank)
+ (enabled_if (= %{architecture} amd64))
+ (deps main.exe)
+ (action
+  (run ln main.exe %{targets})))
+
+(rule
+ (targets eval)
+ (enabled_if (= %{architecture} amd64))
+ (deps main.exe)
+ (action
+  (run ln main.exe %{targets})))
+
+(rule
+ (targets carsales.ml carsales.mli)
+ (action
+  (run capnp compile -o %{bin:capnpc-ocaml} %{dep:carsales.capnp})))
+
+(rule
+ (targets catrank.ml catrank.mli)
+ (action
+  (run capnp compile -o %{bin:capnpc-ocaml} %{dep:catrank.capnp})))
+
+(rule
+ (targets eval.ml eval.mli)
+ (action
+  (run capnp compile -o %{bin:capnpc-ocaml} %{dep:eval.capnp})))
+
+(alias
+ (name benchmarks)
+ (deps carsales catrank eval))

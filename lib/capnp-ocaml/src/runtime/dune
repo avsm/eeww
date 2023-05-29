@@ -1,0 +1,5 @@
+(library
+ (name capnp)
+ (public_name capnp)
+ (synopsis "Runtime support library for capnp-ocaml")
+ (libraries result stdint ocplib-endian res))

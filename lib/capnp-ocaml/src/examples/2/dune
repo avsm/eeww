@@ -1,0 +1,7 @@
+(executable
+  (name example2)
+  (libraries capnp))
+
+(rule
+  (targets shape.ml shape.mli)
+  (action (run capnp compile -o %{bin:capnpc-ocaml} %{dep:shape.capnp})))

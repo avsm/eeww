@@ -1,0 +1,4 @@
+(executable
+ (name main)
+ (public_name capnpc-ocaml)
+ (libraries capnp capnp_unix))

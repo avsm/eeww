@@ -1,0 +1,9 @@
+(executable
+  (name example1)
+  (libraries capnp))
+
+; This rule tells dune how to generate foo.ml and foo.mli by compiling foo.capnp against the CAP'N PROTO compiler
+; PLEASE NOTE that capnpc must exist on your computer for this to work (https://capnproto.org/install.html)
+(rule 
+  (targets foo.ml foo.mli)
+  (action (run capnp compile -o %{bin:capnpc-ocaml} %{dep:foo.capnp})))
