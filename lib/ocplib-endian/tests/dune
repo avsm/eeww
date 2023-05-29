@@ -17,7 +17,7 @@
  (name tests)
  (wrapped false)
  (modules test_string test_bytes test_bigstring)
- (libraries ocplib-endian ocplib-endian.bigstring bigarray bytes))
+ (libraries ocplib-endian ocplib-endian.bigstring bigarray))
 
 (executables
  (names test)
