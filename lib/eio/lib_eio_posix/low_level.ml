@@ -77,7 +77,11 @@ let accept ~sw sock =
   Fd.of_unix ~sw ~blocking:false ~close_unix:true client, addr
 
 let shutdown sock cmd =
-  Fd.use_exn "shutdown" sock (fun fd -> Unix.shutdown fd cmd)
+  try
+    Fd.use_exn "shutdown" sock (fun fd -> Unix.shutdown fd cmd)
+  with
+  | Unix.Unix_error (Unix.ENOTCONN, _, _) -> ()
+  | Unix.Unix_error (code, name, arg) -> raise @@ Err.wrap code name arg
 
 external eio_send_msg : Unix.file_descr -> Unix.sockaddr option -> Cstruct.t array -> int = "caml_eio_posix_send_msg"
 external eio_recv_msg : Unix.file_descr -> Cstruct.t array -> Unix.sockaddr * int = "caml_eio_posix_recv_msg"
