@@ -84,10 +84,13 @@ let connect net ~sw ~secret_key (addr, auth) =
       | `Unix _ -> ()
       | `TCP _ ->
         (* TODO: check it's OK to set keep-alives after connecting *)
+(* TODO add keepalive into eio *)
+(*
         let fd = Eio_unix.Resource.fd_opt socket |> Option.get in
         Eio_unix.Fd.use_exn "keepalive" fd (fun socket ->
           Unix.setsockopt socket Unix.SO_KEEPALIVE true;
           Keepalive.try_set_idle socket 60)
+*) ()
     end;
     Tls_wrapper.connect_as_client socket secret_key auth
   | exception ex ->
