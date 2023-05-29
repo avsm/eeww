@@ -6,6 +6,7 @@
 #include <sys/ioctl.h>
 #include <paths.h>
 #include <utmp.h>
+#include <util.h>
 
 #include <caml/mlvalues.h>
 #include <caml/unixsupport.h>

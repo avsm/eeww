@@ -27,7 +27,10 @@
 #include <signal.h>
 #include <limits.h>
 
+#ifdef __linux__
 #include <pty.h>
+#endif
+#include <util.h>
 #include <utmp.h>
 
 #include <caml/mlvalues.h>
