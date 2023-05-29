@@ -11,6 +11,7 @@
           zlib
           gmp
           openssl
+          capnproto
         ];
       in {
         defaultPackage = pkgs.stdenv.mkDerivation {

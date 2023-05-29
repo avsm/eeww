@@ -38,7 +38,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Deps
-        run: brew install cmake gmp
+        run: brew install cmake gmp capnp
       -
         name: Build
         run: env DUNE_PROFILE=dev make
