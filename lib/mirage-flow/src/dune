@@ -1,4 +1,4 @@
 (library
  (name mirage_flow)
  (public_name mirage-flow)
- (libraries fmt lwt cstruct))
+ (libraries fmt cstruct))
