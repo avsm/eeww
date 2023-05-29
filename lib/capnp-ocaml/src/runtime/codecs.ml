@@ -119,13 +119,13 @@ module UncompStream = struct
               in
               get_next_frame stream
           | None ->
-              Result.Error FramingError.Incomplete
+              Error FramingError.Incomplete
           end
         with Util.Out_of_int_range _ ->
-          Result.Error FramingError.Unsupported
+          Error FramingError.Unsupported
         end
     | None ->
-        Result.Error FramingError.Incomplete
+        Error FramingError.Incomplete
 
   and unpack_frame stream incomplete_frame =
     let frame_header_bytes =
@@ -138,7 +138,7 @@ module UncompStream = struct
       let () = stream.decoder_state <- IncompleteHeader in
       let string_segments = Res.Array.to_list incomplete_frame.complete_segments in
       let bytes_segments = ListLabels.map string_segments ~f:Bytes.unsafe_of_string in
-      Result.Ok (Message.BytesMessage.Message.of_storage bytes_segments)
+      Ok (Message.BytesMessage.Message.of_storage bytes_segments)
     else
       let () = assert (segments_decoded < segment_count) in
       let segment_size_words_u32 = BytesStorage.get_uint32
@@ -152,10 +152,10 @@ module UncompStream = struct
             let () = Res.Array.add_one incomplete_frame.complete_segments segment in
             unpack_frame stream incomplete_frame
         | None ->
-            Result.Error FramingError.Incomplete
+            Error FramingError.Incomplete
         end
       with Invalid_argument _ ->
-        Result.Error FramingError.Unsupported
+        Error FramingError.Unsupported
       end
 
 end
