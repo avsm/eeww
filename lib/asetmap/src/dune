@@ -1,0 +1,4 @@
+(library
+ (name asetmap)
+ (synopsis "Alternative, compatible, standard library Sets and Maps")
+ (public_name asetmap))

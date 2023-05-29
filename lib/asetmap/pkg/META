@@ -1,0 +1,7 @@
+description = "Alternative, compatible, standard library Sets and Maps"
+version = "%%VERSION_NUM%%"
+requires = ""
+archive(byte) = "asetmap.cma"
+archive(native) = "asetmap.cmxa"
+plugin(byte) = "asetmap.cma"
+plugin(native) = "asetmap.cmxs"
