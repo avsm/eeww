@@ -29,8 +29,9 @@
 
 #ifdef __linux__
 #include <pty.h>
-#endif
+#else
 #include <util.h>
+#endif
 #include <utmp.h>
 
 #include <caml/mlvalues.h>

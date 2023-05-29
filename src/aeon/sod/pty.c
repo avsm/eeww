@@ -25,11 +25,11 @@
 #include <sys/ioctl.h>
 #include <signal.h>
 
-#ifdef __Linux__
+#ifdef __linux__
 #include <pty.h>
-#endif
-
+#else
 #include <util.h>
+#endif
 
 #include <caml/mlvalues.h>
 #include <caml/alloc.h>
