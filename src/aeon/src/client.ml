@@ -6,7 +6,7 @@ let udp_listen log sock handle_dns =
     let addr, size = Eio.Net.recv sock buf in
     let trimmedBuf = Cstruct.sub buf 0 size in
     (* convert Eio.Net.Sockaddr.datagram to Eio.Net.Sockaddr.t *)
-    let addr = match addr with `Udp a -> `Udp a in
+    let addr = match addr with `Udp a -> `Udp a  | _ -> failwith "not a Udp socket" in
     log Dns_log.Rx addr trimmedBuf;
     handle_dns `Udp addr trimmedBuf
   done
