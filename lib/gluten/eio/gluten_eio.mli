@@ -36,7 +36,7 @@ module Server : sig
     -> protocol:'t Gluten.runtime
     -> 't
     -> Eio.Net.Sockaddr.stream
-    -> Eio.Net.stream_socket
+    -> Eio.Flow.two_way
     -> unit
 
   val create_upgradable_connection_handler :
@@ -46,7 +46,7 @@ module Server : sig
     -> request_handler:
          (Eio.Net.Sockaddr.stream -> 'reqd Gluten.Server.request_handler)
     -> Eio.Net.Sockaddr.stream
-    -> Eio.Net.stream_socket
+    -> Eio.Flow.two_way
     -> unit
 end
 
@@ -58,11 +58,11 @@ module Client : sig
     -> read_buffer_size:int
     -> protocol:'t Gluten.runtime
     -> 't
-    -> Eio.Net.stream_socket
+    -> Eio.Flow.two_way
     -> t
 
   val upgrade : t -> Gluten.impl -> unit
   val shutdown : t -> unit Eio.Promise.t
   val is_closed : t -> bool
-  val socket : t -> Eio.Net.stream_socket
+  val socket : t -> Eio.Flow.two_way
 end
