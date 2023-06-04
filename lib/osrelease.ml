@@ -15,14 +15,16 @@
  *
  *)
 
-open Rresult
 open Astring
 open Bos
 open Sexplib.Conv
 
+let ( >>= ) v f = match v with Ok v -> f v | Error _ as e -> e
+let ( >>| ) v f = match v with Ok v -> Ok (f v) | Error _ as e -> e
+
 let uname f =
   let cmd = Cmd.(v "uname" % f) in
-  OS.Cmd.(run_out cmd |> to_string |> R.get_ok)
+  OS.Cmd.(run_out cmd |> to_string |> function Ok v -> v | Error _ -> failwith "error")
 
 module Arch = struct
   type t =
@@ -204,6 +206,7 @@ module Distro = struct
                      with Scan_failure _ | End_of_file -> acc)
                with Scan_failure _ | End_of_file -> acc)
              [] (Fpath.v file))
+
 
   let os_release_field f =
     Lazy.force os_release_fields >>| List.assoc_opt f >>| function
