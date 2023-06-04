@@ -1,5 +1,5 @@
 (* 
- * Copyright (c) 2020 Anil Madhavapeddy <anil@recoil.org>
+ * Copyright (c) 2020-2023 Anil Madhavapeddy <anil@recoil.org>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -17,14 +17,19 @@
 
 open Astring
 open Bos
-open Sexplib.Conv
+
+let ( >>= ) v f = match v with Ok v -> f v | Error _ as e -> e
+let ( >>| ) v f = match v with Ok v -> Ok (f v) | Error _ as e -> e
 
 let ( >>= ) v f = match v with Ok v -> f v | Error _ as e -> e
 let ( >>| ) v f = match v with Ok v -> Ok (f v) | Error _ as e -> e
 
 let uname f =
   let cmd = Cmd.(v "uname" % f) in
-  OS.Cmd.(run_out cmd |> to_string |> function Ok v -> v | Error _ -> failwith "error")
+  OS.Cmd.(
+    run_out cmd |> to_string |> function
+    | Ok v -> v
+    | Error _ -> failwith "error")
 
 module Arch = struct
   type t =
@@ -35,7 +40,6 @@ module Arch = struct
     | `Arm32 of [ `Armv5 | `Armv6 | `Earmv6 | `Armv7 | `Earmv7 ]
     | `Aarch64
     | `Unknown of string ]
-  [@@deriving sexp]
 
   let to_string (x : t) =
     match x with
@@ -82,7 +86,6 @@ module OS = struct
     | `OpenBSD
     | `DragonFly
     | `Unknown of string ]
-  [@@deriving sexp]
 
   let to_string (v : t) =
     match v with
@@ -130,18 +133,15 @@ module Distro = struct
     | `OpenSUSE
     | `Android
     | `Other of string ]
-  [@@deriving sexp]
 
-  type macos = [ `Homebrew | `MacPorts | `None ] [@@deriving sexp]
-
-  type windows = [ `Cygwin | `None ] [@@deriving sexp]
+  type macos = [ `Homebrew | `MacPorts | `None ]
+  type windows = [ `Cygwin | `None ]
 
   type t =
     [ `Linux of linux
     | `MacOS of macos
     | `Windows of windows
     | `Other of string ]
-  [@@deriving sexp]
 
   let linux_to_string (x : linux) =
     match x with
@@ -156,9 +156,25 @@ module Distro = struct
     | `NixOS -> "nixos"
     | `OpenSUSE -> "opensuse"
     | `OracleLinux -> "oraclelinux"
-    | `Other v -> v
     | `RHEL -> "rhel"
     | `Ubuntu -> "ubuntu"
+    | `Other v -> v
+
+  let linux_of_string = function
+    | "alpine" -> `Alpine
+    | "android" -> `Android
+    | "arch" -> `Arch
+    | "centos" -> `CentOS
+    | "debian" -> `Debian
+    | "fedora" -> `Fedora
+    | "gentoo" -> `Gentoo
+    | "mageia" -> `Mageia
+    | "nixos" -> `NixOS
+    | "opensuse" -> `OpenSUSE
+    | "oraclelinux" -> `OracleLinux
+    | "rhel" -> `RHEL
+    | "ubuntu" -> `Ubuntu
+    | v -> `Other v
 
   let macos_to_string (x : macos) =
     match x with
@@ -166,26 +182,43 @@ module Distro = struct
     | `MacPorts -> "macports"
     | `None -> "macos"
 
+  let macos_of_string = function
+    | "homebrew" -> `Homebrew
+    | "macports" -> `MacPorts
+    | _ -> `None
+
   let windows_to_string (x : windows) =
     match x with `Cygwin -> "cygwin" | `None -> "windows"
 
+  let windows_of_string = function "cygwin" -> `Cygwin | _ -> `None
+
   let to_string (x : t) =
     match x with
-    | `Linux v -> linux_to_string v
-    | `MacOS v -> macos_to_string v
-    | `Other v -> v
-    | `Windows v -> windows_to_string v
+    | `Linux v -> "linux " ^ linux_to_string v
+    | `MacOS v -> "macos " ^ macos_to_string v
+    | `Windows v -> "windows " ^ windows_to_string v
+    | `Other v -> "unknown " ^ v
+
+  let of_string x =
+    try
+      Scanf.sscanf x "%s %s" (fun a b ->
+          match a with
+          | "linux" -> `Linux (linux_of_string b)
+          | "macos" -> `MacOS (macos_of_string b)
+          | "windows" -> `Windows (windows_of_string b)
+          | _ -> `Other b)
+    with _ -> `Other ""
 
   let pp fmt v = Format.pp_print_string fmt (to_string v)
 
   let android_release =
     lazy
       (let open Bos in
-      let cmd = Cmd.(v "getprop" % "ro.build.version.release") in
-      match OS.Cmd.(run_out cmd |> to_string) with
-      | Ok "" -> None
-      | Ok out -> Some out
-      | Error _ -> None)
+       let cmd = Cmd.(v "getprop" % "ro.build.version.release") in
+       match OS.Cmd.(run_out cmd |> to_string) with
+       | Ok "" -> None
+       | Ok out -> Some out
+       | Error _ -> None)
 
   let find_first_file files = List.find_opt Sys.file_exists files
 
@@ -237,7 +270,7 @@ module Distro = struct
                 match Scanf.sscanf v " %s " (fun x -> x) with
                 | "" -> Ok None
                 | v -> Ok (Some (String.Ascii.lowercase v))
-                | exception Not_found -> Ok None ) ) )
+                | exception Not_found -> Ok None)))
 
   let v () : (t, [ `Msg of string ]) result =
     match OS.v () with
@@ -247,14 +280,14 @@ module Distro = struct
         | false -> (
             Bos.OS.Cmd.exists (Cmd.v "port") >>= function
             | true -> Ok (`MacOS `MacPorts)
-            | false -> Ok (`MacOS `None) ) )
+            | false -> Ok (`MacOS `None)))
     | `Linux -> (
         match Lazy.force android_release with
         | Some _ -> Ok (`Linux `Android)
         | None -> (
             identify_linux () >>= function
             | None -> Ok (`Linux (`Other ""))
-            | Some v -> Ok (`Linux (`Other v)) ) )
+            | Some v -> Ok (`Linux (`Other v))))
     | _ -> Error (`Msg "foo")
 end
 
@@ -266,7 +299,7 @@ module Version = struct
         let cmd = Cmd.(v "lsb_release" % "-r" % "-s") in
         Bos.OS.Cmd.(run_out cmd |> to_string) |> function
         | Ok v -> Ok (Some v)
-        | Error _ -> Distro.os_release_field "VERSION_ID" )
+        | Error _ -> Distro.os_release_field "VERSION_ID")
 
   let detect_macos_version () =
     let cmd = Cmd.(v "sw_vers" % "-productVersion") in

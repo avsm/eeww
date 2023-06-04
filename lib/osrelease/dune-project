@@ -17,7 +17,5 @@ version the program is running under.")
   (depends
     (ocaml (>= 4.06.0))
     bos
-    ppx_sexp_conv
-    sexplib
     astring
   ))
