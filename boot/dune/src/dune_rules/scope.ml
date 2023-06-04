@@ -4,7 +4,7 @@ open Memo.O
 type t =
   { project : Dune_project.t
   ; db : Lib.DB.t
-  ; coq_db : Coq_lib.DB.t
+  ; coq_db : Coq_lib.DB.t Memo.Lazy.t
   ; root : Path.Build.t
   }
 
@@ -14,7 +14,7 @@ let project t = t.project
 
 let libs t = t.db
 
-let coq_libs t = t.coq_db
+let coq_libs t = Memo.Lazy.force t.coq_db
 
 module DB = struct
   type scope = t
@@ -77,7 +77,7 @@ module DB = struct
       | Deprecated_library_name of Dune_file.Deprecated_library_name.t
   end
 
-  let create_db_from_stanzas ~parent ~lib_config stanzas =
+  let create_db_from_stanzas ~parent ~lib_config ~host stanzas =
     let open Memo.O in
     let+ (map : Found_or_redirect.t Lib_name.Map.t) =
       Memo.List.map stanzas ~f:(fun stanza ->
@@ -132,7 +132,7 @@ module DB = struct
                   ; Pp.textf "- %s" (Loc.to_file_colon_line loc2)
                   ])
     in
-    Lib.DB.create () ~parent:(Some parent)
+    Lib.DB.create () ~parent:(Some parent) ~host
       ~resolve:(fun name ->
         Memo.return
           (match Lib_name.Map.find map name with
@@ -154,15 +154,16 @@ module DB = struct
       Lib.DB.Resolve_result.redirect (Some scope.db) (Loc.none, name)
     | Some (Name name) -> Lib.DB.Resolve_result.redirect None name
 
-  let public_theories ~find_db coq_stanzas =
+  let public_theories ~find_db ~installed_theories coq_stanzas =
     List.filter_map coq_stanzas ~f:(fun (dir, (stanza : Coq_stanza.Theory.t)) ->
         if Option.is_some stanza.package then
-          Some (stanza, Coq_lib.DB.Theory dir)
+          Some (stanza, Coq_lib.DB.Entry.Theory dir)
         else None)
-    |> Coq_lib.DB.create_from_coqlib_stanzas ~find_db ~parent:None
+    |> Coq_lib.DB.create_from_coqlib_stanzas ~find_db
+         ~parent:(Some installed_theories)
 
   (* Create a database from the public libraries defined in the stanzas *)
-  let public_libs t ~installed_libs ~lib_config stanzas =
+  let public_libs t ~installed_libs ~lib_config ~host stanzas =
     let public_libs =
       List.filter_map stanzas ~f:(fun (stanza : Library_related_stanza.t) ->
           match stanza with
@@ -210,19 +211,42 @@ module DB = struct
             ])
     in
     let resolve lib = Memo.return (resolve t public_libs lib) in
-    Lib.DB.create ~parent:(Some installed_libs) ~resolve
+    Lib.DB.create ~parent:(Some installed_libs) ~host ~resolve
       ~all:(fun () -> Lib_name.Map.keys public_libs |> Memo.return)
       ~lib_config ()
 
   module Path_source_map_traversals = Memo.Make_map_traversals (Path.Source.Map)
 
-  let scopes_by_dir ~build_dir ~lib_config ~projects ~public_libs
-      ~public_theories stanzas coq_stanzas =
+  let coq_scopes_by_dir db_by_project_dir projects_by_dir public_theories
+      coq_stanzas =
+    let coq_stanzas_by_project_dir =
+      List.map coq_stanzas ~f:(fun (dir, (stanza : Coq_stanza.Theory.t)) ->
+          let project = stanza.project in
+          (Dune_project.root project, (dir, stanza)))
+      |> Path.Source.Map.of_list_multi
+    in
+    let parent = Some public_theories in
+    let find_db dir = snd (find_by_dir_in_map db_by_project_dir dir) in
+    Path.Source.Map.merge projects_by_dir coq_stanzas_by_project_dir
+      ~f:(fun _dir project coq_stanzas ->
+        assert (Option.is_some project);
+        let coq_stanzas = Option.value coq_stanzas ~default:[] in
+        List.map coq_stanzas ~f:(fun (dir, (stanza : Coq_stanza.Theory.t)) ->
+            let (entry : Coq_lib.DB.Entry.t) =
+              match stanza.package with
+              | None -> Theory dir
+              | Some _ -> Redirect public_theories
+            in
+            (stanza, entry))
+        |> Coq_lib.DB.create_from_coqlib_stanzas ~parent ~find_db
+        |> Option.some)
+
+  let rec scopes_by_dir ~host_context ~build_dir ~lib_config ~projects
+      ~public_libs ~public_theories stanzas coq_stanzas =
     let open Memo.O in
     let projects_by_dir =
-      List.map projects ~f:(fun (project : Dune_project.t) ->
+      Path.Source.Map.of_list_map_exn projects ~f:(fun project ->
           (Dune_project.root project, project))
-      |> Path.Source.Map.of_list_exn
     in
     let stanzas_by_project_dir =
       List.map stanzas ~f:(fun (stanza : Library_related_stanza.t) ->
@@ -235,12 +259,6 @@ module DB = struct
           (Dune_project.root project, stanza))
       |> Path.Source.Map.of_list_multi
     in
-    let coq_stanzas_by_project_dir =
-      List.map coq_stanzas ~f:(fun (dir, (stanza : Coq_stanza.Theory.t)) ->
-          let project = stanza.project in
-          (Dune_project.root project, (dir, stanza)))
-      |> Path.Source.Map.of_list_multi
-    in
     let+ db_by_project_dir =
       Path.Source.Map.merge projects_by_dir stanzas_by_project_dir
         ~f:(fun _dir project stanzas ->
@@ -249,61 +267,89 @@ module DB = struct
           Some (project, stanzas))
       |> Path_source_map_traversals.parallel_map
            ~f:(fun _dir (project, stanzas) ->
+             let host =
+               Option.map host_context ~f:(fun host_context ->
+                   Memo.Lazy.create @@ fun () ->
+                   let+ scope =
+                     let+ scopes, _public_libs_host =
+                       create_from_stanzas host_context
+                     in
+                     find_by_project scopes project
+                   in
+                   scope.db)
+             in
              let+ db =
-               create_db_from_stanzas stanzas ~parent:public_libs ~lib_config
+               create_db_from_stanzas stanzas ~parent:public_libs ~host
+                 ~lib_config
              in
              (project, db))
     in
-    let coq_db_by_project_dir =
-      let find_db dir = snd (find_by_dir_in_map db_by_project_dir dir) in
-      Path.Source.Map.merge projects_by_dir coq_stanzas_by_project_dir
-        ~f:(fun _dir project coq_stanzas ->
-          assert (Option.is_some project);
-          let stanzas = Option.value coq_stanzas ~default:[] in
-          let entries =
-            List.map stanzas ~f:(fun (dir, (stanza : Coq_stanza.Theory.t)) ->
-                let entry =
-                  match stanza.package with
-                  | None -> Coq_lib.DB.Theory dir
-                  | Some _ -> Redirect public_theories
-                in
-                (stanza, entry))
-          in
-          Some entries)
-      |> Path.Source.Map.map ~f:(fun stanzas ->
-             Coq_lib.DB.create_from_coqlib_stanzas
-               ~parent:(Some public_theories) ~find_db stanzas)
+    let coq_scopes_by_dir =
+      Memo.Lazy.map public_theories ~f:(fun public_theories ->
+          coq_scopes_by_dir db_by_project_dir projects_by_dir public_theories
+            coq_stanzas)
     in
-    Path.Source.Map.merge db_by_project_dir coq_db_by_project_dir
-      ~f:(fun _dir project_and_db coq_db ->
-        let project, db = Option.value_exn project_and_db in
-        let coq_db = Option.value_exn coq_db in
+    let coq_db_find dir =
+      Memo.Lazy.map coq_scopes_by_dir ~f:(fun x ->
+          Path.Source.Map.find_exn x dir)
+    in
+    Path.Source.Map.mapi db_by_project_dir ~f:(fun dir (project, db) ->
         let root =
           Path.Build.append_source build_dir (Dune_project.root project)
         in
-        Some { project; db; coq_db; root })
+        let coq_db = coq_db_find dir in
+        { project; db; coq_db; root })
 
-  let create ~(context : Context.t) ~projects stanzas coq_stanzas =
+  and create ~(context : Context.t) ~projects stanzas coq_stanzas =
     let open Memo.O in
     let t = Fdecl.create Dyn.opaque in
     let build_dir = context.build_dir in
     let lib_config = Context.lib_config context in
-    let* public_libs =
-      let+ installed_libs = Lib.DB.installed context in
-      public_libs t ~lib_config ~installed_libs stanzas
+    let* public_libs, host_context =
+      let host_context =
+        let host_context = Context.host context in
+        Option.some_if (not (Context.equal context host_context)) host_context
+      in
+      let+ public_libs =
+        match host_context with
+        | None ->
+          let+ installed_libs = Lib.DB.installed ~host:None context in
+          public_libs t ~lib_config ~installed_libs ~host:None stanzas
+        | Some host_context ->
+          let host =
+            let host =
+              Memo.Lazy.create @@ fun () ->
+              let+ installed_libs = Lib.DB.installed ~host:None host_context in
+              public_libs t ~lib_config ~installed_libs ~host:None stanzas
+            in
+            Some host
+          in
+          let+ installed_libs = Lib.DB.installed ~host context in
+          public_libs t ~lib_config ~installed_libs ~host stanzas
+      in
+      (public_libs, host_context)
     in
     let public_theories =
-      public_theories coq_stanzas ~find_db:(fun _ -> public_libs)
+      let installed_theories =
+        Memo.lazy_ @@ fun () ->
+        let+ coqpaths_of_coq = Coq_path.of_coq_install context
+        and+ coqpaths_of_env = Coq_path.of_env context.env in
+        Coq_lib.DB.create_from_coqpaths (coqpaths_of_env @ coqpaths_of_coq)
+      in
+      Memo.Lazy.map installed_theories ~f:(fun installed_theories ->
+          public_theories
+            ~find_db:(fun _ -> public_libs)
+            ~installed_theories coq_stanzas)
     in
     let+ by_dir =
-      scopes_by_dir ~build_dir ~lib_config ~projects ~public_libs
+      scopes_by_dir ~host_context ~build_dir ~lib_config ~projects ~public_libs
         ~public_theories stanzas coq_stanzas
     in
     let value = { by_dir } in
     Fdecl.set t value;
     (value, public_libs)
 
-  let create_from_stanzas ~projects ~(context : Context.t) stanzas =
+  and from_stanzas ~projects ~(context : Context.t) stanzas =
     let stanzas, coq_stanzas =
       Dune_file.fold_stanzas stanzas ~init:([], [])
         ~f:(fun dune_file stanza (acc, coq_acc) ->
@@ -325,22 +371,23 @@ module DB = struct
     in
     create ~projects ~context stanzas coq_stanzas
 
-  let all =
-    Memo.Lazy.create @@ fun () ->
-    let+ contexts = Context.DB.all () in
-    Context_name.Map.of_list_map_exn contexts ~f:(fun context ->
-        let scopes =
-          Memo.Lazy.create @@ fun () ->
-          let* { Dune_load.dune_files = _; packages = _; projects } =
-            Dune_load.load ()
-          in
-          let* stanzas = Only_packages.filtered_stanzas context in
-          create_from_stanzas ~projects ~context stanzas
-        in
-        (context.name, scopes))
+  and all =
+    lazy
+      ( Memo.Lazy.create @@ fun () ->
+        let+ contexts = Context.DB.all () in
+        Context_name.Map.of_list_map_exn contexts ~f:(fun context ->
+            let scopes =
+              Memo.Lazy.create @@ fun () ->
+              let* { Dune_load.dune_files = _; packages = _; projects } =
+                Dune_load.load ()
+              in
+              let* stanzas = Only_packages.filtered_stanzas context in
+              from_stanzas ~projects ~context stanzas
+            in
+            (context.name, scopes)) )
 
-  let create_from_stanzas (context : Context.t) =
-    let* all = Memo.Lazy.force all in
+  and create_from_stanzas (context : Context.t) =
+    let* all = Memo.Lazy.force (Lazy.force all) in
     Context_name.Map.find_exn all context.name |> Memo.Lazy.force
 
   let with_all context ~f =
@@ -434,7 +481,5 @@ module DB = struct
       let* public_libs = public_libs ctx in
       let* stanzas = Only_packages.filtered_stanzas ctx in
       let+ map = Memo.exec memo (ctx.build_dir, public_libs, stanzas) in
-      match Package.Name.Map.find map pkg_name with
-      | None -> []
-      | Some entries -> entries
+      Package.Name.Map.Multi.find map pkg_name
 end

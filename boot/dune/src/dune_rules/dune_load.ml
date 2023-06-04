@@ -52,7 +52,7 @@ end = struct
       =
     let ocamlc_config =
       let vars =
-        Ocaml_config.to_list context.ocaml_config
+        Ocaml_config.to_list context.ocaml.ocaml_config
         |> List.map ~f:(fun (k, v) -> (k, Ocaml_config.Value.to_string v))
       in
       let longest = String.longest_map vars ~f:fst in
@@ -67,7 +67,7 @@ end = struct
         let ocamlc_config = [ %s ]
         |}
         (Context_name.to_string context.name)
-        (Ocaml_config.version_string context.ocaml_config)
+        (Ocaml_config.version_string context.ocaml.ocaml_config)
         (Path.reach ~from:exec_dir (Path.build target))
         ocamlc_config
     in
@@ -151,11 +151,11 @@ module Script = struct
         ; [ Path.to_absolute_filename (Path.build wrapper) ]
         ]
     in
-    let ocaml = Action.Prog.ok_exn context.ocaml in
+    let ocaml = Action.Prog.ok_exn context.ocaml.ocaml in
     let* () =
       let* (_ : Memo.Run.t) = Memo.current_run () in
       Memo.of_reproducible_fiber
-        (Process.run Strict ~display:!Clflags.display ~dir:(Path.source dir)
+        (Process.run Strict ~display:Quiet ~dir:(Path.source dir)
            ~env:context.env ocaml args)
     in
     if not (Path.Untracked.exists (Path.build generated_dune_file)) then

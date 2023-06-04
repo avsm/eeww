@@ -15,7 +15,7 @@ core_bench \
 "csexp>=1.3.0" \
 js_of_ocaml \
 js_of_ocaml-compiler \
-"mdx>=2.1.0" \
+"mdx>=2.3.0" \
 menhir \
 ocamlfind \
 ocamlformat.$$(awk -F = '$$1 == "version" {print $$2}' .ocamlformat) \
@@ -25,16 +25,15 @@ ppx_inline_test \
 ppxlib \
 ctypes \
 "utop>=2.6.0" \
-"melange>=0.3.1" \
-"mel>=0.3.1"
-
+"melange" \
+"rescript-syntax"
 # Dependencies recommended for developing dune locally,
 # but not wanted in CI
 DEV_DEPS := \
 "dkml-workflows>=1.2.0" \
 patdiff
 
-TEST_OCAMLVERSION := 4.14.0
+TEST_OCAMLVERSION := 4.14.1
 
 -include Makefile.dev
 
@@ -74,8 +73,9 @@ dev-depext:
 
 .PHONY: melange
 melange:
-	opam pin add melange-compiler-libs https://github.com/melange-re/melange-compiler-libs.git#426463a77d0b70ecf0108c98e6a86d325cd01472
-	opam pin add melange https://github.com/melange-re/melange.git#685e546e290d317a884a4d48c7835467422c6426
+	opam pin add -n melange-compiler-libs.dev https://github.com/melange-re/melange-compiler-libs.git#575ac4c24b296ea897821f9aaee1146ff258c704
+	opam pin add -n melange.dev https://github.com/melange-re/melange.git#60eabf03d60b1e71f8d5aae72d24d7a1dfcf5bf6
+	opam pin add -n rescript-syntax.dev https://github.com/melange-re/melange.git#60eabf03d60b1e71f8d5aae72d24d7a1dfcf5bf6
 
 .PHONY: dev-deps
 dev-deps: melange

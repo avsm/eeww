@@ -67,6 +67,15 @@ type done_or_more_deps =
      subdirectories that contains targets having the same name. *)
   | Need_more_deps of (DAP.Dependency.Set.t * Dynamic_dep.Set.t)
 
+let done_or_more_deps_union x y =
+  match (x, y) with
+  | Done, Done -> Done
+  | Done, Need_more_deps x | Need_more_deps x, Done -> Need_more_deps x
+  | Need_more_deps (deps1, dyn_deps1), Need_more_deps (deps2, dyn_deps2) ->
+    Need_more_deps
+      ( DAP.Dependency.Set.union deps1 deps2
+      , Dynamic_dep.Set.union dyn_deps1 dyn_deps2 )
+
 type exec_context =
   { targets : Targets.Validated.t option
   ; context : Build_context.t option
@@ -233,7 +242,7 @@ let compare_files = function
   | Text -> Io.compare_text_files
 
 let diff_eq_files { Diff.optional; mode; file1; file2 } =
-  let file1 = if Path.Untracked.exists file1 then file1 else Config.dev_null in
+  let file1 = if Path.Untracked.exists file1 then file1 else Dev_null.path in
   let file2 = Path.build file2 in
   (optional && not (Path.Untracked.exists file2))
   || compare_files mode file1 file2 = Eq
@@ -271,8 +280,11 @@ let rec exec t ~display ~ectx ~eenv =
     redirect_out t ~display ~ectx ~eenv outputs ~perm fn
   | Redirect_in (inputs, fn, t) -> redirect_in t ~display ~ectx ~eenv inputs fn
   | Ignore (outputs, t) ->
-    redirect_out t ~display ~ectx ~eenv ~perm:Normal outputs Config.dev_null
+    redirect_out t ~display ~ectx ~eenv ~perm:Normal outputs Dev_null.path
   | Progn ts -> exec_list ts ~display ~ectx ~eenv
+  | Concurrent ts ->
+    Fiber.parallel_map ts ~f:(exec ~display ~ectx ~eenv)
+    >>| List.fold_left ~f:done_or_more_deps_union ~init:Done
   | Echo strs ->
     let+ () = exec_echo eenv.stdout_to (String.concat strs ~sep:" ") in
     Done
@@ -519,8 +531,20 @@ let exec_until_all_deps_ready ~display ~ectx ~eenv t =
   let+ stages = loop ~eenv [] in
   { Exec_result.dynamic_deps_stages = List.rev stages }
 
-let exec ~targets ~root ~context ~env ~rule_loc ~build_deps
-    ~execution_parameters t =
+type input =
+  { targets :
+      Targets.Validated.t option (* Some Jane Street actions use [None] *)
+  ; root : Path.t
+  ; context : Build_context.t option
+  ; env : Env.t
+  ; rule_loc : Loc.t
+  ; execution_parameters : Execution_parameters.t
+  ; action : Action.t
+  }
+
+let exec
+    { targets; root; context; env; rule_loc; execution_parameters; action = t }
+    ~build_deps =
   let ectx =
     let metadata = Process.create_metadata ~purpose:(Build_job targets) () in
     { targets; metadata; context; rule_loc; build_deps }

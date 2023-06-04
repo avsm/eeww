@@ -34,11 +34,12 @@
   > EOF
 
   $ dune exec ./foo.exe
+  Warning: Coq Language Versions lower than 0.8 have been deprecated in Dune
+  3.8 and will be removed in an upcoming Dune version.
   false
   $ ls _build/default
   Datatypes.ml
   Datatypes.mli
-  DuneExtraction.theory.d
   extract.glob
   extract.ml
   extract.mli

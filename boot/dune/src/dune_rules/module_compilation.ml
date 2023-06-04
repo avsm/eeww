@@ -49,21 +49,36 @@ let copy_interface ~sctx ~dir ~obj_dir ~cm_kind m =
              (Path.build (Obj_dir.Module.cm_file_exn obj_dir m ~kind:cmi_kind))
            ~dst:(Obj_dir.Module.cm_public_file_exn obj_dir m ~kind:cmi_kind)))
 
-let melange_args (cm_kind : Lib_mode.Cm_kind.t) lib_name module_ =
+let melange_args (cctx : Compilation_context.t) (cm_kind : Lib_mode.Cm_kind.t)
+    module_ =
   match cm_kind with
   | Ocaml (Cmi | Cmo | Cmx) | Melange Cmi -> []
   | Melange Cmj ->
-    let bs_package_name =
-      match lib_name with
-      | None -> []
+    let bs_package_name, bs_package_output =
+      let package_output =
+        Module.file ~ml_kind:Impl module_ |> Option.value_exn |> Path.parent_exn
+      in
+      match Compilation_context.public_lib_name cctx with
+      | None -> ([], package_output)
       | Some lib_name ->
-        [ Command.Args.A "--bs-package-name"; A (Lib_name.to_string lib_name) ]
-    in
-    let package_output =
-      Module.file ~ml_kind:Impl module_ |> Option.value_exn |> Path.parent_exn
+        let dir =
+          let package_output = Path.as_in_build_dir_exn package_output in
+          let lib_root_dir = Path.build (Compilation_context.dir cctx) in
+          let src_dir = Path.build package_output in
+          let build_dir =
+            (Compilation_context.super_context cctx |> Super_context.context)
+              .build_dir
+          in
+          Path.drop_prefix_exn src_dir ~prefix:lib_root_dir
+          |> Path.Local.to_string
+          |> Path.Build.relative build_dir
+        in
+
+        ( [ Command.Args.A "--bs-package-name"; A (Lib_name.to_string lib_name) ]
+        , Path.build dir )
     in
     Command.Args.A "--bs-stop-after-cmj" :: A "--bs-package-output"
-    :: Command.Args.Path package_output :: A "--bs-module-name"
+    :: Command.Args.Path bs_package_output :: A "--bs-module-name"
     :: A (Melange.js_basename module_)
     :: bs_package_name
 
@@ -95,7 +110,7 @@ let build_cm cctx ~force_write_cmi ~precompiled_cmi ~cm_kind (m : Module.t)
       Some melc
     | Ocaml mode ->
       Memo.return
-        (let compiler = Context.compiler ctx mode in
+        (let compiler = Ocaml_toolchain.compiler ctx.ocaml mode in
          (* TODO one day remove this silly optimization *)
          match compiler with
          | Ok _ as s -> Some s
@@ -179,7 +194,9 @@ let build_cm cctx ~force_write_cmi ~precompiled_cmi ~cm_kind (m : Module.t)
   in
   let opaque_arg : _ Command.Args.t =
     let intf_only = cm_kind = Ocaml Cmi && not (Module.has m ~ml_kind:Impl) in
-    if opaque || (intf_only && Ocaml.Version.supports_opaque_for_mli ctx.version)
+    if
+      opaque
+      || (intf_only && Ocaml.Version.supports_opaque_for_mli ctx.ocaml.version)
     then A "-opaque"
     else Command.Args.empty
   in
@@ -238,10 +255,7 @@ let build_cm cctx ~force_write_cmi ~precompiled_cmi ~cm_kind (m : Module.t)
           ; Command.Args.as_any
               (Lib_mode.Cm_kind.Map.get (CC.includes cctx) cm_kind)
           ; As extra_args
-          ; S
-              (melange_args cm_kind
-                 (Compilation_context.public_lib_name cctx)
-                 m)
+          ; S (melange_args cctx cm_kind m)
           ; A "-no-alias-deps"
           ; opaque_arg
           ; As (Fdo.phase_flags phase)
@@ -272,8 +286,8 @@ let build_module ?(force_write_cmi = false) ?(precompiled_cmi = false) cctx m =
         and* () =
           let ctx = CC.context cctx in
           let can_split =
-            Ocaml.Version.supports_split_at_emit ctx.version
-            || Ocaml_config.is_dev_version ctx.ocaml_config
+            Ocaml.Version.supports_split_at_emit ctx.ocaml.version
+            || Ocaml_config.is_dev_version ctx.ocaml.ocaml_config
           in
           match (ctx.fdo_target_exe, can_split) with
           | None, _ -> build_cm ~cm_kind:(Ocaml Cmx) ~phase:None
@@ -327,7 +341,7 @@ let ocamlc_i ~deps cctx (m : Module.t) ~output =
     (Action_builder.With_targets.add ~file_targets:[ output ]
        (let open Action_builder.With_targets.O in
        Action_builder.with_no_targets cm_deps
-       >>> Command.run (Ok ctx.ocamlc) ~dir:(Path.build ctx.build_dir)
+       >>> Command.run (Ok ctx.ocaml.ocamlc) ~dir:(Path.build ctx.build_dir)
              ~stdout_to:output
              [ Command.Args.dyn ocaml_flags
              ; A "-I"

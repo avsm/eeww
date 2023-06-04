@@ -302,10 +302,10 @@ end
 
 let obj_dir_of_lib kind mode obj_dir =
   (match (kind, mode) with
-  | `Private, `Ocaml -> Obj_dir.byte_dir
-  | `Private, `Melange -> Obj_dir.melange_dir
-  | `Public, `Ocaml -> Obj_dir.public_cmi_ocaml_dir
-  | `Public, `Melange -> Obj_dir.public_cmi_melange_dir)
+  | `Private, Lib_mode.Ocaml _ -> Obj_dir.byte_dir
+  | `Private, Melange -> Obj_dir.melange_dir
+  | `Public, Ocaml _ -> Obj_dir.public_cmi_ocaml_dir
+  | `Public, Melange -> Obj_dir.public_cmi_melange_dir)
     obj_dir
 
 module Unprocessed = struct
@@ -319,12 +319,11 @@ module Unprocessed = struct
     ; flags : string list Action_builder.t
     ; preprocess :
         Preprocess.Without_instrumentation.t Preprocess.t Module_name.Per_item.t
-        Resolve.Memo.t
     ; libname : Lib_name.Local.t option
     ; source_dirs : Path.Source.Set.t
     ; objs_dirs : Path.Set.t
     ; extensions : string Ml_kind.Dict.t list
-    ; mode : [ `Ocaml | `Melange ]
+    ; mode : Lib_mode.t
     }
 
   type t =
@@ -338,8 +337,8 @@ module Unprocessed = struct
     (* Merlin shouldn't cause the build to fail, so we just ignore errors *)
     let mode =
       match modes with
-      | `Exe -> `Ocaml
-      | `Melange_emit -> `Melange
+      | `Exe -> Lib_mode.Ocaml Byte
+      | `Melange_emit -> Melange
       | `Lib (m : Lib_mode.Map.Set.t) -> Lib_mode.Map.Set.for_merlin m
     in
     let requires =
@@ -351,7 +350,7 @@ module Unprocessed = struct
       Path.Set.singleton
       @@ obj_dir_of_lib `Private mode (Obj_dir.of_local obj_dir)
     in
-    let flags = Ocaml_flags.common flags in
+    let flags = Ocaml_flags.get flags mode in
     let extensions = Dialect.DB.extensions_for_merlin dialects in
     let config =
       { stdlib_dir
@@ -389,8 +388,9 @@ module Unprocessed = struct
       | None -> Action_builder.return None
       | Some args ->
         let action =
-          let action = Preprocessing.chdir (Run (exe, args)) in
-          Action_unexpanded.expand_no_targets ~loc ~expander ~deps:[]
+          let action = Action_unexpanded.Run (exe, args) in
+          let chdir = (Expander.context expander).build_dir in
+          Action_unexpanded.expand_no_targets ~loc ~expander ~deps:[] ~chdir
             ~what:"preprocessing actions" action
         in
         let pp_of_action exe args =
@@ -412,7 +412,7 @@ module Unprocessed = struct
       Processed.pp_flag option Action_builder.t =
     match
       Preprocess.remove_future_syntax preprocess ~for_:Merlin
-        (Super_context.context sctx).version
+        (Super_context.context sctx).ocaml.version
     with
     | Action (loc, (action : Dune_lang.Action.t)) ->
       pp_flag_of_action ~expander ~loc ~action
@@ -444,9 +444,7 @@ module Unprocessed = struct
         (Modules.source_dirs modules)
 
   let pp_config t sctx ~expander =
-    let open Action_builder.O in
-    let* preprocess = Resolve.Memo.read t.config.preprocess in
-    Module_name.Per_item.map_action_builder preprocess
+    Module_name.Per_item.map_action_builder t.config.preprocess
       ~f:(pp_flags sctx ~expander t.config.libname)
 
   let process
@@ -470,8 +468,34 @@ module Unprocessed = struct
         Action_builder.of_memo
         @@
         match t.config.mode with
-        | `Ocaml -> Memo.return (Some stdlib_dir)
-        | `Melange -> Melange_binary.where sctx ~loc:None ~dir
+        | Ocaml _ -> Memo.return (Some stdlib_dir)
+        | Melange -> (
+          let open Memo.O in
+          let+ dirs = Melange_binary.where sctx ~loc:None ~dir in
+          match dirs with
+          | [] -> None
+          | stdlib_dir :: _ -> Some stdlib_dir)
+      in
+      let* requires =
+        match t.config.mode with
+        | Ocaml _ -> Action_builder.return requires
+        | Melange ->
+          Action_builder.of_memo
+            (let open Memo.O in
+            let scope = Expander.scope expander in
+            let libs = Scope.libs scope in
+            Lib.DB.find libs (Lib_name.of_string "melange") >>= function
+            | Some lib ->
+              let+ libs =
+                let linking =
+                  Dune_project.implicit_transitive_deps (Scope.project scope)
+                in
+                Lib.closure [ lib ] ~linking |> Resolve.Memo.peek >>| function
+                | Ok libs -> libs
+                | Error _ -> []
+              in
+              Lib.Set.union requires (Lib.Set.of_list libs)
+            | None -> Memo.return requires)
       in
       let* flags = flags
       and* src_dirs, obj_dirs =
@@ -496,8 +520,8 @@ module Unprocessed = struct
       in
       let+ melc_flags =
         match t.config.mode with
-        | `Ocaml -> Action_builder.return []
-        | `Melange -> (
+        | Ocaml _ -> Action_builder.return []
+        | Melange -> (
           let+ melc_compiler =
             Action_builder.of_memo (Melange_binary.melc sctx ~loc:None ~dir)
           in
@@ -505,7 +529,7 @@ module Unprocessed = struct
           | Error _ -> []
           | Ok path ->
             [ Processed.Pp_kind.to_flag Ppx
-            ; Processed.serialize_path path ^ " -as-ppx -bs-jsx 3"
+            ; Processed.serialize_path path ^ " -as-ppx"
             ])
       in
       { Processed.stdlib_dir

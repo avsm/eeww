@@ -121,7 +121,7 @@ module Version = struct
     let open Memo.O in
     let* _ = Build_system.build_file bin in
     Memo.of_reproducible_fiber
-    @@ Process.run_capture_line ~display:!Clflags.display Process.Strict bin
+    @@ Process.run_capture_line ~display:Quiet Process.Strict bin
          [ "--version" ]
     |> Memo.map ~f:of_string
 
@@ -355,7 +355,7 @@ let setup_separate_compilation_rules sctx components =
     let pkg = Lib_name.parse_string_exn (Loc.none, s_pkg) in
     let ctx = Super_context.context sctx in
     let open Memo.O in
-    let* installed_libs = Lib.DB.installed ctx in
+    let* installed_libs = Lib.DB.installed ~host:None ctx in
     Lib.DB.find installed_libs pkg >>= function
     | None -> Memo.return ()
     | Some pkg ->

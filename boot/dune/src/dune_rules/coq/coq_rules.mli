@@ -2,8 +2,10 @@ open Import
 
 (* This file is licensed under The MIT License *)
 (* (c) MINES ParisTech 2018-2019               *)
-(* (c) INRIA 2020                              *)
-(* Written by: Emilio Jesús Gallego Arias *)
+(* (c) INRIA 2020-2023                         *)
+(* Written by: Ali Caglayan                    *)
+(* Written by: Emilio Jesús Gallego Arias      *)
+(* Written by: Rudi Grinberg                   *)
 
 (** [deps_of ~dir ~use_stdlib ~wrapper_name coq_module] action that builds the
     deps of [coq_module] *)
@@ -11,11 +13,13 @@ val deps_of :
      dir:Path.Build.t
   -> use_stdlib:bool
   -> wrapper_name:string
+  -> mode:Coq_mode.t
+  -> coq_lang_version:Dune_sexp.Syntax.Version.t
   -> Coq_module.t
   -> unit Dune_engine.Action_builder.t
 
 val coqdoc_directory_targets :
-  dir:Path.Build.t -> Coq_stanza.Theory.t -> Loc.t Path.Build.Map.t
+  dir:Path.Build.t -> Coq_stanza.Theory.t -> Loc.t Path.Build.Map.t Memo.t
 
 (** ** Rules for Coq stanzas *)
 

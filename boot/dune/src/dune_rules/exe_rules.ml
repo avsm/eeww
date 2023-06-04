@@ -8,7 +8,7 @@ let first_exe (exes : Executables.t) = snd (List.hd exes.names)
 let linkages (ctx : Context.t) ~(exes : Executables.t) ~explicit_js_mode =
   let module L = Dune_file.Executables.Link_mode in
   let l =
-    let has_native = Result.is_ok ctx.ocamlopt in
+    let has_native = Result.is_ok ctx.ocaml.ocamlopt in
     let modes =
       L.Map.to_list exes.modes
       |> List.map ~f:(fun (mode, loc) ->
@@ -65,8 +65,7 @@ let o_files sctx ~dir ~expander ~(exes : Executables.t) ~linkages ~dir_contents
   if not (Executables.has_foreign exes) then Memo.return @@ Mode.Map.empty
   else
     let what =
-      if List.is_empty exes.buildable.Buildable.foreign_stubs then "archives"
-      else "stubs"
+      if List.is_empty exes.buildable.foreign_stubs then "archives" else "stubs"
     in
     if List.exists linkages ~f:Exe.Linkage.is_byte then
       User_error.raise ~loc:exes.buildable.loc
@@ -101,7 +100,7 @@ let executables_rules ~sctx ~dir ~expander ~dir_contents ~scope ~compile_info
     Dir_contents.ocaml dir_contents
     >>| Ml_sources.modules_and_obj_dir ~for_:(Exe { first_exe })
   in
-  let* () = Check_rules.add_obj_dir sctx ~obj_dir `Ocaml in
+  let* () = Check_rules.add_obj_dir sctx ~obj_dir (Ocaml Byte) in
   let ctx = Super_context.context sctx in
   let project = Scope.project scope in
   let programs = programs ~modules ~exes in
@@ -129,13 +128,8 @@ let executables_rules ~sctx ~dir ~expander ~dir_contents ~scope ~compile_info
       ~preprocessing:pp ~js_of_ocaml ~opaque:Inherit_from_settings
       ~package:exes.package
   in
-  let stdlib_dir = ctx.Context.stdlib_dir in
+  let stdlib_dir = ctx.lib_config.stdlib_dir in
   let* requires_compile = Compilation_context.requires_compile cctx in
-  let preprocess =
-    Preprocess.Per_module.with_instrumentation exes.buildable.preprocess
-      ~instrumentation_backend:
-        (Lib.DB.instrumentation_backend (Scope.libs scope))
-  in
   let* dep_graphs =
     (* Building an archive for foreign stubs, we link the corresponding object
        files directly to improve perf. *)
@@ -211,7 +205,9 @@ let executables_rules ~sctx ~dir ~expander ~dir_contents ~scope ~compile_info
   in
   ( cctx
   , Merlin.make ~requires:requires_compile ~stdlib_dir ~flags ~modules
-      ~source_dirs:Path.Source.Set.empty ~libname:None ~preprocess ~obj_dir
+      ~source_dirs:Path.Source.Set.empty ~libname:None ~obj_dir
+      ~preprocess:
+        (Preprocess.Per_module.without_instrumentation exes.buildable.preprocess)
       ~dialects:(Dune_project.dialects (Scope.project scope))
       ~ident:(Lib.Compile.merlin_ident compile_info)
       ~modes:`Exe )

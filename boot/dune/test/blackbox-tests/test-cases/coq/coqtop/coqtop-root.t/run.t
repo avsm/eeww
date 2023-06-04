@@ -1,7 +1,32 @@
 All dune commands work when you run them in sub-directories, so this should be no exception.
 
-  $ dune coq top --toplevel=echo -- theories/foo.v
-  -topfile $TESTCASE_ROOT/_build/default/theories/foo.v -w -deprecated-native-compiler-option -w -native-compiler-disabled -native-compiler ondemand -R $TESTCASE_ROOT/_build/default/theories foo
+  $ dune coq top --toplevel=echo -- theories/foo.v | ../../scrub_coq_args.sh
+  Warning: Coq Language Versions lower than 0.8 have been deprecated in Dune
+  3.8 and will be removed in an upcoming Dune version.
+  -topfile $TESTCASE_ROOT/_build/default/theories/foo.v
+  -w -deprecated-native-compiler-option
+  -w -native-compiler-disabled
+  -native-compiler ondemand
+  -I lib/coq/../coq-core/plugins/btauto
+  -I lib/coq/../coq-core/plugins/cc
+  -I lib/coq/../coq-core/plugins/derive
+  -I lib/coq/../coq-core/plugins/extraction
+  -I lib/coq/../coq-core/plugins/firstorder
+  -I lib/coq/../coq-core/plugins/funind
+  -I lib/coq/../coq-core/plugins/ltac
+  -I lib/coq/../coq-core/plugins/ltac2
+  -I lib/coq/../coq-core/plugins/micromega
+  -I lib/coq/../coq-core/plugins/nsatz
+  -I lib/coq/../coq-core/plugins/number_string_notation
+  -I lib/coq/../coq-core/plugins/ring
+  -I lib/coq/../coq-core/plugins/rtauto
+  -I lib/coq/../coq-core/plugins/ssreflect
+  -I lib/coq/../coq-core/plugins/ssrmatching
+  -I lib/coq/../coq-core/plugins/tauto
+  -I lib/coq/../coq-core/plugins/tutorial
+  -I lib/coq/../coq-core/plugins/zify
+  -R coq/theories Coq
+  -R $TESTCASE_ROOT/_build/default/theories foo
   $ cd theories
 
 This test is currently broken due to the workspace resolution being faulty #5899.
@@ -14,5 +39,5 @@ This test is currently broken due to the workspace resolution being faulty #5899
   1 | (coq.theory
   2 |  (name foo))
   Error: 'coq.theory' is available only when coq is enabled in the dune-project
-  file. You must enable it using (using coq 0.7) in your dune-project file.
+  file. You must enable it using (using coq 0.8) in your dune-project file.
   [1]

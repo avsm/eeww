@@ -10,6 +10,7 @@ let config =
   ; stats = None
   ; insignificant_changes = `React
   ; signal_watcher = `No
+  ; watch_exclusions = []
   }
 
 let setup =
@@ -19,8 +20,7 @@ let setup =
 
 let prog = Option.value_exn (Bin.which ~path:(Env_path.path Env.initial) "true")
 
-let run () =
-  Process.run ~display:!Clflags.display ~env:Env.initial Strict prog []
+let run () = Process.run ~display:Quiet ~env:Env.initial Strict prog []
 
 let go ~jobs fiber =
   Scheduler.Run.go

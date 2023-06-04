@@ -63,9 +63,9 @@ module Local : sig
     val relative : ?error_loc:Loc0.t -> t -> string list -> t
   end
 
-  val split_first_component : t -> (string * t) option
+  val split_first_component : t -> (Filename.t * t) option
 
-  val explode : t -> string list
+  val explode : t -> Filename.t list
 
   val descendant : t -> of_:t -> t option
 end
@@ -82,6 +82,8 @@ module External : sig
   val mkdir_p : ?perms:int -> t -> unit
 
   val of_filename_relative_to_initial_cwd : string -> t
+
+  val append_local : t -> Local.t -> t
 end
 
 (** In the source section of the current workspace. *)
@@ -100,9 +102,9 @@ module Source : sig
 
   val of_local : Local.t -> t
 
-  val split_first_component : t -> (string * Local.t) option
+  val split_first_component : t -> (Filename.t * Local.t) option
 
-  val explode : t -> string list
+  val explode : t -> Filename.t list
 
   (** [Source.t] does not statically forbid overlap with build directory, even
       though having such paths is almost always an error. *)
@@ -141,7 +143,7 @@ module Outside_build_dir : sig
 
   val relative : t -> string -> t
 
-  val extend_basename : t -> suffix:string -> t
+  val extend_basename : t -> suffix:Filename.t -> t
 
   val equal : t -> t -> bool
 
@@ -178,9 +180,9 @@ module Build : sig
     val relative : ?error_loc:Loc0.t -> t -> string list -> t
   end
 
-  val split_first_component : t -> (string * Local.t) option
+  val split_first_component : t -> (Filename.t * Local.t) option
 
-  val explode : t -> string list
+  val explode : t -> Filename.t list
 
   val local : t -> Local.t
 
@@ -192,9 +194,9 @@ module Build : sig
 
   (** [Source.t] here is a lie in some cases: consider when the context name
       happens to be ["install"] or [".alias"]. *)
-  val extract_build_context : t -> (string * Source.t) option
+  val extract_build_context : t -> (Filename.t * Source.t) option
 
-  val extract_build_context_exn : t -> string * Source.t
+  val extract_build_context_exn : t -> Filename.t * Source.t
 
   val extract_build_context_dir : t -> (t * Source.t) option
 
@@ -202,7 +204,7 @@ module Build : sig
 
   (** This function does the same as [extract_build_context], but has a
       "righter" type. *)
-  val extract_first_component : t -> (string * Local.t) option
+  val extract_first_component : t -> (Filename.t * Local.t) option
 
   (** Set the build directory. Can only be called once and must be done before
       paths are converted to strings elsewhere. *)
@@ -279,7 +281,7 @@ val append_local : t -> Local.t -> t
 
 val append_source : t -> Source.t -> t
 
-val extend_basename : t -> suffix:string -> t
+val extend_basename : t -> suffix:Filename.t -> t
 
 (** Extract the build context from a path. For instance, representing paths as
     strings:
@@ -291,9 +293,9 @@ val extend_basename : t -> suffix:string -> t
     It doesn't work correctly (doesn't return a sensible source path) for build
     directories that are not build contexts, e.g. "_build/install" and
     "_build/.aliases". *)
-val extract_build_context : t -> (string * Source.t) option
+val extract_build_context : t -> (Filename.t * Source.t) option
 
-val extract_build_context_exn : t -> string * Source.t
+val extract_build_context_exn : t -> Filename.t * Source.t
 
 (** Same as [extract_build_context] but return the build context as a path:
 
@@ -350,18 +352,16 @@ val as_external : t -> External.t option
 val is_strict_descendant_of_build_dir : t -> bool
 
 (** Split after the first component if [t] is local *)
-val split_first_component : t -> (string * t) option
-
-val insert_after_build_dir_exn : t -> string -> t
+val split_first_component : t -> (Filename.t * t) option
 
 val exists : t -> bool
 
 val readdir_unsorted :
-  t -> (string list, Dune_filesystem_stubs.Unix_error.Detailed.t) Result.t
+  t -> (Filename.t list, Dune_filesystem_stubs.Unix_error.Detailed.t) Result.t
 
 val readdir_unsorted_with_kinds :
      t
-  -> ( (string * Unix.file_kind) list
+  -> ( (Filename.t * Unix.file_kind) list
      , Dune_filesystem_stubs.Unix_error.Detailed.t )
      Result.t
 
@@ -448,6 +448,14 @@ val chmod : t -> mode:int -> unit
 
 (** Attempts to resolve a symlink. Returns [None] if the path isn't a symlink *)
 val follow_symlink : t -> (t, Fpath.follow_symlink_error) result
+
+(** [drop_prefix_exn t ~prefix] drops the [prefix] from a path, including any
+    leftover `/` prefix. Raises a [Code_error.t] if the prefix wasn't found. *)
+val drop_prefix_exn : t -> prefix:t -> Local.t
+
+(** [drop_prefix t ~prefix] drops the [prefix] from a path, including any
+    leftover `/` prefix. Returns [None] if the prefix wasn't found. *)
+val drop_prefix : t -> prefix:t -> Local.t option
 
 module Expert : sig
   (** Attempt to convert external paths to source/build paths. Don't use this

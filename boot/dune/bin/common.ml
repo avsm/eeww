@@ -1,10 +1,11 @@
 open Stdune
-module Config = Dune_util.Config
+open Dune_config_file
+module Execution_env = Dune_util.Execution_env
 module Console = Dune_console
 module Colors = Dune_rules.Colors
 module Clflags = Dune_engine.Clflags
 module Graph = Dune_graph.Graph
-module Package = Dune_engine.Package
+module Package = Dune_rules.Package
 module Profile = Dune_rules.Profile
 module Cmd = Cmdliner.Cmd
 module Term = Cmdliner.Term
@@ -114,7 +115,7 @@ module Options_implied_by_dash_p = struct
     | No_config -> Dune_config.Partial.empty
     | This fname -> Dune_config.load_config_file fname
     | Default ->
-      if Dune_util.Config.inside_dune then Dune_config.Partial.empty
+      if Execution_env.inside_dune then Dune_config.Partial.empty
       else Dune_config.load_user_config_file ()
 
   let packages =
@@ -299,10 +300,10 @@ let display_term =
      Option.some_if verbose Dune_config.Display.verbose)
     Arg.(
       let doc =
-        let all = Display.all |> List.map ~f:fst |> String.enumerate_one_of in
+        let all = Display.all |> List.map ~f:fst |> String.enumerate_or in
         sprintf
           "Control the display mode of Dune. See $(b,dune-config\\(5\\)) for \
-           more details. Valid values for this option are %s"
+           more details. Valid values for this option are %s."
           all
       in
       value
@@ -438,6 +439,7 @@ let shared_with_config_file =
   ; cache_storage_mode
   ; action_stdout_on_success
   ; action_stderr_on_success
+  ; experimental = None
   }
 
 module Cache_debug_flags = Dune_engine.Cache_debug_flags
@@ -514,7 +516,7 @@ module Builder = struct
     ; no_print_directory : bool
     ; store_orig_src_dir : bool
     ; default_target : Arg.Dep.t (* For build & runtest only *)
-    ; watch : Watch_mode_config.t
+    ; watch : Dune_rpc_impl.Watch_mode_config.t
     ; print_metrics : bool
     ; dump_memo_graph_file : string option
     ; dump_memo_graph_format : Graph.File_format.t
@@ -525,8 +527,10 @@ module Builder = struct
     ; workspace_config : Dune_rules.Workspace.Clflags.t
     ; cache_debug_flags : Dune_engine.Cache_debug_flags.t
     ; report_errors_config : Dune_engine.Report_errors_config.t
+    ; separate_error_messages : bool
     ; require_dune_project_file : bool
     ; insignificant_changes : [ `React | `Ignore ]
+    ; watch_exclusions : string list
     ; build_dir : string
     ; store_digest_preimage : bool
     ; root : string option
@@ -534,6 +538,20 @@ module Builder = struct
     }
 
   let set_root t root = { t with root = Some root }
+
+  (** Cmdliner documentation markup language
+      (https://erratique.ch/software/cmdliner/doc/tool_man.html#doclang)
+      requires that dollar signs (ex. $(tname)) and backslashes are escaped. *)
+  let docmarkup_escape s =
+    let b = Buffer.create (2 * String.length s) in
+    for i = 0 to String.length s - 1 do
+      match s.[i] with
+      | ('$' | '\\') as c ->
+        Buffer.add_char b '\\';
+        Buffer.add_char b c
+      | c -> Buffer.add_char b c
+    done;
+    Buffer.contents b
 
   let term =
     let docs = copts_sect in
@@ -633,7 +651,7 @@ module Builder = struct
                      "Instead of terminating build after completion, wait \
                       continuously for file changes.")
            in
-           if watch then Some Watch_mode_config.Eager else None)
+           if watch then Some Dune_rpc_impl.Watch_mode_config.Eager else None)
           (let+ watch =
              Arg.(
                value & flag
@@ -642,11 +660,11 @@ module Builder = struct
                      "Similar to [--watch], but only start a build when \
                       instructed externally by an RPC.")
            in
-           if watch then Some Watch_mode_config.Passive else None)
+           if watch then Some Dune_rpc_impl.Watch_mode_config.Passive else None)
       in
       match res with
-      | None -> Watch_mode_config.No
-      | Some mode -> Watch_mode_config.Yes mode
+      | None -> Dune_rpc_impl.Watch_mode_config.No
+      | Some mode -> Yes mode
     and+ print_metrics =
       Arg.(
         value & flag
@@ -762,6 +780,28 @@ module Builder = struct
                ])
             Automatic
         & info [ "file-watcher" ] ~doc)
+    and+ watch_exclusions =
+      let std_exclusions = Dune_config.standard_watch_exclusions in
+      let doc =
+        let escaped_std_exclusions =
+          List.map ~f:docmarkup_escape std_exclusions
+        in
+        "Adds a POSIX regular expression that will exclude matching \
+         directories from $(b,`dune build --watch`). The option $(opt) can be \
+         repeated to add multiple exclusions. Semicolons can be also used as a \
+         separator. If no exclusions are provided, then a standard set of \
+         exclusions is used; however, if $(i,one or more) $(opt) are used, \
+         $(b,none) of the standard exclusions are used. The standard \
+         exclusions are: "
+        ^ String.concat ~sep:" " escaped_std_exclusions
+      in
+      let arg =
+        Arg.(
+          value
+          & opt_all (list ~sep:';' string) [ std_exclusions ]
+          & info [ "watch-exclusions" ] ~docs ~docv:"REGEX" ~doc)
+      in
+      Term.(const List.flatten $ arg)
     and+ wait_for_filesystem_clock =
       Arg.(
         value & flag
@@ -804,6 +844,12 @@ module Builder = struct
             ~doc:
               "react to insignificant file system changes; this is only useful \
                for benchmarking dune")
+    and+ separate_error_messages =
+      Arg.(
+        value & flag
+        & info
+            [ "display-separate-messages" ]
+            ~doc:"Separate error messages with a blank line.")
     in
     { debug_dep_path
     ; debug_backtraces
@@ -840,9 +886,11 @@ module Builder = struct
         }
     ; cache_debug_flags
     ; report_errors_config
+    ; separate_error_messages
     ; require_dune_project_file
     ; insignificant_changes =
         (if react_to_insignificant_changes then `React else `Ignore)
+    ; watch_exclusions
     ; build_dir = Option.value ~default:default_build_dir build_dir
     ; store_digest_preimage
     ; root
@@ -862,6 +910,8 @@ let capture_outputs t = t.builder.capture_outputs
 let root t = t.root
 
 let watch t = t.builder.watch
+
+let x t = t.builder.workspace_config.x
 
 let print_metrics t = t.builder.print_metrics
 
@@ -894,6 +944,8 @@ let signal_watcher t =
   | `Forbid_builds ->
     (* if we aren't building anything, then we don't mind interrupting dune immediately *)
     `No
+
+let watch_exclusions t = t.builder.watch_exclusions
 
 let stats t = t.stats
 
@@ -935,7 +987,7 @@ let print_entering_message c =
        through such an editor will be able to use the "jump to error" feature of
        their editor. *)
     let dir =
-      match Config.inside_dune with
+      match Execution_env.inside_dune with
       | false -> cwd
       | true -> (
         let descendant_simple p ~of_ =
@@ -960,7 +1012,7 @@ let print_entering_message c =
         flush stdout;
         Console.print [ Pp.verbatim (sprintf "Leaving directory '%s'" dir) ]))
 
-let init ?log_file c =
+let init ?action_runner ?log_file c =
   if c.root.dir <> Filename.current_dir_name then Sys.chdir c.root.dir;
   Path.set_root (normalize_path (Path.External.cwd ()));
   Path.Build.set_build_dir
@@ -1007,14 +1059,23 @@ let init ?log_file c =
     [ Pp.textf "Shared cache: %s"
         (Dune_config.Cache.Enabled.to_string config.cache_enabled)
     ];
-  Dune_rules.Main.init ~stats:c.stats
+  let action_runner =
+    match action_runner with
+    | None -> None
+    | Some f -> (
+      match rpc c with
+      | `Forbid_builds -> Code_error.raise "action runners require building" []
+      | `Allow server -> Some (Staged.unstage @@ f server))
+  in
+  Dune_rules.Main.init ?action_runner ~stats:c.stats
     ~sandboxing_preference:config.sandboxing_preference ~cache_config
-    ~cache_debug_flags:c.builder.cache_debug_flags;
+    ~cache_debug_flags:c.builder.cache_debug_flags ();
   Only_packages.Clflags.set c.builder.only_packages;
   Dune_util.Report_error.print_memo_stacks := c.builder.debug_dep_path;
   Clflags.report_errors_config := c.builder.report_errors_config;
   Clflags.debug_backtraces c.builder.debug_backtraces;
-  Clflags.debug_artifact_substitution := c.builder.debug_artifact_substitution;
+  Dune_rules.Clflags.debug_artifact_substitution :=
+    c.builder.debug_artifact_substitution;
   Clflags.debug_load_dir := c.builder.debug_load_dir;
   Clflags.debug_digests := c.builder.debug_digests;
   Clflags.debug_fs_cache := c.builder.cache_debug_flags.fs_cache;
@@ -1023,16 +1084,17 @@ let init ?log_file c =
   Clflags.diff_command := c.builder.diff_command;
   Clflags.promote := c.builder.promote;
   Clflags.force := c.builder.force;
-  Clflags.store_orig_src_dir := c.builder.store_orig_src_dir;
-  Clflags.promote_install_files := c.builder.promote_install_files;
+  Dune_rules.Clflags.store_orig_src_dir := c.builder.store_orig_src_dir;
+  Dune_rules.Clflags.promote_install_files := c.builder.promote_install_files;
   Clflags.always_show_command_line := c.builder.always_show_command_line;
-  Clflags.ignore_promoted_rules := c.builder.ignore_promoted_rules;
-  Clflags.on_missing_dune_project_file :=
+  Dune_rules.Clflags.ignore_promoted_rules := c.builder.ignore_promoted_rules;
+  Dune_rules.Clflags.on_missing_dune_project_file :=
     if c.builder.require_dune_project_file then Error else Warn;
   Dune_util.Log.info
     [ Pp.textf "Workspace root: %s"
         (Path.to_absolute_filename Path.root |> String.maybe_quoted)
     ];
+  Dune_console.separate_messages c.builder.separate_error_messages;
   config
 
 let footer =
@@ -1099,8 +1161,10 @@ let build (builder : Builder.t) ~default_root_is_cwd =
            | Yes Passive -> Some 1.0
            | _ -> None
          in
+         let action_runner = Dune_engine.Action_runner.Rpc_server.create () in
          Dune_rpc_impl.Server.create ~lock_timeout ~registry ~root:root.dir
-           stats))
+           ~handle:Dune_rules_rpc.register ~watch_mode_config:builder.watch
+           stats action_runner))
   in
   if builder.store_digest_preimage then Dune_engine.Reversible_digest.enable ();
   if builder.print_metrics then (

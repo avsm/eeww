@@ -56,7 +56,7 @@ let of_string s : (t, exn) result =
 
 let rpc_socket_relative_to_build_dir = ".rpc/dune"
 
-let _DUNE_RPC = "DUNE_RPC"
+let env_var = "DUNE_RPC"
 
 let to_dbus : t -> Dbus_address.t = function
   | `Unix p -> { name = "unix"; args = [ ("path", p) ] }
@@ -79,7 +79,15 @@ let sexp : t Conv.value =
 
 let add_to_env t env =
   let value = to_string t in
-  Env.add env ~var:_DUNE_RPC ~value
+  Env.add env ~var:env_var ~value
+
+let of_env env =
+  match Env.get env env_var with
+  | None -> Error `Missing
+  | Some s -> (
+    match of_string s with
+    | Error exn -> Error (`Exn exn)
+    | Ok s -> Ok s)
 
 module type S = sig
   type 'a fiber
@@ -111,7 +119,10 @@ end) (IO : sig
     string -> ([ `Unix_socket | `Normal_file | `Other ], exn) result Fiber.t
 end) : S with type 'a fiber := 'a Fiber.t = struct
   let default ?(win32 = win32) ~build_dir () =
-    if win32 then `Ip (`Host "0.0.0.0", `Port default_port)
+    if win32 then
+      `Ip
+        ( `Host (Unix.string_of_inet_addr Unix.inet_addr_loopback)
+        , `Port default_port )
     else `Unix (Filename.concat build_dir rpc_socket_relative_to_build_dir)
 
   let ( let** ) x f =
@@ -124,7 +135,7 @@ end) : S with type 'a fiber := 'a Fiber.t = struct
   let get ~env ~build_dir : (t option, exn) result Fiber.t =
     let open Fiber.O in
     let* () = Fiber.return () in
-    match env _DUNE_RPC with
+    match env env_var with
     | Some d ->
       Fiber.return
         (match of_string d with

@@ -215,18 +215,28 @@ let rec with_locks ~f = function
       (Table.find_or_add State.locks m ~f:(fun _ -> Fiber.Mutex.create ()))
       ~f:(fun () -> with_locks ~f mutexes)
 
-(* All file targets of non-sandboxed actions that are currently being executed.
-   On exit, we need to delete them as they might contain garbage. There is no
-   [pending_dir_targets] since actions with directory targets are sandboxed. *)
-let pending_file_targets = ref Path.Build.Set.empty
+module Pending_targets = struct
+  (* All file and directory targets of non-sandboxed actions that are currently
+     being executed. On exit, we need to delete them as they might contain
+     garbage. *)
+
+  let t = ref Targets.empty
+
+  let remove targets =
+    t := Targets.diff !t (Targets.Validated.unvalidate targets)
+
+  let add targets =
+    t := Targets.combine !t (Targets.Validated.unvalidate targets)
+
+  let () =
+    Hooks.End_of_build.always (fun () ->
+        let targets = !t in
+        t := Targets.empty;
+        Targets.iter targets ~file:Path.Build.unlink_no_err ~dir:(fun p ->
+            Path.rm_rf (Path.build p)))
+end
 
 let () = Hooks.End_of_build.always Metrics.reset
-
-let () =
-  Hooks.End_of_build.always (fun () ->
-      let fns = !pending_file_targets in
-      pending_file_targets := Path.Build.Set.empty;
-      Path.Build.Set.iter fns ~f:(fun p -> Path.Build.unlink_no_err p))
 
 type rule_execution_result =
   { deps : Dep.Fact.t Dep.Map.t
@@ -279,7 +289,7 @@ and Exported : sig
   (* The below two definitions are useless, but if we remove them we get an
      "Undefined_recursive_module" exception. *)
 
-  val build_file_memo : (Path.t, Digest.t * target_kind) Memo.Table.t
+  val build_file_memo : (Path.t, Digest.t * target_kind) Memo.Table.t Lazy.t
     [@@warning "-32"]
 
   val build_alias_memo : (Alias.t, Dep.Fact.Files.t) Memo.Table.t
@@ -440,8 +450,7 @@ end = struct
       | None ->
         (* If the action is not sandboxed, we use [pending_file_targets] to
            clean up the build directory if the action is interrupted. *)
-        pending_file_targets :=
-          Path.Build.Set.union targets.files !pending_file_targets;
+        Pending_targets.add targets;
         None
     in
     let action =
@@ -477,8 +486,19 @@ end = struct
       with_locks locks ~f:(fun () ->
           let build_deps deps = Memo.run (build_deps deps) in
           let+ action_exec_result =
-            Action_exec.exec ~root ~context ~env ~targets:(Some targets)
-              ~rule_loc:loc ~build_deps ~execution_parameters action
+            let input =
+              { Action_exec.root
+              ; context
+              ; env
+              ; targets = Some targets
+              ; rule_loc = loc
+              ; execution_parameters
+              ; action
+              }
+            in
+            match (Build_config.get ()).action_runner input with
+            | None -> Action_exec.exec input ~build_deps
+            | Some runner -> Action_runner.exec_action runner input
           in
           let produced_targets =
             match sandbox with
@@ -502,8 +522,7 @@ end = struct
     | Some sandbox -> Sandbox.destroy sandbox
     | None ->
       (* All went well, these targets are no longer pending. *)
-      pending_file_targets :=
-        Path.Build.Set.diff !pending_file_targets targets.files);
+      Pending_targets.remove targets);
     exec_result
 
   let promote_targets ~rule_mode ~dir ~targets ~promote_source =
@@ -512,19 +531,6 @@ end = struct
     | Promote _, Some Never -> Fiber.return ()
     | Promote promote, (Some Automatically | None) ->
       Target_promotion.promote ~dir ~targets ~promote ~promote_source
-
-  let execution_parameters_of_dir =
-    let f path =
-      let+ dir = Source_tree.nearest_dir path
-      and+ ep = Execution_parameters.default in
-      Dune_project.update_execution_parameters (Source_tree.Dir.project dir) ep
-    in
-    let memo =
-      Memo.create "execution-parameters-of-dir"
-        ~input:(module Path.Source)
-        ~cutoff:Execution_parameters.equal f
-    in
-    Memo.exec memo
 
   let execute_rule_impl ~rule_kind rule =
     let { Rule.id = _; targets; dir; context; mode; action; info = _; loc } =
@@ -540,15 +546,15 @@ end = struct
       match Dpath.Target_dir.of_target dir with
       | Regular (With_context (_, dir))
       | Anonymous_action (With_context (_, dir)) ->
-        execution_parameters_of_dir dir
+        (Build_config.get ()).execution_parameters ~dir
       | _ -> Execution_parameters.default
     in
     (* Note: we do not run the below in parallel with the above: if we fail to
        compute action execution parameters, we have no use for the action and
-       might as well fail early, skipping unnecessary dependencies. The function
-       [Source_tree.execution_parameters_of_dir] is memoized, and the result is
-       not expected to change often, so we do not sacrifice too much performance
-       here by executing it sequentially. *)
+       might as well fail early, skipping unnecessary dependencies. The
+       function [(Build_config.get ()).execution_parameters] is likely
+       memoized, and the result is not expected to change often, so we do not
+       sacrifice too much performance here by executing it sequentially. *)
     let* action, deps = Action_builder.run action Eager in
     let wrap_fiber f =
       Memo.of_reproducible_fiber
@@ -1037,13 +1043,21 @@ end = struct
   end
 
   let build_file_memo =
-    let cutoff = Tuple.T2.equal Digest.equal target_kind_equal in
-    Memo.create "build-file" ~input:(module Path) ~cutoff build_file_impl
+    lazy
+      (let cutoff =
+         match
+           Dune_config.Config.(
+             get cutoffs_that_reduce_concurrency_in_watch_mode)
+         with
+         | `Disabled -> None
+         | `Enabled -> Some (Tuple.T2.equal Digest.equal target_kind_equal)
+       in
+       Memo.create "build-file" ~input:(module Path) ?cutoff build_file_impl)
 
-  let build_file path = Memo.exec build_file_memo path >>| fst
+  let build_file path = Memo.exec (Lazy.force build_file_memo) path >>| fst
 
   let build_dir path =
-    let+ digest, kind = Memo.exec build_file_memo path in
+    let+ digest, kind = Memo.exec (Lazy.force build_file_memo) path in
     match kind with
     | Dir_target { generated_file_digests } -> (digest, generated_file_digests)
     | File_target ->

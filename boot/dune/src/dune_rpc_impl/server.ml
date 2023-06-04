@@ -6,31 +6,33 @@ module Global_lock = Dune_util.Global_lock
 include struct
   open Dune_rpc
   module Initialize = Initialize
-  module Public = Public
-  module Versioned = Versioned
-  module Server_notifications = Server_notifications
   module Sub = Sub
   module Progress = Progress
   module Procedures = Procedures
-  module Id = Id
   module Diagnostic = Diagnostic
-  module Conv = Conv
 end
 
 include struct
   open Dune_engine
-  module Source_tree = Source_tree
+  module Action_runner = Action_runner
   module Build_config = Build_config
-  module Dune_project = Dune_project
   module Diff_promotion = Diff_promotion
 end
 
 module Dep_conf = Dune_rules.Dep_conf
-module Build_outcome = Decl.Build_outcome
-module Status = Decl.Status
-module Stanza = Dune_lang.Stanza
-module String_with_vars = Dune_lang.String_with_vars
-module Pform = Dune_lang.Pform
+
+include struct
+  open Decl
+  module Build_outcome = Build_outcome
+  module Status = Status
+end
+
+include struct
+  open Dune_lang
+  module Stanza = Stanza
+  module String_with_vars = String_with_vars
+  module Pform = Pform
+end
 
 module Run = struct
   module Registry = Dune_rpc_private.Registry
@@ -38,6 +40,7 @@ module Run = struct
 
   type t =
     { handler : Dune_rpc_server.t
+    ; action_runner : Action_runner.Rpc_server.t
     ; pool : Fiber.Pool.t
     ; root : string
     ; where : Dune_rpc.Where.t
@@ -103,7 +106,7 @@ module Run = struct
             at_exit run_cleanup_registry
           in
           let* () = Server.serve sessions t.stats t.handler in
-          Fiber.Pool.stop t.pool)
+          Fiber.Pool.close t.pool)
         (fun () -> Fiber.Pool.run t.pool)
     in
     Fiber.finalize (with_print_errors run) ~finally:(fun () ->
@@ -205,6 +208,7 @@ type t =
   { config : Run.t
   ; pending_build_jobs :
       (Dep_conf.t list * Build_outcome.t Fiber.Ivar.t) Job_queue.t
+  ; watch_mode_config : Watch_mode_config.t
   ; mutable clients : Clients.t
   }
 
@@ -213,12 +217,16 @@ let ready (t : t) =
   Csexp_rpc.Server.ready server
 
 let stop (t : t) =
-  let+ server = Fiber.Ivar.peek t.config.server_ivar in
-  match server with
-  | None -> ()
-  | Some server -> Csexp_rpc.Server.stop server
+  Fiber.fork_and_join_unit
+    (fun () -> Action_runner.Rpc_server.stop t.config.action_runner)
+    (fun () ->
+      let+ server = Fiber.Ivar.peek t.config.server_ivar in
+      match server with
+      | None -> ()
+      | Some server -> Csexp_rpc.Server.stop server)
 
-let handler (t : t Fdecl.t) : 'a Dune_rpc_server.Handler.t =
+let handler (t : t Fdecl.t) action_runner_server handle :
+    'a Dune_rpc_server.Handler.t =
   let on_init session (_ : Initialize.Request.t) =
     let t = Fdecl.get t in
     let client = () in
@@ -235,7 +243,6 @@ let handler (t : t Fdecl.t) : 'a Dune_rpc_server.Handler.t =
       ~version:Dune_rpc_private.Version.latest ()
   in
   let () =
-    let module Diagnostic = Dune_rpc.Diagnostic in
     let module Error = Build_system.Error in
     let diff ~last ~(now : Error.Set.t) =
       match last with
@@ -286,23 +293,35 @@ let handler (t : t Fdecl.t) : 'a Dune_rpc_server.Handler.t =
     Handler.implement_request rpc Procedures.Public.ping (fun _ -> Fiber.return)
   in
   let () =
-    let build _ targets =
-      let ivar = Fiber.Ivar.create () in
-      let targets =
-        List.map targets ~f:(fun s ->
-            Dune_lang.Decoder.parse dep_parser
-              (Univ_map.set Univ_map.empty String_with_vars.decoding_env_key
-                 (* CR-someday aalekseyev: hardcoding the version here is not
-                    ideal, but it will do for now since this command is not
-                    stable and we're only using it in tests. *)
-                 (Pform.Env.initial (3, 0)))
-              (Dune_lang.Parser.parse_string ~fname:"dune rpc"
-                 ~mode:Dune_lang.Parser.Mode.Single s))
-      in
-      let* () =
-        Job_queue.write (Fdecl.get t).pending_build_jobs (targets, ivar)
-      in
-      Fiber.Ivar.read ivar
+    let build _session targets =
+      let server = Fdecl.get t in
+      match server.watch_mode_config with
+      | No -> assert false
+      | Yes Eager ->
+        let error =
+          Dune_rpc.Response.Error.create ~kind:Invalid_request
+            ~message:
+              "the rpc server is running with eager watch mode using --watch. \
+               to run builds through an rpc client, start the server using \
+               --passive-watch-mode"
+            ()
+        in
+        raise (Dune_rpc.Response.Error.E error)
+      | Yes Passive ->
+        let ivar = Fiber.Ivar.create () in
+        let targets =
+          List.map targets ~f:(fun s ->
+              Dune_lang.Decoder.parse dep_parser
+                (Univ_map.set Univ_map.empty String_with_vars.decoding_env_key
+                   (* CR-someday aalekseyev: hardcoding the version here is not
+                      ideal, but it will do for now since this command is not
+                      stable and we're only using it in tests. *)
+                   (Pform.Env.initial (3, 0)))
+                (Dune_lang.Parser.parse_string ~fname:"dune rpc"
+                   ~mode:Dune_lang.Parser.Mode.Single s))
+        in
+        let* () = Job_queue.write server.pending_build_jobs (targets, ivar) in
+        Fiber.Ivar.read ivar
     in
     Handler.implement_request rpc Decl.build build
   in
@@ -322,7 +341,7 @@ let handler (t : t Fdecl.t) : 'a Dune_rpc_server.Handler.t =
               ~f:(fun (_, entry) -> Session.Stage1.request_close entry.session))
       in
       let shutdown () =
-        Fiber.fork_and_join_unit Dune_engine.Scheduler.shutdown (fun () ->
+        Fiber.fork_and_join_unit Scheduler.shutdown (fun () ->
             Csexp_rpc.Server.stop (Lazy.force t.config.server);
             Fiber.return ())
       in
@@ -346,7 +365,7 @@ let handler (t : t Fdecl.t) : 'a Dune_rpc_server.Handler.t =
   in
   let () =
     let f _ () =
-      let errors = Fiber.Svar.read Dune_engine.Build_system.errors in
+      let errors = Fiber.Svar.read Build_system.errors in
       Build_system.Error.Set.current errors
       |> Build_system.Error.Id.Map.values
       |> List.map ~f:Diagnostics.diagnostic_of_error
@@ -354,36 +373,9 @@ let handler (t : t Fdecl.t) : 'a Dune_rpc_server.Handler.t =
     in
     Handler.implement_request rpc Procedures.Public.diagnostics f
   in
-  let source_path_of_string path =
-    if Filename.is_relative path then Path.Source.(relative root path)
-    else
-      let source_root =
-        Path.to_absolute_filename (Path.source Path.Source.root)
-      in
-      match String.drop_prefix path ~prefix:source_root with
-      | None ->
-        User_error.raise [ Pp.textf "path isn't available in workspace" ]
-      | Some s ->
-        let s = String.drop_prefix_if_exists s ~prefix:"/" in
-        Path.Source.(relative root s)
-  in
-  let () =
-    let f _ (path, `Contents contents) =
-      let+ version =
-        Memo.run
-          (let open Memo.O in
-          let source_path = source_path_of_string path in
-          let+ dir = Source_tree.nearest_dir source_path in
-          let project = Source_tree.Dir.project dir in
-          Dune_project.dune_version project)
-      in
-      Dune_lang.Format.format_string ~version contents
-    in
-    Handler.implement_request rpc Procedures.Public.format_dune_file f
-  in
   let () =
     let f _ path =
-      let files = source_path_of_string path in
+      let files = For_handlers.source_path_of_string path in
       Diff_promotion.promote_files_registered_in_last_run
         (These ([ files ], ignore));
       Fiber.return ()
@@ -394,12 +386,16 @@ let handler (t : t Fdecl.t) : 'a Dune_rpc_server.Handler.t =
     let f _ () = Fiber.return Path.Build.(to_string root) in
     Handler.implement_request rpc Procedures.Public.build_dir f
   in
+  Dune_engine.Action_runner.Rpc_server.implement_handler action_runner_server
+    rpc;
+  handle rpc;
   rpc
 
-let create ~lock_timeout ~registry ~root stats =
+let create ~lock_timeout ~registry ~root ~watch_mode_config ~handle stats
+    action_runner =
   let t = Fdecl.create Dyn.opaque in
   let pending_build_jobs = Job_queue.create () in
-  let handler = Dune_rpc_server.make (handler t) in
+  let handler = Dune_rpc_server.make (handler t action_runner handle) in
   let pool = Fiber.Pool.create () in
   let where = Where.default () in
   Global_lock.lock_exn ~timeout:lock_timeout;
@@ -428,20 +424,23 @@ let create ~lock_timeout ~registry ~root stats =
     ; stats
     ; server
     ; registry
+    ; action_runner
     ; server_ivar = Fiber.Ivar.create ()
     }
   in
-  let res = { config; pending_build_jobs; clients = Clients.empty } in
+  let res =
+    { config; pending_build_jobs; watch_mode_config; clients = Clients.empty }
+  in
   Fdecl.set t res;
   res
 
-let listening_address t = t.config.where
-
 let run t =
   let* () = Fiber.return () in
-  Run.run t.config
+  Fiber.fork_and_join_unit
+    (fun () -> Run.run t.config)
+    (fun () -> Dune_engine.Action_runner.Rpc_server.run t.config.action_runner)
 
-let stats (t : t) = t.config.stats
+let action_runner t = t.config.action_runner
 
 let pending_build_action t =
   Job_queue.read t.pending_build_jobs

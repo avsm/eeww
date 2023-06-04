@@ -2,7 +2,7 @@ open Import
 
 type t =
   { has_native : bool
-  ; ext_lib : string
+  ; ext_lib : Filename.Extension.t
   ; ext_obj : string
   ; os_type : Ocaml_config.Os_type.t
   ; architecture : string
@@ -30,3 +30,6 @@ val hash : t -> int
 val equal : t -> t -> bool
 
 val to_dyn : t -> Dyn.t
+
+(** [\["-g"\]] if [!Clflags.g] and [\[\]] otherwise *)
+val cc_g : t -> string list

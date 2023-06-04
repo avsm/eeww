@@ -85,7 +85,7 @@ let add_rule sctx =
   Super_context.add_rule sctx ~dir
 
 module Paths = struct
-  let odoc_support_dirname = "_odoc_support"
+  let odoc_support_dirname = "odoc.support"
 
   let root (context : Context.t) =
     Path.Build.relative context.Context.build_dir "_doc"
@@ -222,7 +222,7 @@ let module_deps (m : Module.t) ~obj_dir ~(dep_graphs : Dep_graph.Ml_kind.t) =
     List.map deps ~f:(fun m -> Path.build (Obj_dir.Module.odoc obj_dir m)))
 
 let compile_module sctx ~obj_dir (m : Module.t) ~includes:(file_deps, iflags)
-    ~dep_graphs ~pkg_or_lnu =
+    ~dep_graphs ~pkg_or_lnu ~mode =
   let odoc_file = Obj_dir.Module.odoc obj_dir m in
   let open Memo.O in
   let+ () =
@@ -238,7 +238,12 @@ let compile_module sctx ~obj_dir (m : Module.t) ~includes:(file_deps, iflags)
           ; Target odoc_file
           ; Dep
               (Path.build
-                 (Obj_dir.Module.cmti_file ~cm_kind:(Ocaml Cmi) obj_dir m))
+                 (Obj_dir.Module.cmti_file
+                    ~cm_kind:
+                      (match mode with
+                      | Lib_mode.Ocaml _ -> Ocaml Cmi
+                      | Melange -> Melange Cmi)
+                    obj_dir m))
           ]
       in
       let open Action_builder.With_targets.O in
@@ -324,9 +329,11 @@ let setup_library_odoc_rules cctx (local_lib : Lib.Local.t) =
   let modules_and_odoc_files =
     Modules.fold_no_vlib modules ~init:[] ~f:(fun m acc ->
         let compiled =
+          let modes = Lib_info.modes info in
+          let mode = Lib_mode.Map.Set.for_merlin modes in
           compile_module sctx ~includes
             ~dep_graphs:(Compilation_context.dep_graphs cctx)
-            ~obj_dir ~pkg_or_lnu m
+            ~obj_dir ~pkg_or_lnu ~mode m
         in
         compiled :: acc)
   in
@@ -536,20 +543,15 @@ let odoc_artefacts sctx target =
         let gen_mld = Paths.gen_mld_dir ctx pkg ++ "index.mld" in
         String.Map.add_exn mlds "index" gen_mld
     in
-    String.Map.values mlds
-    |> List.map ~f:(fun mld ->
-           Mld.create mld |> Mld.odoc_file ~doc_dir:dir
-           |> create_odoc ctx ~target)
+    String.Map.to_list_map mlds ~f:(fun _ mld ->
+        Mld.create mld |> Mld.odoc_file ~doc_dir:dir |> create_odoc ctx ~target)
   | Lib lib ->
     let info = Lib.Local.info lib in
     let obj_dir = Lib_info.obj_dir info in
-    let* modules = entry_modules_by_lib sctx lib in
-    List.map
-      ~f:(fun m ->
+    let+ modules = entry_modules_by_lib sctx lib in
+    List.map modules ~f:(fun m ->
         let odoc_file = Obj_dir.Module.odoc obj_dir m in
         create_odoc ctx ~target odoc_file)
-      modules
-    |> Memo.return
 
 let setup_lib_odocl_rules_def =
   let module Input = struct
@@ -801,28 +803,34 @@ let has_rules ?(directory_targets = Path.Build.Map.empty) m =
   let rules = Rules.collect_unit (fun () -> m) in
   Memo.return
     (Build_config.Rules
-       { rules; build_dir_only_sub_dirs = Subdir_set.empty; directory_targets })
+       { rules
+       ; build_dir_only_sub_dirs = Build_config.Rules.Build_only_sub_dirs.empty
+       ; directory_targets
+       })
 
 let with_package pkg ~f =
   let pkg = Package.Name.of_string pkg in
   let* packages = Only_packages.get () in
   match Package.Name.Map.find packages pkg with
+  | Some pkg -> has_rules (f pkg)
   | None ->
     Memo.return
       (Build_config.Rules
          { rules = Memo.return Rules.empty
-         ; build_dir_only_sub_dirs = Subdir_set.empty
+         ; build_dir_only_sub_dirs =
+             Build_config.Rules.Build_only_sub_dirs.empty
          ; directory_targets = Path.Build.Map.empty
          })
-  | Some pkg -> has_rules (f pkg)
 
-let gen_rules sctx ~dir:_ rest =
+let gen_rules sctx ~dir rest =
   match rest with
   | [] ->
     Memo.return
       (Build_config.Rules
          { rules = Memo.return Rules.empty
-         ; build_dir_only_sub_dirs = Subdir_set.All
+         ; build_dir_only_sub_dirs =
+             Build_config.Rules.Build_only_sub_dirs.singleton ~dir
+               Subdir_set.All
          ; directory_targets = Path.Build.Map.empty
          })
   | [ "_html" ] ->

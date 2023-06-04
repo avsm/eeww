@@ -118,7 +118,9 @@ module Deps = struct
     | Ok (dirs, files) ->
       let open Memo.O in
       let dep_set = Dep.Set.of_files files in
-      let+ l = Memo.parallel_map dirs ~f:(fun dir -> Dep.Set.source_tree dir) in
+      let+ l =
+        Memo.parallel_map dirs ~f:(fun dir -> Source_deps.files dir >>| fst)
+      in
       Ok (Dep.Set.union_all (dep_set :: l))
 end
 
@@ -145,13 +147,20 @@ module Prelude = struct
     in
     enter decode_env <|> decode_default
 
-  let to_args ~dir t : _ Command.Args.t list =
-    let bpath p = Path.build (Path.Build.append_local dir p) in
+  (** Generated program will read some files when it runs. *)
+  let runtime_deps ~dir t : _ Command.Args.t =
     match t with
-    | Default file -> [ A "--prelude"; Dep (bpath file) ]
+    | Default file | Env { env = _; file } ->
+      Hidden_deps
+        (Dep.Set.of_files [ Path.build (Path.Build.append_local dir file) ])
+
+  let to_args ~dir t : _ Command.Args.t list =
+    match t with
+    | Default file ->
+      [ A "--prelude"; Dep (Path.build (Path.Build.append_local dir file)) ]
     | Env { env; file } ->
       let arg = sprintf "%s:%s" env (Path.Local.to_string file) in
-      [ A "--prelude"; A arg; Hidden_deps (Dep.Set.of_files [ bpath file ]) ]
+      [ A "--prelude"; A arg; runtime_deps ~dir t ]
 end
 
 type t =
@@ -178,11 +187,19 @@ let syntax =
     [ ((0, 1), `Since (2, 4))
     ; ((0, 2), `Since (3, 0))
     ; ((0, 3), `Since (3, 2))
+    ; ((0, 4), `Since (3, 8))
     ]
 
-let default_files =
-  let has_extension ext s = String.equal ext (Filename.extension s) in
-  Predicate_lang.Glob.of_pred (has_extension ".md")
+let glob_predicate repr =
+  repr |> Dune_lang.Glob.of_string_exn Loc.none |> Predicate_lang.Glob.of_glob
+
+let default_files_of_version version =
+  let md_files = glob_predicate "*.md" in
+  let mld_files = glob_predicate "*.mld" in
+  let mld_support_since = (0, 4) in
+  match Syntax.Version.Infix.(version >= mld_support_since) with
+  | true -> Predicate_lang.union [ md_files; mld_files ]
+  | false -> md_files
 
 let decode =
   let open Dune_lang.Decoder in
@@ -190,7 +207,7 @@ let decode =
     (let+ loc = loc
      and+ version = Dune_lang.Syntax.get_exn syntax
      and+ files =
-       field "files" Predicate_lang.Glob.decode ~default:default_files
+       field "files" Predicate_lang.Glob.decode ~default:Predicate_lang.Standard
      and+ enabled_if =
        Enabled_if.decode ~allowed_vars:Any ~since:(Some (2, 9)) ()
      and+ package =
@@ -208,7 +225,7 @@ let decode =
      and+ libraries =
        field "libraries" ~default:[]
          (Dune_lang.Syntax.since syntax (0, 2)
-         >>> Dune_file.Lib_deps.decode Executable)
+         >>> Lib_dep.L.decode ~allow_re_export:false)
      and+ locks =
        Locks.field ~check:(Dune_lang.Syntax.since syntax (0, 3)) ()
      in
@@ -240,7 +257,8 @@ let files_to_mdx t ~sctx ~dir =
   in
   let must_mdx src_path =
     let file = Path.Source.basename src_path in
-    Predicate_lang.Glob.exec t.files ~standard:default_files file
+    let standard = default_files_of_version t.version in
+    Predicate_lang.Glob.exec t.files ~standard file
   in
   let build_path src_path =
     Path.Build.append_source (Super_context.context sctx).build_dir src_path
@@ -317,7 +335,11 @@ let gen_rules_for_single_file stanza ~sctx ~dir ~expander ~mdx_prog
            generated executable *)
         let open Command.Args in
         match mdx_prog_gen with
-        | Some prog -> (Ok (Path.build prog), [ Dep (Path.build files.src) ])
+        | Some prog ->
+          ( Ok (Path.build prog)
+          , [ Dep (Path.build files.src)
+            ; S (List.map ~f:(Prelude.runtime_deps ~dir) stanza.preludes)
+            ] )
         | None ->
           let prelude_args =
             List.concat_map stanza.preludes ~f:(Prelude.to_args ~dir)
@@ -367,7 +389,7 @@ let mdx_prog_gen t ~sctx ~dir ~scope ~expander ~mdx_prog =
           Some lib
         | _ -> Resolve.Memo.return None)
     in
-    let mode = Context.best_mode (Super_context.context sctx) in
+    let mode = Ocaml_toolchain.best_mode (Super_context.context sctx).ocaml in
     let libs_include_paths =
       Lib_flags.L.include_paths libs_to_include (Ocaml mode)
     in

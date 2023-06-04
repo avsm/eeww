@@ -1,8 +1,191 @@
-3.7.0.post1 (2023-02-21)
-------------------------
+3.8.0 (2023-05-23)
+------------------
 
-- Doc: prevent the use of sphinx 6. On readthedocs, this prevents the necessary
-  JS from being loaded.
+- Fix string quoting in the json file written by `--trace-file` (#7773,
+  @rleshchinskiy)
+
+- Read `pkg-config` arguments from the `PKG_CONFIG_ARGN` environment variable
+  (#1492, #7734, @anmonteiro)
+
+- Correctly set `MANPATH` in `dune exec`. Previously, we would use the `bin/`
+  directory of the context. (#7655, @rgrinberg)
+
+- Allow overriding the `ocaml` binary with findlib configuration (#7648,
+  @rgrinberg)
+
+- merlin: ignore instrumentation settings for preprocessing. (#7606, fixes
+  #7465, @Alizter)
+
+- When a rule's action is interrupted, delete any leftover directory targets.
+  This is consistent with how we treat file targets. (#7564, @rgrinberg)
+
+- Fix plugin loading with findlib. The functionality was broken in 3.7.0.
+  (#7556, @anmonteiro)
+
+- Introduce a `public_headers` field on libraries. This field is like
+  `install_c_headers`, but it allows to choose the extension and choose the
+  paths for the installed headers. (#7512, @rgrinberg)
+
+- Load the host context `findlib.conf` when cross-compiling (#7428, fixes
+  #1701, @rgrinberg, @anmonteiro)
+
+- Add a `coqdoc_flags` field to the `coq.theory` stanza allowing the user to
+  pass extra arguments to `coqdoc`. (#7676, fixes #7954 @Alizter)
+
+- Resolve `ppx_runtime_libraries` in the target context when cross compiling
+  (#7450, fixes #2794, @anmonteiro)
+
+- Use `$PKG_CONFIG`, when set, to find the `pkg-config` binary  (#7469, fixes
+  #2572, @anmonteiro)
+
+- Modules that were declared in `(modules_without_implementation)`,
+  `(private_modules)` or `(virtual_modules)` but not declared in `(modules)`
+  will cause Dune to emit a warning which will become an error in 3.9. (#7608,
+  fixes #7026, @Alizter)
+
+- Preliminary support for Coq compiled intefaces (`.vos` files) enabled via
+  `(mode vos)` in `coq.theory` stanzas. This can be used in combination with
+  `dune coq top` to obtain fast re-building of dependencies (with no checking
+  of proofs) prior to stepping into a file. (#7406, @rlepigre)
+
+- Fix dune crashing on MacOS in watch mode whenever `$PATH` contains `$PWD`
+  (#7441, fixes #6907, @rgrinberg)
+
+- Fix `dune install` when cross compiling (#7410, fixes #6191, @anmonteiro,
+  @rizo)
+
+- Find `pps` dependencies in the host context when cross-compiling,  (#7410,
+  fixes #4156, @anmonteiro)
+
+- Dune in watch mode no longer builds concurrent rules in serial (#7395
+  @rgrinberg, @jchavarri)
+
+- Dune can now detect Coq theories from outside the workspace. This allows for
+  composition with installed theories (not necessarily installed with Dune).
+  (#7047, @Alizter, @ejgallego)
+
+- `dune coq top` now correctly respects the project root when called from a
+  subdirectory. However, absolute filenames passed to `dune coq top` are no
+  longer supported (due to being buggy) (#7357, fixes #7344, @rlepigre and
+  @Alizter)
+
+- Added a `--no-build` option to `dune coq top` for avoiding rebuilds (#7380,
+  fixes #7355, @Alizter)
+
+- RPC: Ignore SIGPIPE when clients suddenly disconnect (#7299, #7319, fixes
+  #6879, @rgrinberg)
+
+- Always clean up the UI on exit. (#7271, fixes #7142 @rgrinberg)
+
+- Bootstrap: remove reliance on shell. Previously, we'd use the shell to get
+  the number of processors. (#7274, @rgrinberg)
+
+- Bootstrap: correctly detect the number of processors by allowing `nproc` to be
+  looked up in `$PATH` (#7272, @Alizter)
+
+- Speed up file copying on macos by using `clonefile` when available
+  (@rgrinberg, #7210)
+
+- Adds support for loading plugins in toplevels (#6082, fixes #6081,
+  @ivg, @richardlford)
+
+- Support commands that output 8-bit and 24-bit colors in the terminal (#7188,
+  @Alizter)
+
+- Speed up rule generation for libraries and executables with many modules
+  (#7187, @jchavarri)
+
+- Add `--watch-exclusions` to Dune build options (#7216, @jonahbeckford)
+
+- Do not re-render UI on every frame if the UI doesn't change (#7186, fix
+  #7184, @rgrinberg)
+
+- Make coq_db creation in scope lazy (@ejgallego, #7133)
+
+- Non-user proccesses such as version control or config checking are now run
+  silently. (#6994, fixes #4066, @Alizter)
+
+- Add the `--display-separate-messages` flag to separate the error messages
+  produced by commands with a blank line. (#6823, fixes #6158, @esope)
+
+- Accept the Ordered Set Language for the `modes` field in `library` stanzas
+  (#6611, @anmonteiro).
+
+- dune install now respects --display quiet mode (#7116, fixes #4573, fixes
+  #7106, @Alizter)
+
+- Stub shared libraries (dllXXX_stubs.so) in Dune-installed libraries could not
+  be used as dependencies of libraries in the workspace (eg when compiling to
+  bytecode and/or Javascript).  This is now fixed. (#7151, @nojb)
+
+- Allow the main module of a library with `(stdlib ...)` to depend on other
+  libraries (#7154, @anmonteiro).
+
+- Bytecode executables built for JSOO are linked with `-noautolink` and no
+  longer depend on the shared stubs of their dependent libraries (#7156, @nojb)
+
+- Added a new user action `(concurrent )` which is like `(progn )` but runs the
+  actions concurrently. (#6933, @Alizter)
+
+- Allow `(stdlib ...)` to be used with `(wrapped false)` in library stanzas
+  (#7139, @anmonteiro).
+
+- Allow parallel execution of inline tests partitions (#7012, @hhugo)
+
+- Support `(link_flags ...)` in `(cinaps ...)` stanza. (#7423, fixes #7416,
+  @nojb)
+
+- Allow `(package ...)` in any position within `(rule ...)` stanza (#7445,
+  @Leonidas-from-XIV)
+
+- Always include `opam` files in the generated `.install` file. Previously, it
+  would not be included whenever `(generate_opam_files true)` was set and the
+  `.install` file wasn't yet generated. (#7547, @rgrinberg)
+
+- Fix regression where Merlin was unable to handle filenames with uppercase
+  letters under Windows. (#7577, @nojb)
+
+- On nix+macos, pass `-f` to the codesign hook to avoid errors when the binary
+  is already signed (#7183, fixes #6265, @greedy)
+
+- Fix bug where RPC clients built with dune-rpc-lwt would crash when closing
+  their connection to the server (#7581, @gridbugs)
+
+- Introduce mdx stanza 0.4 requiring mdx >= 2.3.0 which updates the default
+  list of files to include `*.mld` files (#7582, @Leonidas-from-XIV)
+
+- Fix RPC server on Windows (used for OCaml-LSP). (#7666, @nojb)
+
+- Coq language versions less 0.8 are deprecated, and will be removed
+  in an upcoming Dune version. All users are required to migrate to
+  `(coq lang 0.8)` which provides the right semantics for theories
+  that have been globally installed, such as those coming from opam
+  (@ejgallego, @Alizter)
+
+- Bump minimum version of the dune language for the melange syntax extension
+  from 3.7 to 3.8 (#7665, @jchavarri)
+
+3.7.1 (2023-04-04)
+------------------
+
+- Fix segfault on MacOS when dune was being shutdown while in watch mode.
+  (#7312, fixes #6151, @gridbugs, @emillon)
+
+- Fix preludes not being recorded as dependencies in the `(mdx)` stanza (#7109,
+  fixes #7077, @emillon).
+
+- Pass correct flags when compiling `stdlib.ml`. (#7241, @emillon)
+
+- Handle "Too many links" errors when using Dune cache on Windows.  The fix in
+  3.7.0 for this same issue was not effective due to a typo. (#7472, @nojb)
+
+- In `(executable)`, `(public_name -)` is now equivalent to no `(public_name)`.
+  This is consistent with how `(executables)` handles this field.
+  (#7576 , fixes #5852, @emillon)
+
+- Change directory of odoc assets to `odoc.support` (was `_odoc_support`) so
+  that it works with Github Pages out of the box. (#7588, fixes #7364,
+  @emillon)
 
 3.7.0 (2023-02-17)
 ------------------
@@ -148,6 +331,9 @@
   @ilankri)
 
 - Add native support for polling mode on Windows (#7010, @yams-yams, @nojb)
+
+- Add `(bin_annot <bool>)` to `(env ...)` to specify whether to generate
+  `*.cmt*` files. (#7102, @nojb)
 
 3.6.2 (2022-12-21)
 ------------------

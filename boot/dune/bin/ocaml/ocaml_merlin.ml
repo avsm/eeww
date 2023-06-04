@@ -50,13 +50,10 @@ end = struct
      Cygwin environment both paths are lowarcased before the comparison *)
   let make_relative_to_root p =
     let p = Path.to_absolute_filename p in
-    let prefix, p =
-      let prefix = Path.(to_absolute_filename root) in
-      if Sys.win32 || Sys.cygwin then
-        (String.lowercase_ascii prefix, String.lowercase_ascii p)
-      else (prefix, p)
-    in
-    String.drop_prefix ~prefix p
+    let prefix = Path.(to_absolute_filename root) in
+    (if Sys.win32 || Sys.cygwin then String.Caseless.drop_prefix
+    else String.drop_prefix)
+      ~prefix p
     (* After dropping the prefix we need to remove the leading path separator *)
     |> Option.map ~f:(fun s -> String.drop s 1)
 
@@ -177,7 +174,7 @@ module Dump_config = struct
   let info =
     Cmd.info
       ~doc:
-        "Prints the entire content of the merlin configuration for the given \
+        "Print the entire content of the merlin configuration for the given \
          folder in a user friendly form. This is for testing and debugging \
          purposes only and should not be considered as a stable output."
       "dump-config"
@@ -192,7 +189,7 @@ module Dump_config = struct
   let command = Cmd.v info term
 end
 
-let doc = "Start a merlin configuration server"
+let doc = "Start a merlin configuration server."
 
 let man =
   [ `S "DESCRIPTION"
@@ -252,7 +249,8 @@ module Dump_dot_merlin = struct
 end
 
 let group =
-  Cmdliner.Cmd.group (Cmd.info "merlin")
+  Cmdliner.Cmd.group
+    (Cmd.info "merlin" ~doc:"Command group related to merlin")
     [ Dump_config.command
     ; Cmd.v (start_session_info "start-session") start_session_term
     ]

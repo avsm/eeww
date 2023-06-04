@@ -616,12 +616,23 @@ let which t prog =
 module Pkg_config = struct
   type nonrec t =
     { pkg_config : string
+    ; pkg_config_args : string list
     ; configurator : t
     }
 
   let get c =
-    Option.map (which c "pkg-config") ~f:(fun pkg_config ->
-        { pkg_config; configurator = c })
+    let pkg_config_exe_name =
+      match Sys.getenv "PKG_CONFIG" with
+      | s -> s
+      | exception Not_found -> "pkg-config"
+    in
+    let pkg_config_args =
+      match Sys.getenv "PKG_CONFIG_ARGN" with
+      | s -> String.split ~on:' ' s
+      | exception Not_found -> []
+    in
+    Option.map (which c pkg_config_exe_name) ~f:(fun pkg_config ->
+        { pkg_config; pkg_config_args; configurator = c })
 
   type package_conf =
     { libs : string list
@@ -683,7 +694,8 @@ module Pkg_config = struct
       let run what =
         match
           String.trim
-            (Process.run_capture_exn c ~dir ?env t.pkg_config [ what; package ])
+            (Process.run_capture_exn c ~dir ?env t.pkg_config
+               (t.pkg_config_args @ [ what; package ]))
         with
         | "" -> []
         | s -> String.extract_blank_separated_words s

@@ -1,5 +1,4 @@
 open Import
-open Memo.O
 
 (* CR-someday amokhov: We probably want to add a new variant [Dir] to provide
    first-class support for depending on directory targets. *)
@@ -50,7 +49,7 @@ module T = struct
     | Universe, Universe -> Ordering.Eq
 
   let encode t =
-    let open Dune_lang.Encoder in
+    let open Dune_sexp.Encoder in
     match t with
     | File_selector g -> pair string File_selector.encode ("glob", g)
     | Env e -> pair string string ("Env", e)
@@ -58,7 +57,7 @@ module T = struct
     | Alias a -> pair string Alias.encode ("Alias", a)
     | Universe -> string "Universe"
 
-  let to_dyn t = Dyn.String (Dune_lang.to_string (encode t))
+  let to_dyn t = Dyn.String (Dune_sexp.to_string (encode t))
 end
 
 include T
@@ -306,7 +305,7 @@ module Set = struct
   let add_paths t paths =
     Path.Set.fold paths ~init:t ~f:(fun p set -> add set (File p))
 
-  let encode t = Dune_lang.Encoder.list encode (to_list t)
+  let encode t = Dune_sexp.Encoder.list encode (to_list t)
 
   (* This is to force the rules to be loaded for directories without files when
      depending on [(source_tree x)]. Otherwise, we wouldn't clean up stale
@@ -315,44 +314,12 @@ module Set = struct
     file_selector
       (File_selector.create ~dir File_selector.Predicate_with_id.false_)
 
-  module Source_tree_map_reduce =
-    Source_tree.Dir.Make_map_reduce (Memo) (Monoid.Union (M))
-
-  let source_tree dir =
-    let prefix_with, dir = Path.extract_build_context_dir_exn dir in
-    Source_tree.find_dir dir >>= function
-    | None -> Memo.return empty
-    | Some dir ->
-      Source_tree_map_reduce.map_reduce dir ~traverse:Sub_dirs.Status.Set.all
-        ~f:(fun dir ->
-          let files = Source_tree.Dir.files dir in
-          let path =
-            Path.append_source prefix_with (Source_tree.Dir.path dir)
-          in
-          match String.Set.is_empty files with
-          | true -> Memo.return (singleton (dir_without_files_dep path))
-          | false ->
-            let paths =
-              String.Set.fold files ~init:Path.Set.empty ~f:(fun fn acc ->
-                  Path.Set.add acc (Path.relative path fn))
-            in
-            Memo.return (add_paths empty paths))
-
-  let source_tree_with_file_set dir =
-    let+ t = source_tree dir in
-    let paths =
-      fold t ~init:Path.Set.empty ~f:(fun dep acc ->
-          match dep with
-          | File f -> Path.Set.add acc f
-          | File_selector fs ->
-            assert (
-              File_selector.Predicate_with_id.equal
-                (File_selector.predicate fs)
-                File_selector.Predicate_with_id.false_);
-            acc
-          | _ -> assert false)
+  let of_source_files ~files ~empty_directories =
+    let init =
+      Path.Set.fold files ~init:empty ~f:(fun path acc -> add acc (file path))
     in
-    (t, paths)
+    Path.Set.fold empty_directories ~init ~f:(fun path acc ->
+        add acc (dir_without_files_dep path))
 
   let digest t =
     fold t ~init:[] ~f:(fun dep acc : Stable_for_digest.t list ->

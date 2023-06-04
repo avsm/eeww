@@ -19,6 +19,10 @@ module Status : sig
 
   (** For local libraries, return the project they are part of *)
   val project : t -> Dune_project.t option
+
+  (** [relative_to_package t name] return the path of [name] relative to the
+      package determined by [t]. If there's no package, return [None] *)
+  val relative_to_package : t -> Lib_name.t -> Path.Local.t option
 end
 
 (** For values like modules that need to be evaluated to be fetched *)
@@ -26,6 +30,12 @@ module Source : sig
   type 'a t =
     | Local
     | External of 'a
+end
+
+module File_deps : sig
+  type 'a t =
+    | Local of Loc.t * Dep_conf.t list
+    | External of 'a list
 end
 
 module Enabled_status : sig
@@ -114,6 +124,8 @@ val foreign_dll_files : 'path t -> 'path list
 
 val foreign_objects : 'path t -> 'path list Source.t
 
+val public_headers : 'path t -> 'path File_deps.t
+
 (** The library has a module that must be linked at the end. This is used for
     the [Std_exit] module of the stdlib. *)
 val exit_module : _ t -> Module_name.t option
@@ -134,6 +146,8 @@ val synopsis : _ t -> string option
 
 val jsoo_runtime : 'path t -> 'path list
 
+val melange_runtime_deps : 'path t -> 'path File_deps.t
+
 val obj_dir : 'path t -> 'path Obj_dir.t
 
 val virtual_ : _ t -> Modules.t Source.t option
@@ -144,7 +158,7 @@ val main_module_name : _ t -> Main_module_name.t
 
 val wrapped : _ t -> Wrapped.t Inherited.t option
 
-val special_builtin_support : _ t -> Special_builtin_support.t option
+val special_builtin_support : _ t -> (Loc.t * Special_builtin_support.t) option
 
 val modes : _ t -> Lib_mode.Map.Set.t
 
@@ -195,6 +209,8 @@ val for_dune_package :
   -> implements:(Loc.t * Lib_name.t) option
   -> default_implementation:(Loc.t * Lib_name.t) option
   -> sub_systems:Sub_system_info.t Sub_system_name.Map.t
+  -> melange_runtime_deps:Path.t list
+  -> public_headers:Path.t list
   -> modules:Modules.t
   -> Path.t t
 
@@ -219,6 +235,7 @@ val create :
   -> sub_systems:Sub_system_info.t Sub_system_name.Map.t
   -> requires:Lib_dep.t list
   -> foreign_objects:'a list Source.t
+  -> public_headers:'a File_deps.t
   -> plugins:'a list Mode.Dict.t
   -> archives:'a list Mode.Dict.t
   -> ppx_runtime_deps:(Loc.t * Lib_name.t) list
@@ -237,9 +254,10 @@ val create :
   -> modes:Lib_mode.Map.Set.t
   -> modules:Modules.t option Source.t
   -> wrapped:Wrapped.t Inherited.t option
-  -> special_builtin_support:Special_builtin_support.t option
+  -> special_builtin_support:(Loc.t * Special_builtin_support.t) option
   -> exit_module:Module_name.t option
   -> instrumentation_backend:(Loc.t * Lib_name.t) option
+  -> melange_runtime_deps:'a File_deps.t
   -> 'a t
 
 val package : _ t -> Package.Name.t option

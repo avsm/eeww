@@ -39,7 +39,7 @@ module Chan = struct
 end
 
 module Drpc = struct
-  module Client = Dune_rpc.Client.Make (Dune_rpc_impl.Private.Fiber) (Chan)
+  module Client = Dune_rpc.Client.Make (Dune_rpc_client.Private.Fiber) (Chan)
   module Server = Dune_rpc_server.Make (Chan)
 end
 
@@ -538,7 +538,7 @@ let%expect_test "server to client request" =
     let witness = Decl.Request.witness decl in
     let* () =
       Fiber.Pool.task pool ~f:(fun () ->
-          let* () = Fiber.Pool.stop pool in
+          let* () = Fiber.Pool.close pool in
           print_endline "server: sending request to client";
           let+ res =
             Session.request session witness

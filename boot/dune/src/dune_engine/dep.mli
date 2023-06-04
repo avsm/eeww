@@ -110,25 +110,19 @@ module Set : sig
   include
     Set.S with type elt = t and type 'a map := 'a Map.t and type t = unit Map.t
 
-  (** Return dependencies on all source files under a certain source directory.
+  (** [of_source_files ~files ~empty_directories] depend on all source files
+      [files].
 
-      Dependency on a source_tree requires special care for empty directory, so
-      you should use this function rather than manually traverse the source
-      tree. *)
-  val source_tree : Path.t -> t Memo.t
-
-  (** Same as [source_tree] but also return the set of files as a set. Because
-      of the special care for empty directories, the set of dependencies
-      returned contains dependencies other than [File]. So extracting the set of
-      files from the dependency set is a bit awkward. This is why this function
-      exist. *)
-  val source_tree_with_file_set : Path.t -> (t * Path.Set.t) Memo.t
+      Dependency on a [files] requires special care for empty directories. Empty
+      directories need to be loaded so that we clean up stale artifacts in such
+      directories. This is why [empty_directories] must be provided *)
+  val of_source_files : files:Path.Set.t -> empty_directories:Path.Set.t -> t
 
   val of_files : Path.t list -> t
 
   val of_files_set : Path.Set.t -> t
 
-  val encode : t -> Dune_lang.t
+  val encode : t -> Dune_sexp.t
 
   val add_paths : t -> Path.Set.t -> t
 

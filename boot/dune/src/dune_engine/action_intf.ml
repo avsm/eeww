@@ -41,6 +41,7 @@ module type Ast = sig
     | Redirect_in of Inputs.t * path * t
     | Ignore of Outputs.t * t
     | Progn of t list
+    | Concurrent of t list
     | Echo of string list
     | Cat of path list
     | Copy of path * target
@@ -90,6 +91,8 @@ module type Helpers = sig
   val ignore_outputs : t -> t
 
   val progn : t list -> t
+
+  val concurrent : t list -> t
 
   val echo : string list -> t
 
@@ -141,7 +144,7 @@ module Ext = struct
     val is_useful_to : distribute:bool -> memoize:bool -> bool
 
     val encode :
-      ('p, 't) t -> ('p -> Dune_lang.t) -> ('t -> Dune_lang.t) -> Dune_lang.t
+      ('p, 't) t -> ('p -> Dune_sexp.t) -> ('t -> Dune_sexp.t) -> Dune_sexp.t
 
     val bimap : ('a, 'b) t -> ('a -> 'x) -> ('b -> 'y) -> ('x, 'y) t
 
