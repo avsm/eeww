@@ -23,7 +23,10 @@ let ( >>| ) v f = match v with Ok v -> Ok (f v) | Error _ as e -> e
 
 let uname f =
   let cmd = Cmd.(v "uname" % f) in
-  OS.Cmd.(run_out cmd |> to_string |> function Ok v -> v | Error _ -> failwith "error")
+  OS.Cmd.(
+    run_out cmd |> to_string |> function
+    | Ok v -> v
+    | Error _ -> failwith "error")
 
 module Arch = struct
   type t =
@@ -129,7 +132,6 @@ module Distro = struct
     | `Other of string ]
 
   type macos = [ `Homebrew | `MacPorts | `None ]
-
   type windows = [ `Cygwin | `None ]
 
   type t =
@@ -183,30 +185,25 @@ module Distro = struct
     | _ -> `None
 
   let windows_to_string (x : windows) =
-    match x with
-    | `Cygwin -> "cygwin"
-    | `None -> "windows"
+    match x with `Cygwin -> "cygwin" | `None -> "windows"
 
-  let windows_of_string = function
-    | "cygwin" -> `Cygwin
-    | _ -> `None
+  let windows_of_string = function "cygwin" -> `Cygwin | _ -> `None
 
   let to_string (x : t) =
     match x with
-    | `Linux v -> "linux " ^ (linux_to_string v)
-    | `MacOS v -> "macos " ^ (macos_to_string v)
-    | `Windows v -> "windows " ^ (windows_to_string v)
+    | `Linux v -> "linux " ^ linux_to_string v
+    | `MacOS v -> "macos " ^ macos_to_string v
+    | `Windows v -> "windows " ^ windows_to_string v
     | `Other v -> "unknown " ^ v
 
   let of_string x =
     try
       Scanf.sscanf x "%s %s" (fun a b ->
-        match a with
-        | "linux" -> `Linux (linux_of_string b)
-        | "macos" -> `MacOS (macos_of_string b)
-        | "windows" -> `Windows (windows_of_string b)
-        | _ -> `Other b
-      )  
+          match a with
+          | "linux" -> `Linux (linux_of_string b)
+          | "macos" -> `MacOS (macos_of_string b)
+          | "windows" -> `Windows (windows_of_string b)
+          | _ -> `Other b)
     with _ -> `Other ""
 
   let pp fmt v = Format.pp_print_string fmt (to_string v)
@@ -214,11 +211,11 @@ module Distro = struct
   let android_release =
     lazy
       (let open Bos in
-      let cmd = Cmd.(v "getprop" % "ro.build.version.release") in
-      match OS.Cmd.(run_out cmd |> to_string) with
-      | Ok "" -> None
-      | Ok out -> Some out
-      | Error _ -> None)
+       let cmd = Cmd.(v "getprop" % "ro.build.version.release") in
+       match OS.Cmd.(run_out cmd |> to_string) with
+       | Ok "" -> None
+       | Ok out -> Some out
+       | Error _ -> None)
 
   let find_first_file files = List.find_opt Sys.file_exists files
 
@@ -239,7 +236,6 @@ module Distro = struct
                      with Scan_failure _ | End_of_file -> acc)
                with Scan_failure _ | End_of_file -> acc)
              [] (Fpath.v file))
-
 
   let os_release_field f =
     Lazy.force os_release_fields >>| List.assoc_opt f >>| function
@@ -270,7 +266,7 @@ module Distro = struct
                 match Scanf.sscanf v " %s " (fun x -> x) with
                 | "" -> Ok None
                 | v -> Ok (Some (String.Ascii.lowercase v))
-                | exception Not_found -> Ok None ) ) )
+                | exception Not_found -> Ok None)))
 
   let v () : (t, [ `Msg of string ]) result =
     match OS.v () with
@@ -280,14 +276,14 @@ module Distro = struct
         | false -> (
             Bos.OS.Cmd.exists (Cmd.v "port") >>= function
             | true -> Ok (`MacOS `MacPorts)
-            | false -> Ok (`MacOS `None) ) )
+            | false -> Ok (`MacOS `None)))
     | `Linux -> (
         match Lazy.force android_release with
         | Some _ -> Ok (`Linux `Android)
         | None -> (
             identify_linux () >>= function
             | None -> Ok (`Linux (`Other ""))
-            | Some v -> Ok (`Linux (`Other v)) ) )
+            | Some v -> Ok (`Linux (`Other v))))
     | _ -> Error (`Msg "foo")
 end
 
@@ -299,7 +295,7 @@ module Version = struct
         let cmd = Cmd.(v "lsb_release" % "-r" % "-s") in
         Bos.OS.Cmd.(run_out cmd |> to_string) |> function
         | Ok v -> Ok (Some v)
-        | Error _ -> Distro.os_release_field "VERSION_ID" )
+        | Error _ -> Distro.os_release_field "VERSION_ID")
 
   let detect_macos_version () =
     let cmd = Cmd.(v "sw_vers" % "-productVersion") in

@@ -26,11 +26,8 @@ module Arch : sig
     | `X86_64 ]
 
   val to_string : t -> string
-
   val of_string : string -> t
-
   val pp : Format.formatter -> t -> unit
-
   val v : unit -> t
 end
 
@@ -46,11 +43,8 @@ module OS : sig
     | `Win32 ]
 
   val to_string : t -> string
-
   val of_string : string -> t
-
   val pp : Format.formatter -> t -> unit
-
   val v : unit -> t
 end
 
@@ -72,7 +66,6 @@ module Distro : sig
     | `Ubuntu ]
 
   type macos = [ `Homebrew | `MacPorts | `None ]
-
   type windows = [ `Cygwin | `None ]
 
   type t =
@@ -82,28 +75,18 @@ module Distro : sig
     | `Windows of windows ]
 
   val linux_to_string : linux -> string
-
   val linux_of_string : string -> linux
-
   val macos_to_string : macos -> string
-
   val macos_of_string : string -> macos
-
   val windows_to_string : windows -> string
-
   val windows_of_string : string -> windows
-
   val to_string : t -> string
-
   val of_string : string -> t
-
   val pp : Format.formatter -> t -> unit
-
-  val os_release_field : string -> (string option,  [> `Msg of string ]) result
-
+  val os_release_field : string -> (string option, [> `Msg of string ]) result
   val v : unit -> (t, [ `Msg of string ]) result
 end
 
 module Version : sig
-  val v : unit -> (string option, [> `Msg of string]) result
+  val v : unit -> (string option, [> `Msg of string ]) result
 end
