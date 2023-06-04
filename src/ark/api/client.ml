@@ -56,12 +56,11 @@ module ClusterMember = struct
     let hostinfo_params = Params.hostinfo_init params in
     let _ =
       Raw.Builder.HostInfo.os_distrib_set hostinfo_params
-        (Sexplib.Sexp.to_string
-           (Osrelease.Distro.sexp_of_t hostinfo.os_distrib))
+       (Osrelease.Distro.to_string hostinfo.os_distrib)
     in
     let _ =
       Raw.Builder.HostInfo.arch_set hostinfo_params
-        (Sexplib.Sexp.to_string (Osrelease.Arch.sexp_of_t hostinfo.arch))
+       (Osrelease.Arch.to_string hostinfo.arch)
     in
     let _ =
       Raw.Builder.HostInfo.os_version_set hostinfo_params hostinfo.os_version

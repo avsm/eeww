@@ -123,23 +123,13 @@ let cluster_member t =
          let callback = Params.callback_get params in
          let hostinfo =
            let hi = Params.hostinfo_get params in
-           let of_sexp_exn fn conv =
-             Sexplib.Sexp.of_string_conv_exn (fn hi) conv
-           in
            try
              let os_version = R.Reader.HostInfo.os_version_get hi in
              if os_version = "" then
                raise (Failure "unable to parse OS version");
-             let os_distrib =
-               of_sexp_exn R.Reader.HostInfo.os_distrib_get
-                 Osrelease.Distro.t_of_sexp
-             in
-             let arch =
-               of_sexp_exn R.Reader.HostInfo.arch_get Osrelease.Arch.t_of_sexp
-             in
-             Ok
-               Ark_api.Client.ClusterMember.
-                 { os_version; os_distrib; arch }
+             let os_distrib = R.Reader.HostInfo.os_distrib_get hi |> Osrelease.Distro.of_string in
+             let arch = R.Reader.HostInfo.arch_get hi |> Osrelease.Arch.of_string in
+             Ok Ark_api.Client.ClusterMember.{ os_version; os_distrib; arch }
            with
            | Failure msg -> Error (`Msg msg)
            | exn ->
