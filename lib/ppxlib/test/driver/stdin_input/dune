@@ -1,6 +1,0 @@
-(executable
- (name identity_driver)
- (libraries ppxlib))
-
-(cram
- (deps identity_driver.exe))
