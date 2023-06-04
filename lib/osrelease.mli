@@ -24,7 +24,6 @@ module Arch : sig
     | `Unknown of string
     | `X86_32
     | `X86_64 ]
-  [@@deriving sexp]
 
   val to_string : t -> string
 
@@ -45,7 +44,6 @@ module OS : sig
     | `OpenBSD
     | `Unknown of string
     | `Win32 ]
-  [@@deriving sexp]
 
   val to_string : t -> string
 
@@ -72,26 +70,32 @@ module Distro : sig
     | `Other of string
     | `RHEL
     | `Ubuntu ]
-  [@@deriving sexp]
 
-  type macos = [ `Homebrew | `MacPorts | `None ] [@@deriving sexp]
+  type macos = [ `Homebrew | `MacPorts | `None ]
 
-  type windows = [ `Cygwin | `None ] [@@deriving sexp]
+  type windows = [ `Cygwin | `None ]
 
   type t =
     [ `Linux of linux
     | `MacOS of macos
     | `Other of string
     | `Windows of windows ]
-  [@@deriving sexp]
 
   val linux_to_string : linux -> string
 
+  val linux_of_string : string -> linux
+
   val macos_to_string : macos -> string
+
+  val macos_of_string : string -> macos
 
   val windows_to_string : windows -> string
 
+  val windows_of_string : string -> windows
+
   val to_string : t -> string
+
+  val of_string : string -> t
 
   val pp : Format.formatter -> t -> unit
 
