@@ -92,7 +92,7 @@ CAMLextern atomic_uintnat caml_num_domains_running;
 
 Caml_inline intnat caml_domain_alone(void)
 {
-  return atomic_load_acq(&caml_num_domains_running) == 1;
+  return atomic_load_acquire(&caml_num_domains_running) == 1;
 }
 
 #ifdef DEBUG
@@ -100,6 +100,7 @@ int caml_domain_is_in_stw(void);
 #endif
 
 int caml_try_run_on_all_domains_with_spin_work(
+  int sync,
   void (*handler)(caml_domain_state*, void*, int, caml_domain_state**),
   void* data,
   void (*leader_setup)(caml_domain_state*),

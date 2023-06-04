@@ -29,6 +29,11 @@ OCaml 5.1.0
 
 ### Runtime system:
 
+- #11589, #11903: Modify the GC pacing code to make sure the GC keeps
+   up with allocations in the presence of idle domains.
+   (Damien Doligez and Stephen Dolan, report by Florian Angeletti,
+   review by KC Sivaramakrishnan and Sadiq Jaffer)
+
 * #11865, #11868, #11876: Clarify that the operations of a custom
   block must never access the OCaml runtime. The previous
   documentation only mentioned the main illicit usages. In particular,
@@ -107,7 +112,7 @@ OCaml 5.1.0
   (David Allsopp, review by Xavier Leroy, Guillaume Munch-Maccagnoni,
    Stefan Muenzel and Gabriel Scherer)
 
-- #11827: Restore prefetching for GC marking
+- #11827, #12249: Restore prefetching for GC marking
   (Fabrice Buoro and Stephen Dolan, review by Gabriel Scherer and Sadiq Jaffer)
 
 - #11935: Load frametables of dynlink'd modules in batch
@@ -132,6 +137,14 @@ OCaml 5.1.0
   (B. Szilvasy, Gabriel Scherer and Xavier Leroy, review by
    Stefan Muenzel, Guillaume Munch-Maccagnoni and Damien Doligez)
 
+- #12131: Simplify implementation of weak hash sets, fixing a
+  performance regression. (Nick Barnes, review by François Bobot,
+  Alain Frisch and Damien Doligez).
+
+- #12231: Support MinGW-w64 11.0 winpthreads library, where the macro
+  to set up to get flexdll working changed
+  (David Allsopp and Samuel Hym, light review by Xavier Leroy)
+
 ### Type system:
 
 - #6941, #11187: prohibit using classes through recursive modules
@@ -141,6 +154,12 @@ OCaml 5.1.0
 
 - #11912: Refactoring handling of scoped type variables
   (Richard Eisenberg, review by Gabriel Scherer and Florian Angeletti)
+
+* #12189, #12211: anonymous row variables in explicitly polymorphic type
+  annotation, e.g. `'a. [< X of 'a ] -> 'a`, are now implicitly
+  universally quantified (in other words, the example above is now read
+  as `'a 'r. ([< X of 'a `] as 'r) -> 'a`).
+  (Florian Angeletti and Gabriel Scherer, review by Jacques Garrigue)
 
 ### Code generation and optimizations:
 
@@ -180,6 +199,13 @@ OCaml 5.1.0
   efficient stack usage.
   (Nicolás Ojeda Bär, Gabriel Scherer, Alain Frisch, review by Gabriel Scherer,
   Alain Frisch and Nathanaëlle Courant)
+
+- #11712, #12258, #12261: s390x / IBM Z multicore support:
+  OCaml & C stack separation; dynamic stack size checks; fiber and
+  effects support.
+  (Aleksei Nikiforov, with help from Vincent Laviron and Xavier Leroy,
+   additional suggestions by Luc Maranget,
+   review by the same and KC Sivaramakrishnan)
 
 - #11904: Remove arm, i386 native-code backends.
   (Nicolás Ojeda Bär, review by Stephen Dolan, Anil Madhavapeddy, and Xavier
@@ -601,7 +627,8 @@ OCaml 5.1.0
   cu_required_globals field of compilation unit descriptors.
   (Sébastien Hinderer, review by Vincent Laviron)
 
-- #12119: mirror type constraints on value binding in the parsetree:
+- #12119, #12188, #12191: mirror type constraints on value binding in the
+  parsetree:
   the constraint `typ` in `let pat : typ = exp` is now directly stored
   in the value binding node in the parsetree.
   (Florian Angeletti, review by  Richard Eisenberg)
@@ -763,6 +790,16 @@ OCaml 5.1.0
 
 - #12178: Fix runtime events consumer poll function returning an invalid value
   instead of an OCaml integer value. (Lucas Pluvinage)
+
+- #12252: Fix shared library build error on RISC-V.
+  (Edwin Török, review by Nicolás Ojeda Bär and Xavier Leroy)
+
+- #12255, #12256: Handle large signal numbers correctly (Nick Barnes,
+   review by David Allsopp).
+
+- #12277: ARM64, fix a potential assembler error for very large functions by
+  emitting stack reallocation code before the body of the function.
+  (Xavier Leroy, review by KC Sivaramakrishnan)
 
 OCaml 5.0.0 (15 December 2022)
 ------------------------------

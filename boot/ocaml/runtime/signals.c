@@ -82,7 +82,7 @@ CAMLexport value caml_process_pending_signals_exn(void)
     for (j = 0; j < BITS_PER_WORD; j++) {
       mask = (uintnat)1 << j;
       if ((curr & mask) == 0) goto next_bit;
-      signo = i * 8 + j + 1;
+      signo = i * BITS_PER_WORD + j + 1;
 #ifdef POSIX_SIGNALS
       if (sigismember(&set, signo)) goto next_bit;
 #endif
@@ -234,9 +234,13 @@ value caml_execute_signal_exn(int signal_number, int in_signal_handler)
 
 /* Arrange for a garbage collection to be performed as soon as possible */
 
-void caml_request_major_slice (void)
+void caml_request_major_slice (int global)
 {
-  Caml_state->requested_major_slice = 1;
+  if (global){
+    Caml_state->requested_global_major_slice = 1;
+  }else{
+    Caml_state->requested_major_slice = 1;
+  }
   caml_interrupt_self();
 }
 
@@ -285,7 +289,7 @@ CAMLno_tsan /* When called from [caml_record_signal], these memory
 void caml_set_action_pending(caml_domain_state * dom_st)
 {
   dom_st->action_pending = 1;
-  atomic_store_rel(&dom_st->young_limit, (uintnat)-1);
+  atomic_store_release(&dom_st->young_limit, (uintnat)-1);
 }
 
 CAMLexport int caml_check_pending_actions(void)
