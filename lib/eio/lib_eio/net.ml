@@ -157,7 +157,7 @@ module Sockaddr = struct
       Format.fprintf f "udp:%a:%d" Ipaddr.pp_for_uri addr port
 end
 
-class virtual socket = object (_ : #Generic.t)
+class virtual socket = object (_ : <Generic.t; Generic.close; ..>)
   method probe _ = None
 end
 
@@ -165,10 +165,9 @@ class virtual stream_socket = object (_ : #socket)
   inherit Flow.two_way
 end
 
-class virtual listening_socket = object
+class virtual listening_socket = object (_ : <Generic.close; ..>)
   inherit socket
-  method virtual accept : sw:Switch.t -> <stream_socket; Flow.close> * Sockaddr.stream
-  method virtual close : unit
+  method virtual accept : sw:Switch.t -> stream_socket * Sockaddr.stream
 end
 
 type connection_handler = stream_socket -> Sockaddr.stream -> unit
@@ -203,13 +202,13 @@ let recv (t:#datagram_socket) = t#recv
 
 class virtual t = object
   method virtual listen : reuse_addr:bool -> reuse_port:bool -> backlog:int -> sw:Switch.t -> Sockaddr.stream -> listening_socket
-  method virtual connect : sw:Switch.t -> Sockaddr.stream -> <stream_socket; Flow.close>
+  method virtual connect : sw:Switch.t -> Sockaddr.stream -> stream_socket
   method virtual datagram_socket :
        reuse_addr:bool
     -> reuse_port:bool
     -> sw:Switch.t
     -> [Sockaddr.datagram | `UdpV4 | `UdpV6]
-    -> <datagram_socket; Flow.close>
+    -> datagram_socket
 
   method virtual getaddrinfo : service:string -> string -> Sockaddr.t list
   method virtual getnameinfo : Sockaddr.t -> (string * string)
@@ -245,7 +244,7 @@ let getaddrinfo_datagram ?service t hostname =
 
 let getnameinfo (t:#t) sockaddr = t#getnameinfo sockaddr
 
-let close = Flow.close
+let close = Generic.close
 
 let with_tcp_connect ?(timeout=Time.Timeout.none) ~host ~service t f =
   Switch.run @@ fun sw ->

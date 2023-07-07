@@ -234,9 +234,6 @@ module Fiber : sig
       [fn] runs immediately, without switching to any other fiber first.
       The calling fiber is placed at the head of the run queue, ahead of any previous items. *)
 
-  val fork_sub : sw:Switch.t -> on_error:(exn -> unit) -> (Switch.t -> unit) -> unit
-  [@@deprecated "Use Fiber.fork and Switch.run separately instead"]
-
   val fork_promise : sw:Switch.t -> (unit -> 'a) -> 'a Promise.or_exn
   (** [fork_promise ~sw fn] schedules [fn ()] to run in a new fiber and returns a promise for its result.
 
@@ -707,51 +704,6 @@ module Private : sig
     (** [enter_unchecked] is like [enter] except that it does not perform the initial check
         that the fiber isn't cancelled (this is useful if you want to do the check yourself, e.g.
         because you need to unlock a mutex if cancelled). *)
-  end
-
-  (** A queue of fibers waiting for an event. *)
-  module Waiters : sig
-    type 'a t
-    (* A queue of fibers waiting for something.
-       Note: an [_ t] is not thread-safe itself.
-       To use share it between domains, the user is responsible for wrapping it in a mutex. *)
-
-    val create : unit -> 'a t
-
-    val wake_all : 'a t -> 'a -> unit
-    (** [wake_all t] calls (and removes) all the functions waiting on [t].
-        If [t] is shared between domains, the caller must hold the mutex while calling this. *)
-
-    val wake_one : 'a t -> 'a -> [`Ok | `Queue_empty]
-    (** [wake_one t] is like {!wake_all}, but only calls (and removes) the first waiter in the queue.
-        If [t] is shared between domains, the caller must hold the mutex while calling this. *)
-
-    val is_empty : 'a t -> bool
-    (** [is_empty t] checks whether there are any functions waiting on [t].
-        If [t] is shared between domains, the caller must hold the mutex while calling this,
-        and the result is valid until the mutex is released. *)
-
-    val await :
-      mutex:Mutex.t option ->
-      'a t -> Ctf.id -> 'a
-    (** [await ~mutex t id] suspends the current fiber and adds its continuation to [t].
-        When the waiter is woken, the fiber is resumed and returns the result.
-        If [t] can be used from multiple domains:
-        - [mutex] must be set to the mutex to use to unlock it.
-        - [mutex] must be already held when calling this function, which will unlock it before blocking.
-        When [await] returns, [mutex] will have been unlocked.
-        @raise Cancel.Cancelled if the fiber's context is cancelled *)
-
-    val await_internal :
-      mutex:Mutex.t option ->
-      'a t -> Ctf.id -> Fiber_context.t ->
-      (('a, exn) result -> unit) -> unit
-    (** [await_internal ~mutex t id ctx enqueue] is like [await], but the caller has to suspend the fiber.
-        This also allows wrapping the [enqueue] function.
-        Calls [enqueue (Error (Cancelled _))] if cancelled.
-        Note: [enqueue] is called from the triggering domain,
-              which is currently calling {!wake_one} or {!wake_all}
-              and must therefore be holding [mutex]. *)
   end
 
   module Debug : sig

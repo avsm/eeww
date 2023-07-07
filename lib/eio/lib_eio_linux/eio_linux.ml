@@ -21,17 +21,13 @@ open Eio.Std
 
 module Fiber_context = Eio.Private.Fiber_context
 module Ctf = Eio.Private.Ctf
+module Fd = Eio_unix.Fd
 
 module Suspended = Eio_utils.Suspended
 module Zzz = Eio_utils.Zzz
 module Lf_queue = Eio_utils.Lf_queue
 
 module Low_level = Low_level
-
-(* Deprecated FD code *)
-module FD = Fd
-let get_fd = Eio_unix.Resource.fd
-let get_fd_opt = Eio_unix.Resource.fd_opt
 
 type _ Eio.Generic.ty += Dir_fd : Low_level.dir_fd Eio.Generic.ty
 let get_dir_fd_opt t = Eio.Generic.probe t Dir_fd
@@ -112,7 +108,7 @@ let datagram_socket sock = object
 
   method fd = sock
 
-  method close = FD.close sock
+  method close = Fd.close sock
 
   method send ?dst buf =
     let dst = Option.map Eio_unix.Net.sockaddr_to_unix dst in
@@ -125,10 +121,10 @@ let datagram_socket sock = object
 end
 
 let flow fd =
-  let is_tty = FD.use_exn "isatty" fd Unix.isatty in
+  let is_tty = Fd.use_exn "isatty" fd Unix.isatty in
   object (_ : <source; sink; ..>)
     method fd = fd
-    method close = FD.close fd
+    method close = Fd.close fd
 
     method stat = Low_level.fstat fd
 
@@ -178,7 +174,7 @@ let sink   fd = (flow fd :> sink)
 let listening_socket fd = object
   inherit Eio.Net.listening_socket
 
-  method close = FD.close fd
+  method close = Fd.close fd
 
   method accept ~sw =
     Switch.check sw;
@@ -187,7 +183,7 @@ let listening_socket fd = object
       | Unix.ADDR_UNIX path         -> `Unix path
       | Unix.ADDR_INET (host, port) -> `Tcp (Eio_unix.Net.Ipaddr.of_unix host, port)
     in
-    let flow = (flow client :> <Eio.Net.stream_socket; Eio.Flow.close>) in
+    let flow = (flow client :> Eio.Net.stream_socket) in
     flow, client_addr
 
   method! probe : type a. a Eio.Generic.ty -> a option = function
@@ -208,9 +204,9 @@ let socket_domain_of = function
 let connect ~sw connect_addr =
   let addr = Eio_unix.Net.sockaddr_to_unix connect_addr in
   let sock_unix = Unix.socket ~cloexec:true (socket_domain_of connect_addr) Unix.SOCK_STREAM 0 in
-  let sock = FD.of_unix ~sw ~seekable:false ~close_unix:true sock_unix in
+  let sock = Fd.of_unix ~sw ~seekable:false ~close_unix:true sock_unix in
   Low_level.connect sock addr;
-  (flow sock :> <Eio.Net.stream_socket; Eio.Flow.close>)
+  (flow sock :> Eio.Net.stream_socket)
 
 let net = object
   inherit Eio_unix.Net.t
@@ -228,7 +224,7 @@ let net = object
     );
     let addr = Eio_unix.Net.sockaddr_to_unix listen_addr in
     let sock_unix = Unix.socket ~cloexec:true (socket_domain_of listen_addr) Unix.SOCK_STREAM 0 in
-    let sock = FD.of_unix ~sw ~seekable:false ~close_unix:true sock_unix in
+    let sock = Fd.of_unix ~sw ~seekable:false ~close_unix:true sock_unix in
     (* For Unix domain sockets, remove the path when done (except for abstract sockets). *)
     begin match listen_addr with
       | `Unix path ->
@@ -258,7 +254,7 @@ let net = object
         | exception Unix.Unix_error (code, name, arg) -> raise @@ Err.wrap code name arg
     );
     let sock_unix = Unix.socket ~cloexec:true (socket_domain_of saddr) Unix.SOCK_DGRAM 0 in
-    let sock = FD.of_unix ~sw ~seekable:false ~close_unix:true sock_unix in
+    let sock = Fd.of_unix ~sw ~seekable:false ~close_unix:true sock_unix in
     begin match saddr with
     | `Udp _ | `Unix _ as saddr ->
       let addr = Eio_unix.Net.sockaddr_to_unix saddr in
@@ -269,7 +265,7 @@ let net = object
       Unix.bind sock_unix addr
     | `UdpV4 | `UdpV6 -> ()
     end;
-    (datagram_socket sock :> <Eio.Net.datagram_socket; Eio.Flow.close>)
+    (datagram_socket sock :> Eio.Net.datagram_socket)
 
   method getaddrinfo = Low_level.getaddrinfo
 end
@@ -401,7 +397,7 @@ class dir ~label (fd : Low_level.dir_fd) = object
     (flow fd :> <Eio.File.rw; Eio.Flow.close>)
 
   method open_dir ~sw path =
-    let fd = Low_level.openat ~sw ~seekable:false fd path
+    let fd = Low_level.openat ~sw ~seekable:false fd (if path = "" then "." else path)
         ~access:`R
         ~flags:Uring.Open_flags.(cloexec + path + directory)
         ~perm:0
@@ -413,12 +409,12 @@ class dir ~label (fd : Low_level.dir_fd) = object
 
   method read_dir path =
     Switch.run @@ fun sw ->
-    let fd = Low_level.open_dir ~sw fd path in
+    let fd = Low_level.open_dir ~sw fd (if path = "" then "." else path) in
     Low_level.read_dir fd
 
   method close =
     match fd with
-    | FD x -> FD.close x
+    | FD x -> Fd.close x
     | Cwd | Fs -> failwith "Can't close non-FD directory!"
 
   method unlink path = Low_level.unlink ~rmdir:false fd path
@@ -441,8 +437,8 @@ let stdenv ~run_event_loop =
   let stdin = source Eio_unix.Fd.stdin in
   let stdout = sink Eio_unix.Fd.stdout in
   let stderr = sink Eio_unix.Fd.stderr in
-  let fs = (new dir ~label:"fs" Fs, ".") in
-  let cwd = (new dir ~label:"cwd" Cwd, ".") in
+  let fs = (new dir ~label:"fs" Fs, "") in
+  let cwd = (new dir ~label:"cwd" Cwd, "") in
   object (_ : stdenv)
     method stdin  = stdin
     method stdout = stdout
@@ -456,6 +452,7 @@ let stdenv ~run_event_loop =
     method cwd = (cwd :> Eio.Fs.dir Eio.Path.t)
     method secure_random = secure_random
     method debug = Eio.Private.Debug.v
+    method backend_id = "linux"
   end
 
 let run_event_loop (type a) ?fallback config (main : _ -> a) arg : a =
@@ -466,18 +463,18 @@ let run_event_loop (type a) ?fallback config (main : _ -> a) arg : a =
       match e with
       | Eio_unix.Private.Get_monotonic_clock -> Some (fun k -> continue k mono_clock)
       | Eio_unix.Net.Import_socket_stream (sw, close_unix, fd) -> Some (fun k ->
-          let fd = FD.of_unix ~sw ~seekable:false ~close_unix fd in
+          let fd = Fd.of_unix ~sw ~seekable:false ~close_unix fd in
           continue k (flow fd :> Eio_unix.Net.stream_socket)
         )
       | Eio_unix.Net.Import_socket_datagram (sw, close_unix, fd) -> Some (fun k ->
-          let fd = FD.of_unix ~sw ~seekable:false ~close_unix fd in
+          let fd = Fd.of_unix ~sw ~seekable:false ~close_unix fd in
           continue k (datagram_socket fd)
         )
       | Eio_unix.Net.Socketpair_stream (sw, domain, protocol) -> Some (fun k ->
           match
             let a, b = Unix.socketpair ~cloexec:true domain Unix.SOCK_STREAM protocol in
-            let a = FD.of_unix ~sw ~seekable:false ~close_unix:true a |> flow in
-            let b = FD.of_unix ~sw ~seekable:false ~close_unix:true b |> flow in
+            let a = Fd.of_unix ~sw ~seekable:false ~close_unix:true a |> flow in
+            let b = Fd.of_unix ~sw ~seekable:false ~close_unix:true b |> flow in
             ((a :> Eio_unix.Net.stream_socket), (b :> Eio_unix.Net.stream_socket))
           with
           | r -> continue k r
@@ -487,8 +484,8 @@ let run_event_loop (type a) ?fallback config (main : _ -> a) arg : a =
       | Eio_unix.Net.Socketpair_datagram (sw, domain, protocol) -> Some (fun k ->
           match
             let a, b = Unix.socketpair ~cloexec:true domain Unix.SOCK_DGRAM protocol in
-            let a = FD.of_unix ~sw ~seekable:false ~close_unix:true a |> datagram_socket in
-            let b = FD.of_unix ~sw ~seekable:false ~close_unix:true b |> datagram_socket in
+            let a = Fd.of_unix ~sw ~seekable:false ~close_unix:true a |> datagram_socket in
+            let b = Fd.of_unix ~sw ~seekable:false ~close_unix:true b |> datagram_socket in
             ((a :> Eio_unix.Net.datagram_socket), (b :> Eio_unix.Net.datagram_socket))
           with
           | r -> continue k r

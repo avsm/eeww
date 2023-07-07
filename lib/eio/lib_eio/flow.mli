@@ -70,8 +70,13 @@ end
 val write : #sink -> Cstruct.t list -> unit
 (** [write dst bufs] writes all bytes from [bufs].
 
-    This is a low level API, consider using {!copy} if possible as it
-    may allow optimizations. *)
+    You should not perform multiple concurrent writes on the same flow
+    (the output may get interleaved).
+
+    This is a low level API. Consider using:
+
+    - {!Buf_write} to combine multiple small writes.
+    - {!copy} for bulk transfers, as it allows some extra optimizations. *)
 
 val copy : #source -> #sink -> unit
 (** [copy src dst] copies data from [src] to [dst] until end-of-file. *)
@@ -111,9 +116,7 @@ val shutdown : #two_way -> shutdown_command -> unit
     Flows are usually attached to switches and closed automatically when the switch
     finishes. However, it can be useful to close them sooner manually in some cases. *)
 
-class type close = object
-  method close : unit
-end
+class type close = Generic.close
 
 val close : #close -> unit
-(** [close t] marks the flow as closed. It can no longer be used after this. *)
+(** Alias of {!Generic.close}. *)

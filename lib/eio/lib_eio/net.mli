@@ -102,7 +102,7 @@ end
 
 (** {2 Provider Interfaces} *)
 
-class virtual socket : object
+class virtual socket : object (<Generic.close; ..>)
   inherit Generic.t
 end
 
@@ -117,21 +117,20 @@ class virtual datagram_socket : object
   method virtual recv : Cstruct.t -> Sockaddr.datagram * int
 end
 
-class virtual listening_socket : object
+class virtual listening_socket : object (<Generic.close; ..>)
   inherit socket
-  method virtual accept : sw:Switch.t -> <stream_socket; Flow.close> * Sockaddr.stream
-  method virtual close : unit
+  method virtual accept : sw:Switch.t -> stream_socket * Sockaddr.stream
 end
 
 class virtual t : object
   method virtual listen : reuse_addr:bool -> reuse_port:bool -> backlog:int -> sw:Switch.t -> Sockaddr.stream -> listening_socket
-  method virtual connect : sw:Switch.t -> Sockaddr.stream -> <stream_socket; Flow.close>
+  method virtual connect : sw:Switch.t -> Sockaddr.stream -> stream_socket
   method virtual datagram_socket :
        reuse_addr:bool
     -> reuse_port:bool
     -> sw:Switch.t
     -> [Sockaddr.datagram | `UdpV4 | `UdpV6]
-    -> <datagram_socket; Flow.close>
+    -> datagram_socket
 
   method virtual getaddrinfo : service:string -> string -> Sockaddr.t list
   method virtual getnameinfo : Sockaddr.t -> (string * string)
@@ -139,7 +138,7 @@ end
 
 (** {2 Out-bound Connections} *)
 
-val connect : sw:Switch.t -> #t -> Sockaddr.stream -> <stream_socket; Flow.close>
+val connect : sw:Switch.t -> #t -> Sockaddr.stream -> stream_socket
 (** [connect ~sw t addr] is a new socket connected to remote address [addr].
 
     The new socket will be closed when [sw] finishes, unless closed manually first. *)
@@ -149,7 +148,7 @@ val with_tcp_connect :
   host:string ->
   service:string ->
   #t ->
-  (<stream_socket; Flow.close> -> 'b) ->
+  (stream_socket -> 'b) ->
   'b
 (** [with_tcp_connect ~host ~service t f] creates a tcp connection [conn] to [host] and [service] and executes 
     [f conn].
@@ -185,7 +184,7 @@ val listen : ?reuse_addr:bool -> ?reuse_port:bool -> backlog:int -> sw:Switch.t 
 val accept :
   sw:Switch.t ->
   #listening_socket ->
-  <stream_socket; Flow.close> * Sockaddr.stream
+  stream_socket * Sockaddr.stream
 (** [accept ~sw socket] waits until a new connection is ready on [socket] and returns it.
 
     The new socket will be closed automatically when [sw] finishes, if not closed earlier.
@@ -256,7 +255,7 @@ val datagram_socket :
   -> sw:Switch.t
   -> #t
   -> [< Sockaddr.datagram | `UdpV4 | `UdpV6]
-  -> <datagram_socket; Flow.close>
+  -> datagram_socket
   (** [datagram_socket ~sw t addr] creates a new datagram socket bound to [addr]. The new 
       socket will be closed when [sw] finishes. 
 
@@ -301,5 +300,6 @@ val getnameinfo : #t -> Sockaddr.t -> (string * string)
     port specified in [sockaddr], e.g. 'ftp', 'http', 'https', etc. *)
 
 (** {2 Closing} *)
-val close : <close: unit; ..> -> unit
-(** [close t] marks the socket as closed. It can no longer be used after this. *)
+
+val close : #Generic.close -> unit
+(** Alias of {!Generic.close}. *)
