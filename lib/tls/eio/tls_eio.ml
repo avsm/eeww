@@ -204,6 +204,7 @@ end
 
 type t = <
   Eio.Flow.two_way;
+  close : unit;
   t : Raw.t;
 >
 
@@ -213,6 +214,7 @@ let of_t t =
     method read_into = Raw.read t
     method copy = Raw.copy_from t
     method shutdown = Raw.shutdown t
+    method close = Raw.close_tls t
     method t = t
   end
 

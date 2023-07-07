@@ -9,7 +9,7 @@ exception Tls_alert   of Tls.Packet.alert_type
 (** [Tls_failure] exception while processing incoming data *)
 exception Tls_failure of Tls.Engine.failure
 
-type t = private < Eio.Flow.two_way; .. >
+type t = private < Eio.Flow.two_way; close : unit; .. >
 
 (** {2 Constructors} *)
 
