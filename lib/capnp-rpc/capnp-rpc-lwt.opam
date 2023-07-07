@@ -21,7 +21,7 @@ depends: [
   "asetmap"
   "uri" {>= "1.6.0"}
   "dune" {>= "3.0"}
-  "eio" {>= "0.7"}
+  "eio" {>= "0.10"}
 ]
 build: [
   ["dune" "build" "-p" name "-j" jobs]

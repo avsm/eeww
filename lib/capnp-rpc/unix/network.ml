@@ -67,7 +67,7 @@ let addr_of_host host =
     if Array.length addr.Unix.h_addr_list = 0 then
       Capnp_rpc.Debug.failf "No addresses found for host name %S" host
     else
-      Eio_unix.Ipaddr.of_unix addr.Unix.h_addr_list.(0)
+      Eio_unix.Net.Ipaddr.of_unix addr.Unix.h_addr_list.(0)
 
 let connect net ~sw ~secret_key (addr, auth) =
   let eio_addr =
@@ -84,13 +84,10 @@ let connect net ~sw ~secret_key (addr, auth) =
       | `Unix _ -> ()
       | `TCP _ ->
         (* TODO: check it's OK to set keep-alives after connecting *)
-(* TODO add keepalive into eio *)
-(*
-        let fd = Eio_unix.Resource.fd_opt socket |> Option.get in
-        Eio_unix.Fd.use_exn "keepalive" fd (fun socket ->
-          Unix.setsockopt socket Unix.SO_KEEPALIVE true;
-          Keepalive.try_set_idle socket 60)
-*) ()
+        let socket = Eio_unix.Resource.fd_opt socket |> Option.get in
+        Eio_unix.Fd.use_exn "keep-alive" socket @@ fun socket ->
+        Unix.setsockopt socket Unix.SO_KEEPALIVE true;
+        (* Keepalive.try_set_idle socket 60 *)
     end;
     Tls_wrapper.connect_as_client socket secret_key auth
   | exception ex ->
