@@ -1,4 +1,0 @@
-(test
- (package ctypes-foreign)
- (name test_alignment)
- (libraries ounit2 ctypes ctypes-foreign))
