@@ -15,4 +15,3 @@ eeww --email avsm@recoil.org --org OCaml --domain ocaml.org --prod
 
 This will change to a config file soon.
 
-
